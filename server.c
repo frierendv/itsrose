@@ -15,12 +15,13 @@
 #define PORT 2806
 #define LISTENQ 10
 #define PUBLIC_HTML "html"
+#define BUFFER_SIZE 4096
 
 int list_s;
 
 typedef struct {
     int returncode;
-    char *filename;
+    char filename[256];
 } httpRequest;
 
 typedef struct {
@@ -28,226 +29,117 @@ typedef struct {
     int totalbytes;
 } sharedVariables;
 
-const char *header200 = "HTTP/1.0 200 OK\nServer: ItsRose One\nContent-Type: text/html\n\n";
-const char *header400 = "HTTP/1.0 400 Bad Request\nServer: ItsRose One\nContent-Type: text/html\n\n";
-const char *header404 = "HTTP/1.0 404 Not Found\nServer: ItsRose One\nContent-Type: text/html\n\n";
+const char *header200 = "HTTP/1.0 200 OK\r\nServer: ItsRose One\r\nContent-Type: text/html\r\n\r\n";
+const char *header400 = "HTTP/1.0 400 Bad Request\r\nServer: ItsRose One\r\nContent-Type: text/html\r\n\r\n";
+const char *header404 = "HTTP/1.0 404 Not Found\r\nServer: ItsRose One\r\nContent-Type: text/html\r\n\r\n";
 
-char *getMessage(int fd) {
-    FILE *sstream = fdopen(fd, "r");
-    if (!sstream) {
-        perror("Error opening file descriptor in getMessage()");
-        exit(EXIT_FAILURE);
-    }
-
-    size_t size = 0;
-    char *block = NULL;
-    char *line = NULL;
-    ssize_t len;
-
-    while ((len = getline(&line, &size, sstream)) != -1) {
-        if (strcmp(line, "\r\n") == 0) {
-            break;
-        }
-        block = realloc(block, (block ? strlen(block) : 0) + len + 1);
-        strcat(block, line);
-    }
-
-    free(line);
-    return block;
-}
-
-int sendMessage(int fd, const char *msg) {
-    return write(fd, msg, strlen(msg));
-}
-
-char *getFileName(const char *msg) {
-    char *file = malloc(strlen(msg));
-    if (!file) {
-        perror("Error allocating memory to file in getFileName()");
-        exit(EXIT_FAILURE);
-    }
-
-    sscanf(msg, "GET %s HTTP/1.1", file);
-
-    char *base = malloc(strlen(file) + strlen(PUBLIC_HTML) + 1);
-    if (!base) {
-        perror("Error allocating memory to base in getFileName()");
-        exit(EXIT_FAILURE);
-    }
-
-    strcpy(base, PUBLIC_HTML);
-    strcat(base, file);
-
-    free(file);
-    return base;
+int sendMessage(int fd, const char *msg, size_t len) {
+    return write(fd, msg, len);
 }
 
 httpRequest parseRequest(const char *msg) {
     httpRequest ret;
-    char *filename = getFileName(msg);
+    sscanf(msg, "GET %255s HTTP/1.1", ret.filename);
 
-    if (strstr(filename, "..")) {
+    if (strstr(ret.filename, "..")) {
         ret.returncode = 400;
-        ret.filename = "400.html";
-    } else if (strcmp(filename, PUBLIC_HTML "/") == 0) {
+        strcpy(ret.filename, "400.html");
+    } else if (strcmp(ret.filename, "/") == 0) {
         ret.returncode = 200;
-        ret.filename = PUBLIC_HTML "/index.html";
-    } else if (fopen(filename, "r")) {
-        ret.returncode = 200;
-        ret.filename = filename;
+        strcpy(ret.filename, PUBLIC_HTML "/index.html");
     } else {
-        ret.returncode = 404;
-        ret.filename = "404.html";
+        struct stat st;
+        char path[512];
+        snprintf(path, sizeof(path), "%s%s", PUBLIC_HTML, ret.filename);
+        if (stat(path, &st) == 0) {
+            ret.returncode = 200;
+            strcpy(ret.filename, path);
+        } else {
+            ret.returncode = 404;
+            strcpy(ret.filename, "404.html");
+        }
     }
 
     return ret;
 }
 
 int printFile(int fd, const char *filename) {
+    int total = 0;
+    char buffer[BUFFER_SIZE];
     FILE *read = fopen(filename, "r");
-    if (!read) {
-        perror("Error opening file in printFile()");
-        exit(EXIT_FAILURE);
+    if (!read) return 0;
+
+    while (fgets(buffer, sizeof(buffer), read)) {
+        int len = strlen(buffer);
+        write(fd, buffer, len);
+        total += len;
     }
-
-    struct stat st;
-    stat(filename, &st);
-    int totalsize = st.st_size;
-
-    char *line = NULL;
-    size_t size = 0;
-    ssize_t len;
-
-    while ((len = getline(&line, &size, read)) != -1) {
-        sendMessage(fd, line);
-    }
-
-    sendMessage(fd, "\n");
-    free(line);
     fclose(read);
-    return totalsize;
+    return total;
 }
 
 void cleanup(int sig) {
-    printf("Cleaning up connections and exiting.\n");
-
-    if (close(list_s) < 0) {
-        perror("Error calling close()");
-        exit(EXIT_FAILURE);
-    }
-
+    close(list_s);
     shm_unlink("/sharedmem");
     exit(EXIT_SUCCESS);
-}
-
-int printHeader(int fd, int returncode) {
-    const char *header;
-    switch (returncode) {
-        case 200:
-            header = header200;
-            break;
-        case 400:
-            header = header400;
-            break;
-        case 404:
-            header = header404;
-            break;
-        default:
-            return 0;
-    }
-    sendMessage(fd, header);
-    return strlen(header);
 }
 
 int recordTotalBytes(int bytes_sent, sharedVariables *mempointer) {
     pthread_mutex_lock(&mempointer->mutexlock);
     mempointer->totalbytes += bytes_sent;
+    int total = mempointer->totalbytes;
     pthread_mutex_unlock(&mempointer->mutexlock);
-    return mempointer->totalbytes;
+    return total;
 }
 
 int main(int argc, char *argv[]) {
     int conn_s;
-    short int port = PORT;
     struct sockaddr_in servaddr;
-
     signal(SIGINT, cleanup);
 
-    if ((list_s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("Error creating listening socket.");
-        exit(EXIT_FAILURE);
-    }
+    list_s = socket(AF_INET, SOCK_STREAM, 0);
+    if (list_s < 0) exit(EXIT_FAILURE);
 
     memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(port);
+    servaddr.sin_addr.s_addr = INADDR_ANY;
+    servaddr.sin_port = htons(PORT);
 
-    if (bind(list_s, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-        perror("Error calling bind()");
-        exit(EXIT_FAILURE);
-    }
-
-    if (listen(list_s, LISTENQ) == -1) {
-        perror("Error Listening");
-        exit(EXIT_FAILURE);
-    }
+    if (bind(list_s, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) exit(EXIT_FAILURE);
+    if (listen(list_s, LISTENQ) == -1) exit(EXIT_FAILURE);
 
     shm_unlink("/sharedmem");
-
     int sharedmem = shm_open("/sharedmem", O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
-    if (sharedmem == -1) {
-        perror("Error opening sharedmem in main()");
-        exit(EXIT_FAILURE);
-    }
-
     ftruncate(sharedmem, sizeof(sharedVariables));
     sharedVariables *mempointer = mmap(NULL, sizeof(sharedVariables), PROT_READ | PROT_WRITE, MAP_SHARED, sharedmem, 0);
-
-    if (mempointer == MAP_FAILED) {
-        perror("Error setting shared memory for sharedVariables in recordTotalBytes()");
-        exit(EXIT_FAILURE);
-    }
-
     pthread_mutex_init(&mempointer->mutexlock, NULL);
     mempointer->totalbytes = 0;
 
-    int addr_size = sizeof(servaddr);
-    int headersize, pagesize, totaldata;
-    int children = 0;
-    pid_t pid;
-
-    while (1) {
-        if (children <= 10) {
-            pid = fork();
-            children++;
-        }
-
-        if (pid == -1) {
-            perror("can't fork");
-            exit(EXIT_FAILURE);
-        }
-
-        if (pid == 0) {
-            while (1) {
-                conn_s = accept(list_s, (struct sockaddr *)&servaddr, &addr_size);
-
-                if (conn_s == -1) {
-                    perror("Error accepting connection");
-                    exit(EXIT_FAILURE);
-                }
-
-                char *header = getMessage(conn_s);
-                httpRequest details = parseRequest(header);
-                free(header);
-
-                headersize = printHeader(conn_s, details.returncode);
-                pagesize = printFile(conn_s, details.filename);
-                totaldata = recordTotalBytes(headersize + pagesize, mempointer);
-
-                printf("Process %d served a request of %d bytes. Total bytes sent %d\n", getpid(), headersize + pagesize, totaldata);
-                close(conn_s);
+    while ((conn_s = accept(list_s, NULL, NULL)) != -1) {
+        httpRequest req;
+        char buffer[BUFFER_SIZE];
+        int bytes = read(conn_s, buffer, sizeof(buffer) - 1);
+        if (bytes > 0) {
+            buffer[bytes] = '\0';
+            req = parseRequest(buffer);
+            const char *header;
+            switch (req.returncode) {
+                case 200:
+                    header = header200;
+                    break;
+                case 400:
+                    header = header400;
+                    break;
+                case 404:
+                    header = header404;
+                    break;
+                default:
+                    header = header400;
             }
+            int headersize = sendMessage(conn_s, header, strlen(header));
+            int pagesize = printFile(conn_s, req.filename);
+            int total = recordTotalBytes(headersize + pagesize, mempointer);
+            close(conn_s);
         }
     }
 
