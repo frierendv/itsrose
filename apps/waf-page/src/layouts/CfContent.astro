@@ -1,0 +1,15 @@
+---
+type Props = {
+	cfTag: string;
+};
+const { cfTag } = Astro.props as Props;
+---
+
+<div
+	class="__cf__content"
+	role="status"
+	aria-live="polite"
+	aria-label="CF Content"
+>
+	{cfTag}
+</div>
