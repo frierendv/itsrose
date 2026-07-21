@@ -1,0 +1,43 @@
+{
+	"name": "@itsrose/mtxx",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"type": "module",
+	"license": "MIT",
+	"description": "Typed client for the MTXX image generation and enhancement service.",
+	"repository": "frierendv/itsrose.git",
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "src/index.ts",
+	"keywords": [
+		"api",
+		"image",
+		"itsrose",
+		"mtxx",
+		"typescript"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"build:fast": "tsdown src",
+		"clean": "rimraf dist .sonda",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"postpack": "clean-package restore",
+		"prepack": "clean-package",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@itsrose/common": "*",
+		"@itsrose/http-client": "*",
+		"@itsrose/shared-schema": "*",
+		"@itsrose/system": "*",
+		"moment": "^2.30.1",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@itsrose/eslint-config": "*",
+		"@itsrose/tsdown-config": "*",
+		"@itsrose/typescript-config": "*"
+	},
+	"clean-package": "../../../clean-package.config.json"
+}
