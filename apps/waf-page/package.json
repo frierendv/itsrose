@@ -1,0 +1,14 @@
+{
+	"name": "waf-page",
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"astro": "astro",
+		"build": "astro build",
+		"dev": "astro dev",
+		"preview": "astro preview"
+	},
+	"dependencies": {
+		"astro": "^7.0.6"
+	}
+}

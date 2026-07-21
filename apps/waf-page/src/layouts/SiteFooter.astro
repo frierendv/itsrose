@@ -1,0 +1,51 @@
+---
+type Props = {
+	siteName: string;
+	supportEmail: string;
+};
+const { siteName, supportEmail } = Astro.props as Props;
+---
+
+<footer class="site__footer" role="contentinfo">
+	<hr class="site__footer__divider" />
+
+	<span class="site__footer__cf-info">
+		Cloudflare Ray ID:
+		<span class="__cf__ray-id"> ::RAY_ID:: </span>
+
+		<span class="__separator"> • </span>
+
+		Your IP:
+
+		<button id="cf-footer-ip-reveal" class="btn"> Click to reveal </button>
+
+		<span id="cf-footer-ip" class="hidden"> ::CLIENT_IP:: </span>
+
+		<span class="__separator"> • </span>
+
+		Performance &amp; security by{" "}
+		<a
+			href="https://www.cloudflare.com"
+			target="_blank"
+			rel="noopener noreferrer"
+			aria-label="Cloudflare website"
+		>
+			Cloudflare
+		</a>
+	</span>
+	<span class="site__contact">
+		Need assistance or believe this was triggered in error? Contact our{" "}
+		<a
+			href={`mailto:${supportEmail}?subject=ItsRose%20Page%20Support`}
+			target="_blank"
+			rel="noopener noreferrer"
+			aria-label="Contact the ItsRose support team via email"
+		>
+			support
+		</a>.
+	</span>
+
+	<span class="site__footer__copyright">
+		© 2025 {siteName}. All rights reserved.
+	</span>
+</footer>
