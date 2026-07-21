@@ -1,0 +1,97 @@
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import AutoLoad, { type AutoloadPluginOptions } from "@fastify/autoload";
+import { FailureResponse, SuccessResponse } from "@itsrose/api-response";
+import type { FastifyPluginAsync } from "fastify";
+import {
+	createSerializerCompiler,
+	validatorCompiler,
+} from "fastify-zod-openapi";
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const __filename = fileURLToPath(import.meta.url);
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const __dirname = dirname(__filename);
+
+export type AppOptions = {
+	// Place your custom options for app below here.
+} & Partial<AutoloadPluginOptions>;
+
+// Pass --options via CLI arguments in command to enable these options.
+const options: AppOptions = {};
+
+const app: FastifyPluginAsync<AppOptions> = async (
+	fastify,
+	opts
+): Promise<void> => {
+	/**
+	 * Plugin compilers for OpenAPI validation and serialization using Zod schemas.
+	 * These compilers will be used by the OpenAPI plugin to validate incoming requests
+	 * and serialize outgoing responses based on the Zod schemas defined in the route handlers.
+	 */
+	fastify.setValidatorCompiler(validatorCompiler);
+	const serializerCompiler = createSerializerCompiler({
+		stringify(value) {
+			if (
+				value instanceof SuccessResponse ||
+				value instanceof FailureResponse
+			) {
+				return JSON.stringify(value);
+			}
+			return JSON.stringify(
+				new SuccessResponse({ data: value, code: "OK" })
+			);
+		},
+	});
+	fastify.setSerializerCompiler(serializerCompiler);
+
+	/**
+	 * Register OpenAPI plugin
+	 */
+	await fastify.register(AutoLoad, {
+		dir: join(__dirname, "plugins/openapi"),
+		options: { ...opts },
+	});
+
+	// #if DEV
+	/** Register Scalar UI plugin */
+	await fastify.register(AutoLoad, {
+		dir: join(__dirname, "plugins/~dev"),
+		options: { ...opts },
+	});
+	// #endif
+
+	/**
+	 * Register external plugins
+	 */
+	await fastify.register(AutoLoad, {
+		dir: join(__dirname, "plugins/external"),
+		options: { ...opts },
+	});
+	/**
+	 * Register tracking plugins (request logging, metrics, etc)
+	 */
+	await fastify.register(AutoLoad, {
+		dir: join(__dirname, "plugins/tracking"),
+		options: { ...opts },
+	});
+
+	/**
+	 * Register app plugins
+	 */
+	void fastify.register(AutoLoad, {
+		dir: join(__dirname, "plugins/app"),
+		options: { ...opts },
+	});
+
+	/**
+	 * Register routes
+	 */
+	void fastify.register(AutoLoad, {
+		dir: join(__dirname, "routes"),
+		options: { ...opts },
+	});
+};
+
+export default app;
+export { app, options };
