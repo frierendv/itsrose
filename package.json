@@ -1,0 +1,56 @@
+{
+	"name": "itsrose",
+	"private": true,
+	"description": "ItsRose Platform",
+	"repository": "frierendv/itsrose.git",
+	"engines": {
+		"node": ">=24"
+	},
+	"scripts": {
+		"build": "turbo run build",
+		"build:no-cache": "turbo run build --no-cache",
+		"clean": "turbo run clean",
+		"dev": "turbo run dev",
+		"format": "prettier --write \"**/*.{ts,tsx,md}\" --ignore-path .gitignore && syncpack format",
+		"lint": "turbo run lint",
+		"lint:fix": "turbo run lint:fix",
+		"plop": "plop",
+		"postinstall": "patch-package",
+		"test": "jest --verbose --runInBand --passWithNoTests",
+		"typecheck": "turbo run typecheck"
+	},
+	"dependencies": {
+		"patch-package": "^8.0.1"
+	},
+	"devDependencies": {
+		"@boneskull/typedoc-plugin-mermaid": "^0.2.1",
+		"@ianvs/prettier-plugin-sort-imports": "^4.7.1",
+		"@types/jest": "^30.0.0",
+		"@types/node": "24.12.0",
+		"@typhonjs-typedoc/ts-lib-docs": "^2024.12.25",
+		"@vercel/nft": "^1.10.2",
+		"clean-package": "^2.2.0",
+		"jest": "^30.4.2",
+		"jiti": "^2.7.0",
+		"plop": "^4.0.5",
+		"prettier": "^3.8.4",
+		"rimraf": "^6.1.3",
+		"syncpack": "^15.3.1",
+		"ts-jest": "^29.4.11",
+		"ts-node": "^10.9.2",
+		"tsdown": "^0.22.3",
+		"tsx": "^4.22.4",
+		"turbo": "^2.9.18",
+		"typedoc": "^0.28.20",
+		"typedoc-plugin-dt-links": "^2.0.64",
+		"typedoc-plugin-hash-link-references": "^1.0.2",
+		"typedoc-plugin-mdn-links": "^5.1.1",
+		"typedoc-plugin-zod": "^1.4.3",
+		"typescript": "^5.9.3"
+	},
+	"packageManager": "npm@11.7.0",
+	"workspaces": [
+		"apps/*",
+		"packages/**/*"
+	]
+}
