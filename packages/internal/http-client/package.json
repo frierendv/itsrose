@@ -1,0 +1,40 @@
+{
+	"name": "@itsrose/http-client",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"type": "module",
+	"license": "MIT",
+	"description": "Axios-based HTTP client wrapper with retry and promise helpers.",
+	"repository": "frierendv/itsrose.git",
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "src/index.ts",
+	"keywords": [
+		"axios",
+		"client",
+		"http",
+		"itsrose",
+		"typescript"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"build:fast": "tsdown src",
+		"clean": "rimraf dist .sonda",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"postpack": "clean-package restore",
+		"prepack": "clean-package",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@itsrose/system": "*",
+		"axios": "^1.17.0",
+		"axios-retry": "^4.5.0"
+	},
+	"devDependencies": {
+		"@itsrose/eslint-config": "*",
+		"@itsrose/tsdown-config": "*",
+		"@itsrose/typescript-config": "*"
+	},
+	"clean-package": "../../../clean-package.config.json"
+}
