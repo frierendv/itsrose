@@ -1,0 +1,44 @@
+{
+	"name": "@itsrose/api-response",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"private": true,
+	"type": "module",
+	"sideEffects": false,
+	"license": "MIT",
+	"description": "Shared helpers for building typed success and failure API responses.",
+	"repository": "frierendv/itsrose.git",
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "src/index.ts",
+	"files": [
+		"dist"
+	],
+	"keywords": [
+		"api",
+		"errors",
+		"itsrose",
+		"response",
+		"typescript"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"build:fast": "tsdown src",
+		"clean": "rimraf dist .sonda",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"postpack": "clean-package restore",
+		"prepack": "clean-package",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@itsrose/http-code": "*",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@itsrose/eslint-config": "*",
+		"@itsrose/tsdown-config": "*",
+		"@itsrose/typescript-config": "*"
+	},
+	"clean-package": "../../../clean-package.config.json"
+}
