@@ -1,0 +1,38 @@
+{
+	"name": "@itsrose/fastify-utils",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"type": "module",
+	"license": "MIT",
+	"description": "Fastify-focused shared helpers and schemas.",
+	"repository": "frierendv/itsrose.git",
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "src/index.ts",
+	"keywords": [
+		"fastify",
+		"itsrose",
+		"typescript",
+		"utilities"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"build:fast": "tsdown src",
+		"clean": "rimraf dist .sonda",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"postpack": "clean-package restore",
+		"prepack": "clean-package",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"hyperid": "^4.0.0",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@itsrose/eslint-config": "*",
+		"@itsrose/tsdown-config": "*",
+		"@itsrose/typescript-config": "*"
+	},
+	"clean-package": "../../../clean-package.config.json"
+}
