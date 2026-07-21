@@ -1,0 +1,8 @@
+{
+	"extends": "@itsrose/typescript-config/esm.json",
+	"include": ["src", "__tests__"],
+	"compilerOptions": {
+		"noUncheckedIndexedAccess": true
+	},
+	"exclude": ["node_modules", "dist"]
+}
