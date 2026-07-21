@@ -7,5 +7,5 @@
 		"eslint --fix --config packages/shared-config/eslint/react-internal.js",
 		"prettier --write"
 	],
-	"*.{json}": ["prettier --write"]
+	"*.json": ["prettier --write"]
 }
