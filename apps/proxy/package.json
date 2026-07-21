@@ -1,0 +1,36 @@
+{
+	"name": "proxy",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"type": "module",
+	"license": "MIT",
+	"description": "Server proxy",
+	"repository": "frierendv/itsrose.git",
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "src/server.ts",
+	"scripts": {
+		"build": "tsdown",
+		"dev": "tsx src/server.ts",
+		"format": "prettier --write .",
+		"lint": "eslint . --ext .ts",
+		"start": "node dist/server.js"
+	},
+	"dependencies": {
+		"@fastify/autoload": "^6.3.1",
+		"@fastify/helmet": "^13.0.2",
+		"@fastify/http-proxy": "^11.5.0",
+		"@itsrose/fastify-utils": "^1.0.0",
+		"@itsrose/http-code": "^1.0.0",
+		"@itsrose/logger": "^1.0.0",
+		"fast-xml-builder": "^1.2.0",
+		"fastify": "^5.8.5",
+		"fastify-plugin": "^5.1.0"
+	},
+	"devDependencies": {
+		"@itsrose/eslint-config": "*",
+		"@itsrose/tsdown-config": "*",
+		"@itsrose/typescript-config": "*"
+	},
+	"clean-package": "./clean-package.config.json"
+}

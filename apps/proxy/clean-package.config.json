@@ -1,0 +1,6 @@
+{
+	"remove": ["devDependencies"],
+	"replace": {
+		"main": "dist/server.js"
+	}
+}
