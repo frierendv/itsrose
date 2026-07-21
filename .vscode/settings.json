@@ -1,0 +1,25 @@
+{
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "always"
+	},
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.detectIndentation": false,
+	"[typescript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"js/ts.tsdk.path": "node_modules/typescript/lib",
+	"jest.runMode": {
+		"type": "on-demand"
+	},
+	"yaml.schemas": {
+		"https://www.schemastore.org/github-workflow.json": [
+			"/.github/workflows/*"
+		]
+	},
+	"[dockerfile]": {
+		"editor.defaultFormatter": "ms-azuretools.vscode-containers"
+	},
+	"[astro]": {
+		"editor.defaultFormatter": "astro-build.astro-vscode"
+	}
+}

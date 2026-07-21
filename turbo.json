@@ -1,0 +1,44 @@
+{
+	"$schema": "https://turborepo.dev/schema.json",
+	"ui": "tui",
+	"cacheMaxAge": "30s",
+	"globalDependencies": [".env"],
+	"globalEnv": ["IS_DEV", "LOG_LEVEL", "NODE_*"],
+	"tasks": {
+		"build": {
+			"dependsOn": ["^build"],
+			"inputs": ["$TURBO_DEFAULT$", ".env*"],
+			"outputs": [
+				".next/**",
+				"!.next/cache/**",
+				"!.next/dev/**",
+				"dist/**"
+			]
+		},
+		"lint": {
+			"dependsOn": ["^lint"],
+			"cache": false
+		},
+		"lint:fix": {
+			"dependsOn": ["^lint:fix"],
+			"cache": false
+		},
+		"typecheck": {
+			"dependsOn": ["^typecheck"]
+		},
+		"clean": {
+			"cache": false
+		},
+		"prepack": {
+			"dependsOn": ["build"],
+			"cache": false
+		},
+		"postpack": {
+			"cache": false
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		}
+	}
+}

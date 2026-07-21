@@ -1,0 +1,35 @@
+# VCS
+.git
+.gitignore
+
+# Node / package managers
+**/node_modules
+**/.pnpm-store
+**/.yarn
+**/.yarn-cache
+**/.npm
+**/.cache
+
+# Turbo / build caches
+**/.turbo
+**/.next
+**/dist
+**/build
+**/out
+**/coverage
+
+# Logs
+**/*.log
+
+# Env / secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# OS/editor junk
+.DS_Store
+.idea
+.vscode
