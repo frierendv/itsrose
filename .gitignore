@@ -45,3 +45,6 @@ data
 
 # Internal test
 internal-test
+
+# Ignore for now
+package-lock.json
