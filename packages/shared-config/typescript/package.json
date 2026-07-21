@@ -1,0 +1,15 @@
+{
+	"name": "@itsrose/typescript-config",
+	"version": "1.0.0",
+	"private": true,
+	"license": "MIT",
+	"description": "Shared TypeScript configuration presets for the ItsRose monorepo.",
+	"keywords": [
+		"config",
+		"itsrose",
+		"typescript"
+	],
+	"publishConfig": {
+		"access": "public"
+	}
+}
