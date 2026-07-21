@@ -1,0 +1,11 @@
+{
+	"*.{js,ts}": [
+		"eslint --fix --config packages/shared-config/eslint/base.js",
+		"prettier --write "
+	],
+	"*.{tsx,jsx}": [
+		"eslint --fix --config packages/shared-config/eslint/react-internal.js",
+		"prettier --write"
+	],
+	"*.{json}": ["prettier --write"]
+}
