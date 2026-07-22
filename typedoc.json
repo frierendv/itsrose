@@ -2,21 +2,26 @@
 	"$schema": "https://typedoc.org/schema.json",
 	"name": "ItsRose Documentation",
 	"plugin": [
+		"@boneskull/typedoc-plugin-mermaid",
 		"typedoc-plugin-mdn-links",
 		"typedoc-plugin-dt-links",
-		"@typhonjs-typedoc/ts-lib-docs/typedoc/ts-links/dom/2024",
-		"@typhonjs-typedoc/ts-lib-docs/typedoc/ts-links/es/2024",
 		"typedoc-plugin-hash-link-references",
-		"typedoc-plugin-zod",
-		"@boneskull/typedoc-plugin-mermaid"
+		"typedoc-plugin-zod"
 	],
+	"packagesRequiringDocumentation": ["typedoc", "typedoc-plugin-mdn-links"],
 	"out": "./docs",
 	"customCss": "./assets/css/typedoc-theme.css",
 	"entryPoints": ["packages/**/*"],
 	"entryPointStrategy": "packages",
 	"packageOptions": {
-		"entryPoints": ["src/index.ts"]
+		"entryPoints": ["src/index.ts"],
+		"gitRemote": "upstream",
+		"gitRevision": "development",
+		"sourceLinkTemplate": "https://git.itsrose.net/itsrose/itsrose/blame/branch/{gitRevision}/{path}#L{line}"
 	},
+	"sourceLinkExternal": true,
+	"darkHighlightTheme": "rose-pine-moon",
+	"lightHighlightTheme": "rose-pine-dawn",
 	"navigation": {
 		"compactFolders": true,
 		"includeFolders": true,
@@ -33,5 +38,6 @@
 	"includeVersion": true,
 	"externalSymbolLinkMappings": {
 		"@itsrose/logger": { "pinoTransport": "#" }
-	}
+	},
+	"additionalModuleSources": ["typescript", "@types/node", "@types/jest"]
 }

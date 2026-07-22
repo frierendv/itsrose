@@ -32,7 +32,6 @@
 		"@ianvs/prettier-plugin-sort-imports": "^4.7.1",
 		"@types/jest": "^30.0.0",
 		"@types/node": "24.12.0",
-		"@typhonjs-typedoc/ts-lib-docs": "^2024.12.25",
 		"@vercel/nft": "^1.10.2",
 		"clean-package": "^2.2.0",
 		"husky": "^9.1.7",
