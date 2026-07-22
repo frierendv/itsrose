@@ -7,28 +7,20 @@ export type GetEnvOptions = {
 	/** @default false */
 	isRequired?: boolean;
 	/**
-	 * Determine should allow empty value.
-	 *
-	 * @type {?boolean}
+	 * Determine if an empty string should be treated as a valid value.
 	 * @default false
 	 */
 	allowEmpty?: boolean;
 	/**
-	 * Default value if env[name] not found.
-	 *
-	 * @type {?string}
+	 * Default value if the environment variable is not found.
 	 */
 	defaultValue?: string;
 	/**
-	 * Pre-process the env[name] value before passing it.
-	 *
-	 * @type {?(value: string) => unknown}
+	 * Pre-process the resolved value before returning it.
 	 */
 	preprocess?: (value: string) => unknown;
 	/**
-	 * Custom message for error when failed to read env[name]
-	 *
-	 * @type {?(string | ((key: string) => string))}
+	 * Custom message or message factory for when a required variable is missing.
 	 */
 	message?: string | ((key: string) => string);
 };
@@ -36,7 +28,7 @@ export type GetEnvOptions = {
 /**
  * Infers the return type based on the provided environment options.
  */
-export type ReadEnvReturnType<T extends GetEnvOptions> = T extends {
+export type ResolvedEnvValue<T extends GetEnvOptions> = T extends {
 	preprocess: (value: string) => infer R;
 }
 	? R
@@ -51,53 +43,48 @@ export type ReadEnvReturnType<T extends GetEnvOptions> = T extends {
 /**
  * Read an environment variable and optionally validate or transform it.
  *
- * @param key - Environment variable name.
- * @param options - Validation and preprocessing options.
- * @returns The resolved environment value.
+ * @template {keyof NodeJS.ProcessEnv} K
+ * @template {GetEnvOptions} [T=GetEnvOptions]
+ * @param {K} key Environment variable name.
+ * @param {T} [options={} as T] Validation and preprocessing options.
+ * @returns {ResolvedEnvValue<T>} The resolved environment value.
  */
 export const getEnv = <
 	K extends keyof NodeJS.ProcessEnv,
-	T extends GetEnvOptions,
+	T extends GetEnvOptions = GetEnvOptions,
 >(
 	key: K,
-	options?: T
-): ReadEnvReturnType<T> => {
-	const value = process.env[key];
+	options: T = {} as T
+): ResolvedEnvValue<T> => {
+	const { isRequired, allowEmpty, defaultValue, preprocess, message } =
+		options;
 
-	if (options?.isRequired && (!value || value === "")) {
-		const message = options.message
-			? typeof options.message === "function"
-				? options.message(String(key))
-				: options.message
-			: `Missing environment variable: ${key}`;
-		throw new SystemError(message);
+	const rawValue = process.env[key];
+	const isMissingOrEmpty = rawValue === undefined || rawValue === "";
+
+	// Enforce requirement check immediately
+	if (isRequired && isMissingOrEmpty) {
+		const errorMessage =
+			typeof message === "function"
+				? message(String(key))
+				: (message ?? `Missing environment variable: ${String(key)}`);
+
+		throw new SystemError(errorMessage);
 	}
 
-	if (options?.allowEmpty && value === "") {
-		return undefined as ReadEnvReturnType<T>;
+	// If allowEmpty is true and the value is "", we keep the "" instead of falling back.
+	const resolvedValue =
+		isMissingOrEmpty && !(allowEmpty && rawValue === "")
+			? defaultValue
+			: rawValue;
+
+	if (resolvedValue === undefined || (resolvedValue === "" && !allowEmpty)) {
+		return undefined as ResolvedEnvValue<T>;
 	}
 
-	if (value === undefined || value === "") {
-		if (options?.defaultValue !== undefined) {
-			if (options?.preprocess) {
-				return options.preprocess(
-					options.defaultValue
-				) as ReadEnvReturnType<T>;
-			}
-
-			return options.defaultValue as ReadEnvReturnType<T>;
-		}
-
-		if (options?.allowEmpty) {
-			return undefined as ReadEnvReturnType<T>;
-		}
-
-		return undefined as ReadEnvReturnType<T>;
+	if (preprocess) {
+		return preprocess(resolvedValue) as ResolvedEnvValue<T>;
 	}
 
-	if (options?.preprocess) {
-		return options.preprocess(value) as ReadEnvReturnType<T>;
-	}
-
-	return value as ReadEnvReturnType<T>;
+	return resolvedValue as ResolvedEnvValue<T>;
 };
