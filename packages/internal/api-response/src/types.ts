@@ -7,40 +7,42 @@ export type ResponseKind = "failure" | "success";
 export type InternalAnyProps<P = unknown> = Record<string, P>;
 
 /** @internal */
-export type PickMeta<T> = T extends { meta: infer M }
-	? M extends object
-		? M
+export type PickMeta<T> = T extends { meta: infer Meta }
+	? Meta extends object
+		? Meta
 		: InternalAnyProps<never>
 	: InternalAnyProps<never>;
 
 /** @internal */
-export type OmitMeta<T> = T extends { meta: infer _M } ? Omit<T, "meta"> : T;
+export type OmitMeta<T> = T extends { meta: infer _M }
+	? { [P in Exclude<keyof T, "meta">]: T[P] }
+	: T;
 
-export interface IResponseProps<
-	Type extends ResponseKind,
-	T = object,
+export type Merge<A, B> = { [K in keyof (A & B)]: (A & B)[K] } & {};
+
+export type ResponseProps<
+	Kind extends ResponseKind,
+	T = InternalAnyProps,
 	Meta extends object = InternalAnyProps,
-> extends InternalAnyProps {
-	data?: Type extends "success" ? T : null;
-	errors?: Type extends "failure" ? T : null;
+> = {
 	message?: string;
 	meta?: Meta;
-	code?: keyof (Type extends "success" ? SuccessCode : ErrorCode);
-}
+	code?: keyof (Kind extends "success" ? SuccessCode : ErrorCode);
+} & (Kind extends "success" ? { data: T } : { errors: T });
 
 export interface IResponse<
-	Type extends ResponseKind,
-	T = object,
+	Kind extends ResponseKind,
+	T = InternalAnyProps,
 	Meta extends object = InternalAnyProps,
 > {
 	/**
 	 * Property `ok` always `true` on success response.
 	 *
-	 * @type {Type extends "success" ? true : false}
+	 * @type {Kind extends "success" ? true : false}
 	 */
-	ok: Type extends "success" ? true : false;
+	ok: Kind extends "success" ? true : false;
 	/**
-	 * Given response code.
+	 * Actual response code number.
 	 *
 	 * @type {number}
 	 */
@@ -54,20 +56,32 @@ export interface IResponse<
 	/**
 	 * Property `data` always `null` on failure response.
 	 *
-	 * @type {Type extends "success" ? OmitMeta<T> : null}
+	 * **Note**: `meta` property in `object.<data>` is disallowed.
+	 * All object from `meta` moved to root `object.<meta>`
+	 *
+	 * @type {Kind extends "success" ? OmitMeta<T> : null}
 	 */
-	data: Type extends "success" ? OmitMeta<T> : null;
+	data: Kind extends "success" ? OmitMeta<T> : null;
 	/**
 	 * Property `errors` always `null` on success response.
 	 *
-	 * @type {Type extends "failure" ? OmitMeta<T> : null}
+	 * **Note**: `meta` property in `object.<errors>` is disallowed.
+	 * All object from `meta` moved to root `object.<meta>`
+	 *
+	 * @type {Kind extends "failure" ? OmitMeta<T> : null}
 	 */
-	errors: Type extends "failure" ? OmitMeta<T> : null;
+	errors: Kind extends "failure" ? OmitMeta<T> : null;
 	/**
-	 * Omited `meta` from `data` or `errors` property.
+	 * Additional metadata merged with _`<data | errors>.meta`_ property if exist.
 	 *
 	 * @type {(Meta & PickMeta<T>)}
 	 * @default {}
 	 */
-	meta: Meta & PickMeta<T>;
+	meta: Merge<Meta, PickMeta<T>>;
 }
+
+export type AnyResponseProps<T, Meta extends object> =
+	ResponseProps<"failure", T, Meta> | ResponseProps<"success", T, Meta>;
+
+export type AnyResponse<T, Meta extends object> =
+	IResponse<"failure", T, Meta> | IResponse<"success", T, Meta>;

@@ -1,16 +1,16 @@
 import { SUCCESS_CODE } from "@itsrose/http-code";
-import type { InternalAnyProps, IResponseProps } from "../types";
+import type { InternalAnyProps, ResponseProps } from "../types";
 import { AbstractResponse } from "./abstract";
 import { extractMeta, mergeMeta } from "./meta";
 
 export class SuccessResponse<
-	T = InternalAnyProps,
+	T,
 	Meta extends object = Record<string, never>,
 > extends AbstractResponse<"success", T, Meta> {
-	constructor(options: IResponseProps<"success", T, Meta>) {
+	constructor(props: ResponseProps<"success", T, Meta>) {
 		super();
 
-		const { code = "OK", data, message, meta } = options;
+		const { code = "OK", data, message, meta } = props;
 		const { payload, meta: extractedMeta } = extractMeta(data);
 		const success = SUCCESS_CODE[code] ?? SUCCESS_CODE.OK;
 		const mergedMeta = mergeMeta(meta, extractedMeta);
@@ -22,7 +22,7 @@ export class SuccessResponse<
 			data: payload,
 			errors: null,
 			meta: mergedMeta,
-			http_code: success.http_code,
+			statusCode: success.http_code,
 		});
 	}
 
@@ -31,13 +31,13 @@ export class SuccessResponse<
 	 *
 	 * @public
 	 * @template T
-	 * @template {object} [Meta=Record<string, never>]
-	 * @param {IResponseProps<"success", T, Meta>} options - The response data properties.
+	 * @template {object} [Meta=InternalAnyProps]
+	 * @param {ResponseProps<"success", T, Meta>} props - The `<success>` response properties.
 	 * @returns {SuccessResponse<T, Meta>}
 	 */
-	public static create<T, Meta extends object = Record<string, never>>(
-		options: IResponseProps<"success", T, Meta>
+	public static create<T, Meta extends object = InternalAnyProps>(
+		props: ResponseProps<"success", T, Meta>
 	): SuccessResponse<T, Meta> {
-		return new SuccessResponse<T, Meta>(options);
+		return new SuccessResponse<T, Meta>(props);
 	}
 }
