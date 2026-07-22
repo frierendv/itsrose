@@ -5,21 +5,21 @@
  * @extends {Error}
  */
 export class SystemError extends Error {
+	override readonly name = "SystemError" as const;
 	/**
 	 * Http status code
 	 *
 	 * @readonly
-	 * @type {number}
+	 * @type {500} Internal error.
 	 */
-	declare readonly statusCode: number;
+	declare readonly statusCode: 500;
 	/**
-	 * Creates an instance of SystemError.
+	 * Creates an instance of {@linkcode SystemError}.
 	 *
 	 * @param {string} message
 	 */
 	constructor(message: string) {
 		super(message);
-		this.name = "SystemError";
 		this.statusCode = 500;
 	}
 }

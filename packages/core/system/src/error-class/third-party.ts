@@ -5,6 +5,7 @@
  * @extends {Error}
  */
 export class ThirdPartyApiError extends Error {
+	override readonly name = "ThirdPartyApiError" as const;
 	/**
 	 * Http status code
 	 *
@@ -13,14 +14,13 @@ export class ThirdPartyApiError extends Error {
 	 */
 	declare readonly statusCode: number;
 	/**
-	 * Creates an instance of ThirdPartyApiError.
+	 * Creates an instance of {@linkcode ThirdPartyApiError}.
 	 *
 	 * @param {string} message
 	 * @param {number} statusCode
 	 */
 	constructor(message: string, statusCode: number) {
 		super(message);
-		this.name = "ThirdPartyApiError";
 		this.statusCode = statusCode;
 	}
 }
