@@ -1,8 +1,7 @@
 export type ErrorLike = Error & Record<string, unknown>;
 
 /**
- * Description placeholder
- *
+ * @internal
  * @param {unknown} value
  * @returns {value is ErrorLike}
  */
@@ -16,6 +15,11 @@ export const isErrorLike = (value: unknown): value is ErrorLike => {
 	return typeof (value as { stack?: unknown }).stack === "string";
 };
 
+/**
+ * @internal
+ * @param {unknown} value
+ * @returns {unknown}
+ */
 export const serializeError = (value: unknown): unknown => {
 	if (!isErrorLike(value)) {
 		return value;
