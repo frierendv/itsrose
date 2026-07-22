@@ -1,52 +1,53 @@
 import { ERROR_CODE, SUCCESS_CODE } from "@itsrose/http-code";
-import type { IResponse, IResponseProps } from "../types";
+import type {
+	AnyResponse,
+	AnyResponseProps,
+	InternalAnyProps,
+	ResponseProps,
+} from "../types";
 import { FailureResponse } from "./failure";
 import { SuccessResponse } from "./success";
 
 /**
+ * Creates an HTTP API Response.
+ * Automatically infers whether to create a {@linkcode SuccessResponse} or  {@linkcode FailureResponse}
+ * based on the provided HTTP `code` or the presence of an `errors` object.
  *
- * @param response
- * @returns
+ * @param props - Configuration payload and metadata for the response
+ * @returns A structured SuccessResponse or FailureResponse instance
  */
-const create = <T = object, Meta extends object = Record<string, never>>(
-	response:
-		IResponseProps<"failure", T, Meta> | IResponseProps<"success", T, Meta>
-): IResponse<"failure", T, Meta> | IResponse<"success", T, Meta> => {
-	/**
-	 * First, attempt to determine response type based on "code" property if present
-	 *
-	 * The `code` should be keyof {@link SUCCESS_CODE} or {@link ERROR_CODE}.
-	 */
-	if (response?.code) {
-		const responseCode = response.code;
-
-		if (responseCode in SUCCESS_CODE) {
-			return SuccessResponse.create<T, Meta>(
-				response as IResponseProps<"success", T, Meta>
+const create = <T, Meta extends object = InternalAnyProps>(
+	props: AnyResponseProps<T, Meta>
+): AnyResponse<T, Meta> => {
+	// Determine response type based on specific HTTP code
+	if (props.code) {
+		if (props.code in ERROR_CODE) {
+			return FailureResponse.create<T, Meta>(
+				props as ResponseProps<"failure", T, Meta>
 			);
 		}
-		if (responseCode in ERROR_CODE) {
-			return FailureResponse.create<T, Meta>(
-				response as IResponseProps<"failure", T, Meta>
+
+		if (props.code in SUCCESS_CODE) {
+			return SuccessResponse.create<T, Meta>(
+				props as ResponseProps<"success", T, Meta>
 			);
 		}
 	}
 
-	/**
-	 * Last resort: determine type based on presence of "errors" property
-	 */
-	return "errors" in response
-		? FailureResponse.create<T, Meta>(
-				response as IResponseProps<"failure", T, Meta>
-			)
-		: SuccessResponse.create<T, Meta>(
-				response as IResponseProps<"success", T, Meta>
-			);
+	// Determine type based on payload shape
+	if ("errors" in props) {
+		return FailureResponse.create<T, Meta>(
+			props as ResponseProps<"failure", T, Meta>
+		);
+	}
+
+	return SuccessResponse.create<T, Meta>(
+		props as ResponseProps<"success", T, Meta>
+	);
 };
 
+// Attach static factory methods
 create.success = SuccessResponse.create.bind(SuccessResponse);
 create.failure = FailureResponse.create.bind(FailureResponse);
-/**
- * Create http API Response
- */
+
 export const createResponse = Object.freeze(create);

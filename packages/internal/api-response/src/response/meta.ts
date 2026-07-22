@@ -1,4 +1,4 @@
-import type { InternalAnyProps, OmitMeta, PickMeta } from "../types";
+import type { InternalAnyProps, Merge, OmitMeta, PickMeta } from "../types";
 
 const isRecord = (value: unknown): value is InternalAnyProps =>
 	Boolean(value) && typeof value === "object";
@@ -11,7 +11,7 @@ export const mergeMeta = <Base extends object, Extra extends object>(
 	({
 		...(isRecord(base) ? base : ({} as Base)),
 		...(isRecord(extra) ? extra : ({} as Extra)),
-	}) as Base & Extra;
+	}) as Merge<Base, Extra>;
 
 /**
  * Extracts meta without mutating the incoming object.
