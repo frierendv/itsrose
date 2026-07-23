@@ -4,7 +4,7 @@ import {
 	ThirdPartyApiError,
 } from "../src/error-class";
 
-describe("Error class", () => {
+describe("@itsrose/system error-class", () => {
 	describe("SystemError", () => {
 		it("should create an instance with a message", () => {
 			const error = new SystemError("System error occurred");

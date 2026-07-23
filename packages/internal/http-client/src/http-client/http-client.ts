@@ -46,6 +46,6 @@ export const createHttpClient = (config?: IHttpClientConfig) => {
 
 	const callable = client.request as unknown as HttpClient;
 
-	Object.assign(instance, client);
+	Object.assign(callable, instance, client);
 	return callable;
 };
