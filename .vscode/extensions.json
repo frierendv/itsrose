@@ -1,0 +1,8 @@
+{
+	"recommendations": [
+		"astro-build.astro-vscode",
+		"orta.vscode-jest",
+		"yoavbls.pretty-ts-errors",
+		"redhat.vscode-yaml"
+	]
+}
