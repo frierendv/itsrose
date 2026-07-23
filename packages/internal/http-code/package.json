@@ -5,10 +5,17 @@
 	"type": "module",
 	"license": "MIT",
 	"description": "Shared API and HTTP status code maps for response modeling.",
-	"repository": "frierendv/itsrose.git",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/internal/http-code"
+	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "src/index.ts",
+	"files": [
+		"dist"
+	],
 	"keywords": [
 		"http",
 		"itsrose",

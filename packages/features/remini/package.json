@@ -5,10 +5,17 @@
 	"type": "module",
 	"license": "MIT",
 	"description": "Typed client for the Remini image enhancement service.",
-	"repository": "frierendv/itsrose.git",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/features/remini"
+	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "src/index.ts",
+	"files": [
+		"dist"
+	],
 	"keywords": [
 		"api",
 		"image",

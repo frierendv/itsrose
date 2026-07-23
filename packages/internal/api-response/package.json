@@ -7,7 +7,11 @@
 	"sideEffects": false,
 	"license": "MIT",
 	"description": "Shared helpers for building typed success and failure API responses.",
-	"repository": "frierendv/itsrose.git",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/internal/api-response"
+	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "src/index.ts",

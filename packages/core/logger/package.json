@@ -5,7 +5,11 @@
 	"type": "module",
 	"license": "MIT",
 	"description": "Shared pino-based logger utilities for ItsRose services.",
-	"repository": "frierendv/itsrose.git",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/core/logger"
+	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "src/index.ts",

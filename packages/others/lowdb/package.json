@@ -5,10 +5,17 @@
 	"type": "module",
 	"license": "MIT",
 	"description": "Document-style file-backed database built on collection adapters.",
-	"repository": "frierendv/itsrose.git",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/others/lowdb"
+	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "src/index.ts",
+	"files": [
+		"dist"
+	],
 	"keywords": [
 		"database",
 		"itsrose",
@@ -35,5 +42,5 @@
 		"@itsrose/tsdown-config": "*",
 		"@itsrose/typescript-config": "*"
 	},
-	"clean-package": "../../clean-package.config.json"
+	"clean-package": "../../../clean-package.config.json"
 }

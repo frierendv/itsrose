@@ -5,10 +5,17 @@
 	"type": "module",
 	"license": "MIT",
 	"description": "Common shared enums and status utilities.",
-	"repository": "frierendv/itsrose.git",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/shared/common"
+	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "src/index.ts",
+	"files": [
+		"dist"
+	],
 	"keywords": [
 		"itsrose",
 		"shared",

@@ -5,10 +5,17 @@
 	"type": "module",
 	"license": "MIT",
 	"description": "TikWM-backed TikTok content fetcher with typed schemas.",
-	"repository": "frierendv/itsrose.git",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/features/tiktok"
+	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "src/index.ts",
+	"files": [
+		"dist"
+	],
 	"keywords": [
 		"api",
 		"itsrose",

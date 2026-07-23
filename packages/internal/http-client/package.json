@@ -5,10 +5,17 @@
 	"type": "module",
 	"license": "MIT",
 	"description": "Axios-based HTTP client wrapper with retry and promise helpers.",
-	"repository": "frierendv/itsrose.git",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/internal/http-client"
+	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "src/index.ts",
+	"files": [
+		"dist"
+	],
 	"keywords": [
 		"axios",
 		"client",

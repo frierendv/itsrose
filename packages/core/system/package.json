@@ -5,7 +5,11 @@
 	"type": "module",
 	"license": "MIT",
 	"description": "Environment, error, and platform utilities shared across ItsRose packages.",
-	"repository": "frierendv/itsrose.git",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/core/system"
+	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "src/index.ts",
