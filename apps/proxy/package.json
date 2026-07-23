@@ -2,10 +2,14 @@
 	"name": "proxy",
 	"version": "1.0.0",
 	"author": "FrierenDv",
+	"private": true,
 	"type": "module",
 	"license": "MIT",
 	"description": "Server proxy",
-	"repository": "frierendv/itsrose.git",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git"
+	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "src/server.ts",
