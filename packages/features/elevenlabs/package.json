@@ -5,10 +5,17 @@
 	"type": "module",
 	"license": "MIT",
 	"description": "Typed ElevenLabs client and schemas for audio generation endpoints.",
-	"repository": "frierendv/itsrose.git",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/features/elevenlabs"
+	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "src/index.ts",
+	"files": [
+		"dist"
+	],
 	"keywords": [
 		"api",
 		"audio",

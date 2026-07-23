@@ -5,7 +5,11 @@
 	"type": "module",
 	"license": "MIT",
 	"description": "Fetch client for ItsRose API",
-	"repository": "frierendv/itsrose.git",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/others/api-client"
+	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "src/index.ts",
@@ -39,5 +43,5 @@
 		"@itsrose/typescript-config": "*",
 		"openapi-typescript-helpers": "^0.1.0"
 	},
-	"clean-package": "../../clean-package.config.json"
+	"clean-package": "../../../clean-package.config.json"
 }
