@@ -3,7 +3,7 @@ import type { RcFile } from "syncpack";
 const config: RcFile = {
 	indent: "\t",
 	formatBugs: true,
-	formatRepository: true,
+	formatRepository: false,
 	maxConcurrentRequests: 2,
 	sourceMode: "extend",
 	source: ["./packages/*/package.json"],
