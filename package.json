@@ -1,8 +1,12 @@
 {
 	"name": "itsrose",
+	"version": "0.0.0",
 	"private": true,
 	"description": "ItsRose Platform",
-	"repository": "frierendv/itsrose.git",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git"
+	},
 	"engines": {
 		"node": ">=24"
 	},
@@ -14,8 +18,8 @@
 		"dev": "turbo run dev",
 		"format": "prettier --write \"**/*.{ts,tsx,md}\" --ignore-path .gitignore && syncpack format",
 		"lint": "turbo run lint",
-		"lint:fix": "turbo run lint:fix",
 		"lint-staged": "lint-staged",
+		"lint:fix": "turbo run lint:fix",
 		"plop": "plop",
 		"postinstall": "patch-package",
 		"prepare": "husky",
