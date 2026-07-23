@@ -2,7 +2,7 @@
 import { getEnv } from "../src/environment";
 import { SystemError } from "../src/error-class";
 
-describe("getEnv", () => {
+describe("@itsrose/system environment", () => {
 	const ENV = process.env;
 
 	beforeEach(() => {

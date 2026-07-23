@@ -37,8 +37,19 @@ const config = {
 				tsconfig: "<rootDir>/packages/standard/typescript/esm.json",
 			}),
 			roots: ["<rootDir>/packages/others/"],
+			transformIgnorePatterns: [
+				"/node_modules/(?!(atomically|superjson|copy-anything)/)",
+			],
 		},
 	],
+	transformIgnorePatterns: [
+		"/node_modules/(?!(atomically|superjson|copy-anything)/)",
+	],
+	moduleNameMapper: {
+		"^atomically$":
+			"<rootDir>/packages/others/lowdb/__mocks__/atomically.ts",
+		"^superjson$": "<rootDir>/packages/others/lowdb/__mocks__/superjson.ts",
+	},
 	coverageProvider: "v8",
 	coverageDirectory: "<rootDir>/coverage",
 	coverageThreshold: {

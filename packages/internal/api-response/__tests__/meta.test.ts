@@ -1,6 +1,6 @@
 import { extractMeta, mergeMeta } from "../src";
 
-describe("meta", () => {
+describe("internal/api-response meta", () => {
 	it("mergeMeta combines only record-like values", () => {
 		const merged = mergeMeta(
 			{ base: true },

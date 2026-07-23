@@ -1,6 +1,6 @@
 import { createResponse } from "../src";
 
-describe("createResponse", () => {
+describe("internal/api-response response", () => {
 	describe("Success payloads", () => {
 		const successProps = {
 			code: "OK",
