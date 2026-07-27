@@ -3,8 +3,24 @@ name: Node.js CI
 on:
     push:
         branches: ["main", "development"]
+        paths:
+            - "apps/**/*.ts"
+            - "packages/**/*.ts"
+            - "package.json"
+            - "package-lock.json"
+            - "turbo.json"
+            - "tsconfig*.json"
+            - ".github/workflows/**"
     pull_request:
         branches: ["main"]
+        paths:
+            - "apps/**/*.ts"
+            - "packages/**/*.ts"
+            - "package.json"
+            - "package-lock.json"
+            - "turbo.json"
+            - "tsconfig*.json"
+            - ".github/workflows/**"
 
 jobs:
     build:
