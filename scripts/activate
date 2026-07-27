@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "$0")" && pwd)
-VENV_SCRIPT=$SCRIPT_DIR/node-env/node-env.sh
+VENV_SCRIPT="$SCRIPT_DIR/node-env/node-env.sh"
 if [[ -f "$VENV_SCRIPT" ]]; then
 	source $VENV_SCRIPT
+else
+	printf "$VENV_SCRIPT not exist!"
 fi
 unset -v SCRIPT_DIR VENV_SCRIPT
