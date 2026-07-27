@@ -1,29 +1,41 @@
 import Sonda from "sonda/rolldown";
-import type { UserConfig } from "tsdown";
+import type { TsdownPluginOption, UserConfig } from "tsdown";
 import Macros from "unplugin-macros/rolldown";
 import PreprocessorDirectives from "unplugin-preprocessor-directives/rollup";
+import { purgePolyfills } from "unplugin-purge-polyfills";
 
-const productionConfig = {
-	// disable dts generation in production to speed up builds
-	dts: false,
-	// source maps are not needed in production
-	sourcemap: false,
-	// Only minify in prod
-	minify: true,
-} satisfies UserConfig;
+function getProdConfig() {
+	const prod: UserConfig = {
+		// disable dts generation in production to speed up builds
+		dts: false,
+		sourcemap: "inline",
+		// Only minify in prod
+		minify: true,
+	};
+	return process.env.NODE_ENV === "production" ? prod : {};
+}
+const plugins: TsdownPluginOption = [
+	Macros(),
+	PreprocessorDirectives(),
+	purgePolyfills.rolldown({ sourcemap: true }),
+	Sonda({
+		filename: "sonda_repot", // only last report needed
+		sources: true,
+		open: false,
+	}),
+];
 
 export const config: UserConfig = {
 	entry: ["src/index.ts"],
 	clean: true,
 	dts: {
-		// tsgo: true,
 		enabled: true,
 		cjsReexport: true,
 	},
 	target: ["es2024"],
 	format: ["cjs", "esm"],
 	deps: {
-		skipNodeModulesBundle: true,
+		neverBundle: true,
 	},
 	cjsDefault: true,
 	unused: {
@@ -43,16 +55,7 @@ export const config: UserConfig = {
 	failOnWarn: true,
 	sourcemap: true,
 	logLevel: "silent",
-	...getProd(),
-	plugins: [
-		Macros(),
-		PreprocessorDirectives(),
-		Sonda({
-			filename: "sonda_repot", // only last report needed
-			sources: true,
-			open: false,
-		}),
-	],
+	plugins,
 	outExtensions: ({ format }) => {
 		if (format === "cjs") {
 			return { js: ".js", dts: ".d.cts" };
@@ -62,18 +65,18 @@ export const config: UserConfig = {
 		}
 		return {};
 	},
+	...getProdConfig(),
 };
 
 export const fastifyConfig: UserConfig = {
 	...config,
-	entry: ["src/**/*.ts"],
 	// no need for dts
+	dts: false,
+	entry: ["src/**/*.ts"],
+	// no need to bundle
+	unbundle: false,
 	failOnWarn: false,
-	sourcemap: "inline",
+	sourcemap: false,
 	// output only esm
 	format: ["esm"],
 };
-
-function getProd() {
-	return process.env.NODE_ENV === "production" ? productionConfig : {};
-}
