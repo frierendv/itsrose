@@ -1,0 +1,110 @@
+const RESOURCE_BASE_URL = "https://obs-large.mtlab.meitu.com/public/resources/";
+
+// I now, this shit is hardly to maintain when we have new hair will add it to
+// TODO: better harcoded for default style name
+const FILENAMES: Record<string, string> = {
+	"0": "image2022-8-1_16-32-50.png",
+	"1": "image2022-8-1_16-33-15.png",
+	"2": "image2022-8-1_16-33-35.png",
+	"3": "image2022-8-1_16-34-1.png",
+	"4": "image2022-8-1_16-30-40.png",
+	"5": "image2022-8-1_16-27-44.png",
+	"6": "image2022-8-1_16-34-50.png",
+	"7": "image2022-8-1_16-28-28.png",
+	"8": "image2022-8-1_16-30-9.png",
+	"9": "image2022-8-1_16-29-26.png",
+	"10": "image2022-8-1_17-3-9.png",
+	"11": "image2022-8-1_16-31-20.png",
+	"12": "image2022-8-1_16-31-55.png",
+	"13": "image2022-8-1_17-6-0.png",
+	"14": "image2022-8-1_17-5-41.png",
+	"15": "image2022-8-4_17-11-7.png",
+	"17": "image2022-8-1_16-32-25.png",
+	"5-2": "image2022-8-17_14-6-0.png",
+	"5-3": "image2022-8-17_14-6-21.png",
+	"5-7": "image2022-8-17_14-6-46.png",
+	"5-19": "image2022-8-17_14-7-7.png",
+	"5-21": "image2022-8-17_14-7-27.png",
+	"13-3": "image2022-8-17_14-8-23.png",
+	"13-4": "image2022-8-17_14-8-44.png",
+	"13-5": "image2022-8-17_14-9-0.png",
+	"6-1": "image2022-8-19_13-56-39.png",
+	"7-4": "image2022-8-19_13-57-5.png",
+	"7-5": "image2022-8-19_13-57-52.png",
+	"8-1": "image2022-8-19_13-58-47.png",
+	"8-19": "image2022-8-19_13-59-9.png",
+	"8-21": "image2022-8-19_13-59-46.png",
+	"9-3": "image2022-8-19_14-0-13.png",
+	"9-4": "image2022-8-19_14-0-36.png",
+	"9-6": "image2022-8-19_14-0-59.png",
+	"9-7": "image2022-8-19_14-1-25.png",
+	"9-11": "image2022-8-19_14-1-50.png",
+	"9-12": "image2022-8-19_14-2-13.png",
+	"9-13": "image2022-8-19_14-2-41.png",
+	"9-17": "image2022-8-19_14-3-17.png",
+	"9-22": "image2022-8-19_14-3-39.png",
+	"9-25": "image2022-8-19_14-4-2.png",
+	"15-17": "image2022-8-19_14-4-24.png",
+	"15-18": "image2022-8-19_14-4-48.png",
+	"20-11": "image2022-8-19_14-5-12.png",
+	"20-12": "image2022-8-19_14-5-33.png",
+	"20-13": "image2022-8-19_14-5-56.png",
+	mail_0: "image2022-8-4_17-12-19.png",
+	mail_1: "image2022-8-4_17-13-12.png",
+	mail_2: "image2022-8-4_17-14-12.png",
+	mail_3: "image2022-8-4_17-15-34.png",
+	mail_4: "image2022-8-4_17-15-49.png",
+	mail_5: "image2022-8-4_17-16-54.png",
+	mail_6: "image2022-8-4_17-17-55.png",
+	"1_II": "1_II_tb.jpg",
+	"2_II": "2_II_tb.jpg",
+	"5_II": "5_II_tb.jpg",
+	"6_II": "6_II_tb.jpg",
+	"7_II": "7_II_tb.jpg",
+	"10_II": "10_II_tb.jpg",
+	"11_II": "11_II_tb.jpg",
+	"13_II": "13_II_tb.jpg",
+	"15_II": "15_II_tb.jpg",
+	"17_II": "17_II_tb.jpg",
+	"0_II": "0_II_tb.jpg",
+	"3_II": "3_II_tb.jpg",
+	"4_II": "4_II_tb.jpg",
+	"8_II": "8_II_tb.jpg",
+	"9_II": "9_II_tb.jpg",
+	"12_II": "12_II_tb.jpg",
+	"14_II": "14_II_tb.jpg",
+	"21_II": "21_II_tb.jpg",
+	"22_II": "22_II_tb.jpg",
+	"23_II": "23_II_tb.jpg",
+	"24_II": "24_II_tb.jpg",
+	"25_II": "25_II_tb.jpg",
+	"26_II": "26_II_tb.jpg",
+	"27_II": "27_II_tb.jpg",
+	"28_II": "28_II_tb.jpg",
+	"29_II": "29_II_tb.jpg",
+	"30_II": "30_II_tb.jpg",
+	mail_0_II: "mail_0_II_b1.jpg",
+	mail_1_II: "mail_1_II_b1.jpg",
+	mail_2_II: "mail_2_II_b1.jpg",
+	mail_3_II: "mail_3_II_b1.jpg",
+	mail_4_II: "mail_4_II_b1.jpg",
+	mail_5_II: "mail_5_II_b1.jpg",
+	mail_6_II: "mail_6_II_b1.jpg",
+};
+
+export const HAIR_TYPE_MAP: Record<string, string> = Object.fromEntries(
+	Object.entries(FILENAMES).map(([key, filename]) => [
+		key,
+		`${RESOURCE_BASE_URL}${filename}`,
+	])
+);
+
+/**
+ * A list of hair type keys from the HAIR_TYPE_MAP object.
+ */
+export const HAIR_TYPE_LIST = Object.keys(HAIR_TYPE_MAP);
+
+/**
+ * Entries of the HAIR_TYPE_MAP object, where each entry is a tuple of [hairType, imageUrl].
+ */
+export const HAIR_ENTRIES = Object.entries(HAIR_TYPE_MAP);
