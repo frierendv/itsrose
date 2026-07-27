@@ -1,7 +1,7 @@
 {
 	"name": "@itsrose/{{name}}",
 	"version": "1.0.0",
-	"author": "FrierenDv",
+	"author": "{{author}}",
 	"type": "module",
 	"license": "MIT",
 	"description": "{{description}}",
@@ -25,11 +25,6 @@
 		"postpack": "clean-package restore",
 		"prepack": "clean-package",
 		"typecheck": "tsc --noEmit"
-	},
-	"devDependencies": {
-		"@itsrose/eslint-config": "*",
-		"@itsrose/tsdown-config": "*",
-		"@itsrose/typescript-config": "*"
 	},
 	"clean-package": "{{rootRelativePath}}clean-package.config.json"
 }
