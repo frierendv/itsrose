@@ -41,7 +41,9 @@ export type ResponseProps<
 	message?: string;
 	meta?: Meta;
 	code?: keyof (Kind extends "success" ? SuccessCode : ErrorCode);
-} & (Kind extends "success" ? { data: T } : { errors: T });
+} & (Kind extends "success"
+	? { data: NonNullable<T> }
+	: { errors: NonNullable<T> });
 
 /**
  * Standardized API response object structure.
