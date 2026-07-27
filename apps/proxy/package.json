@@ -12,7 +12,7 @@
 	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
-	"main": "src/server.ts",
+	"main": "dist/main.mjs",
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsx src/server.ts",
@@ -35,6 +35,5 @@
 		"@itsrose/eslint-config": "*",
 		"@itsrose/tsdown-config": "*",
 		"@itsrose/typescript-config": "*"
-	},
-	"clean-package": "./clean-package.config.json"
+	}
 }
