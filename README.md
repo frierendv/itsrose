@@ -1,6 +1,6 @@
 # ItsRose Platform
 
-[![CI](https://github.com/frierendv/itsrose/actions/workflows/node.js.yml/badge.svg)](https://github.com/frierendv/itsrose/actions/workflows/node.js.yml)
+[![CI](https://git.itsrose.net/itsrose/itsrose/actions/workflows/node.js.yml/badge.svg)](https://github.com/frierendv/itsrose/actions/workflows/node.js.yml)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D24.0.0-brightgreen.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Turbo](https://img.shields.io/badge/powered%20by-Turborepo-ef4444.svg)](https://turbo.build/repo)
