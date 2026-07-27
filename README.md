@@ -7,6 +7,9 @@
 
 **ItsRose** is a high-performance, modular platform and API gateway built for building, deploying, and managing AI-powered applications and services.
 
+> [!NOTE]
+> This repository is under **active maintenance and development**. Code, structure, and APIs may change frequently.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
