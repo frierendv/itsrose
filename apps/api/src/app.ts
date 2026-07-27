@@ -1,6 +1,6 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import AutoLoad, { type AutoloadPluginOptions } from "@fastify/autoload";
+import AutoLoad from "@fastify/autoload";
 import { FailureResponse, SuccessResponse } from "@itsrose/api-response";
 import type { FastifyPluginAsync } from "fastify";
 import {
@@ -13,17 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const __dirname = dirname(__filename);
 
-export type AppOptions = {
-	// Place your custom options for app below here.
-} & Partial<AutoloadPluginOptions>;
-
-// Pass --options via CLI arguments in command to enable these options.
-const options: AppOptions = {};
-
-const app: FastifyPluginAsync<AppOptions> = async (
-	fastify,
-	opts
-): Promise<void> => {
+const app: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	/**
 	 * Plugin compilers for OpenAPI validation and serialization using Zod schemas.
 	 * These compilers will be used by the OpenAPI plugin to validate incoming requests
@@ -94,4 +84,3 @@ const app: FastifyPluginAsync<AppOptions> = async (
 };
 
 export default app;
-export { app, options };
