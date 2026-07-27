@@ -32,6 +32,13 @@ const getErrorMessage = (detail: IElevenLabsErrorResponse["detail"]) => {
 	return detail?.message;
 };
 
+/**
+ * Parses raw error responses or buffers returned from ElevenLabs API calls.
+ *
+ * @param {Buffer | IElevenLabsErrorResponse} data Raw response body.
+ * @param {number} [status=500] HTTP status code from response.
+ * @returns {{ statusCode: number; message: string }} Standardized error object with status and descriptive message.
+ */
 export const parseElevenLabsError: OnError<{
 	statusCode: number;
 	message: string;

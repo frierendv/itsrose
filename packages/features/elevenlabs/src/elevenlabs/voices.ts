@@ -14,10 +14,11 @@ const redact = (text: string) =>
 		.replace(/\bhttps?:\/\/\S+/gi, "[URL]");
 
 /**
- * Description placeholder
+ * Retrieves a list of available ElevenLabs voices with sensitive user info redacted.
  *
- * @param {?IElevenLabsListVoices} [options]
- * @returns {Promise<IElevenLabsListVoicesResponse>}
+ * @param {IElevenLabsListVoices} [options] Optional query parameters for filtering voices.
+ * @returns {Promise<IElevenLabsListVoicesResponse>} List of voices and response metadata.
+ * @throws {ThirdPartyApiError} If the ElevenLabs API returns an error status code.
  */
 export async function getVoices(
 	options?: IElevenLabsListVoices
@@ -36,6 +37,9 @@ export async function getVoices(
 	return data;
 }
 
+/**
+ * Zod schemas for voice list request and response validation.
+ */
 export const getVoicesSchema = {
 	request: ElevenLabsListVoicesSchema,
 	response: ElevenLabsListVoicesResponseSchema,

@@ -10,10 +10,11 @@ import type {
 } from "../zod-schema";
 
 /**
- * Description placeholder
+ * Converts text into spoken audio using ElevenLabs Text-to-Speech API.
  *
- * @param {IElevenLabsTextToSpeechConvert} options
- * @returns {Promise<IElevenLabsSharedResponse>}
+ * @param {IElevenLabsTextToSpeechConvert} options Speech conversion options including voice ID, text, and model settings.
+ * @returns {Promise<IElevenLabsSharedResponse>} Object containing base64-encoded audio data.
+ * @throws {ThirdPartyApiError} If the ElevenLabs API returns an error status code.
  */
 export async function textToSpeech(
 	options: IElevenLabsTextToSpeechConvert
@@ -35,6 +36,10 @@ export async function textToSpeech(
 		audio_base64: Buffer.from(data).toString("base64"),
 	};
 }
+
+/**
+ * Zod schemas for text-to-speech request and response validation.
+ */
 export const textToSpeechSchema = {
 	request: ElevenLabsTextToSpeechConvertSchema,
 	response: ElevenLabsSharedResponseSchema,

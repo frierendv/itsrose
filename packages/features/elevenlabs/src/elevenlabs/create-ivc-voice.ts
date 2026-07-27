@@ -10,11 +10,12 @@ import {
 } from "../zod-schema";
 
 /**
- * Description placeholder
+ * Creates an Instant Voice Cloning (IVC) voice profile from uploaded audio samples.
  *
- * @param {Buffer[]} files
- * @param {IElevenLabsCreateIVCVoice} opts
- * @returns {Promise<IElevenLabsCreateIVCVoiceResponse>}
+ * @param {Buffer[]} files Array of audio sample buffers (1 to 5 files).
+ * @param {IElevenLabsCreateIVCVoice} opts Voice creation parameters (name, description, labels).
+ * @returns {Promise<IElevenLabsCreateIVCVoiceResponse>} Created voice details including voice_id.
+ * @throws {ThirdPartyApiError} If the ElevenLabs API returns an error status code.
  */
 export async function createIVCVoice(
 	files: Buffer[],
@@ -52,6 +53,9 @@ export async function createIVCVoice(
 	return ElevenLabsCreateIVCVoiceResponseSchema.parse(data);
 }
 
+/**
+ * Zod schemas for instant voice cloning request and response validation.
+ */
 export const createIVCVoiceSchema = {
 	request: z
 		.object({

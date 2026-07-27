@@ -1,7 +1,8 @@
 import type { CustomLevelsMap, PinoCustomLevelsMap } from "../types";
 
 /**
- * Description placeholder
+ * Mapping of custom log level names to their numeric priorities.
+ * Lower numbers indicate higher severity or higher verbosity.
  *
  * @type {CustomLevelsMap}
  */
@@ -15,7 +16,8 @@ export const logLevels: CustomLevelsMap = {
 };
 
 /**
- * Description placeholder
+ * Inverted mapping of numeric log priorities to custom log level names.
+ * Used for formatting Pino log chunks.
  *
  * @type {PinoCustomLevelsMap}
  */

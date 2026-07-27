@@ -28,10 +28,17 @@ const SEGMENTATION_CLOTH_MAP: Record<string, string> = {
 	"18": "mannequin_stand",
 };
 
-// @internal type for the segmentation response from the API
+/** @internal type for the segmentation response from the API */
 type SResponse = {
 	media_info_list: (MediaInfo & { mask_label?: string })[];
 };
+
+/**
+ * Segments clothes in an input image and extracts labeled garment masks.
+ *
+ * @param {ISharedRequest} request Request containing the input image details.
+ * @returns {Promise<IClothesSegmentationResponse>} Object containing segmentation mask URLs and labeled garment categories.
+ */
 export const clothesSegmentation = async (request: ISharedRequest) => {
 	const { init_image } = request;
 	const options = {
