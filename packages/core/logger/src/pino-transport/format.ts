@@ -49,7 +49,7 @@ const formatValue = (value: unknown): string => {
 /**
  * Object structure emitted by Pino loggers.
  */
-export type PinoLikeOutput = {
+export type PinoLikeOutput = Pick<ITransportOptions, "appName"> & {
 	level: number;
 	pid: number;
 	hostname: string;
@@ -71,12 +71,12 @@ export type PrettyFormatPinoOptions = {
 /**
  * Pretty-formats a Pino log line object into a colorized, human-readable terminal string.
  *
- * @param {PinoLikeOutput & ITransportOptions} pinoLikeOutput The raw Pino log object.
+ * @param {PinoLikeOutput} pinoLikeOutput The raw Pino log object.
  * @param {PrettyFormatPinoOptions} options Color and level formatting configurations.
  * @returns {string} Colorized pretty-formatted log line.
  */
 export const prettyFormatPino = (
-	pinoLikeOutput: PinoLikeOutput & ITransportOptions,
+	pinoLikeOutput: PinoLikeOutput,
 	options: PrettyFormatPinoOptions
 ): string => {
 	const { levels, colors, defaultColor } = options;
