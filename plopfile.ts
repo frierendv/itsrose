@@ -7,10 +7,19 @@ const execAsync = promisify(exec);
 export interface ModuleAnswers {
 	category: "others" | "core" | "features" | "internal" | "shared";
 	name: string;
+	author: string;
 	description?: string;
-	dependencies?: string;
-	devDependencies?: string;
+	lognDescription?: string;
 }
+
+const scope = "@itsrose";
+
+// resolve lock file not sync after generating module package
+const moduleDevDeps = [
+	`${scope}/eslint-config@*`,
+	`${scope}/tsdown-config@*`,
+	`${scope}/typescript-config@*`,
+];
 
 export default function (plop: NodePlopAPI) {
 	plop.setActionType("runCommand", async (_answers, config) => {
@@ -28,25 +37,24 @@ export default function (plop: NodePlopAPI) {
 		description: "create new packages/module",
 
 		prompts: async (inquirer) => {
-			const baseAnswers = await inquirer.prompt<
-				Omit<ModuleAnswers, "dependencies" | "devDependencies">
-			>([
+			return inquirer.prompt<ModuleAnswers>([
 				{
 					type: "list",
 					name: "category",
-					message: "Select module category: ",
+					message: "Select module category:",
 					choices: [
-						{ name: "Others", value: "none" },
 						{ name: "Core", value: "core" },
 						{ name: "Features", value: "features" },
 						{ name: "Internal", value: "internal" },
 						{ name: "Shared", value: "shared" },
+						{ name: "Others", value: "others" },
 					],
+					default: "others",
 				},
 				{
 					type: "input",
 					name: "name",
-					message: "Package name @itsrose/name : ",
+					message: `Package name ${scope}/name\n->`,
 					validate: (input: string) => {
 						const name = input.trim();
 						if (!name) return "Package name is required.";
@@ -58,59 +66,24 @@ export default function (plop: NodePlopAPI) {
 				},
 				{
 					type: "input",
+					name: "author",
+					message: "Author name for this module\n->",
+					default: "FrierenDv",
+				},
+				{
+					type: "input",
 					name: "description",
-					message: "Module description (optional):",
+					message:
+						"Short description about this module (optional)\n->",
+				},
+				{
+					type: "input",
+					name: "longDescription",
+					message:
+						"Long description about this module (optional)\n->",
+					when: (answers) => answers.description,
 				},
 			]);
-
-			const deps = new Set<string>();
-			const devDeps = new Set<string>();
-
-			let addingDependencies = true;
-			while (addingDependencies) {
-				const { depType } = await inquirer.prompt<{
-					depType: "none" | "dependencies" | "devDependencies";
-				}>([
-					{
-						type: "list",
-						name: "depType",
-						message: "Add dependencies to this module?",
-						choices: [
-							{ name: "No, finish and generate", value: "none" },
-							{
-								name: "Yes, standard dependencies",
-								value: "dependencies",
-							},
-							{
-								name: "Yes, devDependencies",
-								value: "devDependencies",
-							},
-						],
-					},
-				]);
-
-				const { packages } = await inquirer.prompt<{
-					packages: string;
-				}>([
-					{
-						type: "input",
-						name: "packages",
-						message: `Enter ${depType} (space separated, e.g., zod lodash):`,
-					},
-				]);
-
-				const items = packages.trim().split(/\s+/).filter(Boolean);
-				const targetSet = depType === "dependencies" ? deps : devDeps;
-				for (const item of items) {
-					targetSet.add(item);
-				}
-			}
-
-			return {
-				...baseAnswers,
-				dependencies: Array.from(deps).join(" "),
-				devDependencies: Array.from(devDeps).join(" "),
-			};
 		},
 
 		actions: (data) => {
@@ -119,39 +92,70 @@ export default function (plop: NodePlopAPI) {
 			const destination = "packages/{{category}}/{{name}}";
 			const directory = `packages/${answers.category}/${answers.name}`;
 			const rootRelativePath = "../../../";
+			const packageName = `${scope}/${answers.name}`;
+
+			const initCmd = [
+				`--scope`,
+				scope,
+				"--init-type",
+				"module",
+				"--init-license",
+				"MIT",
+				"--init-author-name",
+				answers.author,
+				"--workspace",
+				directory,
+				"--yes",
+			];
 
 			const actions: ActionType[] = [
 				{
-					type: "addMany",
-					destination,
-					base: "plop-templates/module",
-					templateFiles: "plop-templates/module/**/*",
-					data: { rootRelativePath, directory },
-					globOptions: { dot: true },
-					skipIfExists: true,
+					type: "runCommand",
+					command: `npm init ${initCmd.join(" ")}`,
 				},
-				{
-					type: "add",
-					path: `${destination}/src/{{name}}/index.ts`,
-					template: "export {};",
-					skipIfExists: true,
-				},
-				{ type: "runCommand", command: "npm install" },
+				// {
+				// 	type: "addMany",
+				// 	destination,
+				// 	base: "plop-templates/module",
+				// 	templateFiles: "plop-templates/module/**/*",
+				// 	data: { rootRelativePath, directory },
+				// 	globOptions: { dot: true },
+				// 	skipIfExists: false,
+				// 	force: true,
+				// },
+				// {
+				// 	type: "add",
+				// 	path: `${destination}/src/index.ts`,
+				// 	template: `export * from "./${answers.name}";\n`,
+				// 	skipIfExists: true,
+				// 	abortOnFail: false,
+				// },
+				// {
+				// 	type: "add",
+				// 	path: `${destination}/src/{{name}}/index.ts`,
+				// 	template: "export {};\n",
+				// 	skipIfExists: true,
+				// 	abortOnFail: false,
+				// },
+				// {
+				// 	type: "add",
+				// 	path: `${destination}/__tests__/{{name}}.test.ts`,
+				// 	template: `describe("${answers.category}/${answers.name}", () => {\n\n\t/\** test for ${packageName} */\n\n});`,
+				// 	skipIfExists: true,
+				// 	abortOnFail: false,
+				// },
+				// {
+				// 	type: "add",
+				// 	path: `${destination}/README.md`,
+				// 	template: `# \`${packageName}\`\n\n${answers.lognDescription || "..."}`,
+				// 	skipIfExists: true,
+				// 	abortOnFail: false,
+				// },
+				// {
+				// 	type: "runCommand",
+				// 	command: `npm ci -D ${moduleDevDeps.join(" ")} --workspace ${packageName}`,
+				// },
 			];
-
-			if (answers?.dependencies) {
-				actions.push({
-					type: "runCommand",
-					command: `npm install ${answers.dependencies} -w @itsrose/${answers.name}`,
-				});
-			}
-
-			if (answers?.devDependencies) {
-				actions.push({
-					type: "runCommand",
-					command: `npm install -D ${answers.devDependencies} -w @itsrose/${answers.name}`,
-				});
-			}
 
 			actions.push({
 				type: "runCommand",
