@@ -8,7 +8,7 @@ export default fp(async (fastify) => {
 
 	void fastify.setErrorHandler((error: FastifyError, request, reply) => {
 		if (error instanceof FailureResponse) {
-			const response = error as FailureResponse;
+			const response = error as FailureResponse<unknown>;
 			return reply.status(response.statusCode).send(error);
 		}
 		if (error instanceof ThirdPartyApiError) {
@@ -80,22 +80,6 @@ export default fp(async (fastify) => {
 			return reply.status(response.statusCode).send(response);
 		}
 
-		// if (error instanceof HttpErrors) {
-		// 	return reply.status(error.statusCode).send(
-		// 		new FailureResponse({
-		// 			code: "HTTP_ERROR",
-		// 			meta: {
-		// 				method: request.method,
-		// 				url: request.url,
-		// 				request_id: request.id,
-		// 			},
-		// 			message: error.message,
-		// 			errors: {
-		// 				type: "HTTP_ERROR",
-		// 			},
-		// 		})
-		// 	);
-		// }
 		const response = new FailureResponse({
 			code: "UNHANDLED_EXCEPTION",
 			meta: {
@@ -115,6 +99,7 @@ export default fp(async (fastify) => {
 	void fastify.setNotFoundHandler((request, reply) => {
 		const response = new FailureResponse({
 			code: "NOT_FOUND",
+			errors: {},
 			meta: {
 				method: request.method,
 				url: request.url,

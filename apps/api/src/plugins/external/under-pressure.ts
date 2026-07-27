@@ -24,6 +24,7 @@ export const autoConfig: FastifyUnderPressureOptions = {
 			createResponse.failure({
 				code: "SERVICE_UNAVAILABLE",
 				message: "Server is under high load, please try again.",
+				errors: {},
 			})
 		);
 	},
