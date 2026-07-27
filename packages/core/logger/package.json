@@ -35,8 +35,7 @@
 	"dependencies": {
 		"chalk": "^4.1.2",
 		"pino": "^10.3.1",
-		"pino-abstract-transport": "^3.0.0",
-		"sonic-boom": "^4.2.1"
+		"pino-abstract-transport": "^3.0.0"
 	},
 	"devDependencies": {
 		"@itsrose/eslint-config": "*",
