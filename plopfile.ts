@@ -1,40 +1,60 @@
 import { exec } from "node:child_process";
+import { promisify } from "node:util";
 import type { ActionType, NodePlopAPI } from "plop";
 
+const execAsync = promisify(exec);
+
+export interface ModuleAnswers {
+	category: "others" | "core" | "features" | "internal" | "shared";
+	name: string;
+	description?: string;
+	dependencies?: string;
+	devDependencies?: string;
+}
+
 export default function (plop: NodePlopAPI) {
-	plop.setActionType("runCommand", (answers, config) => {
-		const command = config.command as string;
-		return new Promise((resolve, reject) => {
-			exec(command, (err, stdout, stderr) => {
-				if (err) reject(err);
-				else resolve(stdout || "Success");
-			});
-		});
+	plop.setActionType("runCommand", async (_answers, config) => {
+		const command = config.command;
+		if (!command) {
+			throw new Error(
+				"Missing 'command' property in runCommand action config."
+			);
+		}
+		const { stdout } = await execAsync(command);
+		return stdout ? stdout.trim() : "Success";
 	});
 
 	plop.setGenerator("module", {
 		description: "create new packages/module",
 
-		// 1. Convert prompts to an async function to enable looping
 		prompts: async (inquirer) => {
-			// Step A: Ask the base questions first
-			const baseAnswers = await inquirer.prompt([
+			const baseAnswers = await inquirer.prompt<
+				Omit<ModuleAnswers, "dependencies" | "devDependencies">
+			>([
 				{
 					type: "list",
 					name: "category",
 					message: "Select module category: ",
 					choices: [
-						{ name: "Others", value: "none", checked: true },
+						{ name: "Others", value: "none" },
 						{ name: "Core", value: "core" },
 						{ name: "Features", value: "features" },
 						{ name: "Internal", value: "internal" },
-						{ name: "shared", value: "shared" },
+						{ name: "Shared", value: "shared" },
 					],
 				},
 				{
 					type: "input",
 					name: "name",
 					message: "Package name @itsrose/name : ",
+					validate: (input: string) => {
+						const name = input.trim();
+						if (!name) return "Package name is required.";
+						if (!/^[a-z0-9-]+$/.test(name)) {
+							return "Package name must contain only lowercase letters, numbers, and hyphens.";
+						}
+						return true;
+					},
 				},
 				{
 					type: "input",
@@ -43,14 +63,14 @@ export default function (plop: NodePlopAPI) {
 				},
 			]);
 
-			// Arrays to store dependencies if the user loops multiple times
-			const deps: string[] = [];
-			const devDeps: string[] = [];
+			const deps = new Set<string>();
+			const devDeps = new Set<string>();
 
-			// Step B: The While Loop
 			let addingDependencies = true;
 			while (addingDependencies) {
-				const { depType } = await inquirer.prompt([
+				const { depType } = await inquirer.prompt<{
+					depType: "none" | "dependencies" | "devDependencies";
+				}>([
 					{
 						type: "list",
 						name: "depType",
@@ -69,47 +89,36 @@ export default function (plop: NodePlopAPI) {
 					},
 				]);
 
-				if (depType === "none") {
-					addingDependencies = false; // Break the loop
-				} else {
-					// Ask for the specific package names
-					const { packages } = await inquirer.prompt([
-						{
-							type: "input",
-							name: "packages",
-							message: `Enter ${depType} (space separated, e.g., zod lodash):`,
-						},
-					]);
+				const { packages } = await inquirer.prompt<{
+					packages: string;
+				}>([
+					{
+						type: "input",
+						name: "packages",
+						message: `Enter ${depType} (space separated, e.g., zod lodash):`,
+					},
+				]);
 
-					if (packages.trim()) {
-						if (depType === "dependencies")
-							deps.push(packages.trim());
-						if (depType === "devDependencies")
-							devDeps.push(packages.trim());
-					}
+				const items = packages.trim().split(/\s+/).filter(Boolean);
+				const targetSet = depType === "dependencies" ? deps : devDeps;
+				for (const item of items) {
+					targetSet.add(item);
 				}
 			}
 
-			// Step C: Return the merged answers to Plop's actions
 			return {
 				...baseAnswers,
-				dependencies: deps.join(" "),
-				devDependencies: devDeps.join(" "),
+				dependencies: Array.from(deps).join(" "),
+				devDependencies: Array.from(devDeps).join(" "),
 			};
 		},
 
-		actions: (answers) => {
-			const isNone = answers?.category === "none";
+		actions: (data) => {
+			const answers = data as ModuleAnswers;
 
-			const destination = isNone
-				? "packages/{{name}}"
-				: "packages/{{category}}/{{name}}";
-
-			const directory = isNone
-				? `packages/${answers!.name}`
-				: `packages/${answers!.category}/${answers!.name}`;
-
-			const rootRelativePath = isNone ? "../../" : "../../../";
+			const destination = "packages/{{category}}/{{name}}";
+			const directory = `packages/${answers.category}/${answers.name}`;
+			const rootRelativePath = "../../../";
 
 			const actions: ActionType[] = [
 				{
@@ -119,16 +128,17 @@ export default function (plop: NodePlopAPI) {
 					templateFiles: "plop-templates/module/**/*",
 					data: { rootRelativePath, directory },
 					globOptions: { dot: true },
+					skipIfExists: true,
 				},
 				{
 					type: "add",
 					path: `${destination}/src/{{name}}/index.ts`,
 					template: "export {};",
+					skipIfExists: true,
 				},
-				{ type: "runCommand", command: `npm install` },
+				{ type: "runCommand", command: "npm install" },
 			];
 
-			// Because we used array.join(" "), these variables are safe to check
 			if (answers?.dependencies) {
 				actions.push({
 					type: "runCommand",
@@ -143,7 +153,6 @@ export default function (plop: NodePlopAPI) {
 				});
 			}
 
-			actions.push({ type: "runCommand", command: `npm install` });
 			actions.push({
 				type: "runCommand",
 				command: `syncpack fix; syncpack format; prettier --write --list-different ${directory}`,
