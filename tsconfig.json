@@ -3,7 +3,7 @@
 	"include": [],
 	"references": [
 		{
-			"path": "./packages/shared-config/typescript/esm.json"
+			"path": "./packages/standard/typescript/esm.json"
 		}
 	]
 }
