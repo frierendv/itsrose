@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * @see https://elevenlabs.io/docs/api-reference/text-to-speech/convert#request.path.model_id
+ * {@link https://elevenlabs.io/docs/api-reference/text-to-speech/convert#request.path.model_id}
  */
 export const ElevenLabsModelIdSchema = z
 	.string()
@@ -11,4 +11,4 @@ export const ElevenLabsModelIdSchema = z
 			"And see:\n - **`can_do_text_to_speech`** for `text_to_speech`/`text_to_dialogue`\n - **`can_do_voice_conversion`** for `speech_to_speech`"
 	);
 
-export type TElevenLabsModelId = z.infer<typeof ElevenLabsModelIdSchema>;
+export type ElevenLabsModelId = z.infer<typeof ElevenLabsModelIdSchema>;

@@ -34,4 +34,7 @@ export const SharedImageSchema = z
 			"https://assets.itsrose.net/public-resource/girl-in-red-dress.jpg",
 	});
 
+/**
+ * Type inferenced from {@linkcode SharedImageSchema}.
+ */
 export type SharedImage = z.infer<typeof SharedImageSchema>;

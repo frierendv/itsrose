@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 
 /**
- * @see https://elevenlabs.io/docs/api-reference/text-to-speech/convert#request.body.voice_settings
+ * {@link https://elevenlabs.io/docs/api-reference/text-to-speech/convert#request.body.voice_settings}
  */
 export const ElevenLabsVoiceSettingSchema = z
 	.object({

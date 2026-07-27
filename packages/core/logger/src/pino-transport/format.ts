@@ -3,10 +3,10 @@ import type { ITransportOptions } from "../types";
 import { isErrorLike, serializeError } from "./errors";
 
 /**
- * Description placeholder
+ * Safely stringify objects, handling circular references and error serialization.
  *
- * @param {unknown} value
- * @returns {string}
+ * @param {unknown} value The value to stringify.
+ * @returns {string} The JSON stringified representation of the value.
  */
 const safeStringify = (value: unknown): string => {
 	const seen = new WeakSet<object>();
@@ -27,10 +27,10 @@ const safeStringify = (value: unknown): string => {
 };
 
 /**
- * Description placeholder
+ * Format any log field value into a displayable string.
  *
- * @param {unknown} value
- * @returns {string}
+ * @param {unknown} value Value to format.
+ * @returns {string} Formatted string output.
  */
 const formatValue = (value: unknown): string => {
 	if (typeof value === "string") {
@@ -47,9 +47,7 @@ const formatValue = (value: unknown): string => {
 };
 
 /**
- * Description placeholder
- *
- * @typedef {PinoLikeOutput}
+ * Object structure emitted by Pino loggers.
  */
 export type PinoLikeOutput = {
 	level: number;
@@ -62,9 +60,7 @@ export type PinoLikeOutput = {
 };
 
 /**
- * Description placeholder
- *
- * @typedef {PrettyFormatPinoOptions}
+ * Options for pretty printing Pino log output.
  */
 export type PrettyFormatPinoOptions = {
 	levels: Record<number, string>;
@@ -73,11 +69,11 @@ export type PrettyFormatPinoOptions = {
 };
 
 /**
- * Description placeholder
+ * Pretty-formats a Pino log line object into a colorized, human-readable terminal string.
  *
- * @param {(PinoLikeOutput & ITransportOptions)} pinoLikeOutput
- * @param {PrettyFormatPinoOptions} options
- * @returns {string}
+ * @param {PinoLikeOutput & ITransportOptions} pinoLikeOutput The raw Pino log object.
+ * @param {PrettyFormatPinoOptions} options Color and level formatting configurations.
+ * @returns {string} Colorized pretty-formatted log line.
  */
 export const prettyFormatPino = (
 	pinoLikeOutput: PinoLikeOutput & ITransportOptions,

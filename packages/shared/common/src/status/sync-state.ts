@@ -1,3 +1,6 @@
+/**
+ * Represents the status of an asynchronous synchronization process.
+ */
 export enum SyncState {
 	/** The sync process has not yet started. */
 	NOT_STARTED = "not_started",

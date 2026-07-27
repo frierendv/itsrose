@@ -1,9 +1,17 @@
 import { BUSINESS_ERROR, CLIENT_ERROR, SERVER_ERROR, SUCCESS } from "./code";
 
-export { BUSINESS_ERROR, CLIENT_ERROR, SERVER_ERROR, SUCCESS };
-/** All API Success codes */
+/** HTTP success codes map */
+export { SUCCESS };
+/** Client error codes map */
+export { CLIENT_ERROR };
+/** Server error codes map */
+export { SERVER_ERROR };
+/** Business logic error codes map */
+export { BUSINESS_ERROR };
+
+/** All API Success codes type */
 export type SuccessCode = typeof SUCCESS_CODE;
-/** All API Error codes */
+/** All API Error codes type */
 export type ErrorCode = typeof ERROR_CODE;
 
 /** @internal */
@@ -13,7 +21,7 @@ export type ClientErrorCode = typeof CLIENT_ERROR;
 /** @internal */
 export type ServerErrorCode = typeof SERVER_ERROR;
 
-/** @internal */
+/** Combined map of all API error codes including client, server, and business errors */
 export const ERROR_CODE = {
 	...CLIENT_ERROR,
 	...SERVER_ERROR,
@@ -26,8 +34,7 @@ export const ERROR_CODE = {
 } as const;
 
 /**
- * Alias for {@linkcode SUCCESS}
- * @internal
+ * Combined map of all successful API response status codes.
  */
 export const SUCCESS_CODE = SUCCESS;
 

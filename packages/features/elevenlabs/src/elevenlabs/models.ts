@@ -6,9 +6,10 @@ import {
 } from "../zod-schema";
 
 /**
- * Description placeholder
+ * Fetches all available ElevenLabs AI synthesis models.
  *
- * @returns {Promise<IElevenLabsListModelsResponse>}
+ * @returns {Promise<IElevenLabsListModelsResponse>} List of available speech models.
+ * @throws {ThirdPartyApiError} If the ElevenLabs API returns an error status code.
  */
 export async function getModels(): Promise<IElevenLabsListModelsResponse> {
 	const { data, error } = await httpClient
@@ -20,6 +21,9 @@ export async function getModels(): Promise<IElevenLabsListModelsResponse> {
 	return ElevenLabsListModelsResponseSchema.parse({ models: data });
 }
 
+/**
+ * Zod schemas for fetching ElevenLabs models.
+ */
 export const getModelsSchema = {
 	response: ElevenLabsListModelsResponseSchema,
 };

@@ -8,10 +8,11 @@ import {
 } from "../zod-schema";
 
 /**
- * Description placeholder
+ * Converts dialogue text lines into spoken audio using ElevenLabs Text-to-Dialogue API.
  *
- * @param {IElevenLabsTextToDialogueConvert} options
- * @returns {Promise<IElevenLabsSharedResponse>}
+ * @param {IElevenLabsTextToDialogueConvert} options Dialogue parameters including text inputs and voice mappings.
+ * @returns {Promise<IElevenLabsSharedResponse>} Object containing base64-encoded audio data.
+ * @throws {ThirdPartyApiError} If the ElevenLabs API returns an error status code.
  */
 export async function textToDialogue(
 	options: IElevenLabsTextToDialogueConvert
@@ -34,6 +35,9 @@ export async function textToDialogue(
 	};
 }
 
+/**
+ * Zod schemas for text-to-dialogue request and response validation.
+ */
 export const textToDialogueSchema = {
 	request: ElevenLabsTextToDialogueConvertSchema,
 	response: ElevenLabsSharedResponseSchema,

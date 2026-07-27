@@ -11,6 +11,13 @@ import {
 	type IVersatileHairstyleRequest,
 } from "../zod-schema";
 
+/**
+ * Applies hairstyle transformations to an input portrait image.
+ *
+ * @param {IVersatileHairstyleRequest} opts Options containing the input image and desired target hair type.
+ * @returns {Promise<ISharedResponse>} Parsed transformation result containing output image URLs.
+ * @throws {InvalidRequestError} If the specified hair_type is invalid.
+ */
 export const versatileHairstyle = async (opts: IVersatileHairstyleRequest) => {
 	const { init_image, hair_type } = opts;
 

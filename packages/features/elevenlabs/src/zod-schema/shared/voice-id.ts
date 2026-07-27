@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * @see https://elevenlabs.io/docs/api-reference/text-to-speech/convert#request.path.voice_id
+ * {@link https://elevenlabs.io/docs/api-reference/text-to-speech/convert#request.path.voice_id}
  */
 export const ElevenLabsVoiceIdSchema = z
 	.string()
@@ -10,4 +10,4 @@ export const ElevenLabsVoiceIdSchema = z
 			"Use the [`GET` Voices](#tag/elevenlabs/GET/elevenlabs/get_voices) voices endpoint list all the available voices."
 	);
 
-export type TElevenLabsVoiceId = z.infer<typeof ElevenLabsVoiceIdSchema>;
+export type ElevenLabsVoiceId = z.infer<typeof ElevenLabsVoiceIdSchema>;

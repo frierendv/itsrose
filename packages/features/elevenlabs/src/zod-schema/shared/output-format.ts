@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 
 /**
- * @see https://elevenlabs.io/docs/api-reference/text-to-speech/convert#request.query.output_format
+ * {@link https://elevenlabs.io/docs/api-reference/text-to-speech/convert#request.query.output_format}
  */
 export const ElevenLabsOutputFormatSchema = z
 	.enum([
@@ -39,6 +39,6 @@ export const ElevenLabsOutputFormatSchema = z
 		id: "ElevenLabsOutputFormat",
 	});
 
-export type TElevenLabsOutputFormat = z.infer<
+export type ElevenLabsOutputFormat = z.infer<
 	typeof ElevenLabsOutputFormatSchema
 >;

@@ -11,4 +11,7 @@ export const SharedFileBufferSchema = z.instanceof(Buffer).meta({
 	id: "FileBuffer",
 });
 
+/**
+ * Type inferenced from {@linkcode SharedFileBufferSchema}.
+ */
 export type SharedFileBuffer = z.infer<typeof SharedFileBufferSchema>;

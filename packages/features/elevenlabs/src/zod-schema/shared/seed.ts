@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 
 /**
- * @see https://elevenlabs.io/docs/api-reference/text-to-speech/convert#request.body.seed
+ * {@link https://elevenlabs.io/docs/api-reference/text-to-speech/convert#request.body.seed}
  */
 export const ElevenLabsSeedSchema = z
 	.number()

@@ -44,11 +44,12 @@ function appendFormDataOptions(
 }
 
 /**
- * Description placeholder
+ * Converts input speech audio into another voice using ElevenLabs Speech-to-Speech API.
  *
- * @param {(Buffer | string)} audio
- * @param {IElevenLabsSpeechToSpeechConvert} options
- * @returns {Promise<IElevenLabsSharedResponse>}
+ * @param {Buffer | string} audio Input audio as a Buffer or URL string.
+ * @param {IElevenLabsSpeechToSpeechConvert} options Conversion options including voice_id, model_id, and voice settings.
+ * @returns {Promise<IElevenLabsSharedResponse>} Object containing base64-encoded converted audio data.
+ * @throws {ThirdPartyApiError} If audio fetching fails or the ElevenLabs API returns an error status code.
  */
 export async function speechToSpeech(
 	audio: Buffer | string,
@@ -84,6 +85,10 @@ export async function speechToSpeech(
 		audio_base64: Buffer.from(data).toString("base64"),
 	};
 }
+
+/**
+ * Zod schemas for speech-to-speech request and response validation.
+ */
 export const speechToSpeechSchema = {
 	request: z
 		.object({
