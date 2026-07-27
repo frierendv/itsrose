@@ -24,9 +24,9 @@
 		"@fastify/autoload": "^6.3.1",
 		"@fastify/helmet": "^13.0.2",
 		"@fastify/http-proxy": "^11.5.0",
-		"@itsrose/fastify-utils": "^1.0.0",
-		"@itsrose/http-code": "^1.0.0",
-		"@itsrose/logger": "^1.0.0",
+		"@itsrose/fastify-utils": "*",
+		"@itsrose/http-code": "*",
+		"@itsrose/logger": "*",
 		"fast-xml-builder": "^1.2.0",
 		"fastify": "^5.8.5",
 		"fastify-plugin": "^5.1.0"
