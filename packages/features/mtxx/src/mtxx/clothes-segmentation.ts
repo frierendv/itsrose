@@ -1,4 +1,5 @@
 import { client, type MediaInfo } from "../client";
+import { SEGMENTATION_CLOTH_MAP } from "../constants/clothes-segmentation";
 import {
 	ClothesSegmentationResponseSchema,
 	SharedRequestSchema,
@@ -6,41 +7,21 @@ import {
 	type ISharedRequest,
 } from "../zod-schema";
 
-const SEGMENTATION_CLOTH_MAP: Record<string, string> = {
-	"0": "background",
-	"1": "headpiece",
-	"2": "hair",
-	"3": "gloves",
-	"4": "glasses",
-	"5": "top",
-	"6": "dress",
-	"7": "coat",
-	"8": "socks",
-	"9": "pants",
-	"10": "skin",
-	"11": "scarf etc.",
-	"12": "skirt",
-	"13": "face",
-	"14": "shoes",
-	"15": "bag",
-	"16": "accessories",
-	"17": "jumpsuit",
-	"18": "mannequin_stand",
-};
-
 /** @internal type for the segmentation response from the API */
 type SResponse = {
 	media_info_list: (MediaInfo & { mask_label?: string })[];
 };
 
 /**
- * Segments clothes in an input image and extracts labeled garment masks.
+ * Segments clothing and garments in an input image, extracting labeled category masks.
  *
- * @param {ISharedRequest} request Request containing the input image details.
- * @returns {Promise<IClothesSegmentationResponse>} Object containing segmentation mask URLs and labeled garment categories.
+ * @param {ISharedRequest} opts Options configuration containing the input image details.
+ * @returns {Promise<IClothesSegmentationResponse>} A promise resolving to the segmentation masks and labeled clothing categories.
  */
-export const clothesSegmentation = async (request: ISharedRequest) => {
-	const { init_image } = request;
+export const clothesSegmentation = async (
+	opts: ISharedRequest
+): Promise<IClothesSegmentationResponse> => {
+	const { init_image } = opts;
 	const options = {
 		parameter: {
 			rsp_media_type: "url",

@@ -7,6 +7,12 @@ import {
 	type ISharedResponse,
 } from "../zod-schema";
 
+/**
+ * Generates or enhances facial expressions (such as adding a smile) on a portrait image.
+ *
+ * @param {IExpressionGenerationRequest} opts  Options containing the input image, expression parameters, and optional sync timeout.
+ * @returns {Promise<ISharedResponse>} A promise resolving to the expression transformation result.
+ */
 export const expressionGeneration = async (
 	opts: IExpressionGenerationRequest
 ): Promise<ISharedResponse> => {
