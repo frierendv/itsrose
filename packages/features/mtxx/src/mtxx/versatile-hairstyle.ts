@@ -52,7 +52,7 @@ export const versatileHairstyleSchema = {
  * Generates an HTML table representation of the hairstyles, grouped by chunks.
  * @internal
  */
-export function createDescription(): string {
+export function versatileHairstyleCreateDescription(): string {
 	const size = 5;
 	const chunks = Array.from(
 		{ length: Math.ceil(HAIR_ENTRIES.length / size) },

@@ -31,6 +31,14 @@ describe("features/mtxx", () => {
 			expect(sdkParam.params).toBe(JSON.stringify({ style: "anime" }));
 			expect(sdkParam.task_id).toContain("itsrose_mtxx");
 			expect(sdkParam.sync_timeout).toBe(60);
+
+			// Test string params
+			const sdkParamString = createSDKParameter({
+				task: "transform",
+				task_type: "image",
+				params: "already-stringified",
+			});
+			expect(sdkParamString.params).toBe("already-stringified");
 		});
 	});
 });
