@@ -1,2 +1,4 @@
 plop-templates
 dist
+.sonda
+package-lock.json
