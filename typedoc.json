@@ -34,7 +34,7 @@
 	"searchInComments": true,
 	"cleanOutputDir": true,
 	"commentStyle": "all",
-	"exclude": ["**/shared-config/*"],
+	"exclude": ["**/standard/*"],
 	"includeVersion": true,
 	"externalSymbolLinkMappings": {
 		"@itsrose/logger": { "pinoTransport": "#" }
