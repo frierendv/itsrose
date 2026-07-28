@@ -4,6 +4,8 @@ import Macros from "unplugin-macros/rolldown";
 import PreprocessorDirectives from "unplugin-preprocessor-directives/rollup";
 import { purgePolyfills } from "unplugin-purge-polyfills";
 
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
 function getProdConfig() {
 	const prod: UserConfig = {
 		// disable dts generation in production to speed up builds
@@ -12,13 +14,14 @@ function getProdConfig() {
 		// Only minify in prod
 		minify: true,
 	};
-	return process.env.NODE_ENV === "production" ? prod : {};
+	return IS_PRODUCTION ? prod : {};
 }
 const plugins: TsdownPluginOption = [
 	Macros(),
 	PreprocessorDirectives(),
 	purgePolyfills.rolldown({ sourcemap: true }),
 	Sonda({
+		enabled: !IS_PRODUCTION,
 		filename: "sonda_repot", // only last report needed
 		sources: true,
 		open: false,
