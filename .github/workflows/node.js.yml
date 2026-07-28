@@ -1,56 +1,83 @@
 name: Node.js CI
 
 on:
-    push:
-        branches: ["main", "development"]
-        paths:
-            - "apps/**/*.ts"
-            - "packages/**/*.ts"
-            - "package.json"
-            - "package-lock.json"
-            - "turbo.json"
-            - "tsconfig*.json"
-            - ".github/workflows/**"
-    pull_request:
-        branches: ["main"]
-        paths:
-            - "apps/**/*.ts"
-            - "packages/**/*.ts"
-            - "package.json"
-            - "package-lock.json"
-            - "turbo.json"
-            - "tsconfig*.json"
-            - ".github/workflows/**"
+  push:
+    branches: ['main', 'development']
+    paths:
+      - 'apps/**/*.ts'
+      - 'packages/**/*.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'turbo.json'
+      - 'tsconfig*.json'
+      - '.github/workflows/**'
+  pull_request:
+    branches: ['main']
+    paths:
+      - 'apps/**/*.ts'
+      - 'packages/**/*.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'turbo.json'
+      - 'tsconfig*.json'
+      - '.github/workflows/**'
 
 jobs:
-    build:
-        runs-on: self-hosted
+  build:
+    name: Build
+    runs-on: self-hosted
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
 
-        strategy:
-            matrix:
-                node-version: [24.x]
+      - name: Install
+        uses: ./.github/common-actions/install
 
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+      - name: Build packages
+        run: npm run build
 
-            - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4
-              with:
-                  node-version: ${{ matrix.node-version }}
-                  cache: "npm"
+  eslint:
+    name: 'ESLint'
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
 
-            - name: Install dependencies
-              run: npm ci
+      - name: Install
+        uses: ./.github/common-actions/install
 
-            - name: Run Type Check
-              run: npm run typecheck
+      - name: Run linter
+        run: npm run lint
 
-            - name: Run Linter
-              run: npm run lint
+  types:
+    name: 'Typescript'
+    needs: [eslint, build]
+    runs-on: self-hosted
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
 
-            - name: Build packages
-              run: npm run build
+      - name: Install
+        uses: ./.github/common-actions/install
 
-            - name: Run unit tests with coverage
-              run: npm test -- --coverage
+      - name: Run typecheck
+        run: npm run typecheck
+
+  coverage:
+    permissions:
+      contents: read
+    name: 'Jest coverage'
+    needs: [eslint, types]
+    runs-on: self-hosted
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Install
+        uses: ./.github/common-actions/install
+
+      - name: Run jest coverage
+        uses: ArtiomTr/jest-coverage-report-action@v2
+        with:
+          test-script: npm run test -- --coverage --json --ci
