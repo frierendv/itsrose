@@ -5,6 +5,7 @@ import PreprocessorDirectives from "unplugin-preprocessor-directives/rollup";
 import { purgePolyfills } from "unplugin-purge-polyfills";
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
+const IS_CI = process.env.CI === "true";
 
 function getProdConfig() {
 	const prod: UserConfig = {
@@ -21,7 +22,7 @@ const plugins: TsdownPluginOption = [
 	PreprocessorDirectives(),
 	purgePolyfills.rolldown({ sourcemap: true }),
 	Sonda({
-		enabled: !IS_PRODUCTION,
+		enabled: !IS_PRODUCTION && !IS_CI,
 		filename: "sonda_repot", // only last report needed
 		sources: true,
 		open: false,
