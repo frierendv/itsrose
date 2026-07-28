@@ -22,6 +22,7 @@ RUN node apps/api/scripts/build.js
 
 
 FROM gcr.io/distroless/nodejs24-debian13 AS runner
+WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=builder /app/apps/api/out/ ./
