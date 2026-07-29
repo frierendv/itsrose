@@ -153,7 +153,7 @@ export default function (plop: NodePlopAPI) {
 				},
 				{
 					type: "runCommand",
-					command: `npm ci -D ${moduleDevDeps.join(" ")} --workspace ${packageName}`,
+					command: `npm install -D ${moduleDevDeps.join(" ")} --workspace ${packageName}`,
 				},
 			];
 
