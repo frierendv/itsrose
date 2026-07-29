@@ -1,0 +1,41 @@
+{
+	"name": "@itsrose/character-ai",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"type": "module",
+	"license": "MIT",
+	"description": "Third party module for character.ai",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/frierendv/itsrose.git",
+		"directory": "packages/features/character-ai"
+	},
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "src/index.ts",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"build:fast": "tsdown src",
+		"clean": "rimraf dist .sonda",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"postpack": "clean-package restore",
+		"prepack": "clean-package",
+		"typecheck": "tsc --noEmit"
+	},
+	"clean-package": "../../../clean-package.config.json",
+	"devDependencies": {
+		"@itsrose/eslint-config": "*",
+		"@itsrose/tsdown-config": "*",
+		"@itsrose/typescript-config": "*",
+		"@types/ws": "^8.18.1"
+	},
+	"dependencies": {
+		"@itsrose/http-client": "^1.0.0",
+		"@itsrose/system": "^1.0.0",
+		"ws": "^8.21.1"
+	}
+}
