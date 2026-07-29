@@ -1,10 +1,9 @@
 name: Node.js CI
 
 on:
-    workflow_dispatch:
     push:
         branches: ["main", "development"]
-        paths:
+        paths: &trigger_paths
             - "apps/**/*.ts"
             - "packages/**/*.ts"
             - "package.json"
@@ -13,15 +12,12 @@ on:
             - "tsconfig*.json"
             - ".github/workflows/**"
     pull_request:
-        branches: ["main"]
-        paths:
-            - "apps/**/*.ts"
-            - "packages/**/*.ts"
-            - "package.json"
-            - "package-lock.json"
-            - "turbo.json"
-            - "tsconfig*.json"
-            - ".github/workflows/**"
+        branches: ["main", "development"]
+        paths: *trigger_paths
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
     build:
@@ -29,7 +25,7 @@ jobs:
         runs-on: self-hosted
         steps:
             - name: Checkout branch
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Install
               uses: ./.github/common-actions/install
@@ -39,11 +35,10 @@ jobs:
 
     eslint:
         name: "ESLint"
-        needs: build
         runs-on: self-hosted
         steps:
             - name: Checkout branch
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Install
               uses: ./.github/common-actions/install
@@ -53,11 +48,10 @@ jobs:
 
     types:
         name: "Typescript"
-        needs: [eslint, build]
         runs-on: self-hosted
         steps:
             - name: Checkout branch
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Install
               uses: ./.github/common-actions/install
@@ -68,17 +62,25 @@ jobs:
     coverage:
         permissions:
             contents: read
+            pull-requests: write
         name: "Jest coverage"
-        needs: [eslint, types]
         runs-on: self-hosted
         steps:
             - name: Checkout branch
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Install
               uses: ./.github/common-actions/install
 
             - name: Run jest coverage
+              if: github.event_name == 'push'
+              run: npm run test -- --coverage --json --ci --testLocationInResults
+
+            - name: Run jest coverage
+              if: github.event_name == 'pull_request'
               uses: ArtiomTr/jest-coverage-report-action@v2
               with:
-                  test-script: npm run test -- --coverage --json --ci
+                  skip-step: install
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  test-script: npm run test -- --coverage --json --ci --testLocationInResults
+                  output: report-markdown
