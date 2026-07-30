@@ -2,13 +2,29 @@ import { parseCharacterInfo } from "../utils";
 import type { CharacterInfo, SearchCharacter } from "../zod-schema";
 import type { Client } from "./client";
 
+/**
+ * Sub-client module for managing Character.ai character profiles,
+ * retrieving detailed character info, and performing character searches.
+ */
 export class Character {
-	constructor(protected readonly client: Client) {}
 	/**
-	 * Retrieve character info data
+	 * Creates an instance of the Character sub-client.
 	 *
-	 * @param {string} characterId
-	 * @returns {Promise<CharacterInfo>}
+	 * @param client - The root Client instance.
+	 */
+	constructor(protected readonly client: Client) {}
+
+	/**
+	 * Retrieves detailed character information by character external ID.
+	 *
+	 * @param options - Options containing the `external_id` of the character.
+	 * @returns Parsed `CharacterInfo` metadata including avatar URL and interaction metrics.
+	 *
+	 * @example
+	 * ```ts
+	 * const info = await client.character.info({ external_id: "char_uuid_here" });
+	 * console.log(info.title, info.avatar_url);
+	 * ```
 	 */
 	public async info(
 		options: Pick<CharacterInfo, "external_id">
@@ -20,11 +36,18 @@ export class Character {
 
 		return parseCharacterInfo(data.character);
 	}
+
 	/**
-	 * Search character
+	 * Searches for characters on Character.ai matching a search query.
 	 *
-	 * @param {{ query: string }} options
-	 * @returns {{ characters: CharacterInfo[] }}
+	 * @param options - Search parameters including query text and optional pagination.
+	 * @returns Object containing an array of parsed `CharacterInfo` objects.
+	 *
+	 * @example
+	 * ```ts
+	 * const results = await client.character.search({ query: "Stella" });
+	 * console.log(results.characters.map((c) => c.name));
+	 * ```
 	 */
 	public async search(
 		options: SearchCharacter
