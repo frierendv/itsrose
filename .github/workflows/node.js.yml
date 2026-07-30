@@ -60,9 +60,6 @@ jobs:
               run: npm run typecheck
 
     coverage:
-        permissions:
-            contents: read
-            pull-requests: write
         name: "Jest coverage"
         runs-on: self-hosted
         steps:
@@ -73,14 +70,4 @@ jobs:
               uses: ./.github/common-actions/install
 
             - name: Run jest coverage
-              if: github.event_name == 'push'
               run: npm run test -- --verbose=false --runInBand=false --coverage --ci --testLocationInResults
-
-            - name: Run jest coverage
-              if: github.event_name == 'pull_request'
-              uses: ArtiomTr/jest-coverage-report-action@v2
-              with:
-                  skip-step: install
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-                  test-script: npm run test -- --verbose=false --runInBand=false
-                  output: report-markdown
