@@ -33,6 +33,7 @@
 		"@fastify/under-pressure": "^9.0.3",
 		"@fastify/websocket": "^11.2.0",
 		"@itsrose/api-response": "*",
+		"@itsrose/character-ai": "*",
 		"@itsrose/elevenlabs": "*",
 		"@itsrose/fastify-utils": "*",
 		"@itsrose/instagram": "*",
