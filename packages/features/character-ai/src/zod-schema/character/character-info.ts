@@ -12,7 +12,6 @@ export const CharacterInfoSchema = z
 		title: z
 			.string()
 			.describe("Given title from their creator for this character."),
-
 		avatar_url: z
 			.string()
 			.nullable()
@@ -64,4 +63,4 @@ export const CharacterInfoSchema = z
 		description: "Character info schema",
 	});
 
-export type ICharacterInfo = z.infer<typeof CharacterInfoSchema>;
+export type CharacterInfo = z.infer<typeof CharacterInfoSchema>;

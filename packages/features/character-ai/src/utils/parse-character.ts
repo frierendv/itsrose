@@ -1,8 +1,8 @@
-import type { ICharacterInfo } from "../zod-schema";
+import type { CharacterInfo } from "../zod-schema";
 
 export function parseCharacterInfo(
-	character: { [k: string]: any } & {} // ! FIX-ME: remove any cast
-): ICharacterInfo {
+	character: { [k: string]: unknown } & {} // ! FIX-ME: remove any cast
+): CharacterInfo {
 	const creator = {
 		user_id: character.user_id,
 		user__username: character.user__username,
@@ -20,6 +20,6 @@ export function parseCharacterInfo(
 			character.avatar_file_name,
 		creator,
 		metadata,
-	} as ICharacterInfo;
+	} as CharacterInfo;
 	return characterInfo;
 }
