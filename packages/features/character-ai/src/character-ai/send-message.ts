@@ -7,6 +7,22 @@ import {
 	type ChatSendMessageResponse,
 } from "../zod-schema";
 
+/**
+ * Sends a chat message to a specified Character.ai character using the default singleton client.
+ * Automatically clears chat session history after completion unless `should_ressurect` is enabled.
+ *
+ * @param options - Message details including `external_id` (character ID), `message`, and optional parameters.
+ * @returns Promise resolving to `ChatSendMessageResponse`.
+ * @throws {ThirdPartyApiError} If message dispatch fails or receives no response from Character.ai API.
+ *
+ * @example
+ * ```ts
+ * const response = await sendMessage({
+ *   external_id: "char_external_id",
+ *   message: "Hello Stella!",
+ * });
+ * ```
+ */
 export async function sendMessage(
 	options: ChatSendMessage
 ): Promise<ChatSendMessageResponse> {
@@ -25,6 +41,9 @@ export async function sendMessage(
 	return response;
 }
 
+/**
+ * Zod validation schemas for sending chat messages.
+ */
 export const sendMessageSchema = {
 	request: ChatSendMessageSchema,
 	response: ChatSendMessageResponseSchema,

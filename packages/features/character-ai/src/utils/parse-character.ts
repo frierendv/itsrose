@@ -1,5 +1,12 @@
 import type { CharacterInfo } from "../zod-schema";
 
+/**
+ * Transforms raw Character.ai character API data into a normalized `CharacterInfo` object,
+ * assembling avatar URLs, creator information, and interaction metrics.
+ *
+ * @param character - Raw character object record returned by the Character.ai API.
+ * @returns Parsed `CharacterInfo` structured object.
+ */
 export function parseCharacterInfo(
 	character: { [k: string]: unknown } & {} // ! FIX-ME: remove any cast
 ): CharacterInfo {

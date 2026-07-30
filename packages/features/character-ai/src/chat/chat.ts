@@ -3,19 +3,34 @@ import type { ChatSendMessage, ChatSendMessageResponse } from "../zod-schema";
 import { ChatHelper } from "./chat-helper";
 import { ChatSocket } from "./chat-socket";
 
+/**
+ * Sub-client module for conducting real-time chats with Character.ai characters.
+ * Handles WebSocket connection lifecycle, message payload generation, turn generation,
+ * and optional conversation history clearance.
+ */
 export class Chat {
 	private helper: ChatHelper;
 
+	/**
+	 * Creates an instance of the Chat sub-client.
+	 *
+	 * @param client - The root Client instance.
+	 */
 	constructor(private readonly client: Client) {
 		this.helper = new ChatHelper(this.client);
 	}
+
 	/**
-	 * Clear/delete chat history (cai only hide it from user?).
+	 * Clears or hides the conversation history for a given chat session on Character.ai.
+	 * Calls the `/chat/{chat_id}/resurrect` endpoint.
 	 *
-	 * :: delete chat endpoint `/chat/{chatId}/resurrect` ::
+	 * @param options - Options object containing the `chat_id`.
+	 * @returns `true` if the request succeeded or was handled without errors, `false` otherwise.
 	 *
-	 * @param {{chat_id:string}} options
-	 * @returns {Promise<boolean>}
+	 * @example
+	 * ```ts
+	 * const success = await client.chat.clearHistory({ chat_id: "chat_uuid_here" });
+	 * ```
 	 */
 	public async clearHistory(options: { chat_id: string }): Promise<boolean> {
 		const { error } = await this.client.http
@@ -24,13 +39,24 @@ export class Chat {
 
 		return !error;
 	}
+
 	/**
-	 * Send message to character
+	 * Sends a user message to a character and waits for the AI model response turn.
+	 * Automatically fetches authenticated user info if not cached, establishes a WebSocket
+	 * connection to the Neo WebSocket service, sends the initialization payload, and streams output.
 	 *
-	 * @public
-	 * @async
-	 * @param {Pick<ChatSendMessage, "message" | "external_id" | "chat_id">} options
-	 * @returns {Promise<ChatSendMessageResponse | null>}
+	 * @param options - Chat parameters including target `external_id` (character ID), `message`, and optional `chat_id`.
+	 * @returns Promise resolving to `ChatSendMessageResponse` containing turn candidate responses, or `null`.
+	 * @throws {ThirdPartyApiError} If authentication fails, socket error occurs, or response times out.
+	 *
+	 * @example
+	 * ```ts
+	 * const response = await client.chat.sendMessage({
+	 *   external_id: "char_external_id",
+	 *   message: "Hello!",
+	 * });
+	 * console.log(response?.candidates[0].raw_content);
+	 * ```
 	 */
 	public async sendMessage(
 		options: Pick<ChatSendMessage, "message" | "external_id" | "chat_id">
