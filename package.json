@@ -60,11 +60,11 @@
 		"typedoc-plugin-zod": "^1.4.3",
 		"typescript": "^5.9.3"
 	},
-	"packageManager": "npm@11.7.0",
 	"overrides": {
 		"test-exclude": "^8.0.0",
 		"glob": "^13.0.0"
 	},
+	"packageManager": "npm@11.7.0",
 	"workspaces": [
 		"apps/*",
 		"packages/**/*"
