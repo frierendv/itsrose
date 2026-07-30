@@ -3,7 +3,7 @@ name: Node.js CI
 on:
     push:
         branches: ["main", "development"]
-        paths: &trigger_paths
+        paths:
             - "apps/**/*.ts"
             - "packages/**/*.ts"
             - "package.json"
@@ -12,12 +12,15 @@ on:
             - "tsconfig*.json"
             - ".github/workflows/**"
     pull_request:
-        branches: ["main", "development"]
-        paths: *trigger_paths
-
-concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: true
+        branches: ["main"]
+        paths:
+            - "apps/**/*.ts"
+            - "packages/**/*.ts"
+            - "package.json"
+            - "package-lock.json"
+            - "turbo.json"
+            - "tsconfig*.json"
+            - ".github/workflows/**"
 
 jobs:
     build:
@@ -36,6 +39,7 @@ jobs:
     eslint:
         name: "ESLint"
         runs-on: self-hosted
+        needs: [build]
         steps:
             - name: Checkout branch
               uses: actions/checkout@v4
@@ -49,6 +53,7 @@ jobs:
     types:
         name: "Typescript"
         runs-on: self-hosted
+        needs: [build, eslint]
         steps:
             - name: Checkout branch
               uses: actions/checkout@v4
@@ -60,11 +65,9 @@ jobs:
               run: npm run typecheck
 
     coverage:
-        permissions:
-            contents: read
-            pull-requests: write
         name: "Jest coverage"
         runs-on: self-hosted
+        needs: [build, eslint, types]
         steps:
             - name: Checkout branch
               uses: actions/checkout@v4
@@ -73,14 +76,4 @@ jobs:
               uses: ./.github/common-actions/install
 
             - name: Run jest coverage
-              if: github.event_name == 'push'
-              run: npm run test -- --coverage --json --ci --testLocationInResults
-
-            - name: Run jest coverage
-              if: github.event_name == 'pull_request'
-              uses: ArtiomTr/jest-coverage-report-action@v2
-              with:
-                  skip-step: install
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-                  test-script: npm run test -- --coverage --json --ci --testLocationInResults
-                  output: report-markdown
+              run: npm run test -- --verbose=false --runInBand=false --coverage --ci --testLocationInResults
