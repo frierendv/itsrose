@@ -2,7 +2,9 @@
 
 Typed client for the MTXX image-generation and image-enhancement service. It includes the HTTP client, task helpers, utility functions, and Zod schemas used by the feature workflows.
 
-> [!warning] Required environment
+> [!warning]
+>
+> **Required environment**
 >
 > - `MTXX_SDK_BASE_URL`: SDK base URL.
 > - `MTXX_OPENAPI_BASE_URL`: OpenAPI base URL.
