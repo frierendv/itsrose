@@ -10,4 +10,4 @@
 
 > [!NOTE]
 >
-> Set build environment `CAI_API_ENABLE="false"` to disable static client export (see [here](./src/client/client.ts#L46-69)).
+> Set build environment `CAI_API_ENABLE="false"` to disable static client export (see [here](./src/client/client.ts#L46-L49)).
