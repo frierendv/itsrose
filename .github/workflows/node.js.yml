@@ -3,7 +3,7 @@ name: Node.js CI
 on:
     push:
         branches: ["main", "development"]
-        paths: &trigger_paths
+        paths:
             - "apps/**/*.ts"
             - "packages/**/*.ts"
             - "package.json"
@@ -12,12 +12,15 @@ on:
             - "tsconfig*.json"
             - ".github/workflows/**"
     pull_request:
-        branches: ["main", "development"]
-        paths: *trigger_paths
-
-concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: true
+        branches: ["main"]
+        paths:
+            - "apps/**/*.ts"
+            - "packages/**/*.ts"
+            - "package.json"
+            - "package-lock.json"
+            - "turbo.json"
+            - "tsconfig*.json"
+            - ".github/workflows/**"
 
 jobs:
     build:
