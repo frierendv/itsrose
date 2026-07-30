@@ -43,7 +43,7 @@ export class Client {
 	}
 }
 
-// #if CAI_API_ENABLE
+// #if !CAI_API_ENABLE
 /** static client */
 export const client = new Client();
 // #endif

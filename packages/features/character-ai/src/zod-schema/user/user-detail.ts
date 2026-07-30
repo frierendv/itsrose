@@ -24,7 +24,7 @@ export const UserDetailSchema = z.object({
 		.or(z.any()),
 	is_human: z.boolean(),
 	name: z.string(),
-	email: z.string,
+	email: z.string(),
 	date_joined: z.string(),
 	date_of_birth: z.string(),
 	needs_to_acknowledge_policy: z.boolean(),
