@@ -74,7 +74,7 @@ jobs:
 
             - name: Run jest coverage
               if: github.event_name == 'push'
-              run: npm run test -- --coverage --json --ci --testLocationInResults
+              run: npm run test -- --verbose=false --runInBand=false --coverage --ci --testLocationInResults
 
             - name: Run jest coverage
               if: github.event_name == 'pull_request'
@@ -82,5 +82,5 @@ jobs:
               with:
                   skip-step: install
                   github-token: ${{ secrets.GITHUB_TOKEN }}
-                  test-script: npm run test -- --coverage --json --ci --testLocationInResults
+                  test-script: npm run test -- --verbose=false --runInBand=false
                   output: report-markdown
