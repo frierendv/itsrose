@@ -1,30 +1,64 @@
 import { ThirdPartyApiError } from "@itsrose/system";
 import WebSocket from "ws";
-import type { CAIClient } from "../client";
-import type { IChatSendMessageResponse } from "../zod-schema/chat";
+import type { Client } from "../client";
+import type { ChatSendMessageResponse } from "../zod-schema";
 
 const CHAT_TIMEOUT_MS = 30_000;
 
+interface IIncomingCandidate {
+	candidate_id?: string;
+	raw_content?: string;
+	is_final?: boolean;
+	primary_candidate_id?: string;
+	model_type?: string;
+}
+
+interface IIncomingTurn {
+	turn_key?: {
+		chat_id?: string;
+		turn_id?: string;
+	};
+	candidates?: IIncomingCandidate[];
+}
+
+interface IIncomingMessage {
+	command?: string;
+	turn?: IIncomingTurn;
+	generation_mode?: Record<string, unknown>;
+	context_stats?: Record<string, unknown>;
+	comment?: string;
+}
+
 export class ChatSocket {
 	private socket?: WebSocket;
-	public output: IChatSendMessageResponse | null = null;
+	public output: ChatSendMessageResponse | null = null;
 
 	private resolveWait?: () => void;
 	private rejectWait?: (error: Error) => void;
 	private timeout?: NodeJS.Timeout;
 
-	constructor(private readonly client: CAIClient) {}
+	constructor(private readonly client: Client) {}
 
 	/** Exposed send method */
-	public send<T>(obj: T) {
-		if (!this.socket) {
+	public send<T>(obj: T): Promise<void> {
+		if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
 			return Promise.reject(
 				new ThirdPartyApiError("chat has not been created.", 400)
 			);
 		}
-		return this.socket.send(JSON.stringify(obj));
+
+		return new Promise((resolve, reject) => {
+			this.socket?.send(JSON.stringify(obj), (err) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve();
+				}
+			});
+		});
 	}
-	public create() {
+
+	public create(): void {
 		this.cleanup();
 
 		this.socket = new WebSocket(this.client.neoWssUrl, {
@@ -47,22 +81,42 @@ export class ChatSocket {
 		if (this.socket.readyState === WebSocket.OPEN) {
 			return Promise.resolve();
 		}
-		return new Promise((resolve, reject) => {
-			this.resolveWait = resolve;
-			this.rejectWait = reject;
 
+		return new Promise((resolve, reject) => {
 			const onOpen = () => {
 				cleanup();
 				resolve();
 			};
-			const cleanup = () => {
-				clearTimeout(this.timeout);
-				this.socket?.removeListener("open", onOpen);
+			const onError = (err: Error) => {
+				cleanup();
+				reject(err);
 			};
+			const onClose = () => {
+				cleanup();
+				reject(
+					new ThirdPartyApiError(
+						"Task connection closed unexpectedly before opening.",
+						500
+					)
+				);
+			};
+
+			const cleanup = () => {
+				this.clearTimeoutTimer();
+				this.socket?.removeListener("open", onOpen);
+				this.socket?.removeListener("error", onError);
+				this.socket?.removeListener("close", onClose);
+			};
+
 			this.socket?.once("open", onOpen);
-			this.timeout = setTimeout(() => {
+			this.socket?.once("error", onError);
+			this.socket?.once("close", onClose);
+
+			this.startTimeoutTimer(() => {
+				cleanup();
 				this.finish(new ThirdPartyApiError("Chat timed out.", 504));
-			}, CHAT_TIMEOUT_MS);
+				reject(new ThirdPartyApiError("Chat timed out.", 504));
+			});
 		});
 	}
 
@@ -82,39 +136,59 @@ export class ChatSocket {
 			this.resolveWait = resolve;
 			this.rejectWait = reject;
 
-			this.timeout = setTimeout(() => {
+			this.startTimeoutTimer(() => {
 				this.finish(new ThirdPartyApiError("Chat timed out.", 504));
-			}, CHAT_TIMEOUT_MS);
+			});
 		});
 	}
 
 	private readonly onMessage = (raw: WebSocket.RawData): void => {
-		let data: any;
+		let data: IIncomingMessage;
 
 		try {
 			data = JSON.parse(raw.toString());
-			const { turn, command, generation_mode, context_stats } = data;
-			if (command === "update_turn") {
-				const candidate = turn.candidates[0];
-				data = {
-					chat_id: turn.turn_key.chat_id,
-					candidates: turn.candidates,
-					primary_candidate_id: candidate.primary_candidate_id,
-					generation_mode,
-					context_stats,
-				};
-				if (!candidate.is_final) {
-					return;
-				}
-			} else if (command !== "neo_error") {
-				return;
-			}
-			this.timeout?.refresh();
 		} catch {
 			return;
 		}
-		this.output = data;
-		this.finish();
+
+		const { turn, command, generation_mode, context_stats, comment } = data;
+
+		if (command === "update_turn") {
+			if (!turn?.candidates || turn.candidates.length === 0) {
+				return;
+			}
+			const candidate = turn.candidates[0];
+
+			// Received turn candidate frame; refresh inactivity timeout
+			this.resetTimeoutTimer();
+
+			if (!candidate?.is_final) {
+				return;
+			}
+
+			const chatId = turn.turn_key?.chat_id;
+			if (!chatId) {
+				return;
+			}
+
+			this.output = {
+				chat_id: chatId,
+				candidates:
+					turn.candidates as ChatSendMessageResponse["candidates"],
+				generation_mode: (generation_mode ??
+					{}) as ChatSendMessageResponse["generation_mode"],
+				context_stats: (context_stats ??
+					{}) as ChatSendMessageResponse["context_stats"],
+			};
+			this.finish();
+		} else if (command === "neo_error") {
+			this.finish(
+				new ThirdPartyApiError(
+					comment || "Character AI WebSocket error",
+					500
+				)
+			);
+		}
 	};
 
 	private readonly onError = (error: Error): void => {
@@ -133,10 +207,7 @@ export class ChatSocket {
 	};
 
 	private finish(error?: Error): void {
-		if (this.timeout) {
-			clearTimeout(this.timeout);
-			this.timeout = undefined;
-		}
+		this.clearTimeoutTimer();
 
 		this.socket?.removeAllListeners();
 		this.socket?.close();
@@ -153,13 +224,37 @@ export class ChatSocket {
 	}
 
 	private cleanup(): void {
-		if (this.timeout) {
-			clearTimeout(this.timeout);
-			this.timeout = undefined;
-		}
+		this.clearTimeoutTimer();
 
 		this.socket?.removeAllListeners();
 		this.socket?.close();
 		this.socket = undefined;
+
+		this.resolveWait = undefined;
+		this.rejectWait = undefined;
+	}
+
+	private clearTimeoutTimer(): void {
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			this.timeout = undefined;
+		}
+	}
+
+	private startTimeoutTimer(onTimeout?: () => void): void {
+		this.clearTimeoutTimer();
+		this.timeout = setTimeout(() => {
+			if (onTimeout) {
+				onTimeout();
+			} else {
+				this.finish(new ThirdPartyApiError("Chat timed out.", 504));
+			}
+		}, CHAT_TIMEOUT_MS);
+	}
+
+	private resetTimeoutTimer(): void {
+		if (this.timeout) {
+			this.timeout.refresh();
+		}
 	}
 }

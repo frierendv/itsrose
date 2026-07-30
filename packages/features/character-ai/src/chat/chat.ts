@@ -1,20 +1,13 @@
-import type { CAIClient } from "../client";
-import { ORIGIN_REQUEST_ID } from "../constants/user";
-import type {
-	IChatSendMessage,
-	IChatSendMessageResponse,
-} from "../zod-schema/chat";
+import type { Client } from "../client";
+import type { ChatSendMessage, ChatSendMessageResponse } from "../zod-schema";
 import { ChatHelper } from "./chat-helper";
 import { ChatSocket } from "./chat-socket";
 
 export class Chat {
-	public originId: string;
-
 	private helper: ChatHelper;
 
-	constructor(private readonly client: CAIClient) {
+	constructor(private readonly client: Client) {
 		this.helper = new ChatHelper(this.client);
-		this.originId = ORIGIN_REQUEST_ID;
 	}
 	/**
 	 * Clear/delete chat history (cai only hide it from user?).
@@ -24,19 +17,31 @@ export class Chat {
 	 * @param {{chat_id:string}} options
 	 * @returns {Promise<boolean>}
 	 */
-	public async clearChatHistory(options: {
-		chat_id: string;
-	}): Promise<boolean> {
+	public async clearHistory(options: { chat_id: string }): Promise<boolean> {
 		const { error } = await this.client.http
 			.get(`/chat/${options.chat_id}/resurrect`)
 			.onError(() => true);
 
 		return !error;
 	}
-
+	/**
+	 * Send message to character
+	 *
+	 * @public
+	 * @async
+	 * @param {Pick<ChatSendMessage, "message" | "external_id" | "chat_id">} options
+	 * @returns {Promise<ChatSendMessageResponse | null>}
+	 */
 	public async sendMessage(
-		options: Pick<IChatSendMessage, "message" | "external_id" | "chat_id">
-	): Promise<IChatSendMessageResponse | null> {
+		options: Pick<ChatSendMessage, "message" | "external_id" | "chat_id">
+	): Promise<ChatSendMessageResponse | null> {
+		/**
+		 * * if no user try to fetch it.
+		 * * Will throw here if any error occured
+		 */
+		if (!this.client.user.detail) {
+			await this.client.user.get();
+		}
 		const { message, external_id, chat_id } = options;
 
 		// create the socket connection
@@ -56,7 +61,6 @@ export class Chat {
 		socket.send(chatMessage);
 		await socket.waitForOutput();
 
-		await this.clearChatHistory(chatRequest);
 		return socket.output;
 	}
 }

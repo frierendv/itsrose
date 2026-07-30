@@ -1,21 +1,23 @@
 import { createHttpClient, type HttpClient } from "@itsrose/http-client";
 import { getEnv } from "@itsrose/system";
 import { Chat } from "../chat";
-import { parseCharacterInfo } from "../utils/parse-character";
-import type { ICharacterInfo } from "../zod-schema";
+import { Character } from "./character";
+import { User } from "./user";
 
 /**
  * Character.ai is not forcing you to verify ID to use their service.
  * So you need to verify first before using this API client
  *
  */
-export class CAIClient {
+export class Client {
 	#token: string;
 
 	public neoBaseUrl: string;
 	public neoWssUrl: string;
 	public http: HttpClient;
 
+	public user: User;
+	public character: Character;
 	public chat: Chat;
 
 	constructor() {
@@ -28,7 +30,9 @@ export class CAIClient {
 			headers: this.getHeaders(),
 		});
 
+		this.user = new User(this);
 		this.chat = new Chat(this);
+		this.character = new Character(this);
 	}
 
 	/** @internal this method should be internal */
@@ -37,36 +41,9 @@ export class CAIClient {
 			Cookie: `HTTP_AUTHORIZATION="Token ${this.#token}";`,
 		};
 	}
-
-	/**
-	 * Retrieve character info data
-	 *
-	 * @param {string} characterId
-	 * @returns {Promise<ICharacterInfo>}
-	 */
-	public async characterInfo(characterId: string): Promise<ICharacterInfo> {
-		const { data } = await this.http.post<{ character: object }>(
-			"/character/v1/get_character_info",
-			{ external_id: characterId }
-		);
-
-		return parseCharacterInfo(data.character);
-	}
-	/**
-	 * Search character
-	 *
-	 * @param {{ query: string }} options
-	 * @returns {{ characters: ICharacterInfo[] }}
-	 */
-	public async searchCharacter(options: {
-		query: string;
-	}): Promise<{ characters: ICharacterInfo[] }> {
-		const { data } = await this.http.get<{ characters: object[] }>(
-			"/search/v1/character",
-			{ params: { sortedBy: "relevance", ...options } }
-		);
-
-		const characters = data.characters.map(parseCharacterInfo);
-		return { characters };
-	}
 }
+
+// #if CAI_API_ENABLE
+/** static client */
+export const client = new Client();
+// #endif
