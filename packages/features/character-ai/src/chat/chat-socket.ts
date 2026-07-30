@@ -29,17 +29,37 @@ interface IIncomingMessage {
 	comment?: string;
 }
 
+/**
+ * Low-level WebSocket client wrapper for Character.ai real-time turn generation.
+ * Manages socket events, message payload serialization/deserialization, frame timeouts, and turn aggregation.
+ */
 export class ChatSocket {
 	private socket?: WebSocket;
+
+	/**
+	 * Accumulated response payload after complete turn generation.
+	 */
 	public output: ChatSendMessageResponse | null = null;
 
 	private resolveWait?: () => void;
 	private rejectWait?: (error: Error) => void;
 	private timeout?: NodeJS.Timeout;
 
+	/**
+	 * Creates an instance of `ChatSocket`.
+	 *
+	 * @param client - The root Client instance providing headers and socket URLs.
+	 */
 	constructor(private readonly client: Client) {}
 
-	/** Exposed send method */
+	/**
+	 * Serializes and sends a JSON payload frame over the active WebSocket connection.
+	 *
+	 * @template T - Payload object type.
+	 * @param obj - Payload object to serialize and transmit.
+	 * @returns Promise resolving when the message is successfully sent.
+	 * @throws {ThirdPartyApiError} If socket is not initialized or connection is not open.
+	 */
 	public send<T>(obj: T): Promise<void> {
 		if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
 			return Promise.reject(
@@ -58,6 +78,10 @@ export class ChatSocket {
 		});
 	}
 
+	/**
+	 * Initializes and connects a new `WebSocket` instance to `neoWssUrl` with TLS options.
+	 * Cleans up any existing socket prior to connection.
+	 */
 	public create(): void {
 		this.cleanup();
 
@@ -72,6 +96,12 @@ export class ChatSocket {
 		this.socket.on("close", this.onClose);
 	}
 
+	/**
+	 * Returns a promise that resolves once the WebSocket connection state transitions to `OPEN`.
+	 *
+	 * @returns Promise resolving on open, or rejecting on socket error or timeout.
+	 * @throws {ThirdPartyApiError} If socket is uncreated, closed prematurely, or times out.
+	 */
 	public waitForOpen(): Promise<void> {
 		if (!this.socket) {
 			return Promise.reject(
@@ -120,6 +150,12 @@ export class ChatSocket {
 		});
 	}
 
+	/**
+	 * Returns a promise that resolves when a complete turn candidate is received from the server.
+	 *
+	 * @returns Promise resolving when turn generation finishes, or rejecting on error / timeout.
+	 * @throws {ThirdPartyApiError} If socket is uncreated or generation times out.
+	 */
 	public waitForOutput(): Promise<void> {
 		if (!this.socket) {
 			return Promise.reject(
