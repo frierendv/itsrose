@@ -1,6 +1,6 @@
 import { fetcher } from "@itsrose/http-client";
 import { ThirdPartyApiError } from "@itsrose/system";
-import { ReminiClient } from "../client";
+import { Client } from "../client";
 import {
 	ReminiRequestSchema,
 	ReminiResponseSchema,
@@ -11,28 +11,33 @@ import {
 /**
  * Initialized remini client
  */
-const reminiClient = new ReminiClient();
+const client = new Client();
 
 /**
  * Create a Remini task and wait for the processed result.
  *
- * @param options - Input image and pipeline configuration.
- * @returns The final Remini response payload.
+ * @param {IReminiRequest} options - Input image and pipeline configuration.
+ * @param {Client} [customClient] - Optional custom Client instance.
+ * @returns {Promise<IReminiResponse>} The final Remini response payload.
  */
 export const createTask = async (
-	options: IReminiRequest
+	options: IReminiRequest,
+	customClient?: Client
 ): Promise<IReminiResponse> => {
 	const { init_image, pipelines } = options;
+	const activeClient = customClient ?? client;
 
-	let imageBuffer: Buffer = Buffer.from(init_image.value, "base64");
+	let imageBuffer: Buffer;
 	if (init_image.type === "url") {
-		const { data } = await fetcher.get<Buffer>(init_image.value, {
+		const { data } = await fetcher.get<ArrayBuffer>(init_image.value, {
 			responseType: "arraybuffer",
 		});
-		imageBuffer = data;
+		imageBuffer = Buffer.from(data);
+	} else {
+		imageBuffer = Buffer.from(init_image.value, "base64");
 	}
 
-	const { status, error, result } = await reminiClient.task.create(
+	const { status, error, result } = await activeClient.task.create(
 		imageBuffer,
 		pipelines
 	);
