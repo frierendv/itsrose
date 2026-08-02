@@ -15,6 +15,7 @@ export class Oracle {
 	public oracleAid: string;
 	constructor(private readonly client: Client) {
 		this.oracleAid = createAId();
+		this._oracleHeaders = createOracleConfig(this.oracleAid);
 	}
 
 	public async initialize(first = true): Promise<void> {
@@ -27,7 +28,6 @@ export class Oracle {
 		}
 
 		this.initPromise = (async () => {
-			this._oracleHeaders = createOracleConfig(this.oracleAid);
 			const options = { headers: this._oracleHeaders };
 			const { data, error } =
 				await this.client.http.get<OracleSetupResponse>(
