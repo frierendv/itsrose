@@ -1,28 +1,30 @@
 import { ThirdPartyApiError } from "@itsrose/system";
 import WebSocket from "ws";
-import type { Oracle } from "../oracle";
 import type { ReminiTaskResponse } from "../types";
-import { REMINI_WSS_BASE_URL } from "./config";
+import type { Client } from "./client";
 
 const TASK_TIMEOUT_MS = 30_000;
 
 export class TaskSocket {
-	private socket?: WebSocket;
 	public output: ReminiTaskResponse | null = null;
+	public error: Error | null = null;
 
+	private socket?: WebSocket;
 	private resolveWait?: () => void;
 	private rejectWait?: (error: Error) => void;
 	private timeout?: NodeJS.Timeout;
 
-	constructor(private readonly oracle: Oracle) {}
+	constructor(private readonly client: Client) {}
 
 	public submit(taskId: string): void {
 		this.cleanup();
+		this.output = null;
+		this.error = null;
 
 		this.socket = new WebSocket(
-			`${REMINI_WSS_BASE_URL}/v2/tasks/${taskId}`,
+			`${this.client.wssBaseUrl}/v2/tasks/${taskId}`,
 			{
-				headers: this.oracle.getHeaders(),
+				headers: this.client.oracle.getHeaders(),
 				secureOptions: 0,
 				secureProtocol: "TLSv1_2_method",
 			}
@@ -34,15 +36,20 @@ export class TaskSocket {
 	}
 
 	public waitForOutput(): Promise<void> {
-		if (!this.socket) {
-			return Promise.reject(
-				new ThirdPartyApiError("Task has not been submitted.", 400)
-			);
+		// Already failed before waiting.
+		if (this.error) {
+			return Promise.reject(this.error);
 		}
 
 		// Already completed before waiting.
 		if (this.output) {
 			return Promise.resolve();
+		}
+
+		if (!this.socket) {
+			return Promise.reject(
+				new ThirdPartyApiError("Task has not been submitted.", 400)
+			);
 		}
 
 		return new Promise((resolve, reject) => {
@@ -64,6 +71,10 @@ export class TaskSocket {
 			return;
 		}
 
+		if (data.status === "processing") {
+			return;
+		}
+
 		this.output = data;
 		this.finish();
 	};
@@ -73,7 +84,7 @@ export class TaskSocket {
 	};
 
 	private readonly onClose = (): void => {
-		if (!this.output) {
+		if (!this.output && !this.error) {
 			this.finish(
 				new ThirdPartyApiError(
 					"Task connection closed unexpectedly.",
@@ -84,23 +95,33 @@ export class TaskSocket {
 	};
 
 	private finish(error?: Error): void {
+		if (error) {
+			this.error = error;
+		}
+
 		if (this.timeout) {
 			clearTimeout(this.timeout);
 			this.timeout = undefined;
 		}
 
-		this.socket?.removeAllListeners();
-		this.socket?.close();
-		this.socket = undefined;
-
-		if (error) {
-			this.rejectWait?.(error);
-		} else {
-			this.resolveWait?.();
+		if (this.socket) {
+			const sock = this.socket;
+			this.socket = undefined;
+			sock.removeAllListeners();
+			sock.on("error", () => {});
+			sock.close();
 		}
 
+		const resolve = this.resolveWait;
+		const reject = this.rejectWait;
 		this.resolveWait = undefined;
 		this.rejectWait = undefined;
+
+		if (error) {
+			reject?.(error);
+		} else {
+			resolve?.();
+		}
 	}
 
 	private cleanup(): void {
@@ -109,8 +130,15 @@ export class TaskSocket {
 			this.timeout = undefined;
 		}
 
-		this.socket?.removeAllListeners();
-		this.socket?.close();
-		this.socket = undefined;
+		if (this.socket) {
+			const sock = this.socket;
+			this.socket = undefined;
+			sock.removeAllListeners();
+			sock.on("error", () => {});
+			sock.close();
+		}
+
+		this.resolveWait = undefined;
+		this.rejectWait = undefined;
 	}
 }
