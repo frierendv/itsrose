@@ -19,6 +19,16 @@ const config: RcFile = {
 			dependencies: ["@types/node"],
 			pinVersion: "24.12.0",
 		},
+		{
+			label: "TypeScript",
+			dependencies: ["typescript"],
+			pinVersion: "^5.9.3",
+		},
+		{
+			label: "Chalk ^4.1.2",
+			dependencies: ["chalk"],
+			pinVersion: "^4.1.2",
+		},
 	],
 	sortFirst: [
 		"name",
