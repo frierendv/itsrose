@@ -5,7 +5,7 @@ import crypto from "node:crypto";
  * @export
  * @returns {string}
  */
-export function createAIdContext(): string {
+export function createAId(): string {
 	const hex = "0123456789abcdef";
 	const randomBytes = crypto.randomBytes(16);
 	let context = "";

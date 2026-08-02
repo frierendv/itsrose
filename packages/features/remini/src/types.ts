@@ -76,9 +76,16 @@ export type OracleSetupResponse = {
 /**
  * Active Oracle user authentication state and tokens.
  */
-export type OracleUser = Pick<
+export type CurrentOracleUser = Pick<
 	OracleSetupResponse["me"],
 	"unique_id" | "authentication"
 > & {
-	identity: { token: string; expiration_: number };
+	identity: { token: string; expiration: number };
+};
+
+export type CurrentUserAccount = {
+	image_training_consent: boolean;
+	image_training_consent_version: null | unknown;
+	balance: number;
+	next_renew_balance_seconds: number;
 };
