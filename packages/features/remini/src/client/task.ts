@@ -1,7 +1,7 @@
 import { InvalidRequestError, ThirdPartyApiError } from "@itsrose/system";
 import { extractImageMetadata } from "../utils";
 import type { IReminiPipelineFeature } from "../zod-schema";
-import type { ReminiClient } from "./client";
+import type { Client } from "./client";
 import { TaskSocket } from "./task-socket";
 
 export class Task {
@@ -13,33 +13,45 @@ export class Task {
 		enlarge_small_images_to: "2048",
 	};
 
-	constructor(private readonly client: ReminiClient) {}
+	constructor(private readonly client: Client) {}
 
 	private async _initialize(
 		initImageBuffer: Buffer,
 		featurePipelines: Partial<IReminiPipelineFeature>[]
-	) {
-		// Kick off user notification early to save round-trips
-		const mePromise = this.client.getMe();
+	): Promise<string> {
 		const [isOk, metadata] = extractImageMetadata(initImageBuffer);
 		if (!isOk) {
 			throw new InvalidRequestError("image is not supported.");
 		}
-		await mePromise;
-		const { data } = await this.client.http.post<any>("/v1/mobile/tasks", {
-			...metadata,
-			feature: {
-				type: "multi-tool",
-				pipelines: featurePipelines.map((pipeline) => ({
-					...this.defaultFeature,
-					...pipeline,
-				})),
+		await this.client.ensureInitialized();
+		await this.client.user.getMe();
+
+		const { data } = await this.client.http.post<{
+			task_id?: string;
+			upload_url?: string;
+			upload_headers?: Record<string, string>;
+		}>(
+			"/v1/mobile/tasks",
+			{
+				...metadata,
+				feature: {
+					type: "multi-tool",
+					pipelines: featurePipelines.map((pipeline) => ({
+						...this.defaultFeature,
+						...pipeline,
+					})),
+				},
 			},
-		});
-		const { task_id, upload_url, upload_headers } = data;
-		if (!task_id) {
+			{
+				headers: this.client.iris.getHeaders(),
+			}
+		);
+
+		const { task_id, upload_url, upload_headers } = data || {};
+		if (!task_id || !upload_url) {
 			throw new ThirdPartyApiError("Failed to create task.", 500);
 		}
+
 		const { status: uploadStatus } = await this.client.http.put(
 			upload_url,
 			initImageBuffer,
@@ -47,13 +59,15 @@ export class Task {
 				headers: upload_headers,
 			}
 		);
+
 		if (uploadStatus !== 200) {
 			throw new ThirdPartyApiError("Image upload error.", uploadStatus);
 		}
+
 		return task_id;
 	}
 
-	public async create(
+	private async _execute(
 		initImageBuffer: Buffer,
 		featurePipelines: Partial<IReminiPipelineFeature>[]
 	) {
@@ -61,7 +75,7 @@ export class Task {
 			initImageBuffer,
 			featurePipelines
 		);
-		const task = new TaskSocket(this.client.oracle);
+		const task = new TaskSocket(this.client);
 
 		task.submit(taskId);
 		await this.client.http.post(`/v1/mobile/tasks/${taskId}/process`);
@@ -76,5 +90,20 @@ export class Task {
 		}
 
 		return task.output;
+	}
+
+	public async create(
+		initImageBuffer: Buffer,
+		featurePipelines: Partial<IReminiPipelineFeature>[]
+	) {
+		try {
+			return await this._execute(initImageBuffer, featurePipelines);
+		} catch (err: any) {
+			if (err?.status === 401 || err?.statusCode === 401) {
+				await this.client.oracle.refresh();
+				return await this._execute(initImageBuffer, featurePipelines);
+			}
+			throw err;
+		}
 	}
 }

@@ -17,15 +17,19 @@ type IsOK = boolean;
  * @returns {[IsOK, ImageMetadata]}
  */
 export const extractImageMetadata = (buffer: Buffer): [IsOK, ImageMetadata] => {
-	const iS = imageSize(buffer);
-	const metadata = {
-		/** ! hack: If the image-size don't know the image type fallback to "jpg" */
-		image_content_type: "image/" + (iS.type ?? "jpg"),
-		image_md5: createHash("md5").update(buffer).digest("base64"),
-		image_size: buffer.length,
-		image_resolution_width: iS.width,
-		image_resolution_height: iS.height,
-	};
-	const isOk = !!iS.type || !!(iS?.height && iS?.width);
-	return [isOk, metadata];
+	try {
+		const iS = imageSize(buffer);
+		const metadata = {
+			/** ! hack: If the image-size don't know the image type fallback to "jpg" */
+			image_content_type: "image/" + (iS.type ?? "jpg"),
+			image_md5: createHash("md5").update(buffer).digest("base64"),
+			image_size: buffer.length,
+			image_resolution_width: iS.width,
+			image_resolution_height: iS.height,
+		};
+		const isOk = !!iS.type || !!(iS?.height && iS?.width);
+		return [isOk, metadata];
+	} catch {
+		return [false, {} as ImageMetadata];
+	}
 };
