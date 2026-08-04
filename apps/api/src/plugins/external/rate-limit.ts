@@ -1,14 +1,12 @@
 import {
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	fastifyRateLimit,
 	type RateLimitPluginOptions,
 } from "@fastify/rate-limit";
 import { FailureResponse } from "@itsrose/api-response";
 
 export const autoConfig: RateLimitPluginOptions = {
-	// 1 request per 5 seconds
-	max: 1,
-	timeWindow: 5000,
+	max: 50,
+	timeWindow: 10_000,
 
 	errorResponseBuilder: (req, context) => {
 		return new FailureResponse({
@@ -26,4 +24,4 @@ export const autoConfig: RateLimitPluginOptions = {
 	},
 };
 
-// export default fastifyRateLimit;
+export default fastifyRateLimit;
