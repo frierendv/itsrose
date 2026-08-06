@@ -17,10 +17,6 @@ services:
             context: ../
             dockerfile: apps/api/Dockerfile
         volumes:
-            - .:/usr/src/app
-            - /usr/src/app/node_modules
-            - ~/.npm:/root/.npm:ro
-
             # database volume
             - ./data:/data:ro
         restart: unless-stopped
