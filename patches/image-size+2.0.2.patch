@@ -1,0 +1,60 @@
+diff --git a/node_modules/image-size/dist/index.cjs b/node_modules/image-size/dist/index.cjs
+index bde0210..8aff43c 100644
+--- a/node_modules/image-size/dist/index.cjs
++++ b/node_modules/image-size/dist/index.cjs
+@@ -42,7 +42,7 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size === 0) break; // fixes https://github.com/advisories/GHSA-5p2g-fcmc-qvqq
+     if (box.name === boxName) return box;
+     currentOffset += box.size > 0 ? box.size : 8;
+   }
+@@ -253,6 +253,7 @@ var ICNS = {
+     const images = [];
+     while (imageOffset < fileLength && imageOffset < inputLength) {
+       const imageHeader = readImageHeader(input, imageOffset);
++      if (imageHeader[1] === 0) break; // fixes https://github.com/advisories/GHSA-w3rx-r6r6-pgpr
+       const imageSize2 = getImageSize2(imageHeader[0]);
+       images.push(imageSize2);
+       imageOffset += imageHeader[1];
+@@ -486,7 +487,7 @@ function extractPartialStreams(input) {
+   let offset = 0;
+   while (offset < input.length) {
+     const jxlpBox = findBox(input, "jxlp", offset);
+-    if (!jxlpBox) break;
++    if (!jxlpBox || jxlpBox.size === 0) break; // fixes https://github.com/advisories/GHSA-5p2g-fcmc-qvqq
+     partialStreams.push(
+       input.slice(jxlpBox.offset + 12, jxlpBox.offset + jxlpBox.size)
+     );
+diff --git a/node_modules/image-size/dist/index.mjs b/node_modules/image-size/dist/index.mjs
+index 22c17af..d9bb4d8 100644
+--- a/node_modules/image-size/dist/index.mjs
++++ b/node_modules/image-size/dist/index.mjs
+@@ -38,7 +38,7 @@ function readBox(input, offset) {
+ function findBox(input, boxName, currentOffset) {
+   while (currentOffset < input.length) {
+     const box = readBox(input, currentOffset);
+-    if (!box) break;
++    if (!box || box.size === 0) break; // fixes https://github.com/advisories/GHSA-5p2g-fcmc-qvqq
+     if (box.name === boxName) return box;
+     currentOffset += box.size > 0 ? box.size : 8;
+   }
+@@ -249,6 +249,7 @@ var ICNS = {
+     const images = [];
+     while (imageOffset < fileLength && imageOffset < inputLength) {
+       const imageHeader = readImageHeader(input, imageOffset);
++      if (imageHeader[1] === 0) break; // fixes https://github.com/advisories/GHSA-w3rx-r6r6-pgpr
+       const imageSize2 = getImageSize2(imageHeader[0]);
+       images.push(imageSize2);
+       imageOffset += imageHeader[1];
+@@ -482,7 +483,7 @@ function extractPartialStreams(input) {
+   let offset = 0;
+   while (offset < input.length) {
+     const jxlpBox = findBox(input, "jxlp", offset);
+-    if (!jxlpBox) break;
++    if (!jxlpBox || jxlpBox.size === 0) break; // fixes https://github.com/advisories/GHSA-5p2g-fcmc-qvqq
+     partialStreams.push(
+       input.slice(jxlpBox.offset + 12, jxlpBox.offset + jxlpBox.size)
+     );
