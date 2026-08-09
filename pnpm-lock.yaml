@@ -24,9 +24,15 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^21.2.0
         version: 21.2.0
+      '@eslint/js':
+        specifier: ^10.0.1
+        version: 10.0.1(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.7.1
         version: 4.7.1(prettier@3.9.6)(supports-color@8.1.1)
+      '@next/eslint-plugin-next':
+        specifier: ^16.3.0
+        version: 16.3.0(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))
       '@types/jest':
         specifier: ^30.0.0
         version: 30.0.0
@@ -39,6 +45,27 @@ importers:
       clean-package:
         specifier: ^2.2.0
         version: 2.2.0
+      eslint:
+        specifier: ^10.8.1
+        version: 10.8.1(jiti@2.7.0)(supports-color@8.1.1)
+      eslint-config-flat-gitignore:
+        specifier: ^2.3.0
+        version: 2.3.0(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))
+      eslint-config-prettier:
+        specifier: ^10.1.8
+        version: 10.1.8(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))
+      eslint-plugin-only-warn:
+        specifier: ^1.2.1
+        version: 1.2.1
+      eslint-plugin-react-hooks:
+        specifier: ^7.1.1
+        version: 7.1.1(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)
+      eslint-plugin-turbo:
+        specifier: ^2.10.9
+        version: 2.10.9(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))(turbo@2.10.9)
+      globals:
+        specifier: ^17.9.0
+        version: 17.9.0
       husky:
         specifier: ^9.1.7
         version: 9.1.7
@@ -60,6 +87,9 @@ importers:
       rimraf:
         specifier: ^6.1.3
         version: 6.1.3
+      sonda:
+        specifier: ^0.14.0
+        version: 0.14.0
       syncpack:
         specifier: ^15.3.2
         version: 15.3.2
@@ -96,6 +126,21 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      typescript-eslint:
+        specifier: ^8.66.0
+        version: 8.66.0(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@5.9.3)
+      unplugin-macros:
+        specifier: ^0.20.2
+        version: 0.20.2(@types/node@24.12.0)(esbuild@0.28.1)(jiti@2.7.0)(rolldown@1.2.3)(tsx@4.23.11)(yaml@2.9.0)
+      unplugin-preprocessor-directives:
+        specifier: ^1.2.0
+        version: 1.2.0(esbuild@0.28.1)(vite@8.2.1(@types/node@24.12.0)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.11)(yaml@2.9.0))
+      unplugin-purge-polyfills:
+        specifier: ^0.1.0
+        version: 0.1.0
+      unplugin-unused:
+        specifier: ^0.5.7
+        version: 0.5.7(esbuild@0.28.1)(rolldown@1.2.3)(vite@8.2.1(@types/node@24.12.0)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.11)(yaml@2.9.0))
 
   apps/api:
     dependencies:
@@ -568,62 +613,9 @@ importers:
         specifier: workspace:*
         version: link:../../standard/typescript
 
-  packages/standard/eslint:
-    devDependencies:
-      '@eslint/js':
-        specifier: ^10.0.1
-        version: 10.0.1(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))
-      '@next/eslint-plugin-next':
-        specifier: ^16.2.12
-        version: 16.3.0(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))
-      eslint:
-        specifier: ^10.8.0
-        version: 10.8.1(jiti@2.7.0)(supports-color@8.1.1)
-      eslint-config-flat-gitignore:
-        specifier: ^2.3.0
-        version: 2.3.0(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))
-      eslint-config-prettier:
-        specifier: ^10.1.8
-        version: 10.1.8(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))
-      eslint-plugin-only-warn:
-        specifier: ^1.2.1
-        version: 1.2.1
-      eslint-plugin-react-hooks:
-        specifier: ^7.1.1
-        version: 7.1.1(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)
-      eslint-plugin-turbo:
-        specifier: ^2.10.8
-        version: 2.10.9(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))(turbo@2.10.9)
-      globals:
-        specifier: ^17.8.0
-        version: 17.9.0
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-      typescript-eslint:
-        specifier: ^8.65.0
-        version: 8.66.0(eslint@10.8.1(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@5.9.3)
+  packages/standard/eslint: {}
 
-  packages/standard/tsdown:
-    devDependencies:
-      sonda:
-        specifier: ^0.14.0
-        version: 0.14.0
-      tsdown:
-        specifier: ^0.22.14
-        version: 0.22.14(tsx@4.23.11)(typescript@5.9.3)(unplugin-unused@0.5.7(esbuild@0.28.1)(rolldown@1.2.3)(vite@8.2.1(@types/node@24.12.0)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.11)(yaml@2.9.0)))
-      unplugin-macros:
-        specifier: ^0.20.2
-        version: 0.20.2(@types/node@24.12.0)(esbuild@0.28.1)(jiti@2.7.0)(rolldown@1.2.3)(tsx@4.23.11)(yaml@2.9.0)
-      unplugin-preprocessor-directives:
-        specifier: ^1.2.0
-        version: 1.2.0(esbuild@0.28.1)(vite@8.2.1(@types/node@24.12.0)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.11)(yaml@2.9.0))
-      unplugin-purge-polyfills:
-        specifier: ^0.1.0
-        version: 0.1.0
-      unplugin-unused:
-        specifier: ^0.5.7
-        version: 0.5.7(esbuild@0.28.1)(rolldown@1.2.3)(vite@8.2.1(@types/node@24.12.0)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.11)(yaml@2.9.0))
+  packages/standard/tsdown: {}
 
   packages/standard/typescript: {}
 
