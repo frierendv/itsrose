@@ -1,0 +1,20 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+  - 'packages/**'
+
+overrides:
+  'test-exclude': '^8.0.0'
+  'glob': '^13.0.6'
+
+patchedDependencies:
+  image-size@2.0.2: patches/image-size@2.0.2.patch
+
+auditConfig:
+  ignoreGhsas:
+    - GHSA-5p2g-fcmc-qvqq
+    - GHSA-w3rx-r6r6-pgpr
+
+allowBuilds:
+  esbuild: true
+  unrs-resolver: true
