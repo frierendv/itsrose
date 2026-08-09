@@ -1,0 +1,16 @@
+import cors, { type FastifyCorsOptions } from "@fastify/cors";
+
+export const autoConfig: FastifyCorsOptions = {
+	origin: "*",
+	methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+	allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+	credentials: true,
+	maxAge: 86400,
+};
+
+/**
+ * This plugins enables the use of CORS.
+ *
+ * @see {@link https://github.com/fastify/fastify-cors}
+ */
+export default cors;
