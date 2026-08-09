@@ -36,13 +36,13 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@itsrose/http-code": "*",
+		"@itsrose/http-code": "workspace:*",
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {
-		"@itsrose/eslint-config": "*",
-		"@itsrose/tsdown-config": "*",
-		"@itsrose/typescript-config": "*"
+		"@itsrose/eslint-config": "workspace:*",
+		"@itsrose/tsdown-config": "workspace:*",
+		"@itsrose/typescript-config": "workspace:*"
 	},
 	"clean-package": "../../../clean-package.config.json"
 }
