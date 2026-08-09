@@ -24,16 +24,16 @@
 		"@fastify/autoload": "^6.5.0",
 		"@fastify/helmet": "^13.1.0",
 		"@fastify/http-proxy": "^11.6.0",
-		"@itsrose/fastify-utils": "*",
-		"@itsrose/http-code": "*",
-		"@itsrose/logger": "*",
+		"@itsrose/fastify-utils": "workspace:*",
+		"@itsrose/http-code": "workspace:*",
+		"@itsrose/logger": "workspace:*",
 		"fast-xml-builder": "^1.3.0",
 		"fastify": "^5.11.0",
 		"fastify-plugin": "^6.0.0"
 	},
 	"devDependencies": {
-		"@itsrose/eslint-config": "*",
-		"@itsrose/tsdown-config": "*",
-		"@itsrose/typescript-config": "*"
+		"@itsrose/eslint-config": "workspace:*",
+		"@itsrose/tsdown-config": "workspace:*",
+		"@itsrose/typescript-config": "workspace:*"
 	}
 }
