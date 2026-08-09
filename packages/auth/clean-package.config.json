@@ -1,0 +1,24 @@
+{
+	"remove": ["devDependencies"],
+	"replace": {
+		"exports": {
+			"./server": {
+				"types": "./dist/auth/server.d.ts",
+				"default": "./dist/auth/server.mjs"
+			},
+			"./service": {
+				"types": "./dist/auth/service.d.ts",
+				"default": "./dist/auth/service.mjs"
+			},
+			"./client": {
+				"types": "./dist/auth/client.d.ts",
+				"default": "./dist/auth/client.mjs"
+			},
+			"./*": {
+				"types": "./dist/shared/*.d.ts",
+				"default": "./dist/shared/*.mjs"
+			},
+			"./package.json": "./package.json"
+		}
+	}
+}

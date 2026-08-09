@@ -1,0 +1,10 @@
+{
+	"extends": "@itsrose/typescript-config/esm.json",
+	"include": ["src", "__tests__"],
+	"compilerOptions": {
+		"paths": {
+			"@/*": ["./src/*"]
+		}
+	},
+	"exclude": ["node_modules", "dist"]
+}

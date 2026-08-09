@@ -1,0 +1,55 @@
+{
+	"name": "@itsrose/auth",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"type": "module",
+	"license": "MIT",
+	"description": "ItsRose auth",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/auth"
+	},
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"files": [
+		"dist"
+	],
+	"keywords": [
+		"auth",
+		"itsrose"
+	],
+	"exports": {
+		"./server": "./src/auth/server.ts",
+		"./server/service": "./src/auth/service.ts",
+		"./client": "./src/auth/client.ts",
+		"./*": "./src/shared/*.ts"
+	},
+	"scripts": {
+		"build": "tsdown",
+		"build:fast": "tsdown src",
+		"clean": "rimraf dist .sonda",
+		"db:generate": "npx auth@latest generate --config src/~auth.ts --output db/itsrose-public.sql -y",
+		"db:migrate": "npx auth@latest migrate --config src/~auth.ts -y",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"postpack": "clean-package restore",
+		"prepack": "clean-package",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@better-auth/api-key": "^1.6.26",
+		"@better-auth/passkey": "^1.6.26",
+		"@itsrose/system": "*",
+		"better-auth": "^1.6.26",
+		"better-auth-localization": "^3.0.0"
+	},
+	"devDependencies": {
+		"@itsrose/eslint-config": "*",
+		"@itsrose/tsdown-config": "*",
+		"@itsrose/typescript-config": "*",
+		"@types/pg": "^8.20.4",
+		"pg": "^8.22.0"
+	},
+	"clean-package": "./clean-package.config.json"
+}
