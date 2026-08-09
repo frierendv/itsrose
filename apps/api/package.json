@@ -32,15 +32,15 @@
 		"@fastify/swagger": "^9.8.1",
 		"@fastify/under-pressure": "^9.1.0",
 		"@fastify/websocket": "^11.3.0",
-		"@itsrose/api-response": "*",
-		"@itsrose/character-ai": "*",
-		"@itsrose/elevenlabs": "*",
-		"@itsrose/fastify-utils": "*",
-		"@itsrose/instagram": "*",
-		"@itsrose/mtxx": "*",
-		"@itsrose/remini": "*",
-		"@itsrose/system": "*",
-		"@itsrose/tiktok": "*",
+		"@itsrose/api-response": "workspace:*",
+		"@itsrose/character-ai": "workspace:*",
+		"@itsrose/elevenlabs": "workspace:*",
+		"@itsrose/fastify-utils": "workspace:*",
+		"@itsrose/instagram": "workspace:*",
+		"@itsrose/mtxx": "workspace:*",
+		"@itsrose/remini": "workspace:*",
+		"@itsrose/system": "workspace:*",
+		"@itsrose/tiktok": "workspace:*",
 		"close-with-grace": "^2.5.0",
 		"fastify": "^5.11.2",
 		"fastify-ip": "^2.0.0",
@@ -49,10 +49,11 @@
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {
-		"@itsrose/eslint-config": "*",
-		"@itsrose/tsdown-config": "*",
-		"@itsrose/typescript-config": "*",
+		"@itsrose/eslint-config": "workspace:*",
+		"@itsrose/tsdown-config": "workspace:*",
+		"@itsrose/typescript-config": "workspace:*",
 		"@scalar/fastify-api-reference": "^1.64.0",
-		"@types/ws": "^8.18.1"
+		"@types/ws": "^8.18.1",
+		"openapi-types": "^12.1.3"
 	}
 }

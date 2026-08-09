@@ -1,7 +1,7 @@
-diff --git a/node_modules/image-size/dist/index.cjs b/node_modules/image-size/dist/index.cjs
-index bde0210..8aff43c 100644
---- a/node_modules/image-size/dist/index.cjs
-+++ b/node_modules/image-size/dist/index.cjs
+diff --git a/dist/index.cjs b/dist/index.cjs
+index bde0210eb131db06ccca30a5c466c7252a03af50..8aff43ce9e79c4dcd4f9a51ca1dcf91671b60b69 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
 @@ -42,7 +42,7 @@ function readBox(input, offset) {
  function findBox(input, boxName, currentOffset) {
    while (currentOffset < input.length) {
@@ -28,10 +28,10 @@ index bde0210..8aff43c 100644
      partialStreams.push(
        input.slice(jxlpBox.offset + 12, jxlpBox.offset + jxlpBox.size)
      );
-diff --git a/node_modules/image-size/dist/index.mjs b/node_modules/image-size/dist/index.mjs
-index 22c17af..d9bb4d8 100644
---- a/node_modules/image-size/dist/index.mjs
-+++ b/node_modules/image-size/dist/index.mjs
+diff --git a/dist/index.mjs b/dist/index.mjs
+index 22c17afad4e406eba013fff7858366cb5f8e3ba4..d9bb4d833557629b146cb4bb8a279850ddcdf90a 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
 @@ -38,7 +38,7 @@ function readBox(input, offset) {
  function findBox(input, boxName, currentOffset) {
    while (currentOffset < input.length) {
