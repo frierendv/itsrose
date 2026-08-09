@@ -11,7 +11,7 @@ const config: RcFile = {
 		{
 			label: "itsrose-workspace",
 			dependencies: ["@itsrose/*"],
-			pinVersion: "*",
+			pinVersion: "workspace:*",
 		},
 		// lock @types/node to 24.12.0
 		{
