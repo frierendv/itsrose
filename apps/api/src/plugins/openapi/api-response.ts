@@ -1,6 +1,6 @@
-import { FastifyError } from "@fastify/error";
 import { createResponse, FailureResponse } from "@itsrose/api-response";
 import { InvalidRequestError, ThirdPartyApiError } from "@itsrose/system";
+import type { FastifyError } from "fastify";
 import fp from "fastify-plugin";
 
 export default fp(async (fastify) => {
@@ -60,22 +60,6 @@ export default fp(async (fastify) => {
 				},
 				message: error.message,
 				errors: validationErrors,
-			});
-			return reply.status(response.statusCode).send(response);
-		}
-
-		if (error instanceof FastifyError) {
-			const response = new FailureResponse({
-				code: "RULE_VIOLATION",
-				meta: {
-					method: request.method,
-					url: request.url,
-					request_id: request.id,
-				},
-				message: error.message,
-				errors: {
-					type: "RULE_VIOLATION",
-				},
 			});
 			return reply.status(response.statusCode).send(response);
 		}
