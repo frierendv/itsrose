@@ -29,11 +29,6 @@ for (const file of fileList) {
 
 	if (stat.isDirectory()) {
 		fs.mkdirSync(dest, { recursive: true });
-		fs.cpSync(src, dest, {
-			recursive: true,
-			force: true,
-			dereference: true,
-		});
 		continue;
 	}
 
