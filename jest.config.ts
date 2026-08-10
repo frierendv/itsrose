@@ -6,35 +6,35 @@ const config = {
 		{
 			displayName: "Core",
 			...createDefaultEsmPreset({
-				tsconfig: "<rootDir>/packages/standard/typescript/esm.json",
+				tsconfig: "<rootDir>/packages/standard/typescript/node.json",
 			}),
 			roots: ["<rootDir>/packages/core/"],
 		},
 		{
 			displayName: "Features",
 			...createDefaultEsmPreset({
-				tsconfig: "<rootDir>/packages/standard/typescript/esm.json",
+				tsconfig: "<rootDir>/packages/standard/typescript/node.json",
 			}),
 			roots: ["<rootDir>/packages/features/"],
 		},
 		{
 			displayName: "Internal",
 			...createDefaultEsmPreset({
-				tsconfig: "<rootDir>/packages/standard/typescript/esm.json",
+				tsconfig: "<rootDir>/packages/standard/typescript/node.json",
 			}),
 			roots: ["<rootDir>/packages/internal/"],
 		},
 		{
 			displayName: "Shared",
 			...createDefaultEsmPreset({
-				tsconfig: "<rootDir>/packages/standard/typescript/esm.json",
+				tsconfig: "<rootDir>/packages/standard/typescript/node.json",
 			}),
 			roots: ["<rootDir>/packages/shared/"],
 		},
 		{
 			displayName: "Others",
 			...createDefaultEsmPreset({
-				tsconfig: "<rootDir>/packages/standard/typescript/esm.json",
+				tsconfig: "<rootDir>/packages/standard/typescript/node.json",
 			}),
 			roots: ["<rootDir>/packages/others/"],
 			transformIgnorePatterns: [
