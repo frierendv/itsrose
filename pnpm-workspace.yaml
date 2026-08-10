@@ -24,5 +24,3 @@ syncInjectedDepsAfterScripts:
 injectWorkspacePackages: true
 
 nodeLinker: isolated
-# will fix-remove this later
-shamefullyHoist: true
