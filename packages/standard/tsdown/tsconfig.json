@@ -1,5 +1,5 @@
 {
-	"extends": "@itsrose/typescript-config/esm.json",
+	"extends": "../typescript/node.json",
 	"include": ["tsdown.config.ts"],
 	"exclude": ["node_modules"]
 }
