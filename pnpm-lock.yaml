@@ -3,7 +3,6 @@ lockfileVersion: '9.0'
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
-  injectWorkspacePackages: true
 
 overrides:
   test-exclude: ^8.0.0
@@ -416,7 +415,7 @@ importers:
     dependencies:
       '@itsrose/http-client':
         specifier: workspace:*
-        version: file:packages/internal/http-client(supports-color@8.1.1)
+        version: link:../../internal/http-client
       '@itsrose/system':
         specifier: workspace:*
         version: link:../../core/system
@@ -444,7 +443,7 @@ importers:
     dependencies:
       '@itsrose/http-client':
         specifier: workspace:*
-        version: file:packages/internal/http-client(supports-color@8.1.1)
+        version: link:../../internal/http-client
       '@itsrose/shared-schema':
         specifier: workspace:*
         version: link:../../shared/shared-schema
@@ -469,7 +468,7 @@ importers:
     dependencies:
       '@itsrose/http-client':
         specifier: workspace:*
-        version: file:packages/internal/http-client(supports-color@8.1.1)
+        version: link:../../internal/http-client
       '@itsrose/system':
         specifier: workspace:*
         version: link:../../core/system
@@ -494,7 +493,7 @@ importers:
         version: link:../../shared/common
       '@itsrose/http-client':
         specifier: workspace:*
-        version: file:packages/internal/http-client(supports-color@8.1.1)
+        version: link:../../internal/http-client
       '@itsrose/shared-schema':
         specifier: workspace:*
         version: link:../../shared/shared-schema
@@ -522,7 +521,7 @@ importers:
     dependencies:
       '@itsrose/http-client':
         specifier: workspace:*
-        version: file:packages/internal/http-client(supports-color@8.1.1)
+        version: link:../../internal/http-client
       '@itsrose/shared-schema':
         specifier: workspace:*
         version: link:../../shared/shared-schema
@@ -556,7 +555,7 @@ importers:
     dependencies:
       '@itsrose/http-client':
         specifier: workspace:*
-        version: file:packages/internal/http-client(supports-color@8.1.1)
+        version: link:../../internal/http-client
       '@itsrose/system':
         specifier: workspace:*
         version: link:../../core/system
@@ -603,7 +602,7 @@ importers:
         version: 1.19.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
       axios-retry:
         specifier: ^4.5.0
-        version: 4.5.0(axios@1.19.0(supports-color@8.1.1))
+        version: 4.5.0(axios@1.19.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1))
     devDependencies:
       '@itsrose/eslint-config':
         specifier: workspace:*
@@ -631,7 +630,7 @@ importers:
     dependencies:
       '@itsrose/http-client':
         specifier: workspace:*
-        version: file:packages/internal/http-client(supports-color@8.1.1)
+        version: link:../../internal/http-client
     devDependencies:
       '@itsrose/eslint-config':
         specifier: workspace:*
@@ -1788,12 +1787,6 @@ packages:
   '@istanbuljs/schema@0.1.6':
     resolution: {integrity: sha512-+Sg6GCR/wy1oSmQDFq4LQDAhm3ETKnorxN+y5nbLULOR3P0c14f2Wurzj3/xqPXtasLFfHd5iRFQ7AJt4KH2cw==}
     engines: {node: '>=8'}
-
-  '@itsrose/http-client@file:packages/internal/http-client':
-    resolution: {directory: packages/internal/http-client, type: directory}
-
-  '@itsrose/system@file:packages/core/system':
-    resolution: {directory: packages/core/system, type: directory}
 
   '@jest/console@30.4.1':
     resolution: {integrity: sha512-v3bhyxUh9Hgmo5p6hAOXe14/R3ZxZDOsvHleh4B07z3m/x4/ngPUXEm9XwK4sF4u+f+P2ORb0Ge+MgpaqRMVDA==}
@@ -6914,17 +6907,6 @@ snapshots:
 
   '@istanbuljs/schema@0.1.6': {}
 
-  '@itsrose/http-client@file:packages/internal/http-client(supports-color@8.1.1)':
-    dependencies:
-      '@itsrose/system': file:packages/core/system
-      axios: 1.19.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
-      axios-retry: 4.5.0(axios@1.19.0(supports-color@8.1.1))
-    transitivePeerDependencies:
-      - debug
-      - supports-color
-
-  '@itsrose/system@file:packages/core/system': {}
-
   '@jest/console@30.4.1':
     dependencies:
       '@jest/types': 30.4.1
@@ -8092,7 +8074,7 @@ snapshots:
       '@fastify/error': 4.2.0
       fastq: 1.20.1
 
-  axios-retry@4.5.0(axios@1.19.0(supports-color@8.1.1)):
+  axios-retry@4.5.0(axios@1.19.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)):
     dependencies:
       axios: 1.19.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
       is-retry-allowed: 2.2.0
