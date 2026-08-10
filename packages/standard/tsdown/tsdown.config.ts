@@ -47,6 +47,11 @@ export const config: UserConfig = {
 		level: "warning",
 		depKinds: ["dependencies", "peerDependencies"],
 	},
+	exports: {
+		enabled: true,
+		devExports: !IS_PRODUCTION,
+		legacy: true,
+	},
 	treeshake: true,
 	unbundle: false,
 	outputOptions: {
@@ -83,4 +88,9 @@ export const fastifyConfig: UserConfig = {
 	sourcemap: false,
 	// output only esm
 	format: ["esm"],
+	exports: false,
+	deps: {
+		...config.deps,
+		alwaysBundle: [/^@itsrose\//],
+	},
 };
