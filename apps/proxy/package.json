@@ -12,7 +12,18 @@
 	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
-	"main": "dist/main.mjs",
+	"exports": {
+		"./app": "./dist/app.mjs",
+		"./main": "./dist/main.mjs",
+		"./plugins/helmet": "./dist/plugins/helmet.mjs",
+		"./plugins/tracking": "./dist/plugins/tracking.mjs",
+		"./plugins/xml": "./dist/plugins/xml.mjs",
+		"./proxy/test": "./dist/proxy/test.mjs",
+		"./utils": "./dist/utils/index.mjs",
+		"./utils/handle-response": "./dist/utils/handle-response.mjs",
+		"./package.json": "./package.json",
+		".": "./main.mjs"
+	},
 	"scripts": {
 		"build": "tsdown",
 		"dev": "tsx src/server.ts",
@@ -35,5 +46,18 @@
 		"@itsrose/eslint-config": "workspace:*",
 		"@itsrose/tsdown-config": "workspace:*",
 		"@itsrose/typescript-config": "workspace:*"
+	},
+	"publishConfig": {
+		"exports": {
+			"./app": "./dist/app.mjs",
+			"./main": "./dist/main.mjs",
+			"./plugins/helmet": "./dist/plugins/helmet.mjs",
+			"./plugins/tracking": "./dist/plugins/tracking.mjs",
+			"./plugins/xml": "./dist/plugins/xml.mjs",
+			"./proxy/test": "./dist/proxy/test.mjs",
+			"./utils": "./dist/utils/index.mjs",
+			"./utils/handle-response": "./dist/utils/handle-response.mjs",
+			"./package.json": "./package.json"
+		}
 	}
 }

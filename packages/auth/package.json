@@ -12,6 +12,9 @@
 	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "./dist/index.mjs",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
 	"files": [
 		"dist"
 	],
@@ -21,8 +24,9 @@
 	],
 	"exports": {
 		".": "./src/index.ts",
+		"./client": "./src/client.ts",
 		"./server": "./src/server.ts",
-		"./client": "./src/client.ts"
+		"./package.json": "./package.json"
 	},
 	"scripts": {
 		"build": "tsdown",
@@ -32,8 +36,6 @@
 		"db:migrate": "npx auth@latest migrate --config src/~auth.ts -y",
 		"lint": "eslint . --max-warnings 0",
 		"lint:fix": "eslint . --max-warnings 0 --fix",
-		"postpack": "clean-package restore",
-		"prepack": "clean-package",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -52,5 +54,12 @@
 		"kysely": "^0.29.4",
 		"pg": "^8.22.0"
 	},
-	"clean-package": "./clean-package.config.json"
+	"publishConfig": {
+		"exports": {
+			".": "./dist/index.mjs",
+			"./client": "./dist/client.mjs",
+			"./server": "./dist/server.mjs",
+			"./package.json": "./package.json"
+		}
+	}
 }
