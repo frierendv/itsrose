@@ -10,6 +10,10 @@ export default defineConfig({
 			neverBundle: true,
 		},
 	},
+	unused: {
+		enabled: true,
+		ignore: ["zod"],
+	},
 	format: ["esm"],
 	entry: ["src/server.ts", "src/client.ts", "src/index.ts"],
 });

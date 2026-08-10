@@ -358,6 +358,9 @@ importers:
       better-auth-localization:
         specifier: ^3.0.0
         version: 3.0.0(@better-auth/api-key@1.6.26(@better-auth/core@1.6.26(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2))(@better-auth/utils@0.4.2)(better-auth@1.6.26(pg@8.23.0))(better-call@1.3.7(zod@4.4.3)))(@better-auth/passkey@1.6.26(@better-auth/core@1.6.26(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-auth@1.6.26(pg@8.23.0))(better-call@1.3.7(zod@4.4.3))(nanostores@1.4.2))(better-auth@1.6.26(pg@8.23.0))
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       '@itsrose/eslint-config':
         specifier: workspace:*
