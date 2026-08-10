@@ -27,11 +27,11 @@ export default fp(
 			}),
 			secondaryStorage,
 			plugins: [
-				dash({
-					apiKey: env.BETTER_AUTH_API_KEY,
-				}),
+				...(env?.BETTER_AUTH_API_KEY
+					? [dash({ apiKey: env.BETTER_AUTH_API_KEY })]
+					: []),
 			],
-		});
+		}) as unknown as AuthServer;
 
 		void fastify.decorate("auth", auth);
 	},
