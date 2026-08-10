@@ -4,11 +4,11 @@
 import "dotenv/config";
 import { PostgresDialect } from "kysely";
 import { Pool } from "pg";
-import { createAuthServer } from "./auth/server";
+import { createBetterAuthServer } from "./server";
 import { readEnvs, SHARED_ENV_KEYS } from "./shared/env";
 
 const env = readEnvs(SHARED_ENV_KEYS);
-export const auth = createAuthServer({
+export const auth = createBetterAuthServer({
 	database: {
 		dialect: new PostgresDialect({
 			pool: async () =>
