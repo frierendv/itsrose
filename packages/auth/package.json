@@ -41,7 +41,8 @@
 		"@better-auth/passkey": "^1.6.26",
 		"@itsrose/system": "workspace:*",
 		"better-auth": "^1.6.26",
-		"better-auth-localization": "^3.0.0"
+		"better-auth-localization": "^3.0.0",
+		"zod": "^4.4.3"
 	},
 	"devDependencies": {
 		"@itsrose/eslint-config": "workspace:*",
