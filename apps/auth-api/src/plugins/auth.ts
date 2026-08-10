@@ -1,6 +1,6 @@
 import { dash } from "@better-auth/infra";
 import { redisStorage } from "@better-auth/redis-storage";
-import { createAuthServer } from "@itsrose/auth/server";
+import { createBetterAuthServer, type AuthServer } from "@itsrose/auth/server";
 import fp from "fastify-plugin";
 import { Redis } from "ioredis";
 import { Pool } from "pg";
@@ -14,7 +14,7 @@ export default fp(
 		const secondaryStorage = client
 			? redisStorage({ client, keyPrefix: "auth" })
 			: undefined;
-		const auth = createAuthServer({
+		const auth = createBetterAuthServer({
 			baseURL: env.BETTER_AUTH_BASE_URL,
 			basePath: "/api",
 			database: new Pool({
@@ -54,6 +54,6 @@ export default fp(
 declare module "fastify" {
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	interface FastifyInstance {
-		auth: ReturnType<typeof createAuthServer>;
+		auth: AuthServer;
 	}
 }
