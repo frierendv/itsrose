@@ -1,4 +1,4 @@
-import { readEnvs, SHARED_ENV_KEYS, type SharedEnv } from "@itsrose/auth/env";
+import { readEnvs, SHARED_ENV_KEYS, type SharedEnv } from "@itsrose/auth";
 import fp from "fastify-plugin";
 
 const ENVS = ["PORT", ...SHARED_ENV_KEYS] as const;
