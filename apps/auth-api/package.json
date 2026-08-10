@@ -12,7 +12,6 @@
 	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
-	"main": "dist/main.mjs",
 	"keywords": [
 		"api",
 		"auth",

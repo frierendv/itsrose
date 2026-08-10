@@ -12,7 +12,9 @@
 	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
-	"main": "src/index.ts",
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
 	"files": [
 		"dist"
 	],
@@ -22,6 +24,10 @@
 		"json",
 		"typescript"
 	],
+	"exports": {
+		".": "./src/index.ts",
+		"./package.json": "./package.json"
+	},
 	"scripts": {
 		"build": "tsdown",
 		"build:fast": "tsdown src",
@@ -29,8 +35,6 @@
 		"lint": "eslint . --max-warnings 0",
 		"lint:fix": "eslint . --max-warnings 0 --fix",
 		"openapi:generate": "tsx scripts/generate-openapi.ts",
-		"postpack": "clean-package restore",
-		"prepack": "clean-package",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -42,5 +46,13 @@
 		"@itsrose/tsdown-config": "workspace:*",
 		"@itsrose/typescript-config": "workspace:*"
 	},
-	"clean-package": "../../../clean-package.config.json"
+	"publishConfig": {
+		"exports": {
+			".": {
+				"import": "./dist/index.mjs",
+				"require": "./dist/index.js"
+			},
+			"./package.json": "./package.json"
+		}
+	}
 }
