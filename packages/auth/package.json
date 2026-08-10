@@ -49,6 +49,7 @@
 		"@itsrose/tsdown-config": "workspace:*",
 		"@itsrose/typescript-config": "workspace:*",
 		"@types/pg": "^8.20.4",
+		"kysely": "^0.29.4",
 		"pg": "^8.22.0"
 	},
 	"clean-package": "./clean-package.config.json"
