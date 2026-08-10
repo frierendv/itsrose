@@ -18,3 +18,11 @@ auditConfig:
 allowBuilds:
   esbuild: true
   unrs-resolver: true
+
+syncInjectedDepsAfterScripts:
+  - build
+injectWorkspacePackages: true
+
+nodeLinker: isolated
+# will fix-remove this later
+shamefullyHoist: true
