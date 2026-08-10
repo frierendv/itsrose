@@ -11,5 +11,5 @@ export default defineConfig({
 		},
 	},
 	format: ["esm"],
-	entry: ["src/auth/*.ts", "src/shared/*.ts"],
+	entry: ["src/server.ts", "src/client.ts", "src/index.ts"],
 });
