@@ -19,7 +19,6 @@ RUN --mount=type=cache,target=/pnpm/store \
 
 ENV NODE_ENV=production
 COPY --from=prepare /app/out/full/ ./
-RUN pnpm pack -r
 RUN pnpm run build --filter=auth-api...
 RUN pnpm deploy --filter=auth-api --prod /prod/auth-api
 
