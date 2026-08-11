@@ -1,6 +1,5 @@
 FROM node:24-bookworm-slim AS base
 WORKDIR /app
-ENV NODE_ENV=production
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME/bin:$PATH"
 ENV TURBO_TELEMETRY_DISABLED=1
@@ -14,21 +13,21 @@ RUN turbo prune auth-api --docker
 
 FROM base AS builder
 COPY --from=prepare /app/out/json/ ./
-COPY --from=prepare /app/clean-package.config.json ./clean-package.config.json
 
 RUN --mount=type=cache,target=/pnpm/store \
 	pnpm install --frozen-lockfile
 
+ENV NODE_ENV=production
 COPY --from=prepare /app/out/full/ ./
-RUN turbo run prepack --filter=auth-api...
-
-RUN pnpm deploy --filter auth-api --prod /prod/auth-api
+RUN pnpm pack -r
+RUN pnpm run build --filter=auth-api...
+RUN pnpm deploy --filter=auth-api --prod /prod/auth-api
 
 FROM gcr.io/distroless/nodejs24-debian13 AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY --from=builder /prod/auth-api/ ./
+COPY --from=builder /prod/auth-api ./
 
 EXPOSE 3000
 CMD ["dist/main.mjs"]
