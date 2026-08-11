@@ -23,7 +23,8 @@ const plugins: TsdownPluginOption = [
 	PreprocessorDirectives(),
 	purgePolyfills.rolldown({ sourcemap: true }),
 	Sonda({
-		enabled: !IS_PRODUCTION && !IS_CI,
+		// disable on production or ci
+		enabled: !(IS_PRODUCTION || IS_CI),
 		filename: "sonda_report",
 		sources: true,
 		open: false,
@@ -50,7 +51,8 @@ export const config: UserConfig = {
 	},
 	exports: {
 		enabled: true,
-		devExports: !IS_PRODUCTION && !IS_BUILD,
+		// disable on production or build phase
+		devExports: !(IS_PRODUCTION || IS_BUILD),
 		legacy: true,
 	},
 	treeshake: true,
