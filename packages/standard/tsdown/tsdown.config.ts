@@ -5,25 +5,26 @@ import PreprocessorDirectives from "unplugin-preprocessor-directives/rollup";
 import { purgePolyfills } from "unplugin-purge-polyfills";
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
-const IS_CI = process.env.CI === "true";
+const IS_BUILD =
+	process.env.BUILDING === "true" ||
+	process.env.NEXT_PHASE === "phase-production-build";
+const IS_CI = Boolean(process.env.CI);
 
-function getProdConfig() {
-	const prod: UserConfig = {
-		// disable dts generation in production to speed up builds
-		dts: false,
-		sourcemap: "inline",
-		// Only minify in prod
+function getProdConfig(): UserConfig {
+	if (!IS_PRODUCTION) return {};
+	return {
+		sourcemap: true,
 		minify: true,
 	};
-	return IS_PRODUCTION ? prod : {};
 }
+
 const plugins: TsdownPluginOption = [
 	Macros(),
 	PreprocessorDirectives(),
 	purgePolyfills.rolldown({ sourcemap: true }),
 	Sonda({
 		enabled: !IS_PRODUCTION && !IS_CI,
-		filename: "sonda_repot", // only last report needed
+		filename: "sonda_report",
 		sources: true,
 		open: false,
 	}),
@@ -49,7 +50,7 @@ export const config: UserConfig = {
 	},
 	exports: {
 		enabled: true,
-		devExports: !IS_PRODUCTION,
+		devExports: !IS_PRODUCTION && !IS_BUILD,
 		legacy: true,
 	},
 	treeshake: true,
@@ -63,7 +64,7 @@ export const config: UserConfig = {
 	},
 	failOnWarn: true,
 	sourcemap: true,
-	logLevel: "silent",
+	logLevel: "info",
 	plugins,
 	outExtensions: ({ format }) => {
 		if (format === "cjs") {
@@ -79,18 +80,11 @@ export const config: UserConfig = {
 
 export const fastifyConfig: UserConfig = {
 	...config,
-	// no need for dts
 	dts: false,
 	entry: ["src/**/*.ts"],
-	// no need to bundle
-	unbundle: false,
+	unbundle: true,
 	failOnWarn: false,
 	sourcemap: false,
-	// output only esm
 	format: ["esm"],
 	exports: false,
-	deps: {
-		...config.deps,
-		alwaysBundle: [/^@itsrose\//],
-	},
 };
