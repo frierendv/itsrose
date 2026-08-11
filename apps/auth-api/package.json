@@ -12,13 +12,13 @@
 	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"files": [
+		"dist"
+	],
 	"keywords": [
 		"api",
 		"auth",
 		"itsrose"
-	],
-	"files": [
-		"dist"
 	],
 	"scripts": {
 		"build": "tsdown",
