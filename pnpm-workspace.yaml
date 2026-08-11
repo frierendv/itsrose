@@ -20,3 +20,6 @@ allowBuilds:
   unrs-resolver: true
 
 nodeLinker: isolated
+syncInjectedDepsAfterScripts:
+  - build
+injectWorkspacePackages: true
