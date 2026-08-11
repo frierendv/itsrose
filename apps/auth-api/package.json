@@ -17,6 +17,9 @@
 		"auth",
 		"itsrose"
 	],
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"build": "tsdown",
 		"clean": "rimraf dist .sonda",
