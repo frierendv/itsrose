@@ -11,11 +11,13 @@ const route: FastifyPluginAsync = async (fastify): Promise<void> => {
 			if (request.body) {
 				Object.assign(request.raw, { body: request.body });
 			}
-			try {
-				await handler(request.raw, reply.raw);
-			} catch (error) {
-				console.error(error);
+			for (const [key, value] of Object.entries(reply.getHeaders())) {
+				if (value !== undefined) {
+					reply.raw.setHeader(key, value);
+				}
 			}
+			await handler(request.raw, reply.raw);
+			reply.hijack();
 		},
 		errorHandler: async (error, request, reply) => {
 			void fastify.log.error(error);
