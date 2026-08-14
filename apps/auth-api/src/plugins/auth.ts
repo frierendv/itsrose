@@ -14,8 +14,18 @@ export default fp(
 		const secondaryStorage = client
 			? redisStorage({ client, keyPrefix: "auth" })
 			: undefined;
+		const trustedOrigins = env.APP_BASE_URL
+			? env.APP_BASE_URL.split(",").map((origin) => origin.trim())
+			: [];
+		// #if DEV
+		if (!trustedOrigins.length || !("localhost" in trustedOrigins)) {
+			trustedOrigins.push("http://localhost:3000");
+		}
+		// #endif
+
 		const auth = createBetterAuthServer({
 			baseURL: env.BETTER_AUTH_BASE_URL,
+			trustedOrigins,
 			basePath: "/api",
 			database: new Pool({
 				database: env.DB_NAME,
