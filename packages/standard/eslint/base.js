@@ -1,8 +1,7 @@
+// @ts-check
 import js from "@eslint/js";
 import gitignore from "eslint-config-flat-gitignore";
 import eslintConfigPrettier from "eslint-config-prettier";
-import prettierLint from "eslint-config-prettier/flat";
-import onlyWarn from "eslint-plugin-only-warn";
 import turboPlugin from "eslint-plugin-turbo";
 import tseslint from "typescript-eslint";
 
@@ -22,11 +21,6 @@ export const config = [
 		},
 		rules: {
 			"turbo/no-undeclared-env-vars": "warn",
-		},
-	},
-	{
-		plugins: {
-			onlyWarn,
 		},
 	},
 	{

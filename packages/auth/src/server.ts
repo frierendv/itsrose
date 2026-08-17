@@ -115,7 +115,6 @@ export function getBetterAuthPlugins(
 			},
 		}),
 		apiKey({
-			configId: "secret",
 			defaultPrefix: "sk_",
 			references: "user",
 			rateLimit: { enabled: false },
@@ -181,6 +180,7 @@ export function getAuthOptions(
 				clientSecret: (env.BETTER_GOOGLE_CLIENT_SECRET as string) ?? "",
 				accessType: "offline",
 				prompt: "select_account consent",
+				display: "popup",
 			},
 		},
 		account: {
@@ -188,6 +188,7 @@ export function getAuthOptions(
 			accountLinking: {
 				enabled: true,
 				trustedProviders: ["google", "github"],
+				allowUnlinkingAll: false,
 			},
 			fields: {
 				accountId: "account_id",
@@ -205,6 +206,7 @@ export function getAuthOptions(
 			updateAccountOnSignIn: true,
 		},
 		session: {
+			storeSessionInDatabase: true,
 			modelName: "sessions",
 			fields: {
 				userId: "user_id",
@@ -214,12 +216,9 @@ export function getAuthOptions(
 				createdAt: "created_at",
 				updatedAt: "updated_at",
 			},
-			expiresIn: 60 * 60 * 24,
-			updateAge: 60 * 15,
 			cookieCache: {
 				enabled: true,
 				strategy: "jwe",
-				maxAge: 5 * 60,
 			},
 		},
 		user: {
@@ -252,7 +251,7 @@ export function getAuthOptions(
 export const createBetterAuthServer = <Option extends BetterAuthOptions>(
 	overrides: Partial<Option> = {}
 ) => {
-	const env = process.env as SharedEnv & Record<string, unknown>;
+	const env = process.env as unknown as SharedEnv & Record<string, unknown>;
 	const baseOptions = getAuthOptions(env);
 	const plugins = [
 		...getBetterAuthPlugins(env),

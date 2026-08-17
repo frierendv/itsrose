@@ -43,7 +43,7 @@
 		"@itsrose/shared-schema": "workspace:*",
 		"@itsrose/system": "workspace:*",
 		"moment": "^2.30.1",
-		"zod": "^4.4.3"
+		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"@itsrose/eslint-config": "workspace:*",
