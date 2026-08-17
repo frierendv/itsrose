@@ -41,7 +41,7 @@
 	},
 	"dependencies": {
 		"@itsrose/http-code": "workspace:*",
-		"zod": "^4.4.3"
+		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"@itsrose/eslint-config": "workspace:*",

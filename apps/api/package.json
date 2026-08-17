@@ -46,7 +46,7 @@
 		"fastify-ip": "^2.0.0",
 		"fastify-plugin": "^6.0.0",
 		"fastify-zod-openapi": "^5.7.0",
-		"zod": "^4.4.3"
+		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"@itsrose/eslint-config": "workspace:*",

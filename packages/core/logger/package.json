@@ -37,7 +37,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"chalk": "^4.1.2",
+		"chalk": "catalog:",
 		"pino": "^10.3.1",
 		"pino-abstract-transport": "^3.0.0"
 	},
