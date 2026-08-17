@@ -1,3 +1,3 @@
 import { Linter } from "eslint";
 
-export declare const config: Linter.Config<Linter.RulesRecord>[];
+export declare const reactConfig: Linter.Config<Linter.RulesRecord>[];
