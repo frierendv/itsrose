@@ -3,6 +3,17 @@ packages:
   - 'packages/*'
   - 'packages/**'
 
+catalog:
+  '@types/node': 24.12.0
+  '@types/react': ^19.2.4
+  '@types/react-dom': ^19.2.4
+  chalk: 'catalog:'
+  next: ^16.3.0
+  react: ^19.2.8
+  react-dom: ^19.2.8
+  typescript: ^5.9.3
+  zod: ^4.4.3
+
 overrides:
   'test-exclude': '^8.0.0'
   'glob': '^13.0.6'
@@ -16,6 +27,7 @@ auditConfig:
     - GHSA-w3rx-r6r6-pgpr
 
 allowBuilds:
+  sharp: true
   esbuild: true
   unrs-resolver: true
 
