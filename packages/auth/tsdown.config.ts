@@ -15,5 +15,5 @@ export default defineConfig({
 		ignore: ["zod"],
 	},
 	format: ["esm"],
-	entry: ["src/server.ts", "src/client.ts", "src/index.ts"],
+	entry: ["src/server.ts", "src/react.ts", "src/index.ts"],
 });
