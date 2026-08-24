@@ -3,13 +3,13 @@
  */
 "use client";
 
-import { cn, forwardRef } from "@/shared/utils";
+import { cn, forwardRef } from "@itsrose/react/core";
 import { motion } from "motion/react";
 
 export const LampContainer = forwardRef<"div">(
-	({ children, className, as: Comp = "div", ...props }, ref) => {
+	({ children, className, as: Component = "div", ...props }, ref) => {
 		return (
-			<Comp
+			<Component
 				ref={ref}
 				className={cn(
 					"relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background w-full rounded-md z-0",
@@ -94,7 +94,7 @@ export const LampContainer = forwardRef<"div">(
 				<div className="relative z-50 flex -translate-y-80 flex-col items-center px-5">
 					{children}
 				</div>
-			</Comp>
+			</Component>
 		);
 	}
 );
