@@ -1,15 +1,14 @@
-import { AuthLayout } from "@/components/layout";
 import { localization, viewPaths } from "@better-auth-ui/core";
 import { Auth } from "@better-auth-ui/heroui";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-type AuthRouteProps = {
+type AuthPageProps = {
 	params: Promise<{
 		path: string;
 	}>;
 };
-export const AuthRoute = async ({ params }: AuthRouteProps) => {
+export const AuthPage = async ({ params }: AuthPageProps) => {
 	const { path } = await params;
 
 	const authPath = Object.values(viewPaths.auth).find(
@@ -19,16 +18,12 @@ export const AuthRoute = async ({ params }: AuthRouteProps) => {
 		notFound();
 	}
 
-	return (
-		<AuthLayout>
-			<Auth path={authPath} variant="transparent" />
-		</AuthLayout>
-	);
+	return <Auth path={authPath} variant="transparent" />;
 };
 
 export const generateMetadata = async ({
 	params,
-}: AuthRouteProps): Promise<Metadata> => {
+}: AuthPageProps): Promise<Metadata> => {
 	const { path } = await params;
 
 	const authPath = Object.values(viewPaths.auth).find(

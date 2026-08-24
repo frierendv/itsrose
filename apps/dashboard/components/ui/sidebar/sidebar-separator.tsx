@@ -1,5 +1,5 @@
-import { cn, forwardRef } from "@/shared/utils";
-import { Separator } from "@heroui/react";
+import { Separator } from "@heroui/react/separator";
+import { cn, forwardRef } from "@itsrose/react/core";
 import * as React from "react";
 
 export const SidebarSeparator = forwardRef<

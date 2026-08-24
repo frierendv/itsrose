@@ -1,5 +1,5 @@
-import { cn, forwardRef } from "@/shared/utils";
 import { Button, Tooltip } from "@heroui/react";
+import { cn, forwardRef } from "@itsrose/react/core";
 import { useSidebar } from "./context";
 
 export const SidebarTrigger = forwardRef<

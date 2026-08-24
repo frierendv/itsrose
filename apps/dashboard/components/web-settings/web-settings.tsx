@@ -1,9 +1,9 @@
 "use client";
 
-import { cn, forwardRef } from "@/shared/utils";
-import Circles4Diamond from "@gravity-ui/icons/Circles4Diamond";
+import Gear from "@gravity-ui/icons/Gear";
 import { Popover, Separator } from "@heroui/react";
 import { Button } from "@heroui/react/button";
+import { cn, forwardRef } from "@itsrose/react/core";
 import { useEffect, useState } from "react";
 import { WebProgressSetting } from "./progress-setting";
 import { WebSettingTheme } from "./theme-setting";
@@ -22,7 +22,7 @@ export const WebSettings = forwardRef<"div">(({ className, ...props }, ref) => {
 		<div
 			ref={ref}
 			className={cn(
-				"overflow-hidden fixed z-10 flex-1 bottom-2 right-3",
+				"overflow-hidden fixed z-10 flex-1 bottom-3 right-3",
 				className
 			)}
 			role="toolbar"
@@ -34,10 +34,11 @@ export const WebSettings = forwardRef<"div">(({ className, ...props }, ref) => {
 					<Button
 						size="lg"
 						isIconOnly
-						variant="outline"
+						variant="ghost"
 						aria-label="ItsRose web feature settings"
 					>
-						<Circles4Diamond className="size-4" />
+						<Gear data-slot="spinner" />
+						{/* <GearBranches /> */}
 						<span className="sr-only">
 							Toggle web feature settings
 						</span>

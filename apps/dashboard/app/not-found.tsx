@@ -1,4 +1,4 @@
 export {
 	NotFoundPage as default,
 	generateMetadata,
-} from "@/client/common/not-found";
+} from "@/server/common/not-found";

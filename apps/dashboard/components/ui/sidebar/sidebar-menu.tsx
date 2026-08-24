@@ -1,4 +1,3 @@
-import { cn, forwardRef } from "@/shared/utils";
 import {
 	Badge,
 	Button,
@@ -7,6 +6,7 @@ import {
 	toggleButtonVariants,
 	Tooltip,
 } from "@heroui/react";
+import { cn, forwardRef } from "@itsrose/react/core";
 import * as React from "react";
 import { useSidebar } from "./context";
 
@@ -325,7 +325,11 @@ export const SidebarMenuSub = forwardRef<"ul">(
 				data-sidebar="menu-sub"
 				data-slot="sidebar-menu-sub"
 				className={cn(
-					"sidebar__menu-sub ml-4 flex min-w-0 flex-col gap-1 border-l border-border-secondary pl-2.5 py-0.5 group-data-[collapsible=icon]:hidden ",
+					"sidebar__menu-sub",
+					"group-data-[collapsible=icon]:hidden",
+					"flex flex-col gap-2.5",
+					"ml-4 w-auto",
+					"border-l border-border-secondary pl-2 p-2",
 					className
 				)}
 				{...props}
