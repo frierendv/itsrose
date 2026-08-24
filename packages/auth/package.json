@@ -2,6 +2,7 @@
 	"name": "@itsrose/auth",
 	"version": "1.0.0",
 	"author": "FrierenDv",
+	"private": true,
 	"type": "module",
 	"license": "MIT",
 	"description": "ItsRose auth",
@@ -24,8 +25,8 @@
 	],
 	"exports": {
 		".": "./src/index.ts",
-		"./react": "./src/react.ts",
-		"./server": "./src/server.ts",
+		"./react": "./src/react/index.ts",
+		"./server": "./src/server/index.ts",
 		"./package.json": "./package.json"
 	},
 	"scripts": {
@@ -39,10 +40,12 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@better-auth/api-key": "^1.6.26",
-		"@better-auth/passkey": "^1.6.26",
+		"@better-auth/api-key": "^1.7.1",
+		"@better-auth/infra": "^0.4.2",
+		"@better-auth/passkey": "^1.7.1",
+		"@creem_io/better-auth": "^1.1.4",
 		"@itsrose/system": "workspace:*",
-		"better-auth": "^1.6.26",
+		"better-auth": "^1.7.1",
 		"better-auth-localization": "^3.0.0",
 		"zod": "catalog:"
 	},
@@ -50,15 +53,15 @@
 		"@itsrose/eslint-config": "workspace:*",
 		"@itsrose/tsdown-config": "workspace:*",
 		"@itsrose/typescript-config": "workspace:*",
-		"@types/pg": "^8.20.4",
+		"@types/pg": "^8.21.0",
 		"kysely": "^0.29.4",
-		"pg": "^8.22.0"
+		"pg": "^8.23.0"
 	},
 	"publishConfig": {
 		"exports": {
 			".": "./dist/index.mjs",
-			"./react": "./dist/react.mjs",
-			"./server": "./dist/server.mjs",
+			"./react": "./dist/react/index.mjs",
+			"./server": "./dist/server/index.mjs",
 			"./package.json": "./package.json"
 		}
 	}

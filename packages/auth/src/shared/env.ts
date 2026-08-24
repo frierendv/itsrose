@@ -26,13 +26,17 @@ export const SHARED_ENV_KEYS = [
 	"BETTER_AUTH_GOOGLE_SECRET",
 	"BETTER_AUTH_GITHUB_ID",
 	"BETTER_AUTH_GITHUB_SECRET",
+
+	// Creem
+	"CREEM_DEVELOPMENT_API_KEY",
+	"CREEM_PRODUCTION_API_KEY",
 ] as const;
 
 export type SharedEnvKey = typeof SHARED_ENV_KEYS;
 
 export type SharedEnv<T extends readonly string[] = SharedEnvKey> = {
 	[K in T[number]]: ResolvedEnvValue<{ allowEmpty: true }>;
-};
+} & NodeJS.ProcessEnv;
 
 /**
  * Reads specified environment variables using @itsrose/system.
