@@ -9,6 +9,7 @@ import { readEnvs, SHARED_ENV_KEYS } from "./shared/env";
 
 const env = readEnvs(SHARED_ENV_KEYS);
 export const auth = createBetterAuthServer({
+	logger: { level: "error" },
 	database: {
 		dialect: new PostgresDialect({
 			pool: async () =>
