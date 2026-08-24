@@ -1,4 +1,3 @@
-import { dash } from "@better-auth/infra";
 import { redisStorage } from "@better-auth/redis-storage";
 import { createBetterAuthServer, type AuthServer } from "@itsrose/auth/server";
 import fp from "fastify-plugin";
@@ -12,7 +11,7 @@ export default fp(
 		const client = env.REDIS_URL ? new Redis(env.REDIS_URL) : null;
 
 		const secondaryStorage = client
-			? redisStorage({ client, keyPrefix: "auth" })
+			? redisStorage({ client, keyPrefix: "auth:" })
 			: undefined;
 		const trustedOrigins = env.APP_BASE_URL
 			? env.APP_BASE_URL.split(",").map((origin) => origin.trim())
@@ -36,12 +35,7 @@ export default fp(
 				ssl: env.DB_SSL === "true",
 			}),
 			secondaryStorage,
-			plugins: [
-				...(env?.BETTER_AUTH_API_KEY
-					? [dash({ apiKey: env.BETTER_AUTH_API_KEY })]
-					: []),
-			],
-		}) as unknown as AuthServer;
+		});
 
 		void fastify.decorate("auth", auth);
 	},
