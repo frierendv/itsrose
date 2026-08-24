@@ -41,14 +41,7 @@ export const config = [
 				},
 			],
 			semi: ["error", "always"],
-			"space-before-function-paren": [
-				"error",
-				{
-					anonymous: "always",
-					named: "never",
-					asyncArrow: "always",
-				},
-			],
+			"space-before-function-paren": ["off"],
 			"arrow-parens": ["error", "always"],
 			"no-mixed-spaces-and-tabs": ["error", "smart-tabs"],
 			"no-unused-vars": "off", // Disable the base rule
