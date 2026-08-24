@@ -1,12 +1,12 @@
 "use client";
 
-import { cn, forwardRef } from "@/shared/utils";
 import type { ButtonRootProps } from "@heroui/react/button";
+import { cn, forwardRef } from "@itsrose/react/core";
 import { ThemeSwitchBase } from "./theme-switch-base";
 
 export const ThemeSwitch = forwardRef<"div", ButtonRootProps>(
-	({ className, ...props }, ref) => (
-		<div
+	({ as: Component = "div", className, ...props }, ref) => (
+		<Component
 			className="overflow-hidden fixed z-10 flex-1 bottom-2 right-2"
 			role="toolbar"
 			id="__docked_theme-switch"
@@ -18,7 +18,7 @@ export const ThemeSwitch = forwardRef<"div", ButtonRootProps>(
 				className={cn("rounded-full", className)}
 				{...props}
 			/>
-		</div>
+		</Component>
 	)
 );
 

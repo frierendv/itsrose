@@ -1,4 +1,4 @@
-import { cn, forwardRef } from "@/shared/utils";
+import { cn, forwardRef } from "@itsrose/react/core";
 import { useSidebar } from "./context";
 
 export const SidebarRail = forwardRef<"button">(

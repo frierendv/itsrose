@@ -1,8 +1,8 @@
 "use client";
 
 import { useIsMobile } from "@/hooks/use-is-mobile";
-import { cn, forwardRef } from "@/shared/utils";
 import { Drawer, Surface } from "@heroui/react";
+import { cn, forwardRef } from "@itsrose/react/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	SIDEBAR_KEYBOARD_SHORTCUT,
@@ -167,7 +167,17 @@ export const Sidebar = forwardRef<"div", SidebarProps>(
 					>
 						<Drawer.Content placement={side} className="p-0">
 							<Drawer.Dialog className="h-full p-0 flex flex-col outline-none">
-								<Drawer.Handle className="absolute right-0" />
+								<Drawer.Handle
+									className={cn([
+										"absolute right-0 top-1/2 -translate-y-1/2",
+										"w-8 h-24 z-50 flex items-center justify-center",
+
+										// RESHAPE THE VISIBLE BAR
+										"**:data-[slot=drawer-handle-bar]:w-1.5!",
+										"**:data-[slot=drawer-handle-bar]:h-12!",
+									])}
+								/>
+
 								<Drawer.Header className="sr-only">
 									<Drawer.Heading>
 										Sidebar Navigation
@@ -199,9 +209,11 @@ export const Sidebar = forwardRef<"div", SidebarProps>(
 						"w-(--sidebar-width)",
 						"group-data-[collapsible=offcanvas]:w-0",
 						"group-data-[side=right]:rotate-180",
-						variant === "floating" || variant === "inset"
-							? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+1rem)]"
-							: "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
+
+						// variant === "floating" || variant === "inset"
+						// 	? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+1rem)]"
+						// 	: "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
+						"group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+1rem)]"
 					)}
 				/>
 				{/* Fixed sidebar content container */}
@@ -215,9 +227,12 @@ export const Sidebar = forwardRef<"div", SidebarProps>(
 						`${side}-0 group-data-[collapsible=offcanvas]:-${side}-(--sidebar-width)`,
 
 						// variant based
-						variant === "floating" || variant === "inset"
-							? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+1rem)]"
-							: "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l border-border",
+						// variant === "floating" || variant === "inset"
+						// 	? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+1rem)]"
+						// 	: "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l border-border",
+
+						"group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+1rem)]",
+						"group-data-[side=left]:border-r group-data-[side=right]:border-l border-border",
 						className
 					)}
 					{...props}

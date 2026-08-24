@@ -1,14 +1,20 @@
-import { Content } from "@/components/common";
 import { AccountSettings, SecuritySettings } from "@better-auth-ui/heroui";
+import { UserActivity } from "@better-auth-ui/heroui/plugins/dash";
 import { Separator } from "@heroui/react/separator";
 import type { Metadata } from "next";
 
 export const SettingsPage = async () => (
-	<Content className="p-0">
+	<div
+		// aria-label="You should not be in this page."
+		id="settings-view-root"
+		className="flex flex-col gap-4"
+	>
 		<AccountSettings variant="default" />
 		<Separator />
 		<SecuritySettings variant="default" />
-	</Content>
+		<Separator />
+		<UserActivity />
+	</div>
 );
 
 export const generateMetadata = async (): Promise<Metadata> => {

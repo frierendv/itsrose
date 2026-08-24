@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { DEFAULT_WEB_SETTING } from "./constants";
 import type { WebSetting } from "./types";
 
@@ -7,41 +7,39 @@ export const useStoreWebSetting = create<WebSetting>()(
 	persist(
 		(set) => ({
 			/** value */
-			progress: DEFAULT_WEB_SETTING.progress,
-			toast: DEFAULT_WEB_SETTING.toast,
-			theme: DEFAULT_WEB_SETTING.theme,
-			themeSwitch: DEFAULT_WEB_SETTING.themeSwitch,
+			...DEFAULT_WEB_SETTING,
 
 			/** setter */
 			setToast: (v) =>
-				set(({ toast }) => ({ toast: { ...toast, ...v } })),
+				set((state) => ({ toast: { ...state.toast, ...v } })),
 			setProgress: (v) =>
-				set(({ progress }) => ({
+				set((state) => ({
 					progress: {
-						...progress,
+						...state.progress,
 						...v,
-						...(v.options
-							? { options: { ...progress.options, ...v.options } }
-							: {}),
+						options: { ...state.progress.options, ...v.options },
 					},
 				})),
+
 			setTheme: (v) =>
-				set(({ theme }) => ({ theme: { ...theme, ...v } })),
+				set((state) => ({ theme: { ...state.theme, ...v } })),
+
 			setThemeSwitch: (v) =>
-				set(({ themeSwitch }) => ({
-					themeSwitch: { ...themeSwitch, ...v },
+				set((state) => ({
+					themeSwitch: { ...state.themeSwitch, ...v },
 				})),
 
 			resetDefault: () => set(DEFAULT_WEB_SETTING),
 		}),
 		{
 			name: "device-web-settings",
-			partialize: (s) => ({
-				progress: s.progress,
-				toast: s.toast,
-				theme: s.theme,
-				themeSwitch: s.themeSwitch,
+			partialize: (state) => ({
+				progress: state.progress,
+				toast: state.toast,
+				theme: state.theme,
+				themeSwitch: state.themeSwitch,
 			}),
+			storage: createJSONStorage(() => localStorage),
 			version: 1,
 		}
 	)

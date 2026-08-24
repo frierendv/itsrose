@@ -1,4 +1,4 @@
-import type { DeepPartial, DeepRequired } from "@/types";
+import type { DeepPartial } from "@/types";
 import type {
 	AppProgressProviderProps,
 	BProgressOptions,
@@ -19,7 +19,7 @@ export type ProgressOptions = Pick<
 export type ToastOptions = Pick<ToastVariants, "placement">;
 export type ThemeOptions = Pick<
 	ThemeProviderProps,
-	"attribute" | "enableColorScheme" | "defaultTheme" | "enableSystem"
+	"enableColorScheme" | "defaultTheme" | "enableSystem"
 >;
 
 export type ThemeSwitchOptions = Omit<
@@ -35,10 +35,7 @@ export type ThemeSwitchOptions = Omit<
 /**
  * Default web settings
  */
-export type DefaultWebSetting = DeepRequired<
-	Pick<WebSetting, "progress" | "toast" | "theme" | "themeSwitch">
->;
-export type WebSetting = {
+export type WebSettingStore = {
 	/**
 	 * Partial {@linkcode BProgressOptions | BProgress} options.
 	 * See {@linkcode ProgressOptions}
@@ -59,6 +56,8 @@ export type WebSetting = {
 	 * See {@linkcode ThemeSwitchOptions}
 	 */
 	themeSwitch: ThemeSwitchOptions;
+};
+export type WebSettingActions = {
 	/**
 	 * Change option for {@linkcode ProgressOptions}
 	 */
@@ -78,3 +77,5 @@ export type WebSetting = {
 	/** Reset to {@linkcode DefaultWebSetting | default} values  */
 	resetDefault: () => void;
 };
+
+export type WebSetting = WebSettingStore & WebSettingActions;

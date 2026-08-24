@@ -1,5 +1,5 @@
-import { cn, forwardRef } from "@/shared/utils";
-import { Button } from "@heroui/react";
+import { Button } from "@heroui/react/button";
+import { cn, forwardRef } from "@itsrose/react/core";
 
 export const SidebarGroup = forwardRef<"div">(
 	({ as: Component = "div", className, ...props }, ref) => {

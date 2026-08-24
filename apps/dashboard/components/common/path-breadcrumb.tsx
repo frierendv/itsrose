@@ -30,10 +30,7 @@ export const PathBreadcrumbs = memo(() => {
 	}
 
 	return (
-		<Breadcrumbs
-			aria-label="Navigation Breadcrumbs"
-			className="hidden sm:flex"
-		>
+		<Breadcrumbs aria-label="Navigation Breadcrumbs">
 			{items.map(({ key, url, title }) => (
 				<Breadcrumbs.Item key={key} href={url} className="capitalize">
 					{title}
