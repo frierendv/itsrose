@@ -1,3 +1,2 @@
-export * from "./base";
-export * from "./auth-layout";
-export * from "./dashboard-layout";
+export * from "./base-layout";
+export * from "./main-layout";

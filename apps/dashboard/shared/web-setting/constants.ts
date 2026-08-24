@@ -1,7 +1,8 @@
+import type { DeepRequired } from "@/types";
 import { ThemeAnimationType } from "react-theme-switch-animation";
-import type { DefaultWebSetting } from "./types";
+import type { WebSettingStore } from "./types";
 
-export const DEFAULT_WEB_SETTING: DefaultWebSetting = {
+export const DEFAULT_WEB_SETTING: DeepRequired<WebSettingStore> = {
 	progress: {
 		color: "#FF66CC",
 		spinnerPosition: "top-right",
@@ -12,7 +13,6 @@ export const DEFAULT_WEB_SETTING: DefaultWebSetting = {
 	},
 	toast: { placement: "top end" },
 	theme: {
-		attribute: "class",
 		enableColorScheme: true,
 		defaultTheme: "system",
 		enableSystem: true,
@@ -22,6 +22,6 @@ export const DEFAULT_WEB_SETTING: DefaultWebSetting = {
 		duration: 750,
 		blurAmount: 2,
 		direction: "ltr",
-		gifUrl: "",
+		gifUrl: "/assets/itsrose-text.gif",
 	},
 };

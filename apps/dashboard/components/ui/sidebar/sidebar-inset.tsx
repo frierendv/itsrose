@@ -1,5 +1,5 @@
-import { cn, forwardRef } from "@/shared/utils";
 import { surfaceVariants } from "@heroui/react/surface";
+import { cn, forwardRef } from "@itsrose/react/core";
 
 export const SidebarInset = forwardRef<"main">(
 	({ as: Component = "main", className, ...props }, ref) => {

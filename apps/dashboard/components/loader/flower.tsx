@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/shared/utils";
+import { cn } from "@itsrose/react/core";
 import { motion } from "motion/react";
 import React from "react";
 
