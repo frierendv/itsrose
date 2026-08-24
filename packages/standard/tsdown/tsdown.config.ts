@@ -1,3 +1,5 @@
+import pluginBabel from "@rolldown/plugin-babel";
+import { reactCompilerPreset } from "@vitejs/plugin-react";
 import Sonda from "sonda/rolldown";
 import type { TsdownPluginOption, UserConfig } from "tsdown";
 import Macros from "unplugin-macros/rolldown";
@@ -10,7 +12,13 @@ const IS_BUILD =
 	process.env.NEXT_PHASE === "phase-production-build";
 const IS_CI = Boolean(process.env.CI);
 
-function getProdConfig(): UserConfig {
+export function mergeConfig<T extends UserConfig>(
+	base: T,
+	overrides: Partial<T> = {}
+): UserConfig {
+	return { ...base, ...overrides } satisfies T;
+}
+export function getProdConfig(): UserConfig {
 	if (!IS_PRODUCTION) return {};
 	return {
 		sourcemap: true,
@@ -30,8 +38,7 @@ const plugins: TsdownPluginOption = [
 		open: false,
 	}),
 ];
-
-export const config: UserConfig = {
+const baseConfig: UserConfig = {
 	entry: ["src/index.ts"],
 	clean: true,
 	dts: {
@@ -77,11 +84,22 @@ export const config: UserConfig = {
 		}
 		return {};
 	},
-	...getProdConfig(),
 };
 
-export const fastifyConfig: UserConfig = {
-	...config,
+export const config = mergeConfig(baseConfig, getProdConfig());
+
+export const reactConfig = mergeConfig(baseConfig, {
+	minify: false,
+	platform: "neutral",
+	format: "esm",
+	plugins: [
+		pluginBabel({
+			presets: [reactCompilerPreset()],
+		}),
+	],
+});
+
+export const fastifyConfig = mergeConfig(baseConfig, {
 	dts: false,
 	entry: ["src/**/*.ts"],
 	unbundle: true,
@@ -89,4 +107,4 @@ export const fastifyConfig: UserConfig = {
 	sourcemap: false,
 	format: ["esm"],
 	exports: false,
-};
+});
