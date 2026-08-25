@@ -24,7 +24,6 @@ export const ProgressProvider = ({
 		}}
 		shallowRouting
 		memo
-		disableAnchorClick
 		disableSameURL
 	>
 		{children}

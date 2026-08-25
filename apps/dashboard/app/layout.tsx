@@ -1,6 +1,5 @@
 import type { Viewport } from "next";
 import "@/styles/globals.css";
-import { AuthProvider } from "@/client/providers/auth";
 import { BaseProvider } from "@/client/providers/base";
 
 export const viewport: Viewport = {
@@ -17,9 +16,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body className="min-h-svh bg-background antialiased">
-				<BaseProvider>
-					<AuthProvider>{children}</AuthProvider>
-				</BaseProvider>
+				<BaseProvider>{children}</BaseProvider>
 			</body>
 		</html>
 	);

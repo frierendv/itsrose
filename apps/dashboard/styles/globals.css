@@ -5,6 +5,8 @@
 
 :root {
 	view-transition-name: root;
+	scroll-behavior: smooth;
+	scroll-padding-top: 64px;
 }
 /*
  * HeroUI Theme Customization
