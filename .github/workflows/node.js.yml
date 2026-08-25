@@ -23,8 +23,8 @@ on:
             - ".github/workflows/**"
 
 jobs:
-    build:
-        name: Build
+    qa:
+        name: QA
         runs-on: ubuntu-latest
         steps:
             - name: Checkout branch
@@ -36,30 +36,8 @@ jobs:
             - name: Build packages
               run: pnpm build
 
-    eslint:
-        name: "ESLint"
-        runs-on: ubuntu-latest
-        needs: [build]
-        steps:
-            - name: Checkout branch
-              uses: actions/checkout@v6
-
-            - name: Install
-              uses: ./.github/common-actions/install
-
             - name: Run linter
               run: pnpm lint
-
-    types:
-        name: "Typescript"
-        runs-on: ubuntu-latest
-        needs: [build, eslint]
-        steps:
-            - name: Checkout branch
-              uses: actions/checkout@v6
-
-            - name: Install
-              uses: ./.github/common-actions/install
 
             - name: Run typecheck
               run: pnpm typecheck
@@ -67,7 +45,7 @@ jobs:
     coverage:
         name: "Jest coverage"
         runs-on: ubuntu-latest
-        needs: [build, eslint, types]
+        needs: [qa]
         steps:
             - name: Checkout branch
               uses: actions/checkout@v6

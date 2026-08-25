@@ -1,3 +1,5 @@
+import pluginBabel from "@rolldown/plugin-babel";
+import { reactCompilerPreset } from "@vitejs/plugin-react";
 import Sonda from "sonda/rolldown";
 import type { TsdownPluginOption, UserConfig } from "tsdown";
 import Macros from "unplugin-macros/rolldown";
@@ -5,31 +7,38 @@ import PreprocessorDirectives from "unplugin-preprocessor-directives/rollup";
 import { purgePolyfills } from "unplugin-purge-polyfills";
 
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
-const IS_CI = process.env.CI === "true";
+const IS_BUILD =
+	process.env.BUILDING === "true" ||
+	process.env.NEXT_PHASE === "phase-production-build";
+const IS_CI = Boolean(process.env.CI);
 
-function getProdConfig() {
-	const prod: UserConfig = {
-		// disable dts generation in production to speed up builds
-		dts: false,
-		sourcemap: "inline",
-		// Only minify in prod
+export function mergeConfig<T extends UserConfig>(
+	base: T,
+	overrides: Partial<T> = {}
+): UserConfig {
+	return { ...base, ...overrides } satisfies T;
+}
+export function getProdConfig(): UserConfig {
+	if (!IS_PRODUCTION) return {};
+	return {
+		sourcemap: true,
 		minify: true,
 	};
-	return IS_PRODUCTION ? prod : {};
 }
+
 const plugins: TsdownPluginOption = [
 	Macros(),
 	PreprocessorDirectives(),
 	purgePolyfills.rolldown({ sourcemap: true }),
 	Sonda({
-		enabled: !IS_PRODUCTION && !IS_CI,
-		filename: "sonda_repot", // only last report needed
+		// disable on production or ci
+		enabled: !(IS_PRODUCTION || IS_CI),
+		filename: "sonda_report",
 		sources: true,
 		open: false,
 	}),
 ];
-
-export const config: UserConfig = {
+const baseConfig: UserConfig = {
 	entry: ["src/index.ts"],
 	clean: true,
 	dts: {
@@ -47,6 +56,12 @@ export const config: UserConfig = {
 		level: "warning",
 		depKinds: ["dependencies", "peerDependencies"],
 	},
+	exports: {
+		enabled: true,
+		// disable on production or build phase
+		devExports: !(IS_PRODUCTION || IS_BUILD),
+		legacy: true,
+	},
 	treeshake: true,
 	unbundle: false,
 	outputOptions: {
@@ -58,7 +73,7 @@ export const config: UserConfig = {
 	},
 	failOnWarn: true,
 	sourcemap: true,
-	logLevel: "silent",
+	logLevel: "info",
 	plugins,
 	outExtensions: ({ format }) => {
 		if (format === "cjs") {
@@ -69,18 +84,27 @@ export const config: UserConfig = {
 		}
 		return {};
 	},
-	...getProdConfig(),
 };
 
-export const fastifyConfig: UserConfig = {
-	...config,
-	// no need for dts
+export const config = mergeConfig(baseConfig, getProdConfig());
+
+export const reactConfig = mergeConfig(baseConfig, {
+	minify: false,
+	platform: "neutral",
+	format: "esm",
+	plugins: [
+		pluginBabel({
+			presets: [reactCompilerPreset()],
+		}),
+	],
+});
+
+export const fastifyConfig = mergeConfig(baseConfig, {
 	dts: false,
 	entry: ["src/**/*.ts"],
-	// no need to bundle
-	unbundle: false,
+	unbundle: true,
 	failOnWarn: false,
 	sourcemap: false,
-	// output only esm
 	format: ["esm"],
-};
+	exports: false,
+});

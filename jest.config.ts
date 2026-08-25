@@ -1,55 +1,53 @@
 import type { Config } from "jest";
-import { createDefaultEsmPreset } from "ts-jest";
+import {
+	createDefaultEsmPreset,
+	type DefaultEsmTransformOptions,
+} from "ts-jest";
 
-const config = {
+const moduleNameMapper = {
+	"^@itsrose/([^/]+)$": [
+		"<rootDir>/packages/core/$1/src",
+		"<rootDir>/packages/features/$1/src",
+		"<rootDir>/packages/internal/$1/src",
+		"<rootDir>/packages/others/$1/src",
+		"<rootDir>/packages/shared/$1/src",
+		"<rootDir>/packages/$1/src",
+	],
+	"^atomically$": "<rootDir>/packages/others/lowdb/__mocks__/atomically.ts",
+	"^superjson$": "<rootDir>/packages/others/lowdb/__mocks__/superjson.ts",
+};
+
+const transformIgnorePatterns = [
+	"/node_modules/(?!(atomically|superjson|copy-anything)/)",
+];
+
+function createProject<const Path extends `packages/${string}`>(
+	rootPath: Path,
+	overrides: DefaultEsmTransformOptions = {}
+) {
+	return {
+		displayName: rootPath,
+		roots: [`<rootDir>/${rootPath}`],
+		moduleNameMapper,
+		transformIgnorePatterns,
+		...createDefaultEsmPreset({
+			tsconfig: "<rootDir>/packages/standard/typescript/node.json",
+			...overrides,
+		}),
+	};
+}
+
+const config: Config = {
 	projects: [
-		{
-			displayName: "Core",
-			...createDefaultEsmPreset({
-				tsconfig: "<rootDir>/packages/standard/typescript/esm.json",
-			}),
-			roots: ["<rootDir>/packages/core/"],
-		},
-		{
-			displayName: "Features",
-			...createDefaultEsmPreset({
-				tsconfig: "<rootDir>/packages/standard/typescript/esm.json",
-			}),
-			roots: ["<rootDir>/packages/features/"],
-		},
-		{
-			displayName: "Internal",
-			...createDefaultEsmPreset({
-				tsconfig: "<rootDir>/packages/standard/typescript/esm.json",
-			}),
-			roots: ["<rootDir>/packages/internal/"],
-		},
-		{
-			displayName: "Shared",
-			...createDefaultEsmPreset({
-				tsconfig: "<rootDir>/packages/standard/typescript/esm.json",
-			}),
-			roots: ["<rootDir>/packages/shared/"],
-		},
-		{
-			displayName: "Others",
-			...createDefaultEsmPreset({
-				tsconfig: "<rootDir>/packages/standard/typescript/esm.json",
-			}),
-			roots: ["<rootDir>/packages/others/"],
-			transformIgnorePatterns: [
-				"/node_modules/(?!(atomically|superjson|copy-anything)/)",
-			],
-		},
+		createProject("packages/core"),
+		createProject("packages/features"),
+		createProject("packages/internal"),
+		createProject("packages/shared"),
+		createProject("packages/others"),
+		createProject("packages/react", {
+			tsconfig: "<rootDir>/packages/react/tsconfig.test.json",
+		}),
 	],
-	transformIgnorePatterns: [
-		"/node_modules/(?!(atomically|superjson|copy-anything)/)",
-	],
-	moduleNameMapper: {
-		"^atomically$":
-			"<rootDir>/packages/others/lowdb/__mocks__/atomically.ts",
-		"^superjson$": "<rootDir>/packages/others/lowdb/__mocks__/superjson.ts",
-	},
 	coverageProvider: "v8",
 	coverageDirectory: "<rootDir>/coverage",
 	coverageThreshold: {
@@ -60,6 +58,6 @@ const config = {
 			statements: 80,
 		},
 	},
-} satisfies Config;
+};
 
 export default config;
