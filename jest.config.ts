@@ -41,6 +41,13 @@ const config = {
 				"/node_modules/(?!(atomically|superjson|copy-anything)/)",
 			],
 		},
+		{
+			displayName: "React",
+			...createDefaultEsmPreset({
+				tsconfig: "<rootDir>/packages/react/tsconfig.test.json",
+			}),
+			roots: ["<rootDir>/packages/react/"],
+		},
 	],
 	transformIgnorePatterns: [
 		"/node_modules/(?!(atomically|superjson|copy-anything)/)",
