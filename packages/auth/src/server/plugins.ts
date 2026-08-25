@@ -71,7 +71,9 @@ export default function (env = process.env as SharedEnv) {
 			: env.CREEM_DEVELOPMENT_API_KEY) as string,
 		// test mode for development
 		testMode: !isProd,
-		webhookSecret: env.CREAM_WEB_HOOK_SECRET,
+		webhookSecret: isProd
+			? env.CREAM_PRODUCTION_WEB_HOOK_SECRET
+			: env.CREEM_DEVELOPMENT_WEB_HOOK_SECRET,
 		persistSubscriptions: true,
 		// @ts-expect-error - schema not infered
 		schema: creemSchema as CreemOptions["schema"],
@@ -152,9 +154,10 @@ export default function (env = process.env as SharedEnv) {
 			references: "user",
 			rateLimit: { enabled: false },
 			requireName: true,
-			storage: "database",
+			storage: "secondary-storage",
+			fallbackToDatabase: true,
 			enableMetadata: true,
-			enableSessionForAPIKeys: true,
+			startingCharactersConfig: { shouldStore: true },
 			schema: {
 				apikey: {
 					modelName: "apikeys",

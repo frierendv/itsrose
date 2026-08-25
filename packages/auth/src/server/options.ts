@@ -91,6 +91,7 @@ export function getAuthOptions(
 		},
 		advanced: {
 			database: {
+				joins: true,
 				generateId: "uuid",
 			},
 			useSecureCookies: true,
