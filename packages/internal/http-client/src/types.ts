@@ -73,10 +73,8 @@ export interface IInternalRequestConfig<
  * @template TData Data payload type.
  */
 export interface IRequestConfig<
-	TData = unknown,
-> extends AxiosRequestConfig<TData> {
-	[key: string]: any;
-}
+	TData = any,
+> extends AxiosRequestConfig<TData> {}
 
 /** @internal */
 export interface IHttpClient {

@@ -27,7 +27,7 @@ export const ERROR_CODE = {
 	...SERVER_ERROR,
 	...BUSINESS_ERROR,
 	UNKNOWN: {
-		code: 3000,
+		code: 3999,
 		message: "An unknown error occurred",
 		http_code: 500,
 	},

@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { generateRequestTrackingId } from "@itsrose/fastify-utils";
+import { getEnv } from "@itsrose/system";
 import closeWithGrace from "close-with-grace";
 import Fastify from "fastify";
 import fp from "fastify-plugin";
@@ -44,7 +45,7 @@ async function startServer() {
 	try {
 		// Start listening.
 		await fastify.listen({
-			port: 3000,
+			port: getEnv("PORT", { defaultValue: "3000", preprocess: Number }),
 			host: "0.0.0.0",
 		});
 	} catch (err) {
