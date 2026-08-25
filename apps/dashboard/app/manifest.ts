@@ -1,10 +1,12 @@
+import { config } from "@/shared/config";
+import { lowerCase } from "@/shared/server";
 import type { MetadataRoute } from "next";
 
 export default async (): Promise<MetadataRoute.Manifest> => {
 	return {
-		name: "ItsRose",
-		short_name: "itsrose",
-		description: "ItsRose provide you an easy to integrate APIs.",
+		name: config.APP_NAME,
+		short_name: lowerCase(config.APP_NAME),
+		description: config.APP_DESCRIPTION,
 		lang: "en",
 		dir: "ltr",
 		icons: [

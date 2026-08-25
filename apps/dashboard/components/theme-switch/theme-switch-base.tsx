@@ -32,7 +32,7 @@ export const ThemeSwitchBase = memo<ButtonRootProps>((props) => {
 			animationSetting.animationType === ThemeAnimationType.GIF
 				? animationSetting.gifUrl
 					? animationSetting.gifUrl
-					: "/gif/shigure-ui-dance-1.gif"
+					: "/assets/itsrose-text.gif"
 				: undefined,
 		duration: animationSetting.duration,
 		blurAmount: animationSetting.blurAmount,

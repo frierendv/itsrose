@@ -1,4 +1,4 @@
-import { cn, forwardRef } from "@/shared/utils";
+import { cn, forwardRef } from "@itsrose/react/core";
 
 export const SidebarFooter = forwardRef<"div">(
 	({ as: Component = "div", className, ...props }, ref) => {

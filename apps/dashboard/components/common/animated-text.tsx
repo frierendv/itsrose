@@ -1,13 +1,16 @@
 "use client";
 
 import { LampContainer } from "@/components/ui/lamp";
-import { cn, forwardRef } from "@/shared/utils";
+import { cn, forwardRef } from "@itsrose/react/core";
 import { motion, type HTMLMotionProps } from "motion/react";
 import { useMemo } from "react";
 
 export const AnimatedText = forwardRef<"h1", HTMLMotionProps<"h1">>(
-	({ className, as: Comp = "h1", ...props }, ref) => {
-		const MotionComponent = useMemo(() => motion.create(Comp), [Comp]);
+	({ className, as: Component = "h1", ...props }, ref) => {
+		const MotionComponent = useMemo(
+			() => motion.create(Component),
+			[Component]
+		);
 		return (
 			<LampContainer>
 				<MotionComponent
