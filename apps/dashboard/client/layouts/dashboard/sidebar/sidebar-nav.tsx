@@ -5,11 +5,11 @@ import {
 	SidebarGroupLabel,
 	SidebarMenu,
 } from "@/components/ui/sidebar";
-import type { SidebarMainProps } from "@/shared/dashboard";
+import type { SidebarItemProps } from "@/shared/dashboard";
 import { memo } from "react";
 import { SidebarNavItem } from "./sidebar-nav-item";
 
-export type SidebarNavProps = SidebarMainProps & {
+export type SidebarNavProps = SidebarItemProps & {
 	className?: string;
 };
 
