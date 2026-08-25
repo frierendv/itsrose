@@ -25,6 +25,7 @@
 	],
 	"exports": {
 		".": "./src/index.ts",
+		"./product": "./src/product/index.ts",
 		"./react": "./src/react/index.ts",
 		"./server": "./src/server/index.ts",
 		"./package.json": "./package.json"
@@ -47,6 +48,7 @@
 		"@itsrose/system": "workspace:*",
 		"better-auth": "^1.7.1",
 		"better-auth-localization": "^3.0.0",
+		"creem": "^1.6.0",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
@@ -60,6 +62,7 @@
 	"publishConfig": {
 		"exports": {
 			".": "./dist/index.mjs",
+			"./product": "./dist/product/index.mjs",
 			"./react": "./dist/react/index.mjs",
 			"./server": "./dist/server/index.mjs",
 			"./package.json": "./package.json"
