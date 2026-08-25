@@ -12,7 +12,7 @@ on:
             - "tsconfig*.json"
             - ".github/workflows/**"
     pull_request:
-        branches: ["main"]
+        branches: ["main", "development"]
         paths:
             - "apps/**/*.ts"
             - "packages/**/*.ts"
@@ -23,57 +23,35 @@ on:
             - ".github/workflows/**"
 
 jobs:
-    build:
-        name: Build
-        runs-on: self-hosted
+    qa:
+        name: QA
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout branch
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Install
               uses: ./.github/common-actions/install
 
             - name: Build packages
-              run: npm run build
-
-    eslint:
-        name: "ESLint"
-        runs-on: self-hosted
-        needs: [build]
-        steps:
-            - name: Checkout branch
-              uses: actions/checkout@v4
-
-            - name: Install
-              uses: ./.github/common-actions/install
+              run: pnpm build
 
             - name: Run linter
-              run: npm run lint
-
-    types:
-        name: "Typescript"
-        runs-on: self-hosted
-        needs: [build, eslint]
-        steps:
-            - name: Checkout branch
-              uses: actions/checkout@v4
-
-            - name: Install
-              uses: ./.github/common-actions/install
+              run: pnpm lint
 
             - name: Run typecheck
-              run: npm run typecheck
+              run: pnpm typecheck
 
     coverage:
         name: "Jest coverage"
-        runs-on: self-hosted
-        needs: [build, eslint, types]
+        runs-on: ubuntu-latest
+        needs: [qa]
         steps:
             - name: Checkout branch
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Install
               uses: ./.github/common-actions/install
 
             - name: Run jest coverage
-              run: npm run test -- --verbose=false --runInBand=false --coverage --ci --testLocationInResults
+              run: pnpm test --verbose=false --runInBand=false --coverage --ci --testLocationInResults

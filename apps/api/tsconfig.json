@@ -1,8 +1,11 @@
 {
-	"extends": "@itsrose/typescript-config/esm.json",
+	"extends": "@itsrose/typescript-config/node.json",
 	"compilerOptions": {
 		"rootDir": ".",
-		"outDir": "dist"
+		"outDir": "dist",
+		"paths": {
+			"@/*": ["./src/*"]
+		}
 	},
 	"include": ["src"],
 	"exclude": ["node_modules", "dist"]

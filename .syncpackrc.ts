@@ -11,13 +11,21 @@ const config: RcFile = {
 		{
 			label: "itsrose-workspace",
 			dependencies: ["@itsrose/*"],
-			pinVersion: "*",
+			pinVersion: "workspace:*",
 		},
-		// lock @types/node to 24.12.0
 		{
-			label: "types-node",
-			dependencies: ["@types/node"],
-			pinVersion: "24.12.0",
+			label: "PNPM Catalog",
+			dependencies: [
+				"@types/node",
+				"typescript",
+				"chalk",
+				"zod",
+				// React/nextjs
+				"@types/react",
+				"@types/react-dom",
+				"next",
+			],
+			policy: "catalog",
 		},
 	],
 	sortFirst: [

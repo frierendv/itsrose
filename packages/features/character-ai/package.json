@@ -12,31 +12,43 @@
 	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
-	"main": "src/index.ts",
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
 	"files": [
 		"dist"
 	],
+	"exports": {
+		".": "./src/index.ts",
+		"./package.json": "./package.json"
+	},
 	"scripts": {
 		"build": "tsdown",
 		"build:fast": "tsdown src",
 		"clean": "rimraf dist .sonda",
 		"lint": "eslint . --max-warnings 0",
 		"lint:fix": "eslint . --max-warnings 0 --fix",
-		"postpack": "clean-package restore",
-		"prepack": "clean-package",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@itsrose/http-client": "*",
-		"@itsrose/system": "*",
+		"@itsrose/http-client": "workspace:*",
+		"@itsrose/system": "workspace:*",
 		"ws": "^8.21.1",
-		"zod": "^4.4.3"
+		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"@itsrose/eslint-config": "*",
-		"@itsrose/tsdown-config": "*",
-		"@itsrose/typescript-config": "*",
+		"@itsrose/eslint-config": "workspace:*",
+		"@itsrose/tsdown-config": "workspace:*",
+		"@itsrose/typescript-config": "workspace:*",
 		"@types/ws": "^8.18.1"
 	},
-	"clean-package": "../../../clean-package.config.json"
+	"publishConfig": {
+		"exports": {
+			".": {
+				"import": "./dist/index.mjs",
+				"require": "./dist/index.js"
+			},
+			"./package.json": "./package.json"
+		}
+	}
 }

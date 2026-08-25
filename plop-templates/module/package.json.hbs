@@ -22,8 +22,6 @@
 		"clean": "rimraf dist .sonda",
 		"lint": "eslint . --max-warnings 0",
 		"lint:fix": "eslint . --max-warnings 0 --fix",
-		"postpack": "clean-package restore",
-		"prepack": "clean-package",
 		"typecheck": "tsc --noEmit"
 	},
 	"clean-package": "{{rootRelativePath}}clean-package.config.json"
