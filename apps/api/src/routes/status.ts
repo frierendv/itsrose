@@ -23,6 +23,23 @@ const status: FastifyPluginAsync = async (fastify): Promise<void> => {
 			return { status: "ok" };
 		},
 	});
+	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
+		method: "GET",
+		url: "/me",
+		schema: {
+			tags: ["General"],
+			description: "Check if the service is up and running",
+			response: {
+				200: z.record(z.string(), z.any()),
+			},
+		},
+		handler: async (request) => {
+			return {
+				apikey: request.apikey,
+				subscription: request.subscription,
+			};
+		},
+	});
 };
 
 export default status;

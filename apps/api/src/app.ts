@@ -43,6 +43,14 @@ const app: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		options: { ...opts },
 	});
 
+	/**
+	 * Register app plugins first after openapi
+	 */
+	void fastify.register(AutoLoad, {
+		dir: join(__dirname, "plugins/app"),
+		options: { ...opts },
+	});
+
 	// #if DEV
 	/** Register Scalar UI plugin */
 	await fastify.register(AutoLoad, {
@@ -63,14 +71,6 @@ const app: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	 */
 	await fastify.register(AutoLoad, {
 		dir: join(__dirname, "plugins/tracking"),
-		options: { ...opts },
-	});
-
-	/**
-	 * Register app plugins
-	 */
-	void fastify.register(AutoLoad, {
-		dir: join(__dirname, "plugins/app"),
 		options: { ...opts },
 	});
 
