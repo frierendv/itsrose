@@ -30,7 +30,6 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@better-auth/infra": "^0.3.7",
 		"@better-auth/redis-storage": "^1.6.26",
 		"@fastify/autoload": "^6.5.0",
 		"@fastify/cors": "^11.3.0",
@@ -42,13 +41,11 @@
 		"dotenv": "^17.4.2",
 		"fastify": "^5.11.2",
 		"fastify-plugin": "^6.0.0",
-		"ioredis": "^5.11.1",
-		"pg": "^8.23.0"
+		"ioredis": "^5.11.1"
 	},
 	"devDependencies": {
 		"@itsrose/eslint-config": "workspace:*",
 		"@itsrose/tsdown-config": "workspace:*",
-		"@itsrose/typescript-config": "workspace:*",
-		"@types/pg": "^8.21.0"
+		"@itsrose/typescript-config": "workspace:*"
 	}
 }
