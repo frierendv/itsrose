@@ -1,0 +1,47 @@
+{
+	"name": "dashboard",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"build": "next build",
+		"bundle:analyze": "next experimental-analyze",
+		"dev": "next dev",
+		"lint": "eslint",
+		"typecheck": "tsc --noEmit",
+		"postbuild": "cp -r public .next/standalone/apps/dashboard/ && cp -r .next/static .next/standalone/apps/dashboard/.next/",
+		"start": "node .next/standalone/apps/dashboard/server.js"
+	},
+	"dependencies": {
+		"@better-auth-ui/core": "^1.6.45",
+		"@better-auth-ui/heroui": "^1.6.45",
+		"@better-auth-ui/react": "^1.6.45",
+		"@bprogress/next": "^3.2.12",
+		"@gravity-ui/icons": "^2.21.0",
+		"@heroui/react": "^3.2.4",
+		"@heroui/styles": "^3.2.4",
+		"@itsrose/auth": "workspace:*",
+		"@tanstack/react-query": "^5.101.4",
+		"clsx": "^2.1.1",
+		"motion": "^13.1.0",
+		"next": "catalog:",
+		"next-themes": "^0.4.6",
+		"react": "catalog:",
+		"react-dom": "catalog:",
+		"react-theme-switch-animation": "^1.2.0",
+		"tailwind-merge": "^3.6.0",
+		"zod": "^4.4.3",
+		"zustand": "^5.0.15"
+	},
+	"devDependencies": {
+		"@itsrose/eslint-config": "workspace:*",
+		"@itsrose/typescript-config": "workspace:*",
+		"@tailwindcss/postcss": "^4.3.3",
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"babel-plugin-react-compiler": "^1.0.0",
+		"eslint": "^10.8.1",
+		"tailwindcss": "^4.3.3",
+		"typescript": "^5.9.3"
+	}
+}
