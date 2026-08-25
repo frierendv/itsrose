@@ -93,3 +93,9 @@
 	--warning: oklch(82.03% 0.1388 88.12);
 	--warning-foreground: oklch(21.03% 0.0059 88.12);
 }
+
+@layer components {
+	.card--default {
+		@apply border border-accent/20;
+	}
+}

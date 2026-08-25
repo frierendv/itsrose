@@ -1,4 +1,5 @@
 import path from "path";
+import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 
 const env = {
@@ -39,12 +40,19 @@ const nextConfig: NextConfig = {
 		cssChunking: true,
 		optimizeCss: true,
 		optimizePackageImports: [
+			// icon
 			"@gravity-ui/icons",
+			// react
 			"@heroui/react",
 			"@heroui/styles",
+			// react
+			"@better-auth-ui/core",
+			"@better-auth-ui/heroui",
+			"@better-auth-ui/react",
 		],
 		turbopackRustReactCompiler: true,
 	},
+	transpilePackages: ["@itsrose/react"],
 
 	redirects: async () => [
 		{
@@ -53,6 +61,14 @@ const nextConfig: NextConfig = {
 			source: "/manifest.json",
 		},
 	],
+	devIndicators: false,
+	pageExtensions: ["ts", "tsx", "md", "mdx"],
 };
-
-export default nextConfig;
+const withMDX = createMDX({
+	extension: /\.(md|mdx)$/,
+	options: {
+		remarkPlugins: ["remark-gfm", "remark-toc"],
+		rehypePlugins: ["rehype-slug"],
+	},
+});
+export default withMDX(nextConfig);

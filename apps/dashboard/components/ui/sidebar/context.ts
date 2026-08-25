@@ -1,4 +1,4 @@
-import { createContext } from "@/shared/utils";
+import { createContext } from "@itsrose/react/core";
 
 export type SidebarContextProps = {
 	state: "expanded" | "collapsed";

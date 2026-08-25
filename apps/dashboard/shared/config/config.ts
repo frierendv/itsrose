@@ -23,8 +23,15 @@ export const config = {
 	AUTH_BASE_URL: process.env[asNextPublic("AUTH_BASE_URL")],
 	/** `NEXT_PUBLIC_GOOGLE_CLIENT_ID` */
 	GOOGLE_CLIENT_ID: process.env[asNextPublic("GOOGLE_CLIENT_ID")],
-	/** `NEXT_PUBLIC_` */
+	/** `NEXT_PUBLIC_ITSROSE_API_BASE_URL` */
+	ITSROSE_API_BASE_URL: new URL(
+		process.env[asNextPublic("ITSROSE_API_BASE_URL")] ||
+			"http://localhost:3002"
+	),
 
+	/**  ----------------- MISC -----------------  */
+	/** `NEXT_PUBLIC_FEATUREBASE_APP_ID` */
+	FEATUREBASE_APP_ID: process.env[asNextPublic("FEATUREBASE_APP_ID")],
 	/**  ----------------- author config -----------------  */
 	authors: {
 		github: {

@@ -1,5 +1,5 @@
-import { cn, forwardRef } from "@/shared/utils";
-import { ScrollShadow } from "@heroui/react";
+import { ScrollShadow } from "@heroui/react/scroll-shadow";
+import { cn, forwardRef } from "@itsrose/react/core";
 import * as React from "react";
 
 export const SidebarContent = forwardRef<
