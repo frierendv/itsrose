@@ -23,6 +23,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@better-auth/redis-storage": "^1.6.26",
 		"@fastify/autoload": "^6.5.0",
 		"@fastify/cors": "^11.3.0",
 		"@fastify/helmet": "^13.1.0",
@@ -33,6 +34,7 @@
 		"@fastify/under-pressure": "^9.1.0",
 		"@fastify/websocket": "^11.3.0",
 		"@itsrose/api-response": "workspace:*",
+		"@itsrose/auth": "workspace:*",
 		"@itsrose/character-ai": "workspace:*",
 		"@itsrose/elevenlabs": "workspace:*",
 		"@itsrose/fastify-utils": "workspace:*",
@@ -42,14 +44,17 @@
 		"@itsrose/system": "workspace:*",
 		"@itsrose/tiktok": "workspace:*",
 		"close-with-grace": "^2.5.0",
+		"dotenv": "^17.4.2",
 		"fastify": "^5.11.2",
 		"fastify-ip": "^2.0.0",
 		"fastify-plugin": "^6.0.0",
 		"fastify-zod-openapi": "^5.7.0",
+		"ioredis": "^5.11.1",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"@itsrose/eslint-config": "workspace:*",
+		"@itsrose/http-code": "workspace:*",
 		"@itsrose/tsdown-config": "workspace:*",
 		"@itsrose/typescript-config": "workspace:*",
 		"@scalar/fastify-api-reference": "^1.64.0",
