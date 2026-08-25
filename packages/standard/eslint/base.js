@@ -1,8 +1,7 @@
+// @ts-check
 import js from "@eslint/js";
 import gitignore from "eslint-config-flat-gitignore";
 import eslintConfigPrettier from "eslint-config-prettier";
-import prettierLint from "eslint-config-prettier/flat";
-import onlyWarn from "eslint-plugin-only-warn";
 import turboPlugin from "eslint-plugin-turbo";
 import tseslint from "typescript-eslint";
 
@@ -25,11 +24,6 @@ export const config = [
 		},
 	},
 	{
-		plugins: {
-			onlyWarn,
-		},
-	},
-	{
 		ignores: ["dist/**"],
 	},
 	{
@@ -47,14 +41,7 @@ export const config = [
 				},
 			],
 			semi: ["error", "always"],
-			"space-before-function-paren": [
-				"error",
-				{
-					anonymous: "always",
-					named: "never",
-					asyncArrow: "always",
-				},
-			],
+			"space-before-function-paren": ["off"],
 			"arrow-parens": ["error", "always"],
 			"no-mixed-spaces-and-tabs": ["error", "smart-tabs"],
 			"no-unused-vars": "off", // Disable the base rule

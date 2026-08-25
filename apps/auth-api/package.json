@@ -1,0 +1,51 @@
+{
+	"name": "auth-api",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"private": true,
+	"type": "module",
+	"license": "MIT",
+	"description": "ItsRose auth api",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git"
+	},
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"files": [
+		"dist"
+	],
+	"keywords": [
+		"api",
+		"auth",
+		"itsrose"
+	],
+	"scripts": {
+		"build": "tsdown",
+		"clean": "rimraf dist .sonda",
+		"dev": "tsx watch src/main.ts",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"start": "node dist/main.mjs",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@better-auth/redis-storage": "^1.6.26",
+		"@fastify/autoload": "^6.5.0",
+		"@fastify/cors": "^11.3.0",
+		"@fastify/helmet": "^13.1.0",
+		"@fastify/sensible": "^6.0.4",
+		"@itsrose/auth": "workspace:*",
+		"better-auth": "^1.6.26",
+		"close-with-grace": "^2.5.0",
+		"dotenv": "^17.4.2",
+		"fastify": "^5.11.2",
+		"fastify-plugin": "^6.0.0",
+		"ioredis": "^5.11.1"
+	},
+	"devDependencies": {
+		"@itsrose/eslint-config": "workspace:*",
+		"@itsrose/tsdown-config": "workspace:*",
+		"@itsrose/typescript-config": "workspace:*"
+	}
+}

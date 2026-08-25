@@ -203,6 +203,7 @@ export default fp(async (fastify) => {
 	fastify.route({
 		method: "GET",
 		url: "/openapi.json",
+		config: { disableAuth: true },
 		handler: () => fastify.swagger(),
 		// Don't include this route in the OpenAPI spec to avoid recursion issues
 		schema: {
