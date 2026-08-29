@@ -20,10 +20,11 @@
 	],
 	"exports": {
 		".": "./src/index.ts",
-		"./components": "./src/components/index.ts",
 		"./core": "./src/core/index.ts",
-		"./hooks": "./src/hooks/index.ts",
+		"./hooks/use-is-mobile": "./src/hooks/use-is-mobile.ts",
+		"./navbar": "./src/components/navbar/index.ts",
 		"./utils": "./src/utils/index.ts",
+		"./styles": "./src/styles/index.css",
 		"./package.json": "./package.json"
 	},
 	"scripts": {
@@ -35,12 +36,14 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"peerDependencies": {
+		"motion": "^13.1.1",
 		"react": "catalog:",
-		"react-dom": "catalog:"
+		"react-dom": "catalog:",
+		"tailwindcss": "^4.3.3"
 	},
 	"dependencies": {
-		"clsx": "^2.1.1",
-		"tailwind-merge": "^3.6.0",
+		"@react-aria/overlays": "^3.32.1",
+		"@react-stately/utils": "^3.12.1",
 		"tailwind-variants": "^3.3.1"
 	},
 	"devDependencies": {
@@ -49,16 +52,19 @@
 		"@itsrose/typescript-config": "workspace:*",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
+		"motion": "^13.1.1",
 		"react": "catalog:",
-		"react-dom": "catalog:"
+		"react-dom": "catalog:",
+		"tailwindcss": "^4.3.3"
 	},
 	"publishConfig": {
 		"exports": {
 			".": "./dist/index.mjs",
-			"./components": "./dist/components/index.mjs",
-			"./core": "./dist/core/index.mjs",
-			"./hooks": "./dist/hooks/index.mjs",
-			"./utils": "./dist/utils/index.mjs",
+			"./core": "./dist/core.mjs",
+			"./hooks/use-is-mobile": "./dist/hooks/use-is-mobile.mjs",
+			"./navbar": "./dist/navbar/index.mjs",
+			"./utils": "./dist/utils.mjs",
+			"./styles": "./dist/styles/index.css",
 			"./package.json": "./package.json"
 		}
 	}

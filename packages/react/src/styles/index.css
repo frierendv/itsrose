@@ -1,0 +1,6 @@
+@layer components;
+
+/* Base tailwindcss v4 */
+@import "tailwindcss";
+
+@import "./components/index.css" layer(components);
