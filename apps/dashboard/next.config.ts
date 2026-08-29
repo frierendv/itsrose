@@ -49,6 +49,7 @@ const nextConfig: NextConfig = {
 			"@better-auth-ui/core",
 			"@better-auth-ui/heroui",
 			"@better-auth-ui/react",
+			"@itsrose/react",
 		],
 		turbopackRustReactCompiler: true,
 		// test

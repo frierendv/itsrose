@@ -25,7 +25,7 @@ export const ARCHITECTURE_FEATURES: ArchitectureFeature[] = [
 	},
 	{
 		icon: Rocket,
-		title: "High-Throughput Fastify Core",
+		title: "High-Throughput",
 		tag: "< 45ms TTFB",
 		description:
 			"Engineered on modern Fastify runtime with optimized JSON serialization, connection pooling, and sub-50ms worldwide edge delivery.",
