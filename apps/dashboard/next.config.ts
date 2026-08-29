@@ -49,8 +49,16 @@ const nextConfig: NextConfig = {
 			"@better-auth-ui/core",
 			"@better-auth-ui/heroui",
 			"@better-auth-ui/react",
+			"@itsrose/react",
 		],
 		turbopackRustReactCompiler: true,
+		// test
+		appNewScrollHandler: true,
+		transitionIndicator: true,
+		gestureTransition: true,
+		turbopackRemoveUnusedImports: true,
+		turbopackRemoveUnusedExports: true,
+		mdxRs: true,
 	},
 	transpilePackages: ["@itsrose/react"],
 

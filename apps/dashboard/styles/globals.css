@@ -2,9 +2,12 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 @import "@better-auth-ui/heroui/styles";
+@import "@itsrose/react/styles";
 
 :root {
 	view-transition-name: root;
+	scroll-behavior: smooth;
+	scroll-padding-top: 64px;
 }
 /*
  * HeroUI Theme Customization

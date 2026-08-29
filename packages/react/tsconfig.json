@@ -1,5 +1,10 @@
 {
 	"extends": "@itsrose/typescript-config/react-library.json",
 	"include": ["src", "__tests__"],
+	"compilerOptions": {
+		"paths": {
+			"@itsrose/react/*": ["./src/*"]
+		}
+	},
 	"exclude": ["node_modules", "dist"]
 }
