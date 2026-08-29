@@ -10,6 +10,8 @@
 > [!NOTE]
 > This repository is under **active maintenance and development**. Code, structure, and APIs may change frequently.
 
+Join our [Discord server](https://discord.gg/FmpN6s4gU4).
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
