@@ -1,0 +1,120 @@
+/* Base style */
+.navbar {
+	@apply flex z-40 w-full h-auto;
+	@apply items-center justify-center;
+	@apply bg-background;
+
+	/* token */
+	--navbar-height: 4rem;
+}
+/* border */
+.navbar--border {
+	@apply border-b border-border divide-y-2 divide-border;
+	/* Modifier */
+	&[data-menu-open="true"] {
+		@apply border-none;
+	}
+}
+/* blur */
+.navbar--blur {
+	@apply backdrop-blur-lg backdrop-saturate-150 bg-background/70;
+
+	&[data-menu-open="true"] {
+		@apply backdrop-blur-xl;
+	}
+}
+/* Position ? */
+.navbar--fixed {
+	@apply fixed top-0;
+}
+.navbar--sticky {
+	@apply sticky top-0 inset-x-0;
+}
+
+/* Navbar header base */
+.navbar--header {
+	@apply relative flex flex-row gap-4;
+	@apply items-center justify-between;
+	@apply px-2 md:px-6 w-full;
+	@apply h-(--navbar-height);
+}
+/* Navbar header variants */
+.navbar--header-sm {
+	/* 640px */
+	@apply max-w-160;
+}
+.navbar--header-md {
+	/* 768px */
+	@apply max-w-3xl;
+}
+.navbar--header-lg {
+	/* 1024px */
+	@apply max-w-5xl;
+}
+.navbar--header-xl {
+	/* 1280px */
+	@apply max-w-7xl;
+}
+.navbar--header-2xl {
+	/* 1536px */
+	@apply max-w-384;
+}
+.navbar--header-full {
+	@apply max-w-full;
+}
+
+/* Navbar content base */
+.navbar--content {
+	@apply flex flex-row flex-nowrap items-center;
+
+	/* Navbar content variants modifier */
+	&[data-justify="start"] {
+		@apply justify-start grow basis-0;
+	}
+	&[data-justify="center"] {
+		@apply justify-center;
+	}
+	&[data-justify="end"] {
+		@apply justify-end grow basis-0;
+	}
+}
+
+/* Navbar item */
+.navbar--item {
+	@apply whitespace-nowrap box-border list-none text-base;
+
+	&[data-active="true"] {
+		@apply font-semibold;
+	}
+}
+
+/* --- Mobile */
+/* Mobile menu */
+.navbar--menu {
+	@apply z-30 fixed top-(--navbar-height);
+	@apply inset-x-0 bottom-0 w-screen overflow-y-auto;
+	@apply px-6 pt-2;
+	@apply flex flex-col gap-2;
+	@apply bg-background;
+}
+/* Mobile menu item */
+.navbar--menu-item {
+	@apply text-lg;
+	/* modifier */
+	&[data-active="true"] {
+		@apply font-semibold;
+	}
+	&[data-menu-open] {
+		@apply border-none;
+	}
+}
+/* --- */
+
+/* navbar brand  */
+.navbar--brand {
+	@apply flex flex-row grow flex-nowrap basis-0;
+	@apply justify-start items-center;
+	@apply bg-transparent;
+	@apply no-underline text-base whitespace-nowrap;
+	@apply box-border;
+}
