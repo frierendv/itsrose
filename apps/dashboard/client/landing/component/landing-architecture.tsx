@@ -39,9 +39,7 @@ export const LandingArchitecture = memo(() => {
 								<Card className="h-full border border-border/80 bg-surface flex flex-col justify-between shadow-md transition-all duration-300">
 									<Card.Header className="pb-2">
 										<div className="flex items-center justify-between w-full mb-3">
-											<div className="size-10 bg-surface-secondary border border-border/60 text-accent flex items-center justify-center">
-												<Icon className="size-5" />
-											</div>
+											<Icon className="size-5 text-accent" />
 											<Chip
 												variant="soft"
 												className="bg-surface-secondary text-accent text-xs border border-border/40 font-mono"

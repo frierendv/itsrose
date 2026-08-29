@@ -195,7 +195,7 @@ export const LandingHero = memo(() => {
 														{
 															label: "dress",
 															n_label: "1",
-															url: 0.994,
+															url: "https://example.com/image.png",
 														},
 														{
 															label: "shoes",

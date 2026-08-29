@@ -56,9 +56,7 @@ export const LandingFeatures = memo(() => {
 									<Card className="h-full border border-border/80 bg-surface flex flex-col justify-between shadow-md transition-all duration-300">
 										<Card.Header className="pb-3">
 											<div className="flex items-center justify-between w-full mb-3">
-												<div className="p-2.5 bg-surface-secondary border border-border/60 text-accent inline-flex items-center justify-center">
-													<Icon className="size-5" />
-												</div>
+												<Icon className="size-5 text-accent" />
 												<Chip
 													variant="soft"
 													className="bg-surface-secondary text-muted text-xs border border-border/50"
