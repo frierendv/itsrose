@@ -1,23 +1,36 @@
 "use client";
 
 import { CircleCheckFill } from "@gravity-ui/icons";
-import { Card, Chip, Paragraph } from "@heroui/react";
+import { buttonVariants, Card, Chip, Link, Paragraph } from "@heroui/react";
+import type { BillingPlan } from "@itsrose/auth/product";
 import { cn, forwardRef } from "@itsrose/react/core";
-import { PRODUCTS } from "./constants";
-import { SubscribeButton } from "./subscribe-button";
+import { useMemo } from "react";
 
 export type PricingCardProps = {
-	product: (typeof PRODUCTS)[number];
+	product: Required<BillingPlan>;
 };
 
 export const PricingCard = forwardRef<"div", PricingCardProps>((props, ref) => {
 	const { as: Component = "div", product, ...otherProps } = props;
+	const { price, interval } = useMemo(() => {
+		const raw = product.prices[0] || {
+			amount: 0,
+			currency: "EUR",
+			interval: "month",
+		};
+		const majorUnits = raw.amount / 100;
+		const price = majorUnits.toLocaleString("de-DE", {
+			style: "currency",
+			currency: raw.currency,
+		});
+		return { price, interval: raw.interval };
+	}, [product.prices]);
 	return (
 		<Card
 			// className="relative w-fit"
 			className={cn(
 				"group relative flex",
-				product.is_featured && [
+				product?.highlighted && [
 					// "z-10",
 					// "scale-105",
 					"border-3 border-accent/20",
@@ -30,7 +43,7 @@ export const PricingCard = forwardRef<"div", PricingCardProps>((props, ref) => {
 			{...otherProps}
 		>
 			<Card.Header>
-				{product.is_featured && (
+				{product.highlighted && (
 					<Chip
 						className="absolute top-1 right-1 bg-accent-soft"
 						aria-label="featured"
@@ -39,35 +52,28 @@ export const PricingCard = forwardRef<"div", PricingCardProps>((props, ref) => {
 					</Chip>
 				)}
 				<Card.Title className="flex font-bold text-2xl text-foreground gap-2">
-					{product.title}
+					{product?.name}
 				</Card.Title>
 				<Card.Description className="mt-2 mb-6">
 					<span className="font-semibold text-3xl text-foreground">
-						{product.price}{" "}
-						{!product.is_free && !product.is_custom && "€"}
+						{price}
 					</span>
 					<span className="mx-2 text-foreground/70">•</span>
-					<span className="text-foreground/70">
-						{product.subtitle}
-					</span>
+					<span className="text-foreground/70">{interval}</span>
 				</Card.Description>
 			</Card.Header>
 
 			<Card.Content>
 				{/* CTA Button */}
-				<SubscribeButton
-					{...(product.type === "link"
-						? {
-								onPress: () =>
-									window.open(product.cta.href, "_blank"),
-							}
-						: {})}
-					variant={!product.is_featured ? "outline" : "primary"}
-					productId={product.id}
-					fullWidth
+				<Link
+					href="/sign-in"
+					className={buttonVariants({
+						variant: product.highlighted ? "primary" : "outline",
+						fullWidth: true,
+					})}
 				>
-					{product.cta.value}
-				</SubscribeButton>
+					Get started
+				</Link>
 				{/* Description */}
 				<Paragraph className="my-6 grow text-foreground/70 text-sm leading-relaxed">
 					{product.description}

@@ -1,3 +1,4 @@
 [submodule "scripts"]
 	path = scripts
 	url = https://git.itsrose.net/itsrose/itsrose-scripts
+	branch = main
