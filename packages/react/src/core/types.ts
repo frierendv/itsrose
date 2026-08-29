@@ -4,6 +4,7 @@ import type {
 	ElementType,
 	PropsWithoutRef,
 	ReactNode,
+	Ref,
 } from "react";
 
 /**
@@ -75,7 +76,7 @@ export type PolymorphicComponentPropsWithRef<
 	Component extends As,
 	Props extends object = object,
 > = PolymorphicComponentProps<Component, Props> & {
-	ref?: PolymorphicRef<Component>;
+	ref?: Ref<PolymorphicRef<Component>>;
 };
 
 /**

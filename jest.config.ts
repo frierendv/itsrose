@@ -5,6 +5,7 @@ import {
 } from "ts-jest";
 
 const moduleNameMapper = {
+	"^@itsrose/react/(.*)$": "<rootDir>/packages/react/src/$1",
 	"^@itsrose/([^/]+)$": [
 		"<rootDir>/packages/core/$1/src",
 		"<rootDir>/packages/features/$1/src",
@@ -44,9 +45,15 @@ const config: Config = {
 		createProject("packages/internal"),
 		createProject("packages/shared"),
 		createProject("packages/others"),
-		createProject("packages/react", {
-			tsconfig: "<rootDir>/packages/react/tsconfig.test.json",
-		}),
+		{
+			displayName: "packages/react",
+			testEnvironment: "jsdom",
+			setupFilesAfterEnv: ["@testing-library/jest-dom"],
+			roots: ["<rootDir>/packages/react/"],
+			...createDefaultEsmPreset({
+				tsconfig: "<rootDir>/packages/react/tsconfig.json",
+			}),
+		},
 	],
 	coverageProvider: "v8",
 	coverageDirectory: "<rootDir>/coverage",
