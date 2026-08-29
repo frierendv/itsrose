@@ -15,19 +15,23 @@ export const ThemeSwitchBase = memo<ButtonRootProps>((props) => {
 	const [mounted, setMounted] = useState<boolean>(false);
 	const [isDisable, setDisable] = useState<boolean>(false);
 	const { themeSwitch } = useStoreWebSetting();
-	const { resolvedTheme: theme, setTheme } = useTheme();
+	const { resolvedTheme, setTheme } = useTheme();
 
 	useEffect(() => setMounted(true), []);
 
-	const isDarkMode = useMemo(() => theme === "dark", [theme]);
-	const onDarkModeChange = () => {
-		setTheme(theme === "light" ? "dark" : "light");
-	};
+	const isDarkMode = useMemo(() => resolvedTheme === "dark", [resolvedTheme]);
+	const onDarkModeChange = useCallback(
+		(isDark: boolean) => {
+			setTheme(isDark ? "dark" : "light");
+		},
+		[setTheme]
+	);
 	const animationSetting = useMemo(() => {
 		return themeSwitch;
 	}, [themeSwitch]);
 	const { ref: buttonRef, toggleSwitchTheme } = useModeAnimation({
 		animationType: animationSetting.animationType,
+		direction: animationSetting.direction,
 		gifUrl:
 			animationSetting.animationType === ThemeAnimationType.GIF
 				? animationSetting.gifUrl
@@ -37,25 +41,22 @@ export const ThemeSwitchBase = memo<ButtonRootProps>((props) => {
 		duration: animationSetting.duration,
 		blurAmount: animationSetting.blurAmount,
 		styleId: "theme-animation-sw",
+		isDarkMode,
 		onDarkModeChange,
 	});
 
 	const handleToggleSwitchTheme = useCallback(() => {
-		let cb: () => void = () => void 0;
 		if (themeSwitch.duration) {
-			cb = () => {
-				setDisable(true);
-				setTimeout(() => setDisable(false), themeSwitch.duration);
-			};
+			setDisable(true);
+			setTimeout(() => setDisable(false), themeSwitch.duration);
 		}
-		cb();
 		toggleSwitchTheme();
 	}, [themeSwitch.duration, toggleSwitchTheme]);
 
 	const icon = useMemo(() => (isDarkMode ? <Moon /> : <Sun />), [isDarkMode]);
 
 	if (!mounted) {
-		return;
+		return null;
 	}
 
 	return (

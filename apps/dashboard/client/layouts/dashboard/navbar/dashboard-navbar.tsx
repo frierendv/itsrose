@@ -2,9 +2,9 @@
 
 import { FlowerOutline, PathBreadcrumbs } from "@/components/common";
 import { ThemeSwitchBase } from "@/components/theme-switch";
-import { Navbar } from "@/components/ui/navbar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { config } from "@/shared/config";
+import { Navbar } from "@itsrose/react";
 import { memo } from "react";
 
 export type DashboardNavbarProps = {
@@ -13,7 +13,7 @@ export type DashboardNavbarProps = {
 };
 
 export const DashboardNavbar = memo<DashboardNavbarProps>(({ className }) => (
-	<Navbar position="sticky" maxWidth="full" className={className}>
+	<Navbar position="sticky" maxWidth="full" isBordered className={className}>
 		<Navbar.Content justify="start">
 			<Navbar.Item>
 				<SidebarTrigger />

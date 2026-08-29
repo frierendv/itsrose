@@ -1,8 +1,8 @@
 "use client";
 
-import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Drawer, Surface } from "@heroui/react";
 import { cn, forwardRef } from "@itsrose/react/core";
+import { useIsMobile } from "@itsrose/react/hooks/use-is-mobile";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	SIDEBAR_KEYBOARD_SHORTCUT,
@@ -245,14 +245,11 @@ export const Sidebar = forwardRef<"div", SidebarProps>(
 						className={cn(
 							"flex h-full w-full flex-col p-2",
 							"bg-background",
+							// border side
+							`border-${side === "right" ? "l" : "r"} border-border divide-y-2 divide-border`,
 							{
-								// border side
-								"border-l": side === "right",
-								"border-r": side === "left",
-
 								// variants
-								"rounded-2xl border border-border":
-									variant === "floating",
+								"rounded-2xl": variant === "floating",
 								"inset rounded-2xl": variant === "inset",
 							}
 						)}
