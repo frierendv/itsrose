@@ -16,8 +16,7 @@ export const BaseProvider = ({ children }: PropsWithChildren) => {
 	return (
 		<ProgressProvider {...state.progress}>
 			<ThemeProvider {...state.theme}>
-				{children}
-				<HeroUIProvider toast={state.toast} />
+				<HeroUIProvider toast={state.toast}>{children}</HeroUIProvider>
 			</ThemeProvider>
 		</ProgressProvider>
 	);
