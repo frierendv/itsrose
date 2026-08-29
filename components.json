@@ -1,0 +1,10 @@
+{
+	"registries": {
+		"@aceternity": {
+			"url": "https://ui.aceternity.com/registry/{name}.json",
+			"headers": {
+				"Authorization": "Bearer aceternity_30a4e285dc36b7a30fcc77c96d340f695e4a6971d277a52c3b196aeba9625495"
+			}
+		}
+	}
+}
