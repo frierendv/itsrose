@@ -12,12 +12,39 @@ const IS_BUILD =
 	process.env.NEXT_PHASE === "phase-production-build";
 const IS_CI = Boolean(process.env.CI);
 
+type DeepPartial<T> = {
+	[K in keyof T]?: T[K] extends object
+		? T[K] extends readonly unknown[]
+			? T[K]
+			: DeepPartial<T[K]>
+		: T[K];
+};
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+	return value !== null && typeof value === "object" && !Array.isArray(value);
+}
 export function mergeConfig<T extends UserConfig>(
 	base: T,
-	overrides: Partial<T> = {}
-): UserConfig {
-	return { ...base, ...overrides } satisfies T;
+	overrides: DeepPartial<T> = {}
+): T {
+	const result = { ...base };
+
+	for (const key of Object.keys(overrides) as Array<keyof T>) {
+		const value = overrides[key];
+
+		if (isPlainObject(result[key]) && isPlainObject(value)) {
+			result[key] = {
+				...result[key],
+				...value,
+			} as T[typeof key];
+		} else if (value !== undefined) {
+			result[key] = value as T[typeof key];
+		}
+	}
+
+	return result;
 }
+
 export function getProdConfig(): UserConfig {
 	if (!IS_PRODUCTION) return {};
 	return {
@@ -74,7 +101,6 @@ const baseConfig: UserConfig = {
 	failOnWarn: true,
 	sourcemap: true,
 	logLevel: "info",
-	plugins,
 	outExtensions: ({ format }) => {
 		if (format === "cjs") {
 			return { js: ".js", dts: ".d.cts" };
@@ -86,7 +112,7 @@ const baseConfig: UserConfig = {
 	},
 };
 
-export const config = mergeConfig(baseConfig, getProdConfig());
+export const config = mergeConfig(baseConfig, { ...getProdConfig(), plugins });
 
 export const reactConfig = mergeConfig(baseConfig, {
 	minify: false,
@@ -94,12 +120,17 @@ export const reactConfig = mergeConfig(baseConfig, {
 	format: "esm",
 	plugins: [
 		pluginBabel({
-			presets: [reactCompilerPreset()],
+			presets: [
+				reactCompilerPreset({
+					compilationMode: "annotation",
+					target: "19",
+				}),
+			],
 		}),
 	],
 });
 
-export const fastifyConfig = mergeConfig(baseConfig, {
+export const fastifyConfig = mergeConfig(config, {
 	dts: false,
 	entry: ["src/**/*.ts"],
 	unbundle: true,
