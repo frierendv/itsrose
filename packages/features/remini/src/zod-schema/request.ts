@@ -53,7 +53,5 @@ export const ReminiRequestSchema = z.object({
 		),
 });
 
-export type IReminiRequest = z.infer<typeof ReminiRequestSchema>;
-export type IReminiPipelineFeature = z.infer<
-	typeof ReminiPipelineFeatureSchema
->;
+export type ReminiRequest = z.infer<typeof ReminiRequestSchema>;
+export type ReminiPipelineFeature = z.infer<typeof ReminiPipelineFeatureSchema>;

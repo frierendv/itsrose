@@ -4,8 +4,8 @@ import { Client } from "../client";
 import {
 	ReminiRequestSchema,
 	ReminiResponseSchema,
-	type IReminiRequest,
-	type IReminiResponse,
+	type ReminiRequest,
+	type ReminiResponse,
 } from "../zod-schema";
 
 /**
@@ -21,9 +21,9 @@ const client = new Client();
  * @returns {Promise<IReminiResponse>} The final Remini response payload.
  */
 export const createTask = async (
-	options: IReminiRequest,
+	options: ReminiRequest,
 	customClient?: Client
-): Promise<IReminiResponse> => {
+): Promise<ReminiResponse> => {
 	const { init_image, pipelines } = options;
 	const activeClient = customClient ?? client;
 

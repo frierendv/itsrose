@@ -1,6 +1,6 @@
 import { InvalidRequestError, ThirdPartyApiError } from "@itsrose/system";
 import { extractImageMetadata } from "../utils";
-import type { IReminiPipelineFeature } from "../zod-schema";
+import type { ReminiPipelineFeature } from "../zod-schema";
 import type { Client } from "./client";
 import { TaskSocket } from "./task-socket";
 
@@ -17,7 +17,7 @@ export class Task {
 
 	private async _initialize(
 		initImageBuffer: Buffer,
-		featurePipelines: Partial<IReminiPipelineFeature>[]
+		featurePipelines: Partial<ReminiPipelineFeature>[]
 	): Promise<string> {
 		const [isOk, metadata] = extractImageMetadata(initImageBuffer);
 		if (!isOk) {
@@ -69,7 +69,7 @@ export class Task {
 
 	private async _execute(
 		initImageBuffer: Buffer,
-		featurePipelines: Partial<IReminiPipelineFeature>[]
+		featurePipelines: Partial<ReminiPipelineFeature>[]
 	) {
 		const taskId = await this._initialize(
 			initImageBuffer,
@@ -94,7 +94,7 @@ export class Task {
 
 	public async create(
 		initImageBuffer: Buffer,
-		featurePipelines: Partial<IReminiPipelineFeature>[]
+		featurePipelines: Partial<ReminiPipelineFeature>[]
 	) {
 		try {
 			return await this._execute(initImageBuffer, featurePipelines);
