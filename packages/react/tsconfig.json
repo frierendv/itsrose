@@ -2,9 +2,8 @@
 	"extends": "@itsrose/typescript-config/react-library.json",
 	"include": ["src", "__tests__"],
 	"compilerOptions": {
-		"paths": {
-			"@itsrose/react/*": ["./src/*"]
-		}
+		"types": ["@testing-library/jest-dom", "jest", "node"],
+		"jsx": "react-jsx"
 	},
 	"exclude": ["node_modules", "dist"]
 }
