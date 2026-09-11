@@ -1,12 +1,14 @@
-import { createCreemBillingAdapter } from "@better-auth-ui/core/plugins/billing";
+import {
+	createCreemBillingAdapter,
+	type CreemBillingClient,
+} from "@better-auth-ui/core/plugins/billing";
 import { BILLING_PLANS, PRODUCTS } from "@itsrose/auth/product";
 import { DASHBOARD_ROOT_PATH } from "../dashboard";
 import { mergePath } from "../utils";
 import { authClient } from "./auth-client";
 
 export const creemBillingAdapter = createCreemBillingAdapter(
-	// @ts-expect-error casting correct type instead of any
-	authClient,
+	authClient as unknown as CreemBillingClient,
 	{
 		plans: BILLING_PLANS,
 		products: PRODUCTS,
