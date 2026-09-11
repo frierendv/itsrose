@@ -30,18 +30,18 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@better-auth/redis-storage": "^1.6.26",
+		"@better-auth/redis-storage": "^1.7.3",
 		"@fastify/autoload": "^6.5.0",
 		"@fastify/cors": "^11.3.0",
-		"@fastify/helmet": "^13.1.0",
-		"@fastify/sensible": "^6.0.4",
+		"@fastify/helmet": "^13.1.1",
+		"@fastify/sensible": "^6.0.5",
 		"@itsrose/auth": "workspace:*",
-		"better-auth": "^1.6.26",
+		"better-auth": "^1.7.3",
 		"close-with-grace": "^2.5.0",
 		"dotenv": "^17.4.2",
-		"fastify": "^5.11.2",
+		"fastify": "^5.12.3",
 		"fastify-plugin": "^6.0.0",
-		"ioredis": "^5.11.1"
+		"ioredis": "^6.0.0"
 	},
 	"devDependencies": {
 		"@itsrose/eslint-config": "workspace:*",
