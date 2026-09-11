@@ -1,0 +1,17 @@
+name: itsrose-dev
+
+include:
+    - docker-compose.cloudflared.yml
+
+    # compose up the database in dev
+    - dev/compose.yml
+
+    - api/compose.yml
+
+    # compose up web and auth api
+    - auth-api/compose.yml
+    - web-dashboard/compose.yml
+
+networks:
+    itsrose_network:
+        driver: bridge

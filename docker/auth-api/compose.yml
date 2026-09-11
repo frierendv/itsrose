@@ -1,0 +1,19 @@
+services:
+    auth_api:
+        container_name: itsrose-auth-api
+        build:
+            context: ../../
+            dockerfile: apps/auth-api/Dockerfile
+            network: host
+        restart: unless-stopped
+        env_file:
+            - .env.auth-api
+        environment:
+            NODE_ENV: production
+            PORT: 3000
+        networks:
+            - itsrose_network
+
+networks:
+    itsrose_network:
+        driver: bridge

@@ -1,0 +1,26 @@
+storage: /verdaccio/storage
+plugins: /verdaccio/plugins
+
+auth:
+  htpasswd:
+    file: /verdaccio/conf/htpasswd
+
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+
+packages:
+  '@itsrose/*':
+    # scoped packages
+    access: $all
+    publish: $authenticated
+    proxy: npmjs
+  '**':
+    access: $all
+    publish: $authenticated
+    proxy: npmjs
+
+log:
+  type: stdout
+  format: pretty
+  level: http
