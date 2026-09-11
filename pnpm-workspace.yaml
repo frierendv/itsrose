@@ -18,6 +18,14 @@ overrides:
   'test-exclude': '^8.0.0'
   'glob': '^13.0.6'
 
+  # audit; overrides
+  hono@<4.13.5: ^4.13.5
+  js-yaml@>=3.0.0 <3.15.2: ^3.15.2
+  js-yaml@>=4.0.0 <4.3.2: ^4.3.2
+  qs@>=2.2.5 <6.16.0: ^6.16.0
+  qs@>=6.14.2 <=6.15.3: ^6.15.4
+  svgo@>=4.0.0 <4.1.0: ^4.1.0
+
 patchedDependencies:
   image-size@2.0.2: patches/image-size@2.0.2.patch
 
