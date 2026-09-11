@@ -70,7 +70,6 @@ const baseConfig: UserConfig = {
 	clean: true,
 	dts: {
 		enabled: true,
-		cjsReexport: true,
 	},
 	target: ["es2024"],
 	format: ["cjs", "esm"],
