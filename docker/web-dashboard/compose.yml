@@ -1,0 +1,19 @@
+services:
+    web_dashboard:
+        container_name: itsrose-web_dashboard
+        build:
+            context: ../../
+            dockerfile: apps/dashboard/Dockerfile
+            network: host
+        restart: unless-stopped
+        env_file:
+            - .env.dashboard
+        environment:
+            NODE_ENV: production
+            PORT: 3000
+        networks:
+            - itsrose_network
+
+networks:
+    itsrose_network:
+        driver: bridge

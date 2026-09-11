@@ -1,33 +1,10 @@
+# Placeholder
 name: itsrose
 
-services:
-    cloudflared:
-        container_name: itsrose-cloudflared
-        image: cloudflare/cloudflared:latest
-        restart: unless-stopped
-        env_file:
-            - .env.tunnel
-        command: tunnel --no-autoupdate run
-        networks:
-            - itsrose-net
-
-    api:
-        container_name: itsrose-api
-        build:
-            context: ../
-            dockerfile: apps/api/Dockerfile
-        volumes:
-            # database volume
-            - ./data:/data:ro
-        restart: unless-stopped
-        env_file:
-            - .env
-        environment:
-            NODE_ENV: production
-            PORT: 3000
-        networks:
-            - itsrose-net
+include:
+    - docker-compose.cloudflared.yml
+    - api/compose.yml
 
 networks:
-    itsrose-net:
+    itsrose_network:
         driver: bridge
