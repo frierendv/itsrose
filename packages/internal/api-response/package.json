@@ -16,7 +16,7 @@
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
+	"types": "./dist/index.d.cts",
 	"files": [
 		"dist"
 	],

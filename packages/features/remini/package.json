@@ -14,7 +14,7 @@
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
+	"types": "./dist/index.d.cts",
 	"files": [
 		"dist"
 	],
@@ -42,7 +42,7 @@
 		"@itsrose/shared-schema": "workspace:*",
 		"@itsrose/system": "workspace:*",
 		"image-size": "^2.0.2",
-		"ws": "^8.21.1",
+		"ws": "^8.21.3",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
