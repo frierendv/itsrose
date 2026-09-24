@@ -13,7 +13,10 @@
 		"typescript"
 	],
 	"exports": {
-		"./tsdown": "./tsdown/config.mjs",
+		"./tsdown": {
+			"types": "./tsdown/config.d.ts",
+			"default": "./tsdown/config.mjs"
+		},
 		"./typescript/*.json": "./typescript/*.json",
 		"./eslint/*": "./eslint/*.js"
 	}
