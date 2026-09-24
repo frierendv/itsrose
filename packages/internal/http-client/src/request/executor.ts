@@ -2,13 +2,17 @@ import type { AxiosResponse } from "axios";
 import type { IHttpResponse, OnError } from "../types";
 
 /**
+ * Creates an execution function that invokes the HTTP request,
+ * formats success and failure payloads, and invokes optional error handlers.
  *
- * @param request
- * @returns
+ * @param request Thunk returning an Axios response promise.
+ * @returns Execution function returning an IHttpResponse promise.
  */
 export const createExecutor =
-	<T>(request: () => Promise<AxiosResponse<T>>) =>
-	async (handler?: OnError<any>): Promise<IHttpResponse<T, any>> => {
+	<TData>(request: () => Promise<AxiosResponse<TData>>) =>
+	async <TError = unknown>(
+		handler?: OnError<TError>
+	): Promise<IHttpResponse<TData, TError>> => {
 		try {
 			const response = await request();
 
@@ -17,17 +21,49 @@ export const createExecutor =
 				status: response.status,
 				statusText: response.statusText,
 				headers: response.headers,
+				ok: response.status >= 200 && response.status < 300,
+				config: response.config,
+				request: response.request,
 			};
-		} catch (err: any) {
-			const response = err?.response;
+		} catch (err: unknown) {
+			const errObj = (
+				err && typeof err === "object" ? err : {}
+			) as Record<string, any>;
+			const response = errObj.response as AxiosResponse<any> | undefined;
+			const status = response?.status;
+			const data = response?.data;
 
-			const error = handler
-				? await handler(response?.data, response?.status)
-				: err;
+			let error: TError;
+			if (handler) {
+				try {
+					error = await handler(data, status, err);
+				} catch (handlerErr: unknown) {
+					error = handlerErr as TError;
+				}
+			} else {
+				error = err as TError;
+			}
 
+			if (response) {
+				return {
+					...response,
+					data: response.data,
+					status: response.status,
+					statusText: response.statusText,
+					headers: response.headers,
+					error,
+					ok: false,
+				};
+			}
+
+			// not reached
 			return {
-				...response,
+				data: undefined as unknown as TData,
+				status: undefined,
+				statusText: "",
+				headers: {},
 				error,
+				ok: false,
 			};
 		}
 	};

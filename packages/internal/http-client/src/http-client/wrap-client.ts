@@ -1,44 +1,87 @@
-import type { AxiosInstance, AxiosRequestConfig } from "axios";
+import type { AxiosInstance } from "axios";
 import { createExecutor, RequestBuilder } from "../request";
+import type { IHttpClientMethods, IRequestConfig } from "../types";
+import { normalizeRequestConfig } from "./utils";
 
-export const createWrappedClient = (instance: AxiosInstance) => ({
-	request: <TData>(config: AxiosRequestConfig) =>
-		new RequestBuilder<TData>(
-			createExecutor(() => instance.request<TData>(config))
-		),
+/**
+ * Wraps an Axios instance with fluent RequestBuilder methods.
+ *
+ * @param instance The Axios instance to wrap.
+ * @returns Object containing all wrapped HTTP methods.
+ */
+export const createWrappedClient = (
+	instance: AxiosInstance
+): IHttpClientMethods => {
+	const request = <TData = unknown, D = any>(
+		urlOrConfig: string | IRequestConfig<D>,
+		config?: IRequestConfig<D>
+	): RequestBuilder<TData> => {
+		const normalized = normalizeRequestConfig(urlOrConfig, config);
+		return new RequestBuilder<TData>(
+			createExecutor(() => instance.request<TData>(normalized))
+		);
+	};
 
-	get: <TData>(url: string, config?: AxiosRequestConfig) =>
-		new RequestBuilder<TData>(
-			createExecutor(() => instance.get<TData>(url, config))
-		),
+	return {
+		request,
 
-	delete: <TData>(url: string, config?: AxiosRequestConfig) =>
-		new RequestBuilder<TData>(
-			createExecutor(() => instance.delete<TData>(url, config))
-		),
+		get: <TData = unknown, D = any>(
+			url: string,
+			config?: IRequestConfig<D>
+		): RequestBuilder<TData> =>
+			new RequestBuilder<TData>(
+				createExecutor(() => instance.get<TData>(url, config))
+			),
 
-	head: <TData>(url: string, config?: AxiosRequestConfig) =>
-		new RequestBuilder<TData>(
-			createExecutor(() => instance.head<TData>(url, config))
-		),
+		delete: <TData = unknown, D = any>(
+			url: string,
+			config?: IRequestConfig<D>
+		): RequestBuilder<TData> =>
+			new RequestBuilder<TData>(
+				createExecutor(() => instance.delete<TData>(url, config))
+			),
 
-	options: <TData>(url: string, config?: AxiosRequestConfig) =>
-		new RequestBuilder<TData>(
-			createExecutor(() => instance.options<TData>(url, config))
-		),
+		head: <TData = unknown, D = any>(
+			url: string,
+			config?: IRequestConfig<D>
+		): RequestBuilder<TData> =>
+			new RequestBuilder<TData>(
+				createExecutor(() => instance.head<TData>(url, config))
+			),
 
-	post: <TData>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
-		new RequestBuilder<TData>(
-			createExecutor(() => instance.post<TData>(url, data, config))
-		),
+		options: <TData = unknown, D = any>(
+			url: string,
+			config?: IRequestConfig<D>
+		): RequestBuilder<TData> =>
+			new RequestBuilder<TData>(
+				createExecutor(() => instance.options<TData>(url, config))
+			),
 
-	put: <TData>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
-		new RequestBuilder<TData>(
-			createExecutor(() => instance.put<TData>(url, data, config))
-		),
+		post: <TData = unknown, D = any>(
+			url: string,
+			data?: D,
+			config?: IRequestConfig<D>
+		): RequestBuilder<TData> =>
+			new RequestBuilder<TData>(
+				createExecutor(() => instance.post<TData>(url, data, config))
+			),
 
-	patch: <TData>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
-		new RequestBuilder<TData>(
-			createExecutor(() => instance.patch<TData>(url, data, config))
-		),
-});
+		put: <TData = unknown, D = any>(
+			url: string,
+			data?: D,
+			config?: IRequestConfig<D>
+		): RequestBuilder<TData> =>
+			new RequestBuilder<TData>(
+				createExecutor(() => instance.put<TData>(url, data, config))
+			),
+
+		patch: <TData = unknown, D = any>(
+			url: string,
+			data?: D,
+			config?: IRequestConfig<D>
+		): RequestBuilder<TData> =>
+			new RequestBuilder<TData>(
+				createExecutor(() => instance.patch<TData>(url, data, config))
+			),
+	};
+};
