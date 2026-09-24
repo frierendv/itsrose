@@ -31,8 +31,11 @@ export async function getVoices(
 	if (error) {
 		throw new ThirdPartyApiError(error.message, error.statusCode);
 	}
-	data.voices.forEach((voice) => {
+	void data.voices.forEach((voice) => {
 		voice.name = redact(voice.name);
+		if (voice.description) {
+			voice.description = redact(voice.description);
+		}
 	});
 	return data;
 }

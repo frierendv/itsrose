@@ -41,6 +41,7 @@
 		"@itsrose/http-client": "workspace:*",
 		"@itsrose/shared-schema": "workspace:*",
 		"@itsrose/system": "workspace:*",
+		"@remix-run/multipart-parser": "^0.16.5",
 		"zod": "catalog:"
 	},
 	"devDependencies": {

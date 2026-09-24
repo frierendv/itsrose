@@ -16,13 +16,17 @@ const getErrorMessage = (detail: IElevenLabsErrorResponse["detail"]) => {
 				if (typeof item === "string") {
 					return item;
 				}
+				let message;
 
-				if (item && typeof item === "object" && "message" in item) {
-					const message = (item as { message?: unknown }).message;
-					return typeof message === "string" ? message : "";
+				if (item && typeof item === "object") {
+					if ("message" in item) {
+						message = (item as { message?: unknown }).message;
+					}
+					if ("msg" in item) {
+						message = (item as { msg?: string }).msg;
+					}
 				}
-
-				return "";
+				return typeof message === "string" ? message : "";
 			})
 			.filter(Boolean);
 
@@ -37,7 +41,7 @@ const getErrorMessage = (detail: IElevenLabsErrorResponse["detail"]) => {
  *
  * @param {Buffer | IElevenLabsErrorResponse} data Raw response body.
  * @param {number} [status=500] HTTP status code from response.
- * @returns {{ statusCode: number; message: string }} Standardized error object with status and descriptive message.
+ * @returns Standardized error object with status and descriptive message.
  */
 export const parseElevenLabsError: OnError<{
 	statusCode: number;
@@ -48,6 +52,7 @@ export const parseElevenLabsError: OnError<{
 			const parsed = JSON.parse(
 				data.toString()
 			) as IElevenLabsErrorResponse;
+			console.error({ parsed: JSON.stringify(parsed, null, 2) });
 			return {
 				statusCode: status,
 				message:

@@ -7,6 +7,7 @@ import {
 import type {
 	IElevenLabsSharedResponse,
 	IElevenLabsTextToSpeechConvert,
+	WithTimestamp,
 } from "../zod-schema";
 
 /**
@@ -35,6 +36,28 @@ export async function textToSpeech(
 	return {
 		audio_base64: Buffer.from(data).toString("base64"),
 	};
+}
+
+export async function textToSpeechWithTiming(
+	options: IElevenLabsTextToSpeechConvert
+): Promise<IElevenLabsSharedResponse & WithTimestamp> {
+	const { voice_id, output_format, ...restOptions } = options;
+	const { data, error } = await httpClient
+		.post<{ audio_base64: string } & WithTimestamp>(
+			`/v1/text-to-speech/${voice_id}/with-timestamps`,
+			restOptions,
+			{
+				params: {
+					output_format,
+					enable_logging: false,
+				},
+			}
+		)
+		.onError(parseElevenLabsError);
+	if (error) {
+		throw new ThirdPartyApiError(error.message, error.statusCode);
+	}
+	return data;
 }
 
 /**

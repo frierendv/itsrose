@@ -4,3 +4,5 @@ export * from "./seed";
 export * from "./voice-setting";
 export * from "./voice-id";
 export * from "./model-id";
+export * from "./music";
+export * from "./timestamp";

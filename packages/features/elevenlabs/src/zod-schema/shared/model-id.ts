@@ -12,3 +12,10 @@ export const ElevenLabsModelIdSchema = z
 	);
 
 export type ElevenLabsModelId = z.infer<typeof ElevenLabsModelIdSchema>;
+
+export const MusicModelVersionSchema = z.enum([
+	"music_v1",
+	"music_v2",
+	"music_v2_5",
+]);
+export type MusicModelVersion = z.infer<typeof MusicModelVersionSchema>;
