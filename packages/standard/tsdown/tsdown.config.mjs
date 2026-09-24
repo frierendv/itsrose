@@ -1,7 +1,6 @@
 import pluginBabel from "@rolldown/plugin-babel";
 import { reactCompilerPreset } from "@vitejs/plugin-react";
 import Sonda from "sonda/rolldown";
-import type { TsdownPluginOption, UserConfig } from "tsdown";
 import Macros from "unplugin-macros/rolldown";
 import PreprocessorDirectives from "unplugin-preprocessor-directives/rollup";
 import { purgePolyfills } from "unplugin-purge-polyfills";
@@ -12,48 +11,49 @@ const IS_BUILD =
 	process.env.NEXT_PHASE === "phase-production-build";
 const IS_CI = Boolean(process.env.CI);
 
-type DeepPartial<T> = {
-	[K in keyof T]?: T[K] extends object
-		? T[K] extends readonly unknown[]
-			? T[K]
-			: DeepPartial<T[K]>
-		: T[K];
-};
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
+/**
+ * @param {unknown} value
+ * @returns {value is Record<string, unknown>}
+ */
+function isPlainObject(value) {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
-export function mergeConfig<T extends UserConfig>(
-	base: T,
-	overrides: DeepPartial<T> = {}
-): T {
+
+/**
+ * @template {import("tsdown").UserConfig} T
+ * @param {T} base
+ * @param {DeepPartial<T>} [overrides={}]
+ * @returns {T}
+ */
+export function mergeConfig(base, overrides = {}) {
 	const result = { ...base };
 
-	for (const key of Object.keys(overrides) as Array<keyof T>) {
+	for (const key of Object.keys(overrides /** @type {Array<keyof T>} */)) {
 		const value = overrides[key];
 
 		if (isPlainObject(result[key]) && isPlainObject(value)) {
 			result[key] = {
 				...result[key],
 				...value,
-			} as T[typeof key];
+			}; /** @type {T[typeof key]} */
 		} else if (value !== undefined) {
-			result[key] = value as T[typeof key];
+			result[key] = value; /** @type {T[typeof key]} */
 		}
 	}
 
 	return result;
 }
 
-export function getProdConfig(): UserConfig {
+/** @returns {import("tsdown").UserConfig} */
+export function getProdConfig() {
 	if (!IS_PRODUCTION) return {};
 	return {
 		sourcemap: true,
 		minify: true,
 	};
 }
-
-const plugins: TsdownPluginOption = [
+/** @type {import("tsdown").TsdownPluginOption} */
+const plugins = [
 	Macros(),
 	PreprocessorDirectives(),
 	purgePolyfills.rolldown({ sourcemap: true }),
@@ -65,7 +65,9 @@ const plugins: TsdownPluginOption = [
 		open: false,
 	}),
 ];
-const baseConfig: UserConfig = {
+
+/** @type {import("tsdown").UserConfig} */
+const baseConfig = {
 	entry: ["src/index.ts"],
 	clean: true,
 	dts: {

@@ -1,5 +1,0 @@
-{
-	"extends": "../typescript/node.json",
-	"include": ["tsdown.config.ts"],
-	"exclude": ["node_modules"]
-}
