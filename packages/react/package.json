@@ -36,7 +36,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"peerDependencies": {
-		"motion": "^13.2.0",
+		"motion": "^13.4.0",
 		"react": "catalog:",
 		"react-dom": "catalog:",
 		"tailwindcss": "^4.3.3"
@@ -47,12 +47,10 @@
 		"tailwind-variants": "^3.3.1"
 	},
 	"devDependencies": {
-		"@itsrose/eslint-config": "workspace:*",
-		"@itsrose/tsdown-config": "workspace:*",
-		"@itsrose/typescript-config": "workspace:*",
+		"@itsrose/standard": "workspace:*",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
-		"motion": "^13.2.0",
+		"motion": "^13.4.0",
 		"react": "catalog:",
 		"react-dom": "catalog:",
 		"tailwindcss": "^4.3.3"
