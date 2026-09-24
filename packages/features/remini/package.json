@@ -41,14 +41,12 @@
 		"@itsrose/http-client": "workspace:*",
 		"@itsrose/shared-schema": "workspace:*",
 		"@itsrose/system": "workspace:*",
-		"image-size": "^2.0.2",
+		"image-size": "^2.0.4",
 		"ws": "^8.21.3",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"@itsrose/eslint-config": "workspace:*",
-		"@itsrose/tsdown-config": "workspace:*",
-		"@itsrose/typescript-config": "workspace:*",
+		"@itsrose/standard": "workspace:*",
 		"@types/ws": "^8.18.1"
 	},
 	"publishConfig": {
