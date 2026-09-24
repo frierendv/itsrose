@@ -104,8 +104,8 @@ class BaseHttpClient {
 		return this.httpClient.post<T>(...args);
 	}
 
-	public request<T = unknown>(...args: Parameters<HttpClient["request"]>) {
-		return this.httpClient.request<T>(...args);
+	public request<T = unknown>(config: IRequestConfig<any>) {
+		return this.httpClient.request<T>(config);
 	}
 }
 
