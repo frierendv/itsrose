@@ -85,7 +85,6 @@ export type PolymorphicComponentPropsWithRef<
  * @template DefaultElement The default HTML tag or component when `as` is not specified.
  * @template Props Custom props accepted by the component.
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface PolymorphicComponent<
 	DefaultElement extends As,
 	Props extends object = object,
