@@ -42,9 +42,7 @@
 		"@itsrose/http-client": "workspace:*"
 	},
 	"devDependencies": {
-		"@itsrose/eslint-config": "workspace:*",
-		"@itsrose/tsdown-config": "workspace:*",
-		"@itsrose/typescript-config": "workspace:*",
+		"@itsrose/standard": "workspace:*",
 		"openapi-typescript-helpers": "^0.1.0"
 	},
 	"publishConfig": {

@@ -1,5 +1,5 @@
 {
-	"extends": "@itsrose/typescript-config/node.json",
+	"extends": "@itsrose/standard/typescript/node.json",
 	"include": ["src", "__tests__"],
 	"compilerOptions": {
 		"noUncheckedIndexedAccess": true
