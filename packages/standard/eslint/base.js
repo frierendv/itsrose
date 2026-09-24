@@ -19,15 +19,15 @@ export const config = [
 		plugins: {
 			turbo: turboPlugin,
 		},
+		languageOptions: {
+			ecmaVersion: "latest",
+			parserOptions: {
+				tsconfigRootDir: import.meta.dirname,
+			},
+			sourceType: "module",
+		},
 		rules: {
 			"turbo/no-undeclared-env-vars": "warn",
-		},
-	},
-	{
-		ignores: ["dist/**"],
-	},
-	{
-		rules: {
 			curly: ["error", "all"],
 			"no-else-return": ["error", { allowElseIf: false }],
 			quotes: ["error", "double", { avoidEscape: true }],
@@ -35,7 +35,7 @@ export const config = [
 				"error",
 				{
 					properties: "never",
-					ignoreDestructuring: false,
+					ignoreDestructuring: true,
 					ignoreImports: true,
 					allow: ["^[a-z]+(_[a-z]+)+$"],
 				},
@@ -60,25 +60,22 @@ export const config = [
 			"@typescript-eslint/naming-convention": [
 				"error",
 				{
-					selector: ["interface"],
+					selector: ["interface", "typeLike"],
 					format: ["PascalCase"],
-					custom: {
-						regex: "^[I][A-Z]",
-						match: true,
-					},
 				},
 				{
 					selector: "variable",
 					modifiers: ["destructured"],
-					format: ["camelCase", "snake_case"],
+					format: [
+						"camelCase",
+						"UPPER_CASE",
+						"PascalCase",
+						"snake_case",
+					],
 				},
 				{
 					selector: "variable",
 					format: ["camelCase", "UPPER_CASE", "PascalCase"],
-				},
-				{
-					selector: "typeLike",
-					format: ["PascalCase"],
 				},
 			],
 			"@typescript-eslint/no-empty-object-type": ["off"],
@@ -86,5 +83,8 @@ export const config = [
 			// disable any rule that is already covered by typescript
 			"@typescript-eslint/no-explicit-any": "off",
 		},
+	},
+	{
+		ignores: ["dist/**"],
 	},
 ];

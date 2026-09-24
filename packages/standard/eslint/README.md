@@ -11,7 +11,7 @@ Shared ESLint flat-config presets for the ItsRose monorepo. The package exposes 
 ## Usage
 
 ```js
-import base from "@itsrose/eslint-config/base";
+import base from "@itsrose/standard/eslint/base";
 
 export default [...base];
 ```
