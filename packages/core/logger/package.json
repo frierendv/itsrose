@@ -42,9 +42,7 @@
 		"pino-abstract-transport": "^3.0.0"
 	},
 	"devDependencies": {
-		"@itsrose/eslint-config": "workspace:*",
-		"@itsrose/tsdown-config": "workspace:*",
-		"@itsrose/typescript-config": "workspace:*"
+		"@itsrose/standard": "workspace:*"
 	},
 	"publishConfig": {
 		"exports": {

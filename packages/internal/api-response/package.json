@@ -44,9 +44,7 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"@itsrose/eslint-config": "workspace:*",
-		"@itsrose/tsdown-config": "workspace:*",
-		"@itsrose/typescript-config": "workspace:*"
+		"@itsrose/standard": "workspace:*"
 	},
 	"publishConfig": {
 		"exports": {
