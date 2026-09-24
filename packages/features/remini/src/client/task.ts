@@ -61,7 +61,10 @@ export class Task {
 		);
 
 		if (uploadStatus !== 200) {
-			throw new ThirdPartyApiError("Image upload error.", uploadStatus);
+			throw new ThirdPartyApiError(
+				"Image upload error.",
+				uploadStatus ?? 400
+			);
 		}
 
 		return task_id;
