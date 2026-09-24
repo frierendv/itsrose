@@ -1,3 +1,3 @@
-import { config } from "@itsrose/eslint-config/base";
+import { config } from "@itsrose/standard/eslint/base";
 
 export default config;
