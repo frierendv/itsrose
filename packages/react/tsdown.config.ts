@@ -1,4 +1,4 @@
-import { mergeConfig, reactConfig } from "@itsrose/tsdown-config";
+import { mergeConfig, reactConfig } from "@itsrose/standard/tsdown";
 import { defineConfig } from "tsdown";
 
 export default defineConfig(

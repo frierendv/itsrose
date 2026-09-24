@@ -1,5 +1,5 @@
 {
-	"extends": "@itsrose/typescript-config/react-library.json",
+	"extends": "@itsrose/standard/typescript/react-library.json",
 	"include": ["src", "__tests__"],
 	"compilerOptions": {
 		"types": ["@testing-library/jest-dom", "jest", "node"],
