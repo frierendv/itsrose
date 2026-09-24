@@ -5,7 +5,6 @@ import {
 	useContext as useReactContext,
 } from "react";
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface CreateContextOptions<T> {
 	/**
 	 * If `true`, React will throw an error if the context is `null` or `undefined`.
