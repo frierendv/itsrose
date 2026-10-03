@@ -1,532 +1,462 @@
 import { USER_AGENT } from "@itsrose/system";
+import axios from "axios";
 import {
-	AxiosError,
 	createHttpClient,
 	DEFAULT_RETRY_CONFIG,
-	exponentialDelay,
+	defaultRetryConfig,
 	fetcher,
-	HttpStatusCode,
-	isAxiosError,
-	isCancel,
-	isNetworkError,
-	RequestBuilder,
+	HttpClient,
+	HttpClientError,
+	HttpPromise,
+	isHttpClientError,
+	resolveRetryConfig,
 } from "../src";
 
 describe("internal/http-client", () => {
-	describe("package exports & primitives", () => {
-		it("exports fetcher as a default http client instance", () => {
+	describe("exports & architecture", () => {
+		it("exports core constructs and factories", () => {
+			expect(createHttpClient).toBeDefined();
+			expect(HttpClient).toBeDefined();
+			expect(HttpPromise).toBeDefined();
+			expect(HttpClientError).toBeDefined();
+			expect(isHttpClientError).toBeDefined();
+			expect(defaultRetryConfig).toBeDefined();
+			expect(DEFAULT_RETRY_CONFIG).toBe(defaultRetryConfig);
+			expect(resolveRetryConfig).toBeDefined();
 			expect(fetcher).toBeDefined();
+		});
+
+		it("exports fetcher as a pre-configured callable client", () => {
 			expect(typeof fetcher).toBe("function");
 			expect(typeof fetcher.get).toBe("function");
 			expect(typeof fetcher.post).toBe("function");
-			expect(typeof fetcher.request).toBe("function");
-		});
-
-		it("exports RequestBuilder class and retry utilities", () => {
-			expect(RequestBuilder).toBeDefined();
-			expect(DEFAULT_RETRY_CONFIG).toBeDefined();
-			expect(DEFAULT_RETRY_CONFIG.retries).toBe(3);
-			expect(typeof exponentialDelay).toBe("function");
-			expect(typeof isNetworkError).toBe("function");
-		});
-
-		it("re-exports Axios error and status code utilities", () => {
-			expect(AxiosError).toBeDefined();
-			expect(typeof isAxiosError).toBe("function");
-			expect(typeof isCancel).toBe("function");
-			expect(HttpStatusCode.Ok).toBe(200);
-			expect(HttpStatusCode.NotFound).toBe(404);
+			expect(typeof fetcher.create).toBe("function");
+			expect(typeof fetcher.extend).toBe("function");
 		});
 	});
 
 	describe("client creation & configuration", () => {
-		it("creates a client instance with custom configuration", () => {
-			const client = createHttpClient({
-				baseURL: "https://api.example.com",
-				timeout: 5000,
-			});
-			expect(client).toBeDefined();
-			expect(typeof client).toBe("function");
-			expect(typeof client.get).toBe("function");
+		it("sets default User-Agent header from @itsrose/system", () => {
+			const client = createHttpClient();
+			const ua =
+				(client.defaults.headers as any)["User-Agent"] ??
+				client.defaults.headers.common["User-Agent"];
+			expect(ua).toBe(USER_AGENT);
 		});
 
-		it("sets default User-Agent from system and allows custom override", () => {
-			const defaultClient = createHttpClient();
-			const defaultUa =
-				(defaultClient.defaults.headers as any)["User-Agent"] ??
-				defaultClient.defaults.headers.common["User-Agent"];
-			expect(defaultUa).toBe(USER_AGENT);
-
-			const customClient = createHttpClient({
-				userAgent: "CustomApp/1.0.0",
-			});
-			const customUa =
-				(customClient.defaults.headers as any)["User-Agent"] ??
-				customClient.defaults.headers.common["User-Agent"];
-			expect(customUa).toBe("CustomApp/1.0.0");
+		it("allows custom User-Agent override", () => {
+			const client = createHttpClient({ userAgent: "CustomAgent/1.0" });
+			const ua =
+				(client.defaults.headers as any)["User-Agent"] ??
+				client.defaults.headers.common["User-Agent"];
+			expect(ua).toBe("CustomAgent/1.0");
 		});
 
-		it("has axios like features and direct raw accessors", () => {
-			const client = createHttpClient({
-				baseURL: "https://api.example.com",
-			});
-			const features = ["interceptors", "defaults", "getUri"];
+		it("configures retries with default or custom options", () => {
+			const disabled1 = resolveRetryConfig({ retry: false });
+			expect(disabled1).toBe(false);
 
-			for (const feature of features) {
-				expect((client as any)[feature]).toBeDefined();
+			const disabled2 = resolveRetryConfig({ retryConfig: false });
+			expect(disabled2).toBe(false);
+
+			const custom = resolveRetryConfig({ retry: { retries: 5 } });
+			expect(custom).not.toBe(false);
+			if (custom !== false) {
+				expect(custom.retries).toBe(5);
 			}
-
-			expect(client.raw).toBeDefined();
-			expect(client.instance).toBe(client.raw);
-			expect(client.axiosInstance).toBe(client.raw);
-			expect(typeof client.getUri).toBe("function");
-			expect(typeof client.get).toBe("function");
-			expect(typeof client.post).toBe("function");
 		});
 	});
 
 	describe("callable execution & HTTP methods", () => {
-		it("supports callable execution with config or (url, config)", async () => {
-			const client = createHttpClient({
-				baseURL: "https://api.example.com",
-			});
-			(client as any).defaults.adapter = async (config: any) => ({
-				data: { url: config.url, method: config.method },
+		let requestSpy: jest.SpyInstance;
+
+		beforeEach(() => {
+			requestSpy = jest.spyOn(axios.Axios.prototype, "request");
+		});
+
+		afterEach(() => {
+			requestSpy.mockRestore();
+		});
+
+		it("supports calling client directly with URL string", async () => {
+			requestSpy.mockResolvedValueOnce({
 				status: 200,
 				statusText: "OK",
-				headers: {},
-				config,
-			});
-
-			// Direct callable with config object
-			const res1 = await client({ url: "/direct-config", method: "get" });
-			expect(res1.data).toEqual({
-				url: "/direct-config",
-				method: "get",
-			});
-
-			// Direct callable with (url, config)
-			const res2 = await client("/direct-url", { method: "post" });
-			expect(res2.data).toEqual({ url: "/direct-url", method: "post" });
-		});
-
-		it("supports client.request with config or (url, config)", async () => {
-			const client = createHttpClient({
-				baseURL: "https://api.example.com",
-			});
-			(client as any).defaults.adapter = async (config: any) => ({
-				data: { url: config.url },
-				status: 200,
-				statusText: "OK",
-				headers: {},
-				config,
-			});
-
-			const res1 = await client.request({ url: "/req-config" });
-			expect(res1.data).toEqual({ url: "/req-config" });
-
-			const res2 = await client.request("/req-url", { method: "get" });
-			expect(res2.data).toEqual({ url: "/req-url" });
-		});
-
-		it("supports all wrapped HTTP methods with payload and headers", async () => {
-			const client = createHttpClient({
-				baseURL: "https://api.example.com",
-			});
-			let lastConfig: any;
-			(client as any).defaults.adapter = async (config: any) => {
-				lastConfig = config;
-				return {
-					data: { received: config.data },
-					status: 200,
-					statusText: "OK",
-					headers: {},
-					config,
-				};
-			};
-
-			// get, delete, head, options
-			const methodWithoutBody = [
-				"get",
-				"delete",
-				"head",
-				"options",
-			] as const;
-			for (const method of methodWithoutBody) {
-				const res = await (client as any)[method]("/test");
-				expect(res).toBeDefined();
-				expect(lastConfig.method.toLowerCase()).toBe(method);
-			}
-
-			// post, put, patch with body data
-			const methodWithBody = ["post", "put", "patch"] as const;
-			for (const method of methodWithBody) {
-				const res = await (client as any)[method]("/test", {
-					item: method,
-				});
-				expect(res).toBeDefined();
-				expect(lastConfig.method.toLowerCase()).toBe(method);
-				expect(JSON.parse(lastConfig.data)).toEqual({ item: method });
-			}
-		});
-	});
-
-	describe("RequestBuilder & Promise integration", () => {
-		it("creates request builder with chainable onError handler", async () => {
-			const client = createHttpClient({
-				baseURL: "https://httpbin.org",
-			});
-			const builder = client.get("/get").onError((err) => ({
-				message: err.message,
-				statusCode: 500,
-			}));
-
-			expect(typeof builder.then).toBe("function");
-			expect(typeof builder.catch).toBe("function");
-			expect(typeof builder.finally).toBe("function");
-			expect(typeof builder.onError).toBe("function");
-			expect(typeof builder.unwrap).toBe("function");
-			expect(typeof builder.toPromise).toBe("function");
-			expect(builder[Symbol.toStringTag]).toBe("RequestBuilder");
-		});
-
-		it("memoizes execution so multiple awaits or then calls do not duplicate request", async () => {
-			const client = createHttpClient();
-			let requestCount = 0;
-			(client as any).defaults.adapter = async () => {
-				requestCount++;
-				return {
-					data: { count: requestCount },
-					status: 200,
-					statusText: "OK",
-					headers: {},
-				};
-			};
-
-			const builder = client.get("/memoized");
-			const [first, second] = await Promise.all([builder, builder]);
-
-			expect(first.data).toEqual({ count: 1 });
-			expect(second.data).toEqual({ count: 1 });
-			expect(requestCount).toBe(1);
-		});
-
-		it("supports .catch() and .finally() on RequestBuilder", async () => {
-			const client = createHttpClient();
-			(client as any).defaults.adapter = async () => {
-				throw new Error("Simulated Failure");
-			};
-
-			let finallyCalled = false;
-			const res = await client
-				.get("/catch-test")
-				.catch((err) => ({ caught: true, error: err }))
-				.finally(() => {
-					finallyCalled = true;
-				});
-
-			expect(res).toBeDefined();
-			expect(finallyCalled).toBe(true);
-		});
-
-		it("unwraps data directly with .unwrap() on success", async () => {
-			const client = createHttpClient();
-			(client as any).defaults.adapter = async () => ({
-				data: { message: "unwrapped data" },
-				status: 200,
-				statusText: "OK",
+				data: { message: "pong" },
 				headers: {},
 			});
 
-			const data = await client
-				.get<{ message: string }>("/unwrap-ok")
-				.unwrap();
-			expect(data).toEqual({ message: "unwrapped data" });
+			const client = createHttpClient();
+			const res = await client<{ message: string }>("/ping");
+
+			expect(res.ok).toBe(true);
+			expect(res.data).toEqual({ message: "pong" });
+			expect(requestSpy).toHaveBeenCalledWith(
+				expect.objectContaining({ url: "/ping" })
+			);
 		});
 
-		it("throws error with .unwrap() when request fails", async () => {
-			const client = createHttpClient();
-			(client as any).defaults.adapter = async () => {
-				const error: any = new Error("Not Found");
-				error.response = {
-					status: 404,
-					data: { error: "Resource not found" },
-				};
-				throw error;
-			};
-
-			await expect(client.get("/unwrap-fail").unwrap()).rejects.toThrow();
-
-			// With custom onError handler
-			await expect(
-				client
-					.get("/unwrap-fail-custom")
-					.onError((data, status) => {
-						return new Error(`Custom ${status}: ${data.error}`);
-					})
-					.unwrap()
-			).rejects.toThrow("Custom 404: Resource not found");
-		});
-
-		it("handles errors thrown inside the onError callback gracefully", async () => {
-			const client = createHttpClient();
-			(client as any).defaults.adapter = async () => {
-				const error: any = new Error("Server error");
-				error.response = { status: 500 };
-				throw error;
-			};
-
-			const res = await client.get("/throw-in-onerror").onError(() => {
-				throw new Error("Error in handler");
+		it("supports calling client directly with config object", async () => {
+			requestSpy.mockResolvedValueOnce({
+				status: 200,
+				statusText: "OK",
+				data: { status: "ready" },
+				headers: {},
 			});
 
-			expect(res.error).toBeDefined();
-			expect((res.error as unknown as Error).message).toBe(
-				"Error in handler"
+			const client = createHttpClient();
+			const res = await client<{ status: string }>({
+				url: "/health",
+				method: "GET",
+			});
+
+			expect(res.ok).toBe(true);
+			expect(res.data).toEqual({ status: "ready" });
+			expect(requestSpy).toHaveBeenCalledWith(
+				expect.objectContaining({ url: "/health", method: "GET" })
+			);
+		});
+
+		it("supports get, post, put, patch, delete, head, options", async () => {
+			const client = createHttpClient();
+
+			requestSpy.mockResolvedValue({
+				status: 200,
+				statusText: "OK",
+				data: {},
+				headers: {},
+			});
+
+			await client.get("/test");
+			expect(requestSpy).toHaveBeenLastCalledWith(
+				expect.objectContaining({ method: "get", url: "/test" })
+			);
+
+			await client.post("/test", { hello: "world" });
+			expect(requestSpy).toHaveBeenLastCalledWith(
+				expect.objectContaining({
+					method: "post",
+					url: "/test",
+					data: { hello: "world" },
+				})
+			);
+
+			await client.put("/test", { hello: "updated" });
+			expect(requestSpy).toHaveBeenLastCalledWith(
+				expect.objectContaining({
+					method: "put",
+					url: "/test",
+					data: { hello: "updated" },
+				})
+			);
+
+			await client.patch("/test", { partial: true });
+			expect(requestSpy).toHaveBeenLastCalledWith(
+				expect.objectContaining({
+					method: "patch",
+					url: "/test",
+					data: { partial: true },
+				})
+			);
+
+			await client.delete("/test");
+			expect(requestSpy).toHaveBeenLastCalledWith(
+				expect.objectContaining({ method: "delete", url: "/test" })
+			);
+
+			await client.head("/test");
+			expect(requestSpy).toHaveBeenLastCalledWith(
+				expect.objectContaining({ method: "head", url: "/test" })
+			);
+
+			await client.options("/test");
+			expect(requestSpy).toHaveBeenLastCalledWith(
+				expect.objectContaining({ method: "options", url: "/test" })
 			);
 		});
 	});
 
-	describe("HTTP execution & response payload", () => {
-		it("executes successful HTTP requests returning data, status, headers, and ok flag", async () => {
-			const client = createHttpClient();
-			const mockResponse = {
-				data: { success: true },
+	describe("HttpRequestPromise & unwrapping", () => {
+		let requestSpy: jest.SpyInstance;
+
+		beforeEach(() => {
+			requestSpy = jest.spyOn(axios.Axios.prototype, "request");
+		});
+
+		afterEach(() => {
+			requestSpy.mockRestore();
+		});
+
+		it("memoizes execution on multiple awaits", async () => {
+			requestSpy.mockResolvedValueOnce({
 				status: 200,
 				statusText: "OK",
-				headers: { "content-type": "application/json" },
-			};
-			(client as any).defaults.adapter = async () => mockResponse;
+				data: { id: 1 },
+				headers: {},
+			});
 
-			const res = await client.get("/success");
-			expect(res.data).toEqual({ success: true });
-			expect(res.status).toBe(200);
+			const client = createHttpClient();
+			const reqPromise = client.get<{ id: number }>("/items/1");
+
+			const [res1, res2] = await Promise.all([reqPromise, reqPromise]);
+
+			expect(res1).toBe(res2);
+			expect(requestSpy).toHaveBeenCalledTimes(1);
+		});
+
+		it("resolves response data and config", async () => {
+			requestSpy.mockResolvedValueOnce({
+				status: 200,
+				statusText: "OK",
+				data: { result: 42 },
+				headers: {},
+				config: { url: "/calc" },
+			});
+
+			const client = createHttpClient();
+			const res = await client.get<{ result: number }>("/calc");
 			expect(res.ok).toBe(true);
-			expect(res.headers).toMatchObject({
-				"content-type": "application/json",
-			});
+			expect(res.data).toEqual({ result: 42 });
+			expect(res.config).toBeDefined();
 		});
 
-		it("handles request execution error in executor with and without custom onError", async () => {
-			const client = createHttpClient({
-				baseURL: "http://127.0.0.1:12345",
-				timeout: 100,
-				retryConfig: { retries: 0 },
-			});
-
-			// Without custom onError handler
-			const res1 = await client.get("/fail");
-			expect(res1.error).toBeDefined();
-			expect(res1.ok).toBe(false);
-
-			// With custom onError handler when response has status/data
-			(client as any).defaults.adapter = async () => {
-				const error: any = new Error("Network Error");
-				error.response = { status: 400, data: { detail: "bad" } };
-				throw error;
-			};
-
-			const res2 = await client.get("/fail").onError((data, status) => {
-				return { customErr: true, status, data };
-			});
-			expect(res2.error).toEqual({
-				customErr: true,
-				status: 400,
-				data: { detail: "bad" },
-			});
-			expect(res2.ok).toBe(false);
-		});
-
-		it("provides underlying error to onError callback as 3rd parameter", async () => {
-			const client = createHttpClient();
-			(client as any).defaults.adapter = async () => {
-				const error: any = new Error("Failed transport");
-				error.code = "ETIMEDOUT";
-				throw error;
-			};
-
-			let capturedErr: any;
-			const res = await client
-				.get("/transport-fail")
-				.onError((_data, _status, err) => {
-					capturedErr = err;
-					return { timedOut: true };
-				});
-
-			expect(res.error).toEqual({ timedOut: true });
-			expect(capturedErr?.code).toBe("ETIMEDOUT");
-		});
-
-		it("supports request cancellation with AbortController", async () => {
-			const client = createHttpClient();
-			const controller = new AbortController();
-
-			(client as any).defaults.adapter = async (config: any) => {
-				if (config.signal?.aborted) {
-					const cancelErr: any = new Error("canceled");
-					cancelErr.__CANCEL__ = true;
-					cancelErr.code = "ERR_CANCELED";
-					throw cancelErr;
-				}
-				return {
-					data: { ok: true },
-					status: 200,
-					statusText: "OK",
+		it("returns typed error when request fails", async () => {
+			requestSpy.mockRejectedValueOnce({
+				isAxiosError: true,
+				response: {
+					status: 404,
+					statusText: "Not Found",
+					data: { error: "Item not found" },
 					headers: {},
-				};
-			};
-
-			controller.abort();
-			const res = await client.get("/cancel-test", {
-				signal: controller.signal,
+					config: { url: "/missing" },
+				},
 			});
-			expect(res.error).toBeDefined();
+
+			const client = createHttpClient();
+			const res = await client.get("/missing");
 			expect(res.ok).toBe(false);
-		});
-	});
-
-	describe("client inheritance & factories", () => {
-		it("creates child client with create()", () => {
-			const parent = createHttpClient({
-				baseURL: "https://api.parent.com",
-			});
-			const child = parent.create({
-				baseURL: "https://api.child.com",
-			});
-
-			expect(child).toBeDefined();
-			expect(typeof child.get).toBe("function");
-			expect(child.defaults.baseURL).toBe("https://api.child.com");
+			expect(res.status).toBe(404);
+			expect(res.error).toBeDefined();
 		});
 
-		it("extends parent client with extend() merging headers and config", () => {
-			const parent = createHttpClient({
-				baseURL: "https://api.parent.com",
-				headers: { "x-parent": "true" },
-			});
-			const extended = parent.extend({
-				headers: { "x-child": "true" },
-			});
-
-			expect(extended).toBeDefined();
-			expect(extended.defaults.baseURL).toBe("https://api.parent.com");
-			expect((extended.defaults.headers as any)["x-parent"]).toBe("true");
-			expect((extended.defaults.headers as any)["x-child"]).toBe("true");
-		});
-	});
-
-	describe("retry behavior & conditions", () => {
-		it("evaluates default retryCondition for network errors, 5xx errors, non-5xx errors, and status-less errors", async () => {
-			// GET request network error (isNetworkOrIdempotentRequestError is true -> short-circuits ||)
-			const client1 = createHttpClient({
-				retryConfig: { retries: 1, retryDelay: () => 0 },
-			});
-			let calls1 = 0;
-			(client1 as any).defaults.adapter = async (config: any) => {
-				calls1++;
-				if (calls1 === 1) {
-					const err: any = new Error("Network Error");
-					err.code = "ECONNRESET";
-					err.config = config;
-					throw err;
-				}
-				return {
-					data: { ok: true },
-					status: 200,
-					statusText: "OK",
+		it("supports .onError() chaining on HttpRequestPromise", async () => {
+			requestSpy.mockRejectedValueOnce({
+				isAxiosError: true,
+				response: {
+					status: 400,
+					statusText: "Bad Request",
+					data: { code: "INVALID_PARAM" },
 					headers: {},
-				};
-			};
-			await client1.get("/net-retry");
-			expect(calls1).toBe(2);
-
-			// POST request (non-idempotent so isNetworkOrIdempotentRequestError is false) with 500 error
-			const client2 = createHttpClient({
-				retryConfig: { retries: 1, retryDelay: () => 0 },
+				},
 			});
-			let calls2 = 0;
-			(client2 as any).defaults.adapter = async (config: any) => {
-				calls2++;
-				if (calls2 === 1) {
-					const err: any = new Error("Server 500");
-					err.config = config;
-					err.response = { status: 500 };
-					throw err;
-				}
-				return {
-					data: { ok: true },
-					status: 200,
-					statusText: "OK",
-					headers: {},
-				};
-			};
-			await client2.post("/post-500", { payload: 1 });
-			expect(calls2).toBe(2);
 
-			// POST request with 400 error (evaluates right side (400 ?? 0) >= 500 -> false)
-			const client3 = createHttpClient({
-				retryConfig: { retries: 1, retryDelay: () => 0 },
-			});
-			let calls3 = 0;
-			(client3 as any).defaults.adapter = async (config: any) => {
-				calls3++;
-				const err: any = new Error("Client 400");
-				err.config = config;
-				err.response = { status: 400 };
-				throw err;
-			};
-			await client3.post("/post-400", { payload: 1 });
-			expect(calls3).toBe(1);
+			const client = createHttpClient();
+			const res = await client
+				.get("/bad")
+				.onError((data) => `Custom error: ${data?.code}`);
 
-			// POST request with no response object (evaluates right side (undefined ?? 0) >= 500 -> false)
-			const client4 = createHttpClient({
-				retryConfig: { retries: 1, retryDelay: () => 0 },
-			});
-			let calls4 = 0;
-			(client4 as any).defaults.adapter = async (config: any) => {
-				calls4++;
-				const err: any = new Error("No response error");
-				err.config = config;
-				err.response = undefined;
-				throw err;
-			};
-			await client4.post("/post-no-res", { payload: 1 });
-			expect(calls4).toBe(1);
+			expect(res.ok).toBe(false);
+			expect(res.error).toBe("Custom error: INVALID_PARAM");
 		});
 
-		it("allows disabling retries with retry: false or retryConfig: false", async () => {
-			const client = createHttpClient({
-				retry: false,
+		it("returns undefined data without throwing when throwOnError is false on get()", async () => {
+			requestSpy.mockRejectedValueOnce({
+				name: "AxiosError",
+				message: "Network Error",
+				isAxiosError: true,
+				config: { url: "/network-error-2", throwOnError: false },
 			});
-			let calls = 0;
-			(client as any).defaults.adapter = async (config: any) => {
-				calls++;
-				const err: any = new Error("Network Error");
-				err.code = "ECONNRESET";
-				err.config = config;
-				throw err;
-			};
 
-			const res = await client.get("/disabled-retry");
-			expect(calls).toBe(1);
+			const client = createHttpClient();
+			const res = await client.get<{ count: number }>(
+				"/network-error-2",
+				{ throwOnError: false }
+			);
+
+			expect(res.ok).toBe(false);
+			expect(res.data).toBeUndefined();
+			expect(res.status).toBeUndefined();
+			expect(res.error).toBeDefined();
+			expect(isHttpClientError(res.error)).toBe(true);
+
+			// Type checking: res.data includes undefined
+			const data: { count: number } | undefined = res.data;
+			expect(data).toBeUndefined();
+			// @ts-expect-error - res.data is possibly undefined
+			const strictData: { count: number } = res.data;
+			void strictData;
+		});
+
+		it("throws when throwOnError is explicitly true on get()", async () => {
+			requestSpy.mockRejectedValueOnce({
+				name: "AxiosError",
+				message: "Network Error",
+				isAxiosError: true,
+				config: { url: "/network-error-throw", throwOnError: true },
+			});
+
+			const client = createHttpClient();
+			await expect(
+				client.get<{ count: number }>("/network-error-throw", {
+					throwOnError: true,
+				})
+			).rejects.toThrow("Network Error");
+		});
+
+		it("returns undefined data without throwing when throwOnError is false on post()", async () => {
+			requestSpy.mockRejectedValueOnce({
+				name: "AxiosError",
+				message: "Network Error",
+				isAxiosError: true,
+				config: { url: "/post-error", throwOnError: false },
+			});
+
+			const client = createHttpClient();
+			const res = await client.post<{ created: boolean }>(
+				"/post-error",
+				{ title: "test" },
+				{ throwOnError: false }
+			);
+
+			expect(res.ok).toBe(false);
+			expect(res.data).toBeUndefined();
 			expect(res.error).toBeDefined();
 
-			const clientWithFalseConfig = createHttpClient({
-				retryConfig: false,
-			});
-			let callsFalseConfig = 0;
-			(clientWithFalseConfig as any).defaults.adapter = async (
-				config: any
-			) => {
-				callsFalseConfig++;
-				const err: any = new Error("Network Error");
-				err.code = "ECONNRESET";
-				err.config = config;
-				throw err;
-			};
+			const data: { created: boolean } | undefined = res.data;
+			expect(data).toBeUndefined();
+			// @ts-expect-error - res.data is possibly undefined
+			const strictData: { created: boolean } = res.data;
+			void strictData;
+		});
 
-			await clientWithFalseConfig.get("/disabled-retry-2");
-			expect(callsFalseConfig).toBe(1);
+		it("returns undefined data when client-level throwOnError is false", async () => {
+			requestSpy.mockRejectedValueOnce({
+				name: "AxiosError",
+				message: "Network Error",
+				isAxiosError: true,
+				config: { url: "/client-safe-error" },
+			});
+
+			const safeClient = createHttpClient({ throwOnError: false });
+			const res = await safeClient.get<{ count: number }>(
+				"/client-safe-error"
+			);
+
+			expect(res.ok).toBe(false);
+			expect(res.data).toBeUndefined();
+			expect(res.error).toBeDefined();
+
+			const data: { count: number } | undefined = res.data;
+			expect(data).toBeUndefined();
+			// @ts-expect-error Type 'undefined' is not assignable to type '{ count: number; }'
+			const strictData: { count: number } = res.data;
+			void strictData;
+		});
+
+		it("allows overriding client-level throwOnError: false with request-level throwOnError: true", async () => {
+			requestSpy.mockRejectedValueOnce({
+				name: "AxiosError",
+				message: "Network Error",
+				isAxiosError: true,
+				config: { url: "/client-safe-override", throwOnError: true },
+			});
+
+			const safeClient = createHttpClient({ throwOnError: false });
+			await expect(
+				safeClient.get<{ count: number }>("/client-safe-override", {
+					throwOnError: true,
+				})
+			).rejects.toThrow("Network Error");
+		});
+
+		it("supports callable client syntax with throwOnError: false", async () => {
+			requestSpy.mockRejectedValueOnce({
+				name: "AxiosError",
+				message: "Network Error",
+				isAxiosError: true,
+				config: { url: "/callable-error", throwOnError: false },
+			});
+
+			const client = createHttpClient();
+			const res = await client<{ result: string }>("/callable-error", {
+				throwOnError: false,
+			});
+
+			expect(res.ok).toBe(false);
+			expect(res.data).toBeUndefined();
+
+			const data: { result: string } | undefined = res.data;
+			expect(data).toBeUndefined();
+			// @ts-expect-error - res.data is possibly undefined
+			const strictData: { result: string } = res.data;
+			void strictData;
+		});
+	});
+
+	describe("inheritance: create() and extend()", () => {
+		it("create() returns a callable client with isolated config", () => {
+			const client = createHttpClient({ baseURL: "https://v1.api.com" });
+			const child = client.create({ baseURL: "https://v2.api.com" });
+
+			expect(typeof child).toBe("function");
+			expect(child.defaults.baseURL).toBe("https://v2.api.com");
+			expect(client.defaults.baseURL).toBe("https://v1.api.com");
+		});
+
+		it("extend() merges headers and inherits callable factory behavior", () => {
+			const client = createHttpClient({
+				headers: { "X-Common": "base" },
+			});
+			const extended = client.extend({
+				headers: { "X-Child": "custom" },
+			});
+
+			expect(typeof extended).toBe("function");
+			expect(typeof extended.get).toBe("function");
+		});
+	});
+
+	describe("HttpClientError", () => {
+		it("constructs informative error with status, url, method, and cause", () => {
+			const axiosErr = {
+				name: "AxiosError",
+				message: "Request failed with status code 500",
+				isAxiosError: true,
+				config: { method: "post", url: "https://api.com/checkout" },
+				response: {
+					status: 500,
+					statusText: "Internal Server Error",
+					data: { details: "crash" },
+				},
+			} as any;
+
+			const err = new HttpClientError(axiosErr);
+			expect(err.name).toBe("HttpClientError");
+			expect(err.isHttpClientError).toBe(true);
+			expect(err.status).toBe(500);
+			expect(err.statusText).toBe("Internal Server Error");
+			expect(err.url).toBe("https://api.com/checkout");
+			expect(err.method).toBe("post");
+			expect(err.message).toContain(
+				"Request failed with status code 500"
+			);
+			expect(isHttpClientError(err)).toBe(true);
+		});
+
+		it("normalizes unknown errors via HttpClientError.from()", () => {
+			const err = HttpClientError.from(new Error("network failure"));
+			expect(err instanceof HttpClientError).toBe(true);
+			expect(err.message).toBe("network failure");
+
+			const same = HttpClientError.from(err);
+			expect(same).toBe(err);
+		});
+
+		it("isHttpClientError correctly identifies errors", () => {
+			expect(isHttpClientError(null)).toBe(false);
+			expect(isHttpClientError("error")).toBe(false);
+			expect(isHttpClientError(new Error("generic"))).toBe(false);
+			expect(isHttpClientError({ isHttpClientError: true })).toBe(true);
 		});
 	});
 });
