@@ -210,7 +210,7 @@ describe("features/remini", () => {
 
 		it("creates task using default client when customClient is omitted", async () => {
 			const { createTask } = await import("../src/remini/create-task");
-			// eslint-disable-next-line @typescript-eslint/naming-convention
+
 			const { Task } = await import("../src/client/task");
 
 			jest.spyOn(Task.prototype, "create").mockResolvedValue({

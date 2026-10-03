@@ -29,11 +29,10 @@ export class Oracle {
 
 		this.initPromise = (async () => {
 			const options = { headers: this._oracleHeaders };
-			const { data, error } =
-				await this.client.http.get<OracleSetupResponse>(
-					"/v1/mobile/oracle/setup",
-					options
-				);
+			const { data, error } = await this.client.get<OracleSetupResponse>(
+				"/v1/mobile/oracle/setup",
+				options
+			);
 			if (error || !data) {
 				throw new ThirdPartyApiError(
 					"Failed to initialize remini.",
@@ -44,12 +43,12 @@ export class Oracle {
 			// if first
 			if (first) {
 				await Promise.all([
-					this.client.http.post(
+					this.client.post(
 						"/v1/mobile/oracle/terms-of-service",
 						{ version: "2.3.0" },
 						options
 					),
-					this.client.http.post(
+					this.client.post(
 						"/v1/mobile/oracle/privacy-notice",
 						{ version: "3.12.0" },
 						options
@@ -77,7 +76,7 @@ export class Oracle {
 
 	private _patchClientHeader() {
 		const headers = this.getHeaders();
-		Object.assign(this.client.http.defaults.headers.common, headers);
+		Object.assign(this.client.defaults.headers.common, headers);
 	}
 
 	/**

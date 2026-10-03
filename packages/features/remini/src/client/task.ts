@@ -26,7 +26,7 @@ export class Task {
 		await this.client.ensureInitialized();
 		await this.client.user.getMe();
 
-		const { data } = await this.client.http.post<{
+		const { data } = await this.client.post<{
 			task_id?: string;
 			upload_url?: string;
 			upload_headers?: Record<string, string>;
@@ -52,7 +52,7 @@ export class Task {
 			throw new ThirdPartyApiError("Failed to create task.", 500);
 		}
 
-		const { status: uploadStatus } = await this.client.http.put(
+		const { status: uploadStatus } = await this.client.put(
 			upload_url,
 			initImageBuffer,
 			{
@@ -81,7 +81,7 @@ export class Task {
 		const task = new TaskSocket(this.client);
 
 		task.submit(taskId);
-		await this.client.http.post(`/v1/mobile/tasks/${taskId}/process`);
+		await this.client.post(`/v1/mobile/tasks/${taskId}/process`);
 
 		await task.waitForOutput();
 

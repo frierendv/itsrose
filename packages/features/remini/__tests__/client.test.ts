@@ -26,9 +26,7 @@ describe("Remini Client Workflow", () => {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			let challengeCalls = 0;
 
-			jest.spyOn(client.http, "get").mockImplementation(((
-				url: string
-			) => {
+			jest.spyOn(client, "get").mockImplementation(((url: string) => {
 				if (url === "/v1/mobile/oracle/setup") {
 					setupCalls++;
 					return mockBuilder({
@@ -44,9 +42,7 @@ describe("Remini Client Workflow", () => {
 				return mockBuilder({});
 			}) as any);
 
-			jest.spyOn(client.http, "post").mockImplementation(((
-				url: string
-			) => {
+			jest.spyOn(client, "post").mockImplementation(((url: string) => {
 				if (url === "/api/public/v1/challenges") {
 					challengeCalls++;
 					return mockBuilder({ challenge: "ch123" });
@@ -72,12 +68,12 @@ describe("Remini Client Workflow", () => {
 		});
 
 		it("deduplicates concurrent user.getMe calls", async () => {
-			jest.spyOn(client, "ensureInitialized").mockResolvedValue();
+			jest.spyOn(client, "ensureInitialized").mockResolvedValue(
+				undefined
+			);
 
 			let getMeCalls = 0;
-			jest.spyOn(client.http, "get").mockImplementation(((
-				url: string
-			) => {
+			jest.spyOn(client, "get").mockImplementation(((url: string) => {
 				if (url === "/v1/mobile/users/@me") {
 					getMeCalls++;
 					return mockBuilder({ id: "user_1", name: "Test User" });
@@ -169,7 +165,7 @@ describe("Remini Client Workflow", () => {
 		});
 
 		it("throws ThirdPartyApiError when oracle setup request fails", async () => {
-			jest.spyOn(client.http, "get").mockResolvedValue({
+			jest.spyOn(client, "get").mockResolvedValue({
 				data: null,
 				error: new Error("Fail"),
 			} as any);
@@ -182,9 +178,7 @@ describe("Remini Client Workflow", () => {
 			let setupCalls = 0;
 			let postCalls = 0;
 
-			jest.spyOn(client.http, "get").mockImplementation(((
-				url: string
-			) => {
+			jest.spyOn(client, "get").mockImplementation(((url: string) => {
 				if (url === "/v1/mobile/oracle/setup") {
 					setupCalls++;
 					return mockBuilder({
@@ -200,7 +194,7 @@ describe("Remini Client Workflow", () => {
 				return mockBuilder({});
 			}) as any);
 
-			jest.spyOn(client.http, "post").mockImplementation(() => {
+			jest.spyOn(client, "post").mockImplementation(() => {
 				postCalls++;
 				return mockBuilder({});
 			});
@@ -217,9 +211,7 @@ describe("Remini Client Workflow", () => {
 
 		it("deduplicates concurrent initialize calls when initPromise is pending", async () => {
 			let setupCalls = 0;
-			jest.spyOn(client.http, "get").mockImplementation(((
-				url: string
-			) => {
+			jest.spyOn(client, "get").mockImplementation(((url: string) => {
 				if (url === "/v1/mobile/oracle/setup") {
 					setupCalls++;
 					return mockBuilder({
@@ -234,7 +226,7 @@ describe("Remini Client Workflow", () => {
 				}
 				return mockBuilder({});
 			}) as any);
-			jest.spyOn(client.http, "post").mockReturnValue(mockBuilder({}));
+			jest.spyOn(client, "post").mockReturnValue(mockBuilder({}));
 
 			await Promise.all([
 				client.oracle.initialize(),
@@ -279,7 +271,7 @@ describe("Remini Client Workflow", () => {
 
 	describe("Client Ping & User Account Caching", () => {
 		it("pings remini server", async () => {
-			jest.spyOn(client.http, "get").mockResolvedValue({
+			jest.spyOn(client, "get").mockResolvedValue({
 				data: "pong",
 			} as any);
 			const result = await client.ping();
@@ -407,9 +399,11 @@ describe("Remini Client Workflow", () => {
 				"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 			const validBuffer = Buffer.from(base64Png, "base64");
 
-			jest.spyOn(client.oracle, "ensureValidToken").mockResolvedValue();
+			jest.spyOn(client.oracle, "ensureValidToken").mockResolvedValue(
+				undefined
+			);
 			jest.spyOn(client.user, "getMe").mockResolvedValue({} as any);
-			jest.spyOn(client.http, "post").mockResolvedValue({
+			jest.spyOn(client, "post").mockResolvedValue({
 				data: null,
 			} as any);
 
@@ -423,12 +417,14 @@ describe("Remini Client Workflow", () => {
 				"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 			const validBuffer = Buffer.from(base64Png, "base64");
 
-			jest.spyOn(client.oracle, "ensureValidToken").mockResolvedValue();
+			jest.spyOn(client.oracle, "ensureValidToken").mockResolvedValue(
+				undefined
+			);
 			jest.spyOn(client.user, "getMe").mockResolvedValue({} as any);
-			jest.spyOn(client.http, "post").mockResolvedValue({
+			jest.spyOn(client, "post").mockResolvedValue({
 				data: { task_id: "t1", upload_url: "http://up.com" },
 			} as any);
-			jest.spyOn(client.http, "put").mockResolvedValue({
+			jest.spyOn(client, "put").mockResolvedValue({
 				status: 500,
 			} as any);
 
@@ -442,12 +438,14 @@ describe("Remini Client Workflow", () => {
 				"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 			const validBuffer = Buffer.from(base64Png, "base64");
 
-			jest.spyOn(client.oracle, "ensureValidToken").mockResolvedValue();
+			jest.spyOn(client.oracle, "ensureValidToken").mockResolvedValue(
+				undefined
+			);
 			jest.spyOn(client.user, "getMe").mockResolvedValue({} as any);
-			jest.spyOn(client.http, "post").mockResolvedValue({
+			jest.spyOn(client, "post").mockResolvedValue({
 				data: { task_id: "t1", upload_url: "http://up.com" },
 			} as any);
-			jest.spyOn(client.http, "put").mockResolvedValue({
+			jest.spyOn(client, "put").mockResolvedValue({
 				status: 200,
 			} as any);
 
@@ -456,10 +454,9 @@ describe("Remini Client Workflow", () => {
 					this.output = null;
 				}
 			);
-			jest.spyOn(
-				TaskSocket.prototype,
-				"waitForOutput"
-			).mockResolvedValue();
+			jest.spyOn(TaskSocket.prototype, "waitForOutput").mockResolvedValue(
+				undefined
+			);
 
 			await expect(client.task.create(validBuffer, [])).rejects.toThrow(
 				"Processing failed. Please try again."
@@ -472,29 +469,29 @@ describe("Remini Client Workflow", () => {
 			const validBuffer = Buffer.from(base64Png, "base64");
 
 			let attempts = 0;
-			jest.spyOn(client.oracle, "ensureValidToken").mockResolvedValue();
-			jest.spyOn(client.oracle, "refresh").mockResolvedValue();
+			jest.spyOn(client.oracle, "ensureValidToken").mockResolvedValue(
+				undefined
+			);
+			jest.spyOn(client.oracle, "refresh").mockResolvedValue(undefined);
 			jest.spyOn(client.user, "getMe").mockResolvedValue({} as any);
 
-			jest
-				.spyOn(client.http, "post")
-				.mockImplementation((url: string) => {
-					if (url === "/v1/mobile/tasks") {
-						attempts++;
-						if (attempts === 1) {
-							const err = new Error("Unauthorized") as any;
-							err.status = 401;
-							throw err;
-						}
-						return mockBuilder({
-							task_id: "t1",
-							upload_url: "http://up.com",
-						});
+			jest.spyOn(client, "post").mockImplementation(((url: string) => {
+				if (url === "/v1/mobile/tasks") {
+					attempts++;
+					if (attempts === 1) {
+						const err = new Error("Unauthorized") as any;
+						err.status = 401;
+						throw err;
 					}
-					return mockBuilder({});
-				}) as any;
+					return mockBuilder({
+						task_id: "t1",
+						upload_url: "http://up.com",
+					});
+				}
+				return mockBuilder({});
+			}) as any);
 
-			jest.spyOn(client.http, "put").mockResolvedValue({
+			jest.spyOn(client, "put").mockResolvedValue({
 				status: 200,
 			} as any);
 
@@ -511,10 +508,9 @@ describe("Remini Client Workflow", () => {
 					};
 				}
 			);
-			jest.spyOn(
-				TaskSocket.prototype,
-				"waitForOutput"
-			).mockResolvedValue();
+			jest.spyOn(TaskSocket.prototype, "waitForOutput").mockResolvedValue(
+				undefined
+			);
 
 			const res = await client.task.create(validBuffer, [
 				{ face_enhance: { model: "remini", pre_blur: 0.6 } },

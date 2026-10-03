@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import { imageSize } from "image-size";
 
 export type ImageMetadata = {
@@ -11,25 +11,37 @@ export type ImageMetadata = {
 
 type IsOK = boolean;
 
+type ImageMetadataResult = [isOk: IsOK, metadata: ImageMetadata | null];
+
 /**
- * Extract image metadata similar like remini engine output
- * @param {Buffer} buffer
- * @returns {[IsOK, ImageMetadata]}
+ * Extract image metadata similar to the Remini engine output.
+ *
+ * @param buffer - Image data to inspect.
+ * @returns A tuple containing the validation result and image metadata.
  */
-export const extractImageMetadata = (buffer: Buffer): [IsOK, ImageMetadata] => {
+export const extractImageMetadata = (buffer: Buffer): ImageMetadataResult => {
+	if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
+		return [false, null];
+	}
+
 	try {
-		const iS = imageSize(buffer);
-		const metadata = {
-			/** ! hack: If the image-size don't know the image type fallback to "jpg" */
-			image_content_type: "image/" + (iS.type ?? "jpg"),
+		const { type, width, height } = imageSize(buffer);
+
+		if (!width || !height) {
+			return [false, null];
+		}
+
+		const metadata: ImageMetadata = {
+			image_content_type: `image/${type ?? "jpg"}`,
+			// MD5 is required for compatibility with the Remini API.
 			image_md5: createHash("md5").update(buffer).digest("base64"),
 			image_size: buffer.length,
-			image_resolution_width: iS.width,
-			image_resolution_height: iS.height,
+			image_resolution_width: width,
+			image_resolution_height: height,
 		};
-		const isOk = !!iS.type || !!(iS?.height && iS?.width);
-		return [isOk, metadata];
+
+		return [true, metadata];
 	} catch {
-		return [false, {} as ImageMetadata];
+		return [false, null];
 	}
 };

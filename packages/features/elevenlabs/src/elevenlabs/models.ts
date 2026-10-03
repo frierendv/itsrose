@@ -1,5 +1,5 @@
 import { ThirdPartyApiError } from "@itsrose/system";
-import { httpClient, parseElevenLabsError } from "../client";
+import { httpClient } from "../client";
 import {
 	ElevenLabsListModelsResponseSchema,
 	type IElevenLabsListModelsResponse,
@@ -12,9 +12,7 @@ import {
  * @throws {ThirdPartyApiError} If the ElevenLabs API returns an error status code.
  */
 export async function getModels(): Promise<IElevenLabsListModelsResponse> {
-	const { data, error } = await httpClient
-		.get("/v1/models")
-		.onError(parseElevenLabsError);
+	const { data, error } = await httpClient.get("/v1/models");
 	if (error) {
 		throw new ThirdPartyApiError(error.message, error.statusCode);
 	}

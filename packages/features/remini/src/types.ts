@@ -1,7 +1,7 @@
 /**
  * Processing status of a Remini image enhancement task.
  */
-type ReminiTaskStatus = "completed" | "failed" | "processing";
+export type ReminiTaskStatus = "completed" | "failed" | "processing";
 
 /**
  * Error detail returned by Remini task processing.

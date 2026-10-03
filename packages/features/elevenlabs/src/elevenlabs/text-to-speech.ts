@@ -1,5 +1,5 @@
 import { ThirdPartyApiError } from "@itsrose/system";
-import { httpClient, parseElevenLabsError } from "../client";
+import { httpClient } from "../client";
 import {
 	ElevenLabsSharedResponseSchema,
 	ElevenLabsTextToSpeechConvertSchema,
@@ -21,15 +21,17 @@ export async function textToSpeech(
 	options: IElevenLabsTextToSpeechConvert
 ): Promise<IElevenLabsSharedResponse> {
 	const { voice_id, output_format, ...restOptions } = options;
-	const { data, error } = await httpClient
-		.post<Buffer>(`/v1/text-to-speech/${voice_id}`, restOptions, {
+	const { data, error } = await httpClient.post<Buffer>(
+		`/v1/text-to-speech/${voice_id}`,
+		restOptions,
+		{
 			params: {
 				output_format,
 				enable_logging: false,
 			},
 			responseType: "arraybuffer",
-		})
-		.onError(parseElevenLabsError);
+		}
+	);
 	if (error) {
 		throw new ThirdPartyApiError(error.message, error.statusCode);
 	}
@@ -42,18 +44,14 @@ export async function textToSpeechWithTiming(
 	options: IElevenLabsTextToSpeechConvert
 ): Promise<IElevenLabsSharedResponse & WithTimestamp> {
 	const { voice_id, output_format, ...restOptions } = options;
-	const { data, error } = await httpClient
-		.post<{ audio_base64: string } & WithTimestamp>(
-			`/v1/text-to-speech/${voice_id}/with-timestamps`,
-			restOptions,
-			{
-				params: {
-					output_format,
-					enable_logging: false,
-				},
-			}
-		)
-		.onError(parseElevenLabsError);
+	const { data, error } = await httpClient.post<
+		{ audio_base64: string } & WithTimestamp
+	>(`/v1/text-to-speech/${voice_id}/with-timestamps`, restOptions, {
+		params: {
+			output_format,
+			enable_logging: false,
+		},
+	});
 	if (error) {
 		throw new ThirdPartyApiError(error.message, error.statusCode);
 	}

@@ -1,4 +1,4 @@
-import type { OnError } from "@itsrose/http-client";
+import type { ErrorHandler } from "@itsrose/http-client";
 import type { IElevenLabsErrorResponse } from "../zod-schema";
 
 const DEFAULT_ERROR_MESSAGE = "An error occurred.";
@@ -38,35 +38,33 @@ const getErrorMessage = (detail: IElevenLabsErrorResponse["detail"]) => {
 
 /**
  * Parses raw error responses or buffers returned from ElevenLabs API calls.
- *
  * @param {Buffer | IElevenLabsErrorResponse} data Raw response body.
- * @param {number} [status=500] HTTP status code from response.
  * @returns Standardized error object with status and descriptive message.
  */
-export const parseElevenLabsError: OnError<{
+export const parseElevenLabsError: ErrorHandler<{
 	statusCode: number;
 	message: string;
-}> = (data: Buffer | IElevenLabsErrorResponse, status: number = 500) => {
+}> = (data: Buffer | IElevenLabsErrorResponse, error) => {
+	const statusCode = error.status ?? 500;
 	if (Buffer.isBuffer(data)) {
 		try {
 			const parsed = JSON.parse(
 				data.toString()
 			) as IElevenLabsErrorResponse;
-			console.error({ parsed: JSON.stringify(parsed, null, 2) });
 			return {
-				statusCode: status,
+				statusCode,
 				message:
 					getErrorMessage(parsed?.detail) || UNKNOWN_ERROR_MESSAGE,
 			};
 		} catch {
 			return {
-				statusCode: status,
+				statusCode,
 				message: UNKNOWN_ERROR_MESSAGE,
 			};
 		}
 	}
 	return {
-		statusCode: status,
+		statusCode,
 		message: getErrorMessage(data?.detail) || DEFAULT_ERROR_MESSAGE,
 	};
 };

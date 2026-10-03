@@ -22,7 +22,7 @@ export class User {
 
 		this.getMePromise = (async () => {
 			await this.client.ensureInitialized();
-			const { data } = await this.client.http.get<CurrentUserAccount>(
+			const { data } = await this.client.get<CurrentUserAccount>(
 				"/v1/mobile/users/@me"
 			);
 			this.account = data;

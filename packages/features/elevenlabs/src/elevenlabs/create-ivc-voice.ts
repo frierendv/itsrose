@@ -1,7 +1,7 @@
 import { SharedFileBufferSchema } from "@itsrose/shared-schema";
 import { ThirdPartyApiError } from "@itsrose/system";
 import { z } from "zod/v4";
-import { httpClient, parseElevenLabsError } from "../client";
+import { httpClient } from "../client";
 import {
 	ElevenLabsCreateIVCVoiceResponseSchema,
 	ElevenLabsCreateIVCVoiceSchema,
@@ -40,13 +40,12 @@ export async function createIVCVoice(
 			);
 		}
 	});
-	const { data, error } = await httpClient
-		.post<IElevenLabsCreateIVCVoiceResponse>("/v1/voices/add", formData, {
-			headers: {
-				"Content-Type": "multipart/form-data",
-			},
-		})
-		.onError(parseElevenLabsError);
+	const { data, error } =
+		await httpClient.post<IElevenLabsCreateIVCVoiceResponse>(
+			"/v1/voices/add",
+			formData,
+			{ headers: { "Content-Type": "multipart/form-data" } }
+		);
 	if (error) {
 		throw new ThirdPartyApiError(error.message, error.statusCode);
 	}

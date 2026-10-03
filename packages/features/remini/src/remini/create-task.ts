@@ -1,17 +1,12 @@
 import { fetcher } from "@itsrose/http-client";
 import { ThirdPartyApiError } from "@itsrose/system";
-import { Client } from "../client";
+import { client, type Client } from "../client";
 import {
 	ReminiRequestSchema,
 	ReminiResponseSchema,
 	type IReminiRequest,
 	type IReminiResponse,
 } from "../zod-schema";
-
-/**
- * Initialized remini client
- */
-const client = new Client();
 
 /**
  * Create a Remini task and wait for the processed result.

@@ -1,5 +1,5 @@
 import { ThirdPartyApiError } from "@itsrose/system";
-import { httpClient, parseElevenLabsError } from "../client";
+import { httpClient } from "../client";
 import {
 	ElevenLabsListVoicesResponseSchema,
 	ElevenLabsListVoicesSchema,
@@ -23,11 +23,12 @@ const redact = (text: string) =>
 export async function getVoices(
 	options?: IElevenLabsListVoices
 ): Promise<IElevenLabsListVoicesResponse> {
-	const { data, error } = await httpClient
-		.get<IElevenLabsListVoicesResponse>("/v2/voices", {
+	const { data, error } = await httpClient.get<IElevenLabsListVoicesResponse>(
+		"/v2/voices",
+		{
 			params: options,
-		})
-		.onError(parseElevenLabsError);
+		}
+	);
 	if (error) {
 		throw new ThirdPartyApiError(error.message, error.statusCode);
 	}
