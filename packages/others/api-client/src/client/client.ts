@@ -1,8 +1,4 @@
-import {
-	createHttpClient,
-	type HttpClient,
-	type IHttpClientConfig,
-} from "@itsrose/http-client";
+import { HttpClient } from "@itsrose/http-client";
 import type { FilterKeys, PathsWithMethod } from "openapi-typescript-helpers";
 import type { APIResponse, HttpMethod, RequestOptions } from "../types";
 import { parseOptions } from "./utils";
@@ -17,21 +13,16 @@ export interface IAPIClient<TPaths extends object> extends APIClient<TPaths> {
 /**
  * Type-safe OpenAPI client with path-aware request helpers.
  */
-export class APIClient<Paths extends object> {
-	constructor(private readonly client: HttpClient) {}
-
+export class APIClient<Paths extends object> extends HttpClient {
 	private _request<
 		Method extends HttpMethod,
 		Path extends PathsWithMethod<Paths, Method> & string,
 		Op extends FilterKeys<Paths[Path], Method>,
 	>(method: Method, path: Path, options?: RequestOptions<Op>) {
-		const { url, data, params, ...rest } = parseOptions(path, options);
-		return this.client.request<APIResponse<Op>>({
+		const normalize = parseOptions(path, options);
+		return super.request<APIResponse<Op>>({
+			...normalize,
 			method,
-			url,
-			data,
-			params,
-			...rest,
 		});
 	}
 
@@ -41,7 +32,7 @@ export class APIClient<Paths extends object> {
 	 * @param path Endpoint route.
 	 * @param options Query and path parameter options.
 	 */
-	public get<
+	public GET<
 		Path extends PathsWithMethod<Paths, "get"> & string,
 		Op extends FilterKeys<Paths[Path], "get">,
 	>(path: Path, options?: RequestOptions<Op>) {
@@ -54,7 +45,7 @@ export class APIClient<Paths extends object> {
 	 * @param path Endpoint route.
 	 * @param options Request body, query, and path parameters.
 	 */
-	public post<
+	public POST<
 		Path extends PathsWithMethod<Paths, "post"> & string,
 		Op extends FilterKeys<Paths[Path], "post">,
 	>(path: Path, options?: RequestOptions<Op>) {
@@ -67,7 +58,7 @@ export class APIClient<Paths extends object> {
 	 * @param path Endpoint route.
 	 * @param options Request body, query, and path parameters.
 	 */
-	public put<
+	public PUT<
 		Path extends PathsWithMethod<Paths, "put"> & string,
 		Op extends FilterKeys<Paths[Path], "put">,
 	>(path: Path, options?: RequestOptions<Op>) {
@@ -80,7 +71,7 @@ export class APIClient<Paths extends object> {
 	 * @param path Endpoint route.
 	 * @param options Request body, query, and path parameters.
 	 */
-	public patch<
+	public PATCH<
 		Path extends PathsWithMethod<Paths, "patch"> & string,
 		Op extends FilterKeys<Paths[Path], "patch">,
 	>(path: Path, options?: RequestOptions<Op>) {
@@ -93,26 +84,10 @@ export class APIClient<Paths extends object> {
 	 * @param path Endpoint route.
 	 * @param options Query and path parameter options.
 	 */
-	public delete<
+	public DELETE<
 		Path extends PathsWithMethod<Paths, "delete"> & string,
 		Op extends FilterKeys<Paths[Path], "delete">,
 	>(path: Path, options?: RequestOptions<Op>) {
 		return this._request("delete", path, options);
-	}
-}
-
-/**
- * Concrete type-safe ItsRose API Client instance initialized with custom client configuration.
- *
- * @template TPaths OpenAPI paths definition interface.
- */
-export class ItsRoseAPIClient<TPaths extends object> extends APIClient<TPaths> {
-	/**
-	 * Creates an instance of {@linkcode ItsRoseAPIClient}.
-	 *
-	 * @param config HTTP client options including baseURL and headers.
-	 */
-	constructor(public readonly config: IHttpClientConfig) {
-		super(createHttpClient(config));
 	}
 }
