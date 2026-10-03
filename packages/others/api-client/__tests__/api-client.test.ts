@@ -1,4 +1,4 @@
-import { APIClient, ItsRoseAPIClient } from "../src";
+import { APIClient } from "../src";
 import { parseOptions, resolvePath } from "../src/client/utils";
 
 type TestSchema = {
@@ -104,32 +104,32 @@ describe("others/api-client", () => {
 	});
 
 	describe("APIClient", () => {
-		it("instantiates ItsRoseAPIClient and invokes get, post, put, patch, delete", () => {
-			const client = new ItsRoseAPIClient<TestSchema>({
+		it("instantiates APIClient and invokes GET, POST, PUT, PATCH, DELETE", () => {
+			const clientSpy = jest
+				.spyOn(APIClient.prototype, "_request" as any)
+				.mockImplementation(() => "executor" as any);
+
+			const client = new APIClient<TestSchema>({
 				baseURL: "https://api.itsrose.rest",
 			});
 			expect(client).toBeDefined();
 
-			const mockHttp = {
-				request: jest.fn().mockReturnValue("builder"),
-			};
-			const mockClient = new APIClient<TestSchema>(mockHttp as any);
-
+			expect(client.GET("/users/{id}", { pathParams: { id: "1" } })).toBe(
+				"executor"
+			);
 			expect(
-				mockClient.get("/users/{id}", { pathParams: { id: "1" } })
-			).toBe("builder");
+				client.POST("/users/{id}", { pathParams: { id: "1" } })
+			).toBe("executor");
+			expect(client.PUT("/users/{id}", { pathParams: { id: "1" } })).toBe(
+				"executor"
+			);
 			expect(
-				mockClient.post("/users/{id}", { pathParams: { id: "1" } })
-			).toBe("builder");
+				client.PATCH("/users/{id}", { pathParams: { id: "1" } })
+			).toBe("executor");
 			expect(
-				mockClient.put("/users/{id}", { pathParams: { id: "1" } })
-			).toBe("builder");
-			expect(
-				mockClient.patch("/users/{id}", { pathParams: { id: "1" } })
-			).toBe("builder");
-			expect(
-				mockClient.delete("/users/{id}", { pathParams: { id: "1" } })
-			).toBe("builder");
+				client.DELETE("/users/{id}", { pathParams: { id: "1" } })
+			).toBe("executor");
+			clientSpy.mockRestore();
 		});
 	});
 });
