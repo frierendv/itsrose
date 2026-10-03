@@ -1,55 +1,49 @@
-import {
-	createHttpClient,
-	type HttpClient,
-	type IInternalRequestConfig,
-	type IRequestConfig,
-} from "@itsrose/http-client";
+import { HttpClient, type HttpRequestConfig } from "@itsrose/http-client";
 import { getEnv, ThirdPartyApiError } from "@itsrose/system";
 import type { IInferenceResponse, MtlabInferenceData } from "../types";
 import type { ISDKParameter } from "../utils";
 import { DEFAULT_ERROR, ERROR_MAP } from "./error";
 import { Signer } from "./signer";
 
-class BaseHttpClient {
-	private sdkUrl: URL;
-	private openApiUrl: URL;
-
+class BaseHttpClient extends HttpClient {
+	private readonly _sdkBaseUrl: string;
+	private readonly _openApiBaseUrl: string;
 	#secret: string;
 	#key: string;
 	#signer: Signer;
 
-	private httpClient: HttpClient;
-
 	public appVersion = getEnv("MTXX_APP_VERSION", { defaultValue: "12.11.5" });
 
 	constructor() {
-		this.sdkUrl = new URL(
+		const sdkUrl = new URL(
 			getEnv("MTXX_SDK_BASE_URL", { isRequired: true })
 		);
-		this.openApiUrl = new URL(
+		const openApiUrl = new URL(
 			getEnv("MTXX_OPENAPI_BASE_URL", { isRequired: true })
 		);
-		this.#key = getEnv("MTXX_KEY", { isRequired: true });
-		this.#secret = getEnv("MTXX_SECRET", { isRequired: true });
-
-		this.#signer = new Signer({ key: this.#key, secret: this.#secret });
-
-		this.httpClient = createHttpClient({
-			baseURL: this.sdkUrl.origin,
+		super({
+			baseURL: sdkUrl.origin,
 			headers: {
 				"User-Agent": "mtxx-121105-OnePlus-NE2210-android-9-c1923306",
-				"x-mtcc-client": this._mttc(),
+				// "x-mtcc-client": this._mttc(),
 				// "Host": this.sdkUrl.host,
 			},
 		});
+		this.defaults.headers.common["x-mtcc-client"] = this._mttc();
+		this._sdkBaseUrl = sdkUrl.origin;
+		this._openApiBaseUrl = openApiUrl.origin;
 
-		this.httpClient.interceptors.request.use((config) => {
+		this.#key = getEnv("MTXX_KEY", { isRequired: true });
+		this.#secret = getEnv("MTXX_SECRET", { isRequired: true });
+		this.#signer = new Signer({ key: this.#key, secret: this.#secret });
+
+		this.interceptors.request.use((config) => {
 			// only intercept if the request is to the sdk base URL
-			if (config.baseURL === this.sdkUrl.origin) {
-				return this._signConfig(config);
+			if (config.baseURL === this._sdkBaseUrl) {
+				return this._signConfig(config) as typeof config;
 			}
 			// if the request is to the openapi base URL, add the api_key and api_secret to the query parameters
-			if (config.baseURL === this.openApiUrl.origin) {
+			if (config.baseURL === this._openApiBaseUrl) {
 				return {
 					...config,
 					params: {
@@ -64,10 +58,10 @@ class BaseHttpClient {
 	}
 
 	public get sdkBaseUrl() {
-		return this.sdkUrl.origin;
+		return this._sdkBaseUrl;
 	}
 	public get openApiBaseUrl() {
-		return this.openApiUrl.origin;
+		return this._openApiBaseUrl;
 	}
 
 	private _mttc() {
@@ -81,7 +75,7 @@ class BaseHttpClient {
 		return Buffer.from(JSON.stringify(mttc)).toString("base64");
 	}
 
-	private _signConfig(config: IInternalRequestConfig) {
+	private _signConfig(config: HttpRequestConfig) {
 		const params = config.params
 			? `?${new URLSearchParams(config.params).toString()}`
 			: "";
@@ -93,26 +87,17 @@ class BaseHttpClient {
 			config.data ? JSON.stringify(config.data) : ""
 		);
 		Object.assign(config, options);
-		Object.assign(config.headers, headers);
+		if (config.headers) {
+			Object.assign(config.headers, headers);
+		}
 		return config;
-	}
-	public get<T = unknown>(...args: Parameters<HttpClient["get"]>) {
-		return this.httpClient.get<T>(...args);
-	}
-
-	public post<T = unknown>(...args: Parameters<HttpClient["post"]>) {
-		return this.httpClient.post<T>(...args);
-	}
-
-	public request<T = unknown>(config: IRequestConfig<any>) {
-		return this.httpClient.request<T>(config);
 	}
 }
 
 export class Client extends BaseHttpClient {
-	constructor() {
-		super();
-	}
+	// constructor() {
+	// 	super();
+	// }
 	/**
 	 * Checks if the provided error code indicates an error
 	 * and throws a {@linkcode ThirdPartyApiError} if it does.
@@ -154,8 +139,8 @@ export class Client extends BaseHttpClient {
 	 * and returns the {@linkcode MtlabInferenceData}.
 	 */
 	public async createMtlabTask<T = object>(
-		config: IRequestConfig<T> &
-			Required<Pick<IRequestConfig<T>, "data" | "url">>
+		config: HttpRequestConfig &
+			Required<Pick<HttpRequestConfig, "data" | "url">>
 	) {
 		const { data } = await this.request<MtlabInferenceData<T>>({
 			method: "POST",

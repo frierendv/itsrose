@@ -1,6 +1,6 @@
 import { ThirdPartyApiError } from "@itsrose/system";
 import { parseMultipart } from "@remix-run/multipart-parser/node";
-import { httpClient, parseElevenLabsError } from "../client";
+import { httpClient } from "../client";
 import type {
 	MusicCompose,
 	MusicComposeDetailedResponse,
@@ -21,11 +21,9 @@ export async function musicCompose(
 		data: mixed,
 		error,
 		headers,
-	} = await httpClient
-		.post<Buffer>("/v1/music/detailed", options, {
-			responseType: "arraybuffer",
-		})
-		.onError(parseElevenLabsError);
+	} = await httpClient.post<Buffer>("/v1/music/detailed", options, {
+		responseType: "arraybuffer",
+	});
 	if (error) {
 		throw new ThirdPartyApiError(error.message, error.statusCode);
 	}
@@ -79,9 +77,10 @@ export const musicComposeSchema = {
 export async function musicComposePlan(
 	options: MusicComposePlan
 ): Promise<MusicComposePlanResponse> {
-	const { data, error } = await httpClient
-		.post<MusicComposePlanResponse>("/v1/music/plan", options)
-		.onError(parseElevenLabsError);
+	const { data, error } = await httpClient.post<MusicComposePlanResponse>(
+		"/v1/music/plan",
+		options
+	);
 	if (error) {
 		throw new ThirdPartyApiError(error.message, error.statusCode);
 	}

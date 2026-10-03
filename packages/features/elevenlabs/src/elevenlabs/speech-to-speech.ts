@@ -2,7 +2,7 @@ import { fetcher } from "@itsrose/http-client";
 import { SharedFileBufferSchema } from "@itsrose/shared-schema";
 import { ThirdPartyApiError } from "@itsrose/system";
 import { z } from "zod/v4";
-import { httpClient, parseElevenLabsError } from "../client";
+import { httpClient } from "../client";
 import {
 	ElevenLabsSharedResponseSchema,
 	ElevenLabsSpeechToSpeechConvertSchema,
@@ -66,8 +66,10 @@ export async function speechToSpeech(
 
 	appendFormDataOptions(formData, restOptions);
 
-	const { data, error } = await httpClient
-		.post<Buffer>(`/v1/speech-to-speech/${voice_id}`, formData, {
+	const { data, error } = await httpClient.post<Buffer>(
+		`/v1/speech-to-speech/${voice_id}`,
+		formData,
+		{
 			params: {
 				output_format,
 				enable_logging: false,
@@ -76,8 +78,8 @@ export async function speechToSpeech(
 				"Content-Type": "multipart/form-data",
 			},
 			responseType: "arraybuffer",
-		})
-		.onError(parseElevenLabsError);
+		}
+	);
 	if (error) {
 		throw new ThirdPartyApiError(error.message, error.statusCode);
 	}
