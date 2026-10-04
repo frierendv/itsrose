@@ -1,3 +1,4 @@
+// @ts-check
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import type { ActionType, NodePlopAPI } from "plop";
@@ -5,7 +6,7 @@ import type { ActionType, NodePlopAPI } from "plop";
 const execAsync = promisify(exec);
 
 export interface ModuleAnswers {
-	category: "others" | "core" | "features" | "internal" | "shared";
+	category: "others" | "core" | "features" | "internal" | "shared" | "root";
 	name: string;
 	author: string;
 	description?: string;
@@ -13,13 +14,9 @@ export interface ModuleAnswers {
 }
 
 const scope = "@itsrose";
-
-// resolve lock file not sync after generating module package
-const moduleDevDeps = [
-	`${scope}/eslint-config@*`,
-	`${scope}/tsdown-config@*`,
-	`${scope}/typescript-config@*`,
-];
+const workspaceDevDependencies = [
+	"standard", // @itsrose/standard
+].map((dep) => `${scope}/${dep}` as const);
 
 export default function (plop: NodePlopAPI) {
 	plop.setActionType("runCommand", async (_answers, config) => {
@@ -43,6 +40,7 @@ export default function (plop: NodePlopAPI) {
 					name: "category",
 					message: "Select module category:",
 					choices: [
+						{ name: "Root", value: "root" },
 						{ name: "Core", value: "core" },
 						{ name: "Features", value: "features" },
 						{ name: "Internal", value: "internal" },
@@ -89,36 +87,21 @@ export default function (plop: NodePlopAPI) {
 		actions: (data) => {
 			const answers = data as ModuleAnswers;
 
-			const destination = "packages/{{category}}/{{name}}";
-			const directory = `packages/${answers.category}/${answers.name}`;
-			const rootRelativePath = "../../../";
+			let destination = "packages/{{category}}/{{name}}";
+			let directory = `packages/${answers.category}/${answers.name}`;
+			if (answers.category === "root") {
+				destination = "packages/{{name}}";
+				directory = `packages/${answers.name}`;
+			}
 			const packageName = `${scope}/${answers.name}`;
 
-			const initCmd = [
-				`--scope`,
-				scope,
-				"--init-type",
-				"module",
-				"--init-license",
-				"MIT",
-				"--init-author-name",
-				answers.author,
-				"--workspace",
-				directory,
-				"--yes",
-			];
-
 			const actions: ActionType[] = [
-				{
-					type: "runCommand",
-					command: `npm init ${initCmd.join(" ")}`,
-				},
 				{
 					type: "addMany",
 					destination,
 					base: "plop-templates/module",
 					templateFiles: "plop-templates/module/**/*",
-					data: { rootRelativePath, directory },
+					data: { directory },
 					globOptions: { dot: true },
 					skipIfExists: false,
 					force: true,
@@ -128,39 +111,38 @@ export default function (plop: NodePlopAPI) {
 					path: `${destination}/src/index.ts`,
 					template: `export * from "./${answers.name}";\n`,
 					skipIfExists: true,
-					abortOnFail: false,
 				},
 				{
 					type: "add",
 					path: `${destination}/src/{{name}}/index.ts`,
 					template: "export {};\n",
 					skipIfExists: true,
-					abortOnFail: false,
 				},
 				{
 					type: "add",
 					path: `${destination}/__tests__/{{name}}.test.ts`,
 					template: `describe("${answers.category}/${answers.name}", () => {\n\n\t/\** test for ${packageName} */\n\n});`,
 					skipIfExists: true,
-					abortOnFail: false,
 				},
 				{
 					type: "add",
 					path: `${destination}/README.md`,
 					template: `# \`${packageName}\`\n\n${answers.lognDescription || "..."}`,
 					skipIfExists: true,
-					abortOnFail: false,
 				},
 				{
 					type: "runCommand",
-					command: `npm install -D ${moduleDevDeps.join(" ")} --workspace ${packageName}`,
+					command: `pnpm -F ${answers.name} add ${workspaceDevDependencies.join(" ")} -D --workspace`,
 				},
 			];
-
-			actions.push({
-				type: "runCommand",
-				command: `syncpack fix; syncpack format; prettier --write --list-different ${directory}`,
-			});
+			const finalCmds = [
+				`syncpack fix --source ${directory}/package.json`,
+				`syncpack format --source ${directory}/package.json`,
+				`prettier --write --list-different ${directory}`,
+			];
+			for (const command of finalCmds) {
+				actions.push({ type: "runCommand", command });
+			}
 
 			return actions;
 		},
