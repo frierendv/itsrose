@@ -1,9 +1,0 @@
-{
-	"extends": "@itsrose/typescript-config/node.json",
-	"compilerOptions": {
-		"rootDir": ".",
-		"outDir": "dist"
-	},
-	"include": ["src"],
-	"exclude": ["node_modules", "dist"]
-}
