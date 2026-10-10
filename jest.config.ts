@@ -16,6 +16,8 @@ const moduleNameMapper = {
 	],
 	"^atomically$": "<rootDir>/packages/others/lowdb/__mocks__/atomically.ts",
 	"^superjson$": "<rootDir>/packages/others/lowdb/__mocks__/superjson.ts",
+	"^s3mini$": "<rootDir>/packages/internal/s3/__mocks__/s3mini.ts",
+	"^file-type$": "<rootDir>/packages/internal/s3/__mocks__/file-type.ts",
 };
 
 const transformIgnorePatterns = [
@@ -45,6 +47,8 @@ const config: Config = {
 		createProject("packages/internal"),
 		createProject("packages/shared"),
 		createProject("packages/others"),
+		createProject("packages/midtrans"),
+		createProject("packages/auth"),
 		{
 			displayName: "packages/react",
 			testEnvironment: "jsdom",
