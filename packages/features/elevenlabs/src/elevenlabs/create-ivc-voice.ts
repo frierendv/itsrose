@@ -1,6 +1,5 @@
-import { SharedFileBufferSchema } from "@itsrose/shared-schema";
+import { fetcher } from "@itsrose/http-client";
 import { ThirdPartyApiError } from "@itsrose/system";
-import { z } from "zod/v4";
 import { httpClient } from "../client";
 import {
 	ElevenLabsCreateIVCVoiceResponseSchema,
@@ -9,28 +8,37 @@ import {
 	type IElevenLabsCreateIVCVoiceResponse,
 } from "../zod-schema";
 
-/**
- * Creates an Instant Voice Cloning (IVC) voice profile from uploaded audio samples.
- *
- * @param {Buffer[]} files Array of audio sample buffers (1 to 5 files).
- * @param {IElevenLabsCreateIVCVoice} opts Voice creation parameters (name, description, labels).
- * @returns {Promise<IElevenLabsCreateIVCVoiceResponse>} Created voice details including voice_id.
- * @throws {ThirdPartyApiError} If the ElevenLabs API returns an error status code.
- */
-export async function createIVCVoice(
-	files: Buffer[],
-	opts: IElevenLabsCreateIVCVoice
-): Promise<IElevenLabsCreateIVCVoiceResponse> {
-	const formData = new FormData();
-	// Append the files to the form data
-	for (const [index, file] of files.entries()) {
+const resolveAudioFiles = async (urls: string[], formData: FormData) => {
+	for await (const [index, url] of urls.entries()) {
+		const { data: file } = await fetcher
+			.get<Buffer>(url, { responseType: "arraybuffer" })
+			.catch(() => ({ data: null }));
+		if (!file) {
+			continue;
+		}
 		const blob = new Blob([Buffer.from(file)], {
 			type: "application/octet-stream",
 		});
 		formData.append(`files[${index}]`, blob, `file_${index}`);
 	}
+};
+
+/**
+ * Creates an Instant Voice Cloning (IVC) voice profile from uploaded audio samples.
+ *
+ * @param {IElevenLabsCreateIVCVoice} opts Voice creation parameters (name, description, labels).
+ * @returns {Promise<IElevenLabsCreateIVCVoiceResponse>} Created voice details including voice_id.
+ * @throws {ThirdPartyApiError} If the ElevenLabs API returns an error status code.
+ */
+export async function createIVCVoice(
+	opts: IElevenLabsCreateIVCVoice
+): Promise<IElevenLabsCreateIVCVoiceResponse> {
+	const { audio_urls, ...rest } = opts;
+	const formData = new FormData();
+	// Append the files to the form data
+	await resolveAudioFiles(audio_urls, formData);
 	// Append the options to the form data
-	Object.entries(opts).forEach(([key, value]) => {
+	Object.entries(rest).forEach(([key, value]) => {
 		if (value !== undefined) {
 			formData.append(
 				key,
@@ -49,23 +57,13 @@ export async function createIVCVoice(
 	if (error) {
 		throw new ThirdPartyApiError(error.message, error.statusCode);
 	}
-	return ElevenLabsCreateIVCVoiceResponseSchema.parse(data);
+	return data;
 }
 
 /**
  * Zod schemas for instant voice cloning request and response validation.
  */
 export const createIVCVoiceSchema = {
-	request: z
-		.object({
-			files: z.union([
-				SharedFileBufferSchema,
-				z
-					.array(SharedFileBufferSchema)
-					.min(1, "At least one file is required")
-					.max(5, "A maximum of 5 files are allowed"),
-			]),
-		})
-		.and(ElevenLabsCreateIVCVoiceSchema),
+	request: ElevenLabsCreateIVCVoiceSchema,
 	response: ElevenLabsCreateIVCVoiceResponseSchema,
 };

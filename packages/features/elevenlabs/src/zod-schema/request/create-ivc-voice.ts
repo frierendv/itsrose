@@ -5,6 +5,7 @@ import { z } from "zod/v4";
  */
 export const ElevenLabsCreateIVCVoiceSchema = z
 	.object({
+		audio_urls: z.array(z.url()).describe("List of audio url."),
 		name: z
 			.string()
 			.min(1)

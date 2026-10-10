@@ -76,9 +76,7 @@ const ModelSchema = z.object({
 /** `GET /v1/models` → 200 response (array of models) */
 export const ElevenLabsListModelsResponseSchema = z
 	.object({
-		models: z
-			.array(ModelSchema)
-			.describe("List of available models from ElevenLabs API"),
+		models: z.array(ModelSchema).describe("List of available models"),
 	})
 	.meta({
 		id: "ElevenLabsModels",
