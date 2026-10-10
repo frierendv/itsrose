@@ -1,0 +1,13 @@
+services:
+    api:
+        container_name: itsrose-api-internal
+        build:
+            context: ../
+            dockerfile: apps/api-internal/Dockerfile
+            network: host
+        restart: unless-stopped
+        env_file:
+            - .env.api-internal
+        environment:
+            NODE_ENV: production
+            PORT: 3002

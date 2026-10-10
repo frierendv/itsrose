@@ -1,0 +1,56 @@
+{
+	"name": "api-internal",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"private": true,
+	"type": "module",
+	"license": "MIT",
+	"description": "ItsRose Network API",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git"
+	},
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "dist/main.mjs",
+	"scripts": {
+		"build": "tsdown",
+		"clean": "rimraf dist .sonda",
+		"dev": "tsx watch src/main.ts",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"start": "node dist/main.mjs",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@fastify/autoload": "^6.5.0",
+		"@fastify/cors": "^11.3.0",
+		"@fastify/helmet": "^13.1.1",
+		"@fastify/multipart": "^10.1.2",
+		"@fastify/rate-limit": "^11.2.0",
+		"@fastify/sensible": "^6.0.6",
+		"@fastify/swagger": "^9.9.1",
+		"@fastify/under-pressure": "^9.2.0",
+		"@itsrose/api-response": "workspace:*",
+		"@itsrose/elevenlabs": "workspace:*",
+		"@itsrose/instagram": "workspace:*",
+		"@itsrose/mtxx": "workspace:*",
+		"@itsrose/remini": "workspace:*",
+		"@itsrose/system": "workspace:*",
+		"@itsrose/tiktok": "workspace:*",
+		"@ngrok/ngrok": "^1.7.0",
+		"close-with-grace": "^2.5.0",
+		"dotenv": "^18.0.5",
+		"fastify": "^5.12.5",
+		"fastify-plugin": "^6.0.0",
+		"fastify-zod-openapi": "^5.7.0",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@itsrose/http-code": "workspace:*",
+		"@itsrose/standard": "workspace:*",
+		"@scalar/fastify-api-reference": "^1.72.4",
+		"@types/ws": "^8.18.2",
+		"openapi-types": "^12.1.3"
+	}
+}
