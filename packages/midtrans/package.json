@@ -1,0 +1,72 @@
+{
+	"name": "@itsrose/midtrans",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"type": "module",
+	"license": "MIT",
+	"description": "Midtrans Payment Gateway SDK with Zod validation schemas and TypeScript types.",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/frierendv/itsrose.git",
+		"directory": "packages/midtrans"
+	},
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "./dist/index.mjs",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"files": [
+		"dist"
+	],
+	"keywords": [
+		"midtrans",
+		"payment",
+		"qris",
+		"virtual-account",
+		"snap",
+		"gopay",
+		"shopeepay",
+		"itsrose",
+		"typescript",
+		"zod"
+	],
+	"exports": {
+		".": "./src/index.ts",
+		"./api": "./src/api/index.ts",
+		"./client": "./src/client/index.ts",
+		"./helper": "./src/helper/index.ts",
+		"./schema": "./src/schema/index.ts",
+		"./typings": "./src/typings/index.ts",
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"build": "tsdown",
+		"build:fast": "tsdown src",
+		"clean": "rimraf dist .sonda",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@h1dd3nsn1p3r/pdf-invoice": "^1.0.15",
+		"@itsrose/http-client": "workspace:*",
+		"@itsrose/system": "workspace:*",
+		"@lacspace/pdf": "^1.1.0",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@itsrose/standard": "workspace:*",
+		"@opentf/obj-diff": "^0.18.0"
+	},
+	"publishConfig": {
+		"exports": {
+			".": "./dist/index.mjs",
+			"./api": "./dist/api.mjs",
+			"./client": "./dist/client.mjs",
+			"./helper": "./dist/helper.mjs",
+			"./schema": "./dist/schema.mjs",
+			"./typings": "./dist/typings.mjs",
+			"./package.json": "./package.json"
+		}
+	}
+}
