@@ -10,7 +10,7 @@ export const MusicComposePlanResponseSchema = z.union([
 ]);
 
 export const MusicComposeDetailedResponseSchema = z.object({
-	audio: z.string().describe("Audio url"),
+	audio: z.string().describe("Audio base64"),
 	composition_plan: MusicComposePlanResponseSchema,
 	song_metadata: z
 		.object({

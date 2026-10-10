@@ -52,9 +52,7 @@ export const ElevenLabsListVoicesSchema = z
 			])
 			.nullish()
 			.optional()
-			.describe(
-				"Filter voices by type. See the [voices documentation](https://elevenlabs.io/docs/api-reference/voices/search#request.query.voice_type) for more details on voice types."
-			),
+			.describe("Filter voices by type."),
 		category: z
 			.enum(["premade", "cloned", "generated", "professional"])
 			.nullish()
