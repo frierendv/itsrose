@@ -3,12 +3,11 @@
 	"name": "ItsRose Documentation",
 	"plugin": [
 		"@boneskull/typedoc-plugin-mermaid",
+		"typedoc-plugin-zod",
 		"typedoc-plugin-mdn-links",
 		"typedoc-plugin-dt-links",
-		"typedoc-plugin-hash-link-references",
-		"typedoc-plugin-zod"
+		"typedoc-plugin-hash-link-references"
 	],
-	"packagesRequiringDocumentation": ["typedoc", "typedoc-plugin-mdn-links"],
 	"out": "./docs",
 	"customCss": "./assets/css/typedoc-theme.css",
 	"entryPoints": ["packages/**/*"],
@@ -34,10 +33,12 @@
 	"searchInComments": true,
 	"cleanOutputDir": true,
 	"commentStyle": "all",
-	"exclude": ["**/standard/*"],
+	"exclude": ["**/standard", "**/__tests__/**"],
 	"includeVersion": true,
 	"externalSymbolLinkMappings": {
-		"@itsrose/logger": { "pinoTransport": "#" }
+		"@itsrose/logger": { "pinoTransport": "#" },
+		"s3mini": { "S3mini": "#" },
+		"axios": { "AxiosError": "#" }
 	},
 	"additionalModuleSources": ["typescript", "@types/node", "@types/jest"]
 }
