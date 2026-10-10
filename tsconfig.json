@@ -3,7 +3,64 @@
 	"include": [],
 	"references": [
 		{
-			"path": "./packages/standard/typescript/node.json"
+			"path": "packages/auth"
+		},
+		{
+			"path": "packages/core/logger"
+		},
+		{
+			"path": "packages/core/system"
+		},
+		{
+			"path": "packages/features/character-ai"
+		},
+		{
+			"path": "packages/features/elevenlabs"
+		},
+		{
+			"path": "packages/features/instagram"
+		},
+		{
+			"path": "packages/features/mtxx"
+		},
+		{
+			"path": "packages/features/remini"
+		},
+		{
+			"path": "packages/features/tiktok"
+		},
+		{
+			"path": "packages/internal/api-response"
+		},
+		{
+			"path": "packages/internal/http-client"
+		},
+		{
+			"path": "packages/internal/http-code"
+		},
+		{
+			"path": "packages/internal/s3"
+		},
+		{
+			"path": "packages/midtrans"
+		},
+		{
+			"path": "packages/others/api-client"
+		},
+		{
+			"path": "packages/others/lowdb"
+		},
+		{
+			"path": "packages/react"
+		},
+		{
+			"path": "packages/shared/common"
+		},
+		{
+			"path": "packages/shared/fastify-utils"
+		},
+		{
+			"path": "packages/shared/shared-schema"
 		}
 	]
 }
