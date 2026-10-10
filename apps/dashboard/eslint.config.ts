@@ -1,1 +1,1 @@
-export { nextJsConfig as default } from "@itsrose/eslint-config/next-js";
+export { nextJsConfig as default } from "@itsrose/standard/eslint/next";

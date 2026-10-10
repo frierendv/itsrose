@@ -1,5 +1,5 @@
 {
-	"extends": "@itsrose/typescript-config/nextjs.json",
+	"extends": "@itsrose/standard/typescript/nextjs.json",
 	"compilerOptions": {
 		"target": "ES2017",
 		"verbatimModuleSyntax": true,
