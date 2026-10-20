@@ -1,13 +1,102 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import DiagnosticsBox from "../components/DiagnosticsBox.astro";
+import ErrorHeader from "../components/ErrorHeader.astro";
+import NetworkHopDiagram from "../components/NetworkHopDiagram.astro";
+import ErrorLayout from "../layouts/ErrorLayout.astro";
 ---
 
-<Layout
-	content={{
-		title: "Host Error",
-		subtitle: "Oops! Something went wrong.",
-		description:
-			"The host is currently unavailable. Please try again later or contact support if the issue persists.",
-		cfTag: "::CLOUDFLARE_ERROR_1000S_BOX::",
-	}}
-/>
+<ErrorLayout
+	title="1000 DNS or Network Connection Failure"
+	description="Cloudflare cannot route to the destination host via DNS or active Tunnel."
+	headerStatusText="Edge Connection Disrupted"
+	headerStatusType="danger"
+>
+	<ErrorHeader
+		badge="1000 Connection Failure"
+		badgeType="danger"
+		title="DNS or Tunnel Disconnected"
+		description="Cloudflare was unable to establish a connection to the network or Cloudflare Tunnel endpoint. The destination hostname cannot be resolved or the tunnel daemon is offline."
+	/>
+
+	<NetworkHopDiagram state="1000-dns-error" />
+
+	<div
+		class="cf-edge-container"
+		role="region"
+		aria-label="Cloudflare Error Details"
+	>
+		::CLOUDFLARE_ERROR_1000S_BOX::
+	</div>
+
+	<div class="guidance-grid">
+		<div class="guidance-card">
+			<h2 class="guidance-title">
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<circle cx="12" cy="12" r="10"></circle>
+					<line x1="12" y1="16" x2="12" y2="12"></line>
+					<line x1="12" y1="8" x2="12.01" y2="8"></line>
+				</svg>
+				What this means
+			</h2>
+			<ul class="guidance-list">
+				<li>
+					The DNS record points to a prohibited IP or an unreachable
+					CNAME.
+				</li>
+				<li>
+					If using Cloudflare Tunnel, the <code
+						style="font-family: var(--font-mono); font-size: 0.8rem; background: var(--bg-subtle); padding: 0.1rem 0.3rem; border-radius: 4px;"
+						>cloudflared</code
+					> service may be stopped.
+				</li>
+				<li>
+					The website is temporarily inaccessible until network
+					routing is restored.
+				</li>
+			</ul>
+		</div>
+
+		<div class="guidance-card">
+			<h2 class="guidance-title">
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<path
+						d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+					></path>
+				</svg>
+				Administrator action
+			</h2>
+			<ul class="guidance-list">
+				<li>
+					Confirm that DNS A/AAAA records point to active, valid
+					origin IP addresses.
+				</li>
+				<li>
+					Check <code
+						style="font-family: var(--font-mono); font-size: 0.8rem; background: var(--bg-subtle); padding: 0.1rem 0.3rem; border-radius: 4px;"
+						>systemctl status cloudflared</code
+					> on your tunnel gateway.
+				</li>
+				<li>
+					Inspect Cloudflare Zero Trust dashboard for active tunnel
+					connectors.
+				</li>
+			</ul>
+		</div>
+	</div>
+
+	<DiagnosticsBox />
+</ErrorLayout>

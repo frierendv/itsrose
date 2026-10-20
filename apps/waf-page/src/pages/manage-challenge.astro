@@ -1,13 +1,36 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import DiagnosticsBox from "../components/DiagnosticsBox.astro";
+import ErrorHeader from "../components/ErrorHeader.astro";
+import LoadingSpinner from "../components/LoadingSpinner.astro";
+import ErrorLayout from "../layouts/ErrorLayout.astro";
 ---
 
-<Layout
-	content={{
-		title: "Security Verification",
-		subtitle: "Security verification.",
-		description:
-			"We briefly paused your request to confirm it comes from a real person.",
-		cfTag: "::CAPTCHA_BOX::",
-	}}
-/>
+<ErrorLayout
+	title="Checking Your Browser"
+	description="Cloudflare is verifying your connection before granting access to ItsRose Network."
+	headerStatusText="Verifying Browser"
+	headerStatusType="info"
+>
+	<ErrorHeader
+		badge="Managed Challenge"
+		badgeType="info"
+		title="Checking Your Connection"
+		description="We briefly paused your request to confirm your browser and connection security. This automated verification helps keep our network safe."
+	/>
+
+	<div class="challenge-card">
+		<LoadingSpinner
+			label="Verifying you are human. This will take just a moment..."
+		/>
+
+		<div
+			class="captcha-target-wrapper"
+			role="region"
+			aria-label="Cloudflare Managed Challenge"
+		>
+			::CAPTCHA_BOX::
+		</div>
+	</div>
+
+	<DiagnosticsBox compact={true} />
+</ErrorLayout>

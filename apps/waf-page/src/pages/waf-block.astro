@@ -1,14 +1,87 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import DiagnosticsBox from "../components/DiagnosticsBox.astro";
+import ErrorHeader from "../components/ErrorHeader.astro";
+import NetworkHopDiagram from "../components/NetworkHopDiagram.astro";
+import ErrorLayout from "../layouts/ErrorLayout.astro";
 ---
 
-<Layout
-	content={{
-		title: "Access Temporarily Restricted",
-		subtitle: "Access temporarily restricted due to security policy",
-		description:
-			"Our security systems detected unusual or potentially harmful " +
-			"activity from your request, so access to this page has been " +
-			"temporarily blocked.",
-	}}
-/>
+<ErrorLayout
+	title="403 Access Denied | WAF Security Policy"
+	description="Your request was flagged and restricted by Cloudflare Web Application Firewall security policies."
+	headerStatusText="Request Flagged"
+	headerStatusType="warning"
+>
+	<ErrorHeader
+		badge="403 Access Denied"
+		badgeType="warning"
+		title="Access Restricted by Security Policy"
+		description="Your request was flagged by the website's security policy. The Cloudflare Web Application Firewall (WAF) evaluated your traffic and blocked it from reaching the origin server."
+	/>
+
+	<NetworkHopDiagram state="waf-block" />
+
+	<div class="guidance-grid">
+		<div class="guidance-card">
+			<h2 class="guidance-title">
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+					></path>
+				</svg>
+				Why was this request blocked?
+			</h2>
+			<ul class="guidance-list">
+				<li>
+					The request matched a specific WAF firewall rule configured
+					by the site owner.
+				</li>
+				<li>
+					Automated scripts, unusual HTTP request headers, or
+					suspicious query parameters may have triggered detection.
+				</li>
+				<li>
+					Your IP address may belong to an untrusted proxy or flagged
+					IP range.
+				</li>
+			</ul>
+		</div>
+
+		<div class="guidance-card">
+			<h2 class="guidance-title">
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<circle cx="12" cy="12" r="10"></circle>
+					<polyline points="12 6 12 12 14 14"></polyline>
+				</svg>
+				What should you do?
+			</h2>
+			<ul class="guidance-list">
+				<li>
+					If using a VPN, proxy, or scraper, try disabling it and
+					refreshing the page.
+				</li>
+				<li>
+					Ensure cookies and JavaScript are enabled in your browser.
+				</li>
+				<li>
+					If you believe this was triggered in error, copy the
+					diagnostic details below and send them to site support.
+				</li>
+			</ul>
+		</div>
+	</div>
+
+	<DiagnosticsBox />
+</ErrorLayout>

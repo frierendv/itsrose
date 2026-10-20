@@ -1,12 +1,495 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import DiagnosticsBox from "../components/DiagnosticsBox.astro";
+import ErrorLayout from "../layouts/ErrorLayout.astro";
+
+const mockDiagnostics = {
+	rayId: "8f7e2a91c0b3",
+	clientIp: "203.0.113.195",
+	geo: "CGK / Jakarta",
+};
+
+const templates = [
+	{
+		title: "500 Origin Host Failure",
+		slug: "/500",
+		code: "500 / 520+",
+		badge: "Origin Outage",
+		badgeType: "danger",
+		desc: "Origin web server unreachable or returning 5xx gateway timeout. Includes NetworkHopDiagram and ::CLOUDFLARE_ERROR_500S_BOX::.",
+		tokens: [
+			"::CLOUDFLARE_ERROR_500S_BOX::",
+			"::RAY_ID::",
+			"::CLIENT_IP::",
+			"::GEO::",
+		],
+	},
+	{
+		title: "1000 DNS / Tunnel Error",
+		slug: "/1000",
+		code: "1000 Series",
+		badge: "Network Error",
+		badgeType: "danger",
+		desc: "DNS misconfiguration or disconnected Cloudflare Tunnel connector. Includes ::CLOUDFLARE_ERROR_1000S_BOX::.",
+		tokens: [
+			"::CLOUDFLARE_ERROR_1000S_BOX::",
+			"::RAY_ID::",
+			"::CLIENT_IP::",
+			"::GEO::",
+		],
+	},
+	{
+		title: "WAF Firewall Rule Block",
+		slug: "/waf-block",
+		code: "403 / 1020",
+		badge: "Access Denied",
+		badgeType: "warning",
+		desc: "Traffic blocked by Cloudflare WAF firewall rule. Highlights security diagnostics and actionable resolution steps.",
+		tokens: ["::RAY_ID::", "::CLIENT_IP::", "::GEO::"],
+	},
+	{
+		title: "Geographic / Country Block",
+		slug: "/country-block",
+		code: "403 Geo",
+		badge: "Restricted Region",
+		badgeType: "warning",
+		desc: "Geographic restriction firewall rule based on visitor's regional jurisdiction (::GEO::).",
+		tokens: ["::GEO::", "::CLIENT_IP::", "::RAY_ID::"],
+	},
+	{
+		title: "Rate Limiting Exceeded",
+		slug: "/rate-limiting",
+		code: "429 Too Many Requests",
+		badge: "Rate Limit",
+		badgeType: "warning",
+		desc: "Rate-based rule triggered due to excess request volume. Includes cooldown progress bar.",
+		tokens: ["::RAY_ID::", "::CLIENT_IP::", "::GEO::"],
+	},
+	{
+		title: "Interactive Challenge",
+		slug: "/interactive-challenge",
+		code: "Turnstile CAPTCHA",
+		badge: "Interactive",
+		badgeType: "info",
+		desc: "Interactive Cloudflare Turnstile challenge box with SVG loading indicator and ::CAPTCHA_BOX::.",
+		tokens: ["::CAPTCHA_BOX::", "::RAY_ID::", "::CLIENT_IP::", "::GEO::"],
+	},
+	{
+		title: "Managed Challenge",
+		slug: "/manage-challenge",
+		code: "Managed Check",
+		badge: "Browser Verify",
+		badgeType: "info",
+		desc: "Cloudflare managed challenge verification container with minimal spinner and ::CAPTCHA_BOX::.",
+		tokens: ["::CAPTCHA_BOX::", "::RAY_ID::", "::CLIENT_IP::", "::GEO::"],
+	},
+	{
+		title: "Non-Interactive Challenge",
+		slug: "/non-interactive-challenge",
+		code: "JS Background",
+		badge: "Silent Verify",
+		badgeType: "info",
+		desc: "JavaScript background verification checkpoint with non-interactive challenge container.",
+		tokens: ["::CAPTCHA_BOX::", "::RAY_ID::", "::CLIENT_IP::", "::GEO::"],
+	},
+];
 ---
 
-<Layout
-	content={{
-		title: "Internal Server Error",
-		subtitle: "Internal Server Error",
-		description: "Our servers are currently experiencing issues.",
-		cfTag: "::CLOUDFLARE_ERROR_500S_BOX::",
-	}}
-/>
+<ErrorLayout
+	title="Cloudflare Edge Error & Challenge Suite"
+	description="Preview and verification dashboard for ItsRose Cloudflare edge custom error and challenge pages."
+	headerStatusText="Dev Environment"
+	headerStatusType="success"
+>
+	<div class="dev-header">
+		<div class="badge badge-success">
+			<span class="pulse-dot"></span>
+			<span>Edge Suite Dev Hub</span>
+		</div>
+		<h1 class="dev-title">Custom Edge Error &amp; Challenge Pages</h1>
+		<p class="dev-subtitle">
+			Preview and verify all custom edge error templates with injected
+			mock tokens. All stylesheets are fully inlined at build time with
+			zero external network dependencies.
+		</p>
+	</div>
+
+	<!-- Mock Data Banner -->
+	<div class="mock-data-banner">
+		<div class="mock-title-row">
+			<span class="mock-tag">Active Mock Tokens</span>
+			<span
+				style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);"
+			>
+				Local Preview Mode
+			</span>
+		</div>
+		<div class="mock-tokens-grid">
+			<div class="mock-token-item">
+				<span class="mock-token-key">RAY_ID</span>
+				<code class="mock-token-val">{mockDiagnostics.rayId}</code>
+			</div>
+			<div class="mock-token-item">
+				<span class="mock-token-key">CLIENT_IP</span>
+				<code class="mock-token-val">{mockDiagnostics.clientIp}</code>
+			</div>
+			<div class="mock-token-item">
+				<span class="mock-token-key">GEO</span>
+				<code class="mock-token-val">{mockDiagnostics.geo}</code>
+			</div>
+		</div>
+	</div>
+
+	<!-- Template Gallery Grid -->
+	<section class="gallery-section" aria-label="Template Preview Directory">
+		<h2 class="gallery-heading">Available Edge Templates</h2>
+
+		<div class="template-grid">
+			{
+				templates.map((tpl) => (
+					<article class="template-card">
+						<div class="tpl-card-header">
+							<div class="tpl-badge-group">
+								<span class={`badge badge-${tpl.badgeType}`}>
+									{tpl.badge}
+								</span>
+								<span class="tpl-code">{tpl.code}</span>
+							</div>
+							<a href={tpl.slug} class="btn-preview-link">
+								Preview
+								<svg
+									width="14"
+									height="14"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								>
+									<line x1="5" y1="12" x2="19" y2="12" />
+									<polyline points="12 5 19 12 12 19" />
+								</svg>
+							</a>
+						</div>
+
+						<h3 class="tpl-title">
+							<a href={tpl.slug} class="tpl-title-link">
+								{tpl.title}
+							</a>
+						</h3>
+						<p class="tpl-desc">{tpl.desc}</p>
+
+						<div class="tpl-tokens-row">
+							<span class="tokens-label">
+								Injected Edge Tokens:
+							</span>
+							<div class="tokens-list">
+								{tpl.tokens.map((tk) => (
+									<code class="token-pill">{tk}</code>
+								))}
+							</div>
+						</div>
+					</article>
+				))
+			}
+		</div>
+	</section>
+
+	<!-- Live Diagnostics Showcase -->
+	<section
+		class="mock-diagnostics-section"
+		aria-label="Mock Diagnostics Component Preview"
+	>
+		<h2 class="gallery-heading">
+			Diagnostics Component Preview (Mock Injected)
+		</h2>
+		<DiagnosticsBox
+			rayId={mockDiagnostics.rayId}
+			clientIp={mockDiagnostics.clientIp}
+			geo={mockDiagnostics.geo}
+			title="Preview Diagnostics (Mock Injected)"
+		/>
+	</section>
+
+	<!-- Edge Architecture Spec -->
+	<section
+		class="spec-card"
+		aria-label="Cloudflare Custom Pages Architecture"
+	>
+		<h2 class="guidance-title">
+			<svg
+				width="18"
+				height="18"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+			>
+				<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+			</svg>
+			Cloudflare Edge Token Verification Checklist
+		</h2>
+		<p
+			style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-top: 0.5rem;"
+		>
+			When deployed to Cloudflare Custom Pages, the edge proxy scans the
+			compiled HTML and replaces tokens with real request metadata. During
+			normal operation or attacks, HTML files run in isolation with 100%
+			inlined CSS:
+		</p>
+		<ul class="guidance-list" style="margin-top: 0.75rem;">
+			<li>
+				<code class="token-pill">::CLOUDFLARE_ERROR_500S_BOX::</code> &mdash;
+				Injected on 500 origin errors.
+			</li>
+			<li>
+				<code class="token-pill">::CLOUDFLARE_ERROR_1000S_BOX::</code> &mdash;
+				Injected on 1000 DNS/tunnel connection failures.
+			</li>
+			<li>
+				<code class="token-pill">::CAPTCHA_BOX::</code> &mdash; Injected for
+				interactive &amp; non-interactive Turnstile challenges.
+			</li>
+			<li>
+				<code class="token-pill">::RAY_ID::</code> &mdash; Unique identifier
+				generated by Cloudflare edge for tracing.
+			</li>
+			<li>
+				<code class="token-pill">::CLIENT_IP::</code> &mdash; Public client
+				IP seen by the edge data center.
+			</li>
+			<li>
+				<code class="token-pill">::GEO::</code> &mdash; IATA airport code
+				or country location of the edge data center.
+			</li>
+		</ul>
+	</section>
+</ErrorLayout>
+
+<style>
+	.dev-header {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		align-items: flex-start;
+	}
+
+	.dev-title {
+		font-size: clamp(1.8rem, 4vw, 2.3rem);
+		font-weight: 700;
+		color: var(--text-primary);
+		letter-spacing: -0.025em;
+		line-height: 1.2;
+	}
+
+	.dev-subtitle {
+		font-size: 1rem;
+		color: var(--text-secondary);
+		line-height: 1.6;
+		max-width: 650px;
+	}
+
+	/* Mock Data Banner */
+	.mock-data-banner {
+		background: var(--bg-surface);
+		border: 1px solid var(--border-default);
+		border-radius: var(--radius-lg);
+		padding: 1rem 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+	}
+
+	.mock-title-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.mock-tag {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--text-secondary);
+	}
+
+	.mock-tokens-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+		gap: 0.75rem;
+	}
+
+	.mock-token-item {
+		background: var(--bg-elevated);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-sm);
+		padding: 0.5rem 0.75rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+
+	.mock-token-key {
+		font-size: 0.65rem;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--text-muted);
+		font-weight: 600;
+	}
+
+	.mock-token-val {
+		font-family: var(--font-mono);
+		font-size: 0.85rem;
+		color: var(--color-rose-hover);
+	}
+
+	/* Gallery Section */
+	.gallery-section {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		width: 100%;
+	}
+
+	.gallery-heading {
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: var(--text-primary);
+		letter-spacing: -0.01em;
+	}
+
+	.template-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+		gap: 1.25rem;
+	}
+
+	.template-card {
+		background: var(--bg-surface);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-lg);
+		padding: 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		transition: all var(--transition-smooth);
+	}
+
+	.template-card:hover {
+		border-color: var(--border-hover);
+		transform: translateY(-2px);
+		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+	}
+
+	.tpl-card-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+
+	.tpl-badge-group {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.tpl-code {
+		font-family: var(--font-mono);
+		font-size: 0.7rem;
+		color: var(--text-muted);
+		background: var(--bg-elevated);
+		padding: 0.15rem 0.45rem;
+		border-radius: var(--radius-sm);
+	}
+
+	.btn-preview-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--text-secondary);
+		background: var(--bg-elevated);
+		border: 1px solid var(--border-subtle);
+		border-radius: var(--radius-sm);
+		padding: 0.25rem 0.55rem;
+		text-decoration: none;
+		transition: all var(--transition-fast);
+	}
+
+	.btn-preview-link:hover {
+		color: var(--color-rose);
+		border-color: var(--color-rose-glow);
+	}
+
+	.tpl-title {
+		font-size: 1.05rem;
+		font-weight: 600;
+		line-height: 1.3;
+	}
+
+	.tpl-title-link {
+		color: var(--text-primary);
+		text-decoration: none;
+		transition: color var(--transition-fast);
+	}
+
+	.tpl-title-link:hover {
+		color: var(--color-rose-hover);
+	}
+
+	.tpl-desc {
+		font-size: 0.825rem;
+		color: var(--text-secondary);
+		line-height: 1.5;
+		flex: 1;
+	}
+
+	.tpl-tokens-row {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		padding-top: 0.5rem;
+		border-top: 1px solid var(--border-subtle);
+	}
+
+	.tokens-label {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--text-muted);
+	}
+
+	.tokens-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+	}
+
+	.token-pill {
+		font-family: var(--font-mono);
+		font-size: 0.7rem;
+		background: var(--bg-elevated);
+		border: 1px solid var(--border-subtle);
+		color: #e2e8f0;
+		padding: 0.1rem 0.4rem;
+		border-radius: 4px;
+	}
+
+	.mock-diagnostics-section {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		width: 100%;
+	}
+
+	.spec-card {
+		background: var(--bg-surface);
+		border: 1px solid var(--border-default);
+		border-radius: var(--radius-lg);
+		padding: 1.25rem 1.5rem;
+	}
+</style>

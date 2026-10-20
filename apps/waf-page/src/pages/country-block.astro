@@ -1,12 +1,93 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import DiagnosticsBox from "../components/DiagnosticsBox.astro";
+import ErrorHeader from "../components/ErrorHeader.astro";
+import NetworkHopDiagram from "../components/NetworkHopDiagram.astro";
+import ErrorLayout from "../layouts/ErrorLayout.astro";
 ---
 
-<Layout
-	content={{
-		title: "Access Denied",
-		subtitle: "Access unavailable in your region",
-		description:
-			"Access to this site is currently not available from your location (::GEO::).",
-	}}
-/>
+<ErrorLayout
+	title="403 Region Restricted | Geo-Block"
+	description="Access to this website is restricted from your geographic location due to regional security policies."
+	headerStatusText="Region Blocked"
+	headerStatusType="warning"
+>
+	<ErrorHeader
+		badge="403 Geographic Restriction"
+		badgeType="warning"
+		title="Access Unavailable in Your Region"
+		description="Access to this service is restricted from your geographic location (::GEO::). The administrator has configured territorial access rules prohibiting incoming requests from this region."
+	/>
+
+	<NetworkHopDiagram state="country-block" />
+
+	<div class="guidance-grid">
+		<div class="guidance-card">
+			<h2 class="guidance-title">
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<circle cx="12" cy="12" r="10"></circle>
+					<line x1="2" y1="12" x2="22" y2="12"></line>
+					<path
+						d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+					></path>
+				</svg>
+				Regional compliance policy
+			</h2>
+			<ul class="guidance-list">
+				<li>
+					This restriction is based on the incoming IP address
+					geolocation detected by Cloudflare.
+				</li>
+				<li>
+					Regional rules are enforced at the network edge before any
+					request reaches the origin.
+				</li>
+				<li>
+					Geo-blocking may be required for licensing, regulatory, or
+					threat-mitigation compliance.
+				</li>
+			</ul>
+		</div>
+
+		<div class="guidance-card">
+			<h2 class="guidance-title">
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+					<circle cx="9" cy="7" r="4"></circle>
+					<path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+					<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+				</svg>
+				Need authorized access?
+			</h2>
+			<ul class="guidance-list">
+				<li>
+					If accessing on behalf of an enterprise partner, please
+					connect via an authorized corporate gateway or VPN.
+				</li>
+				<li>
+					If you believe your IP geolocation was misclassified, verify
+					your public IP details.
+				</li>
+				<li>
+					Send the diagnostic details below to your account manager or
+					technical support.
+				</li>
+			</ul>
+		</div>
+	</div>
+
+	<DiagnosticsBox />
+</ErrorLayout>

@@ -1,12 +1,85 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import DiagnosticsBox from "../components/DiagnosticsBox.astro";
+import ErrorHeader from "../components/ErrorHeader.astro";
+import NetworkHopDiagram from "../components/NetworkHopDiagram.astro";
+import ErrorLayout from "../layouts/ErrorLayout.astro";
 ---
 
-<Layout
-	content={{
-		title: "Internal Server Error",
-		subtitle: "Internal Server Error",
-		description: "Our servers are currently experiencing issues.",
-		cfTag: "::CLOUDFLARE_ERROR_500S_BOX::",
-	}}
-/>
+<ErrorLayout
+	title="500 Internal Server Error"
+	description="The Cloudflare edge network cannot reach the origin host or received an invalid response."
+	headerStatusText="Origin Host Down"
+	headerStatusType="danger"
+>
+	<ErrorHeader
+		badge="500 Origin Host Error"
+		badgeType="danger"
+		title="Origin Server Unreachable"
+		description="Cloudflare edge points of presence successfully received your request, but the origin web server timed out or returned an invalid response (500-series)."
+	/>
+
+	<NetworkHopDiagram state="500-origin-error" />
+
+	<div
+		class="cf-edge-container"
+		role="region"
+		aria-label="Cloudflare Error Details"
+	>
+		::CLOUDFLARE_ERROR_500S_BOX::
+	</div>
+
+	<div class="guidance-grid">
+		<div class="guidance-card">
+			<h2 class="guidance-title">
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<circle cx="12" cy="12" r="10"></circle>
+					<line x1="12" y1="16" x2="12" y2="12"></line>
+					<line x1="12" y1="8" x2="12.01" y2="8"></line>
+				</svg>
+				What can you do as a visitor?
+			</h2>
+			<ul class="guidance-list">
+				<li>Please wait a few moments and refresh the page.</li>
+				<li>Check if your network connection is stable.</li>
+				<li>
+					If this error persists, contact support with the Ray ID
+					below.
+				</li>
+			</ul>
+		</div>
+
+		<div class="guidance-card">
+			<h2 class="guidance-title">
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<path
+						d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
+					></path>
+				</svg>
+				Troubleshooting for administrators
+			</h2>
+			<ul class="guidance-list">
+				<li>Verify backend service processes and container health.</li>
+				<li>Check origin firewall / security group port bindings.</li>
+				<li>
+					Review web server error logs for unhandled 5xx exceptions.
+				</li>
+			</ul>
+		</div>
+	</div>
+
+	<DiagnosticsBox />
+</ErrorLayout>

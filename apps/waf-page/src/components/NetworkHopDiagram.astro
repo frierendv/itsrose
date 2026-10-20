@@ -1,0 +1,214 @@
+---
+interface Props {
+	state?:
+		| "500-origin-error"
+		| "1000-dns-error"
+		| "waf-block"
+		| "country-block"
+		| "rate-limit"
+		| "challenge";
+	browserStatus?: "ok" | "warning" | "error" | "checking";
+	edgeStatus?: "ok" | "warning" | "error" | "checking";
+	originStatus?: "ok" | "warning" | "error" | "inactive" | "checking";
+	browserLabel?: string;
+	edgeLabel?: string;
+	originLabel?: string;
+	browserSubtext?: string;
+	edgeSubtext?: string;
+	originSubtext?: string;
+}
+
+const {
+	state = "500-origin-error",
+	browserStatus: propBrowserStatus,
+	edgeStatus: propEdgeStatus,
+	originStatus: propOriginStatus,
+	browserLabel = "Browser",
+	edgeLabel = "Cloudflare Edge",
+	originLabel = "Origin Host",
+	browserSubtext: propBrowserSubtext,
+	edgeSubtext: propEdgeSubtext,
+	originSubtext: propOriginSubtext,
+} = Astro.props;
+
+// Determine status and labels based on state preset or props
+let bStatus = propBrowserStatus || "ok";
+let eStatus = propEdgeStatus || "ok";
+let oStatus = propOriginStatus || "error";
+let bSubtext = propBrowserSubtext || "Client Connection";
+let eSubtext = propEdgeSubtext || "Edge Network";
+let oSubtext = propOriginSubtext || "Web Server";
+
+let hop1Class = "ok";
+let hop2Class = "error";
+
+if (state === "500-origin-error") {
+	bStatus = "ok";
+	eStatus = "ok";
+	oStatus = "error";
+	bSubtext = "Working";
+	eSubtext = "Edge Online (::GEO::)";
+	oSubtext = "Host Error";
+	hop1Class = "ok";
+	hop2Class = "error";
+} else if (state === "1000-dns-error") {
+	bStatus = "ok";
+	eStatus = "error";
+	oStatus = "inactive";
+	bSubtext = "Working";
+	eSubtext = "Tunnel / DNS Down";
+	oSubtext = "Unreachable";
+	hop1Class = "ok";
+	hop2Class = "disabled";
+} else if (state === "waf-block") {
+	bStatus = "ok";
+	eStatus = "warning";
+	oStatus = "inactive";
+	bSubtext = "Working";
+	eSubtext = "Flagged by WAF";
+	oSubtext = "Protected";
+	hop1Class = "ok";
+	hop2Class = "blocked";
+} else if (state === "country-block") {
+	bStatus = "ok";
+	eStatus = "warning";
+	oStatus = "inactive";
+	bSubtext = "Working";
+	eSubtext = "Geo-Restricted (::GEO::)";
+	oSubtext = "Protected";
+	hop1Class = "ok";
+	hop2Class = "blocked";
+} else if (state === "rate-limit") {
+	bStatus = "ok";
+	eStatus = "warning";
+	oStatus = "inactive";
+	bSubtext = "Working";
+	eSubtext = "Rate Limited (429)";
+	oSubtext = "Protected";
+	hop1Class = "ok";
+	hop2Class = "blocked";
+} else if (state === "challenge") {
+	bStatus = "checking";
+	eStatus = "checking";
+	oStatus = "inactive";
+	bSubtext = "Verifying Client";
+	eSubtext = "Challenge Gate";
+	oSubtext = "Pending Verify";
+	hop1Class = "checking";
+	hop2Class = "disabled";
+}
+---
+
+<div
+	class="hop-diagram-card"
+	role="region"
+	aria-label="Network Routing Status Diagram"
+>
+	<div class="hop-header">
+		<span class="hop-header-title">Connection Status Path</span>
+		<span class="header-status-badge">
+			<span
+				class={`pulse-dot ${oStatus === "error" || eStatus === "error" ? "danger" : eStatus === "warning" ? "warning" : "info"}`}
+			></span>
+			<span>Diagnostic Route</span>
+		</span>
+	</div>
+
+	<div class="hop-container">
+		<!-- Node 1: Browser -->
+		<div class={`hop-node ${bStatus}`}>
+			<div class="hop-icon-bubble" title="Client Browser">
+				<svg
+					width="22"
+					height="22"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<rect width="20" height="14" x="2" y="3" rx="2"></rect>
+					<line x1="8" x2="16" y1="21" y2="21"></line>
+					<line x1="12" x2="12" y1="17" y2="21"></line>
+				</svg>
+			</div>
+			<span class="hop-name">{browserLabel}</span>
+			<span class="hop-status-pill">
+				{bStatus === "ok" && "Working"}
+				{bStatus === "checking" && "Verifying"}
+				{bStatus === "error" && "Error"}
+			</span>
+			<span class="hop-subtext">{bSubtext}</span>
+		</div>
+
+		<!-- Connector 1 -->
+		<div class="hop-connector" aria-hidden="true">
+			<div class={`hop-line ${hop1Class}`}></div>
+		</div>
+
+		<!-- Node 2: Cloudflare Edge -->
+		<div class={`hop-node ${eStatus}`}>
+			<div class="hop-icon-bubble" title="Cloudflare Edge Network">
+				<svg
+					width="22"
+					height="22"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path
+						d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"
+					></path>
+				</svg>
+			</div>
+			<span class="hop-name">{edgeLabel}</span>
+			<span class="hop-status-pill">
+				{eStatus === "ok" && "Working"}
+				{eStatus === "warning" && "Block / Flagged"}
+				{eStatus === "error" && "Disconnected"}
+				{eStatus === "checking" && "Verifying"}
+			</span>
+			<span class="hop-subtext">{eSubtext}</span>
+		</div>
+
+		<!-- Connector 2 -->
+		<div class="hop-connector" aria-hidden="true">
+			<div class={`hop-line ${hop2Class}`}></div>
+		</div>
+
+		<!-- Node 3: Origin Host -->
+		<div class={`hop-node ${oStatus}`}>
+			<div class="hop-icon-bubble" title="Origin Web Server">
+				<svg
+					width="22"
+					height="22"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<rect width="20" height="8" x="2" y="2" rx="2" ry="2"
+					></rect>
+					<rect width="20" height="8" x="2" y="14" rx="2" ry="2"
+					></rect>
+					<line x1="6" x2="6.01" y1="6" y2="6"></line>
+					<line x1="6" x2="6.01" y1="18" y2="18"></line>
+				</svg>
+			</div>
+			<span class="hop-name">{originLabel}</span>
+			<span class="hop-status-pill">
+				{oStatus === "ok" && "Working"}
+				{oStatus === "error" && "Error"}
+				{oStatus === "inactive" && "Inactive"}
+				{oStatus === "checking" && "Pending"}
+			</span>
+			<span class="hop-subtext">{oSubtext}</span>
+		</div>
+	</div>
+</div>
