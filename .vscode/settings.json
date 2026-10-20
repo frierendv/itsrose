@@ -7,7 +7,6 @@
 	"[typescript]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
-	"js/ts.tsdk.path": "node_modules/typescript/lib",
 	"jest.runMode": {
 		"type": "on-demand"
 	},
@@ -21,5 +20,22 @@
 	},
 	"[astro]": {
 		"editor.defaultFormatter": "astro-build.astro-vscode"
+	},
+	"[sql]": {
+		"editor.defaultFormatter": "inferrinizzard.prettier-sql-vscode"
+	},
+
+	"search.exclude": {
+		"**/dist": true,
+		"**/node_modules": true,
+		"**/.turbo/**": true
+	},
+	"files.watcherExclude": {
+		"**/dist/**": true,
+		"**/node_modules/**": true,
+		"**/.turbo/**": true
+	},
+	"[dockercompose]": {
+		"editor.defaultFormatter": "ms-azuretools.vscode-containers"
 	}
 }
