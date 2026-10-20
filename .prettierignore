@@ -2,3 +2,4 @@ plop-templates
 dist
 .sonda
 package-lock.json
+docker-compose*.yml
