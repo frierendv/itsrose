@@ -4,16 +4,6 @@ export type NarrowInput<T, Schema> = T &
 	Schema & {
 		[K in keyof T]: K extends keyof Schema ? T[K] : never;
 	};
-export type PDeepNullable<T> = {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-	[K in keyof T]: T[K] extends Function
-		? T[K]
-		: T[K] extends Array<infer U>
-			? Array<DeepNullable<U>> | null
-			: T[K] extends object
-				? DeepNullable<T[K]> | null
-				: T[K] | null;
-};
 
 export type DeepNullable<T> = T extends (...args: any[]) => any
 	? T

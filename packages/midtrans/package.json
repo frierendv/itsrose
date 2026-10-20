@@ -19,15 +19,15 @@
 		"dist"
 	],
 	"keywords": [
+		"gopay",
+		"itsrose",
 		"midtrans",
 		"payment",
 		"qris",
-		"virtual-account",
-		"snap",
-		"gopay",
 		"shopeepay",
-		"itsrose",
+		"snap",
 		"typescript",
+		"virtual-account",
 		"zod"
 	],
 	"exports": {
@@ -48,10 +48,8 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@h1dd3nsn1p3r/pdf-invoice": "^1.0.15",
 		"@itsrose/http-client": "workspace:*",
 		"@itsrose/system": "workspace:*",
-		"@lacspace/pdf": "^1.1.0",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
