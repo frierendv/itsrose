@@ -7,9 +7,9 @@ const route: FastifyPluginAsync = async (fastify): Promise<void> => {
 		method: "POST",
 		url: "/text_to_dialogue",
 		schema: {
-			tags: ["ElevenLabs"],
+			tags: ["Audio"],
 			summary: "Text to Dialogue",
-			description: `Convert text to dialogue using ElevenLabs API
+			description: `Convert text to dialogue.
 
 Example Output:
 

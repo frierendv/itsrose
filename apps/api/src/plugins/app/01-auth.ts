@@ -1,17 +1,25 @@
-import {
-	getSubscription,
-	verifyApikey,
-	type SubscriptionAccess,
-} from "@/lib/auth";
+import { getSubscription } from "@/lib/auth";
+import { CACHE_KEYS } from "@/lib/cache";
 import { redisStorage } from "@better-auth/redis-storage";
+import type { UserSubscription } from "@itsrose/auth/itsrose";
 import { createBetterAuthServer, type AuthServer } from "@itsrose/auth/server";
 import fp from "fastify-plugin";
 
 export default fp(
 	async (fastify) => {
+		const trustedOrigins = fastify.env.APP_BASE_URL
+			? fastify.env.APP_BASE_URL.split(",").map((origin) => origin.trim())
+			: [];
+		// #if DEV
+		if (!trustedOrigins.length || !("localhost" in trustedOrigins)) {
+			trustedOrigins.push("http://localhost:3000");
+		}
+		// #endif
+
 		const auth = createBetterAuthServer({
-			logger: { disabled: true },
-			basePath: "/api",
+			baseURL: fastify.env.BETTER_AUTH_BASE_URL,
+			trustedOrigins,
+			basePath: "/auth",
 			database: fastify.database,
 			secondaryStorage: redisStorage({
 				client: fastify.redis,
@@ -19,12 +27,23 @@ export default fp(
 			}),
 		});
 
-		void fastify.decorate("auth", auth.api);
-		void fastify.decorate("apikey", {
-			verify: (plain: string) => verifyApikey(auth, plain),
-		});
+		void fastify.decorate("auth", auth);
 		void fastify.decorate("subscription", {
-			get: (userId: string) => getSubscription(fastify.database, userId),
+			get: (userId: string) => getSubscription(auth, userId),
+			invalidate: async (userId: string) => {
+				try {
+					await fastify.redis
+						.pipeline()
+						.del(CACHE_KEYS.subscriptionAccess(userId))
+						.del(CACHE_KEYS.badSubscription(userId))
+						.exec();
+				} catch (err) {
+					fastify.log.warn(
+						{ err, userId },
+						"Failed to invalidate subscription cache"
+					);
+				}
+			},
 		});
 	},
 	{
@@ -35,14 +54,11 @@ export default fp(
 );
 
 declare module "fastify" {
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	interface FastifyInstance {
-		auth: AuthServer["api"];
-		apikey: {
-			verify: (plain: string) => ReturnType<typeof verifyApikey>;
-		};
+		auth: AuthServer;
 		subscription: {
-			get: (userId: string) => Promise<SubscriptionAccess>;
+			get: (userId: string) => Promise<UserSubscription>;
+			invalidate: (userId: string) => Promise<void>;
 		};
 	}
 }

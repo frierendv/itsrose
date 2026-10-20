@@ -10,7 +10,6 @@ export default fp(
 );
 
 declare module "fastify" {
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	interface FastifyInstance {
 		env: ApiEnv;
 	}

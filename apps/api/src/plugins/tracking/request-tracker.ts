@@ -4,13 +4,12 @@ const fastifyRequestTracker = fp(
 	async (fastify) => {
 		// Hook: runs before route handler
 		void fastify.addHook("onRequest", async (request) => {
-			request.startTime = Date.now();
-
 			void request.log.info({
 				event: "request_start",
 				method: request.method,
 				url: request.url,
 				userAgent: request.headers["user-agent"],
+				userId: request.userId,
 				ip: request.ip,
 			});
 		});
@@ -21,26 +20,19 @@ const fastifyRequestTracker = fp(
 				event: "request_end",
 				method: request.method,
 				url: request.url,
-				statusCode: reply.statusCode,
 				durationMs: reply.elapsedTime,
-				user: { reference_id: request.apikey?.referenceId },
+				userId: request.userId,
 			});
 		});
 
 		// Always return the request ID in response
 		void fastify.addHook("onSend", async (request, reply) => {
-			reply.header("x-request-id", request.id);
-			reply.header("x-response-time", reply.elapsedTime.toFixed(2));
+			void reply.header("x-connecting-ip", request.ip || "unknown");
+			void reply.header("x-request-id", request.id);
+			void reply.header("x-response-time", reply.elapsedTime.toFixed(2));
 		});
 	},
 	{ dependencies: ["redis-storage", "auth"] }
 );
-
-declare module "fastify" {
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	interface FastifyRequest {
-		startTime: number;
-	}
-}
 
 export default fastifyRequestTracker;
