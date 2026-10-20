@@ -74,6 +74,9 @@ export function getAuthOptions(
 			},
 		},
 		user: {
+			deleteUser: {
+				enabled: true,
+			},
 			modelName: "users",
 			fields: {
 				emailVerified: "email_verified",
@@ -94,7 +97,7 @@ export function getAuthOptions(
 				joins: true,
 				generateId: "uuid",
 			},
-			useSecureCookies: true,
+			useSecureCookies: false,
 			cookiePrefix: COOKIE_PREFIX,
 		},
 	} satisfies BetterAuthOptions;

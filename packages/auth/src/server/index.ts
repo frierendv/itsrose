@@ -8,5 +8,5 @@ export type AuthServer = ReturnType<typeof createBetterAuthServer>;
 
 // reused
 export { defaultKeyHasher } from "@better-auth/api-key";
-export * from "./creem";
+export { itsRosePlugin } from "../itsrose/plugin-server";
 export * from "./database";
