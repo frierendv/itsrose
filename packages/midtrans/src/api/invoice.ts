@@ -1,9 +1,3 @@
-// import type {
-// 	InvoiceDetailResponse,
-// 	InvoiceResponse,
-// 	InvoiceVoidRequest,
-// 	InvoiceVoidResponse,
-// } from "../schema";
 import type { DefaultError } from "../schema/error";
 import type { MergeWithSchema, NarrowInput } from "../schema/helper";
 import type { InvoiceRequest, InvoiceResponse } from "../schema/invoice";
