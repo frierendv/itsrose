@@ -1,22 +1,19 @@
 import { apiKey } from "@better-auth/api-key";
 import { dash } from "@better-auth/infra";
 import { passkey } from "@better-auth/passkey";
-import { creem, type CreemOptions } from "@creem_io/better-auth";
 import { localization, type BuiltInLocales } from "better-auth-localization";
 import {
 	admin,
 	bearer,
 	haveIBeenPwned,
+	lastLoginMethod,
 	multiSession,
 	oauthPopup,
+	openAPI,
 } from "better-auth/plugins";
+import { itsRosePlugin } from "../itsrose/plugin-server";
 import type { SharedEnv } from "../shared";
 import { WEBAUTHN_CHALLENGE_COOKIE } from "../shared";
-// #if DEV
-// prettier-ignore
-import { openAPI } from "better-auth/plugins";
-
-// #endif
 
 function parseAcceptLanguage(header: string | null): string[] {
 	if (!header) {
@@ -42,42 +39,6 @@ export default function (env = process.env as SharedEnv) {
 	const appBaseUrl =
 		typeof env.APP_BASE_URL === "string" ? env.APP_BASE_URL : undefined;
 
-	const creemSchema = {
-		user: {
-			modelName: "users",
-			fields: {
-				creemCustomerId: "creem_customer_id",
-				hadTrial: "had_trial",
-			},
-		},
-		creem_subscription: {
-			modelName: "creem_subscriptions",
-			fields: {
-				productId: "product_id",
-				referenceId: "reference_id",
-				creemCustomerId: "creem_customer_id",
-				creemSubscriptionId: "creem_subscription_id",
-				creemOrderId: "creem_order_id",
-				periodStart: "period_start",
-				periodEnd: "period_end",
-				cancelAtPeriodEnd: "cancel_at_period_end",
-			},
-		},
-	};
-	const isProd = env.NODE_ENV === "production";
-	const creemOptions = {
-		apiKey: (isProd
-			? env.CREEM_PRODUCTION_API_KEY
-			: env.CREEM_DEVELOPMENT_API_KEY) as string,
-		// test mode for development
-		testMode: !isProd,
-		webhookSecret: isProd
-			? env.CREAM_PRODUCTION_WEB_HOOK_SECRET
-			: env.CREEM_DEVELOPMENT_WEB_HOOK_SECRET,
-		persistSubscriptions: true,
-		// @ts-expect-error - schema not infered
-		schema: creemSchema as CreemOptions["schema"],
-	} satisfies CreemOptions;
 	return [
 		passkey({
 			rpName: appName,
@@ -152,7 +113,7 @@ export default function (env = process.env as SharedEnv) {
 		apiKey({
 			defaultPrefix: "sk_",
 			references: "user",
-			rateLimit: { enabled: false },
+			rateLimit: { enabled: true, timeWindow: 60_000, maxRequests: 10 },
 			requireName: true,
 			storage: "secondary-storage",
 			fallbackToDatabase: true,
@@ -180,17 +141,16 @@ export default function (env = process.env as SharedEnv) {
 				},
 			},
 		}),
-		creem(creemOptions),
 		bearer(),
 		oauthPopup(),
-		// #if DEV
+		lastLoginMethod(),
 		openAPI(),
-		// #endif
 		dash({
 			apiKey: env.BETTER_AUTH_API_KEY,
 			activityTracking: {
 				enabled: true, // Enable activity tracking
 			},
 		}),
+		itsRosePlugin(),
 	];
 }

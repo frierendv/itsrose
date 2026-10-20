@@ -25,7 +25,9 @@
 	],
 	"exports": {
 		".": "./src/index.ts",
-		"./product": "./src/product/index.ts",
+		"./itsrose": "./src/itsrose/index.ts",
+		"./itsrose/client": "./src/itsrose/client/index.ts",
+		"./itsrose/server": "./src/itsrose/server/index.ts",
 		"./react": "./src/react/index.ts",
 		"./server": "./src/server/index.ts",
 		"./package.json": "./package.json"
@@ -41,28 +43,28 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@better-auth/api-key": "^1.7.3",
-		"@better-auth/infra": "^0.4.9",
-		"@better-auth/passkey": "^1.7.3",
-		"@creem_io/better-auth": "^1.2.4",
+		"@better-auth/api-key": "^1.7.7",
+		"@better-auth/infra": "^0.4.17",
+		"@better-auth/passkey": "^1.7.7",
+		"@itsrose/midtrans": "workspace:*",
 		"@itsrose/system": "workspace:*",
-		"better-auth": "^1.7.3",
+		"better-auth": "^1.7.7",
 		"better-auth-localization": "^3.0.0",
-		"creem": "^1.7.0",
 		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"@itsrose/eslint-config": "workspace:*",
-		"@itsrose/tsdown-config": "workspace:*",
-		"@itsrose/typescript-config": "workspace:*",
+		"@itsrose/standard": "workspace:*",
+		"@types/jest": "^30.0.0",
 		"@types/pg": "^8.23.1",
-		"kysely": "^0.29.5",
-		"pg": "^8.23.0"
+		"kysely": "^0.29.6",
+		"pg": "^8.23.1"
 	},
 	"publishConfig": {
 		"exports": {
 			".": "./dist/index.mjs",
-			"./product": "./dist/product/index.mjs",
+			"./itsrose": "./dist/itsrose/index.mjs",
+			"./itsrose/client": "./dist/itsrose/client/index.mjs",
+			"./itsrose/server": "./dist/itsrose/server/index.mjs",
 			"./react": "./dist/react/index.mjs",
 			"./server": "./dist/server/index.mjs",
 			"./package.json": "./package.json"

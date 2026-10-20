@@ -1,13 +1,14 @@
 import { apiKeyClient } from "@better-auth/api-key/client";
 import { dashClient } from "@better-auth/infra/client";
 import { passkeyClient } from "@better-auth/passkey/client";
-import { creemClient } from "@creem_io/better-auth/client";
 import type { BetterAuthClientPlugin } from "better-auth";
 import {
 	adminClient,
+	lastLoginMethodClient,
 	multiSessionClient,
 	oauthPopupClient,
 } from "better-auth/client/plugins";
+import { itsRosePluginClient } from "../itsrose/plugin-client";
 
 // getBetterAuthClientPlugins
 export default function () {
@@ -16,8 +17,9 @@ export default function () {
 		adminClient(),
 		multiSessionClient(),
 		apiKeyClient(),
-		creemClient(),
 		oauthPopupClient(),
+		lastLoginMethodClient(),
 		dashClient(),
+		itsRosePluginClient(),
 	] satisfies BetterAuthClientPlugin[];
 }
