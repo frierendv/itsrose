@@ -1,5 +1,5 @@
-import { config } from "@/shared/config";
-import { lowerCase } from "@/shared/server";
+import { config } from "@/config";
+import { lowerCase } from "@/server/utils";
 import type { MetadataRoute } from "next";
 
 export default async (): Promise<MetadataRoute.Manifest> => {

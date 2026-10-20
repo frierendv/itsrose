@@ -4,14 +4,13 @@ Creating all route page manual to satisfy not-found page :thumb
 
 ## TAKEN ROUTE LIST
 
-- forget-password
+- forgot-password
 - redirect
 - reset-link-password
 - sign-in
 - sign-out
 - sign-up
 - verify-email
-
 
 ```sh
 #!/usr/bin/env bash

@@ -1,13 +1,16 @@
 "use client";
 
-import { authClient } from "@/shared/client";
+import { authClient } from "@/client/auth";
 import {
 	ADMIN_SIDEBAR_ITEMS,
 	DEFAULT_SIDEBAR_ITEMS,
 	EXTERNAL_RESOURCE,
+	USER_FEATURES_IMAGE,
+	USER_FEATURES_NEURAL_VOICE,
+	USER_LOGS_SIDEBAR_ITEMS,
 	USER_SETTINGS_SIDEBAR_ITEMS,
 	type SidebarItem,
-} from "@/shared/dashboard";
+} from "@/client/route-sidebar";
 import { useSession } from "@better-auth-ui/react";
 
 export function useDashboardRoute() {
@@ -20,11 +23,16 @@ export function useDashboardRoute() {
 
 	const sidebarMainItems: SidebarItem[] = [
 		DEFAULT_SIDEBAR_ITEMS,
+		USER_FEATURES_IMAGE,
+		USER_FEATURES_NEURAL_VOICE,
+	];
+	const sidebarSecondaryItems: SidebarItem[] = [
+		USER_LOGS_SIDEBAR_ITEMS,
+		EXTERNAL_RESOURCE,
 		USER_SETTINGS_SIDEBAR_ITEMS,
 	];
-	const sidebarSecondaryItems: SidebarItem[] = [EXTERNAL_RESOURCE];
 	if (user.role === "admin") {
-		sidebarMainItems.push(ADMIN_SIDEBAR_ITEMS);
+		sidebarSecondaryItems.push(ADMIN_SIDEBAR_ITEMS);
 	}
 	const data = {
 		sidebarMainItems,

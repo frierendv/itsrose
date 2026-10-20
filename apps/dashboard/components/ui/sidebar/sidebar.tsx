@@ -167,17 +167,6 @@ export const Sidebar = forwardRef<"div", SidebarProps>(
 					>
 						<Drawer.Content placement={side} className="p-0">
 							<Drawer.Dialog className="h-full p-0 flex flex-col outline-none">
-								<Drawer.Handle
-									className={cn([
-										"absolute right-0 top-1/2 -translate-y-1/2",
-										"w-8 h-24 z-50 flex items-center justify-center",
-
-										// RESHAPE THE VISIBLE BAR
-										"**:data-[slot=drawer-handle-bar]:w-1.5!",
-										"**:data-[slot=drawer-handle-bar]:h-12!",
-									])}
-								/>
-
 								<Drawer.Header className="sr-only">
 									<Drawer.Heading>
 										Sidebar Navigation
@@ -196,7 +185,7 @@ export const Sidebar = forwardRef<"div", SidebarProps>(
 		return (
 			<div
 				ref={ref}
-				className="group peer hidden md:block"
+				className="group peer"
 				data-state={state}
 				data-collapsible={state === "collapsed" ? collapsible : ""}
 				data-variant={variant}
@@ -220,8 +209,8 @@ export const Sidebar = forwardRef<"div", SidebarProps>(
 				<Component
 					data-sidebar="container"
 					className={cn(
-						"duration-200 fixed inset-y-0 z-20 hidden h-svh w-(--sidebar-width)",
-						"transition-[left,right,width] ease-linear md:flex md:flex-col",
+						"duration-200 fixed inset-y-0 z-20 flex flex-col h-svh w-(--sidebar-width)",
+						"transition-[left,right,width] ease-linear shrink-0",
 
 						// left/right side
 						`${side}-0 group-data-[collapsible=offcanvas]:-${side}-(--sidebar-width)`,
@@ -243,10 +232,10 @@ export const Sidebar = forwardRef<"div", SidebarProps>(
 							variant === "inset" ? "transparent" : "default"
 						}
 						className={cn(
-							"flex h-full w-full flex-col p-2",
+							"flex h-full w-full flex-col px-2",
 							"bg-background",
 							// border side
-							`border-${side === "right" ? "l" : "r"} border-border divide-y-2 divide-border`,
+							`border-${side === "right" ? "l" : "r"} border-border`,
 							{
 								// variants
 								"rounded-2xl": variant === "floating",
