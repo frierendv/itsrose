@@ -8,7 +8,8 @@ export const SidebarHeader = forwardRef<"div">(
 				data-sidebar="header"
 				data-slot="sidebar-header"
 				className={cn(
-					"sidebar__header flex flex-col gap-2 p-3 pb-2 shrink-0 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:items-center",
+					"sidebar__header flex flex-col gap-2 py-4 shrink-0",
+					"group-data-[collapsible=icon]:items-center",
 					className
 				)}
 				{...props}

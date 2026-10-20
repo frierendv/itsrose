@@ -12,7 +12,6 @@ Creating all route page manual to satisfy not-found page :thumb
 - sign-up
 - verify-email
 
-
 ```sh
 #!/usr/bin/env bash
 

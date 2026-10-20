@@ -8,7 +8,7 @@ export const SidebarGroup = forwardRef<"div">(
 				ref={ref}
 				data-sidebar="group"
 				className={cn(
-					"relative flex w-full min-w-0 flex-col p-2 group-data-[collapsible=icon]:p-0",
+					"relative flex w-full min-w-0 flex-col p-2 group-data-[collapsible=icon]:p-1",
 					className
 				)}
 				{...props}
@@ -25,7 +25,7 @@ export const SidebarGroupLabel = forwardRef<"div">(
 				ref={ref}
 				data-sidebar="group-label"
 				className={cn(
-					"duration-200 flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-semibold uppercase tracking-wider text-muted outline-none transition-[margin,opacity] ease-linear",
+					"duration-200 flex h-8 shrink-0 items-center rounded-md text-xs font-semibold uppercase tracking-wider text-muted outline-none transition-[margin,opacity] ease-linear",
 					"group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:-mt-8",
 					className
 				)}

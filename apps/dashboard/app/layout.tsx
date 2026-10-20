@@ -1,6 +1,7 @@
 import type { Viewport } from "next";
 import "@/styles/globals.css";
-import { BaseProvider } from "@/client/providers/base";
+import { AuthProvider } from "@/providers/auth";
+import { BaseProvider } from "@/providers/base";
 
 export const viewport: Viewport = {
 	themeColor: [
@@ -12,11 +13,17 @@ export const viewport: Viewport = {
 	initialScale: 1,
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+	children,
+}: {
+	children: React.ReactNode;
+}) {
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body className="min-h-svh bg-background antialiased">
-				<BaseProvider>{children}</BaseProvider>
+				<BaseProvider>
+					<AuthProvider>{children}</AuthProvider>
+				</BaseProvider>
 			</body>
 		</html>
 	);

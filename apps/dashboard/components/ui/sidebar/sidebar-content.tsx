@@ -8,10 +8,10 @@ export const SidebarContent = forwardRef<
 >(({ className, children, ...props }, ref) => {
 	return (
 		<ScrollShadow
-			ref={ref as any}
+			ref={ref}
 			data-sidebar="content"
 			className={cn(
-				"flex min-h-0 flex-1 flex-col gap-2 overflow-auto p-2 scrollbar-none",
+				"flex flex-1 flex-col gap-2 overflow-auto scrollbar-none",
 				className
 			)}
 			{...props}

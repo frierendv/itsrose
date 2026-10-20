@@ -1,4 +1,4 @@
-import { getQueryClient } from "@/shared/client";
+import { getQueryClient } from "@/client/query";
 import {
 	dehydrate,
 	HydrationBoundary as ReactQueryHydrationBoundary,

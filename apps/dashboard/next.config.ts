@@ -1,5 +1,4 @@
 import path from "path";
-import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 
 const env = {
@@ -11,9 +10,14 @@ const standaloneConfig: NextConfig = {
 	outputFileTracingRoot: path.join(__dirname, "../../"),
 	outputFileTracingIncludes: { "*": ["public/**/*", ".next/static/**/*"] },
 };
+
+const devConfig: NextConfig = !env.isProd
+	? { allowedDevOrigins: ["*.itsrose.net", "192.168.1.100"] }
+	: {};
+
 const nextConfig: NextConfig = {
 	...standaloneConfig,
-	allowedDevOrigins: ["*.itsrose.net"],
+	...devConfig,
 	images: {},
 	reactStrictMode: true,
 	compiler: {
@@ -33,6 +37,7 @@ const nextConfig: NextConfig = {
 	},
 	experimental: {
 		webVitalsAttribution: ["TTFB", "LCP", "CLS"],
+		gestureTransition: true,
 		scrollRestoration: true,
 		optimizeServerReact: true,
 		webpackMemoryOptimizations: true,
@@ -51,14 +56,11 @@ const nextConfig: NextConfig = {
 			"@better-auth-ui/react",
 			"@itsrose/react",
 		],
-		turbopackRustReactCompiler: true,
 		// test
-		appNewScrollHandler: true,
 		transitionIndicator: true,
-		gestureTransition: true,
+		turbopackRustReactCompiler: true,
 		turbopackRemoveUnusedImports: true,
 		turbopackRemoveUnusedExports: true,
-		mdxRs: true,
 	},
 	transpilePackages: ["@itsrose/react"],
 
@@ -71,12 +73,12 @@ const nextConfig: NextConfig = {
 	],
 	devIndicators: false,
 	pageExtensions: ["ts", "tsx", "md", "mdx"],
-};
-const withMDX = createMDX({
-	extension: /\.(md|mdx)$/,
-	options: {
-		remarkPlugins: ["remark-gfm", "remark-toc"],
-		rehypePlugins: ["rehype-slug"],
+	cacheComponents: true,
+	partialPrefetching: true,
+	turbopack: {
+		rules: {
+			"*.css": { loaders: ["@tailwindcss/turbopack"], as: "*.css" },
+		},
 	},
-});
-export default withMDX(nextConfig);
+};
+export default nextConfig;

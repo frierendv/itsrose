@@ -1,6 +1,6 @@
 "use client";
 
-import { useStoreWebSetting } from "@/shared/web-setting";
+// import { useStoreWebSetting } from "@/shared/web-setting";
 import Moon from "@gravity-ui/icons/Moon";
 import Sun from "@gravity-ui/icons/Sun";
 import { Button, type ButtonRootProps } from "@heroui/react/button";
@@ -11,10 +11,12 @@ import {
 	useModeAnimation,
 } from "react-theme-switch-animation";
 
+const DURATION = 750;
+
 export const ThemeSwitchBase = memo<ButtonRootProps>((props) => {
 	const [mounted, setMounted] = useState<boolean>(false);
 	const [isDisable, setDisable] = useState<boolean>(false);
-	const { themeSwitch } = useStoreWebSetting();
+	// const { themeSwitch } = useStoreWebSetting();
 	const { resolvedTheme, setTheme } = useTheme();
 
 	useEffect(() => setMounted(true), []);
@@ -26,32 +28,42 @@ export const ThemeSwitchBase = memo<ButtonRootProps>((props) => {
 		},
 		[setTheme]
 	);
-	const animationSetting = useMemo(() => {
-		return themeSwitch;
-	}, [themeSwitch]);
+	// const animationSetting = useMemo(() => {
+	// 	return themeSwitch;
+	// }, [themeSwitch]);
 	const { ref: buttonRef, toggleSwitchTheme } = useModeAnimation({
-		animationType: animationSetting.animationType,
-		direction: animationSetting.direction,
-		gifUrl:
-			animationSetting.animationType === ThemeAnimationType.GIF
-				? animationSetting.gifUrl
-					? animationSetting.gifUrl
-					: "/assets/itsrose-text.gif"
-				: undefined,
-		duration: animationSetting.duration,
-		blurAmount: animationSetting.blurAmount,
+		// animationType: animationSetting.animationType,
+		// direction: animationSetting.direction,
+		// gifUrl:
+		// 	animationSetting.animationType === ThemeAnimationType.GIF
+		// 		? animationSetting.gifUrl
+		// 			? animationSetting.gifUrl
+		// 			: "/assets/itsrose-text.gif"
+		// 		: undefined,
+		// duration: animationSetting.duration,
+		// blurAmount: animationSetting.blurAmount,
+
+		animationType: ThemeAnimationType.QR_SCAN,
+		direction: isDarkMode ? "ltr" : "rtl",
+		duration: DURATION,
+
 		styleId: "theme-animation-sw",
 		isDarkMode,
 		onDarkModeChange,
 	});
 
+	// const handleToggleSwitchTheme = useCallback(() => {
+	// 	if (themeSwitch.duration) {
+	// 		setDisable(true);
+	// 		setTimeout(() => setDisable(false), themeSwitch.duration);
+	// 	}
+	// 	toggleSwitchTheme();
+	// }, [themeSwitch.duration, toggleSwitchTheme]);
 	const handleToggleSwitchTheme = useCallback(() => {
-		if (themeSwitch.duration) {
-			setDisable(true);
-			setTimeout(() => setDisable(false), themeSwitch.duration);
-		}
+		setDisable(true);
+		setTimeout(() => setDisable(false), DURATION);
 		toggleSwitchTheme();
-	}, [themeSwitch.duration, toggleSwitchTheme]);
+	}, [toggleSwitchTheme]);
 
 	const icon = useMemo(() => (isDarkMode ? <Moon /> : <Sun />), [isDarkMode]);
 
