@@ -19,14 +19,12 @@ export default fp(
 );
 
 declare module "fastify" {
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	interface FastifyInstance {
 		redis: Redis;
 	}
 }
 
 declare module "ioredis" {
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	interface Redis {
 		CACHE_KEYS: typeof CACHE_KEYS;
 		CACHE_TTL: typeof CACHE_TTL;

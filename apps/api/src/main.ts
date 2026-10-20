@@ -1,5 +1,4 @@
 import "dotenv/config";
-import { generateRequestTrackingId } from "@itsrose/fastify-utils";
 import { getEnv } from "@itsrose/system";
 import closeWithGrace from "close-with-grace";
 import Fastify from "fastify";
@@ -24,7 +23,6 @@ const fastify = Fastify({
 	},
 
 	trustProxy: true,
-	genReqId: generateRequestTrackingId,
 });
 
 async function startServer() {

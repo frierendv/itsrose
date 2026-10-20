@@ -1,11 +1,10 @@
-import { createResponse, FailureResponse } from "@itsrose/api-response";
+import { FailureResponse } from "@itsrose/api-response";
 import { InvalidRequestError, ThirdPartyApiError } from "@itsrose/system";
+import { APIError } from "better-auth";
 import type { FastifyError } from "fastify";
 import fp from "fastify-plugin";
 
 export default fp(async (fastify) => {
-	fastify.decorate("createResponse", createResponse);
-
 	void fastify.setErrorHandler((error: FastifyError, request, reply) => {
 		if (error instanceof FailureResponse) {
 			const response = error as FailureResponse<unknown>;
@@ -64,6 +63,15 @@ export default fp(async (fastify) => {
 			return reply.status(response.statusCode).send(response);
 		}
 
+		if (error instanceof APIError) {
+			const response = FailureResponse.create({
+				code: "BAD_REQUEST",
+				message: error.message,
+				errors: {},
+			});
+			return reply.status(error.statusCode).send(response);
+		}
+
 		const response = new FailureResponse({
 			code: "UNHANDLED_EXCEPTION",
 			meta: {
@@ -76,7 +84,7 @@ export default fp(async (fastify) => {
 			},
 		});
 
-		fastify.log.error(error, error.name || "Unknown error");
+		void request.log.error(error, error.name || "Unknown error");
 
 		reply.status(response.statusCode).send(response);
 	});
@@ -94,10 +102,3 @@ export default fp(async (fastify) => {
 		reply.status(response.statusCode).send(response);
 	});
 });
-
-declare module "fastify" {
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	interface FastifyInstance {
-		createResponse: typeof createResponse;
-	}
-}

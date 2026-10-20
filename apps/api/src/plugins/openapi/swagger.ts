@@ -1,178 +1,107 @@
-import Swagger from "@fastify/swagger";
-import {
-	extractMeta,
-	FailureSchema,
-	SuccessSchema,
-} from "@itsrose/api-response";
+import Swagger, { type SwaggerTransform } from "@fastify/swagger";
+import { FailureSchema, SuccessSchema } from "@itsrose/api-response";
 import fp from "fastify-plugin";
 import {
 	fastifyZodOpenApiPlugin,
 	fastifyZodOpenApiTransformers,
 } from "fastify-zod-openapi";
-import type { OpenAPIV3 } from "openapi-types";
+import { z } from "zod/v4";
 
-type OpenAPIVDocument = Partial<OpenAPIV3.Document>;
-type OpenAPIObject = {
-	openapiObject: OpenAPIVDocument;
+const isZodType = (schema: unknown): schema is z.ZodType =>
+	schema instanceof z.ZodType ||
+	(typeof schema === "object" && schema !== null && "_zod" in schema);
+
+const wrapWithSuccessSchema = (schema: z.ZodType): z.ZodType => {
+	if (schema === SuccessSchema) {
+		return schema;
+	}
+	return SuccessSchema.extend({
+		data: schema,
+	});
 };
 
-type SchemaField = OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject;
-type Response = OpenAPIV3.ResponseObject;
-
-const SUCCESS_REF = "#/components/schemas/SuccessSchema";
-const FAILURE_REF = "#/components/schemas/FailureSchema";
-
-const isReferenceSchema = (
-	schema: SchemaField
-): schema is OpenAPIV3.ReferenceObject => "$ref" in schema;
-
-// remove "meta" from array string
-const removeMetaFromArray = (arr: string[]): string[] => {
-	return arr.filter((item) => item !== "meta");
-};
-
-const extractSchemaContent = (
-	schema: SchemaField
-): {
-	extracted: SchemaField;
-	meta?: SchemaField;
-} => {
-	if (isReferenceSchema(schema)) {
-		return { extracted: schema };
+const wrap200Response = (response200: unknown): unknown => {
+	if (isZodType(response200)) {
+		return wrapWithSuccessSchema(response200);
 	}
 
-	const { properties, required, ...rest } = schema;
+	if (response200 && typeof response200 === "object") {
+		const resObj = response200 as {
+			schema?: unknown;
+			content?: Record<string, { schema?: unknown }>;
+		};
 
-	const { payload, meta } = extractMeta(properties ?? {});
+		if (isZodType(resObj.schema)) {
+			return {
+				...resObj,
+				schema: wrapWithSuccessSchema(resObj.schema),
+			};
+		}
 
-	return {
-		extracted: {
-			type: "object",
-			properties: payload,
-			...(required ? { required: removeMetaFromArray(required) } : {}),
-			...rest,
-		},
-		meta: meta as SchemaField | undefined,
-	};
+		if (
+			resObj.content?.["application/json"]?.schema &&
+			isZodType(resObj.content["application/json"].schema)
+		) {
+			return {
+				...resObj,
+				content: {
+					...resObj.content,
+					"application/json": {
+						...resObj.content["application/json"],
+						schema: wrapWithSuccessSchema(
+							resObj.content["application/json"].schema
+						),
+					},
+				},
+			};
+		}
+	}
+
+	return response200;
 };
 
-const wrapSchema = (
-	schema: SchemaField,
-	baseRef: string,
-	field: string
-): OpenAPIV3.SchemaObject => {
-	const { extracted, meta } = extractSchemaContent(schema);
-
-	const hasMeta = Object.keys(meta ?? {}).length > 0;
-	const metaProps = (
-		hasMeta
-			? { type: "object", properties: { meta }, required: ["meta"] }
-			: {}
-	) as OpenAPIV3.SchemaObject;
-
-	return {
-		allOf: [
-			{ $ref: baseRef },
-			{
-				type: "object",
-				properties: { [field]: extracted },
-				required: ["data"],
-			},
-			...(hasMeta ? [metaProps] : []),
-		],
-	};
-};
-
-const createErrorResponse = (
-	description: string
-): OpenAPIV3.ResponseObject => ({
+const createErrorSchema = (description: string) => ({
 	description,
 	content: {
 		"application/json": {
-			schema: {
-				$ref: FAILURE_REF,
-			},
+			schema: { $ref: "#/components/schemas/FailureSchema" },
 		},
 	},
 });
+const transform: SwaggerTransform = (opts) => {
+	const clonedSchema = opts.schema ? { ...opts.schema } : opts.schema;
 
-const CLIENT_ERROR_RESPONSE = createErrorResponse("Client Error");
-const SERVER_ERROR_RESPONSE = createErrorResponse("Server Error");
+	if (
+		clonedSchema &&
+		typeof clonedSchema === "object" &&
+		"response" in clonedSchema &&
+		clonedSchema.response
+	) {
+		const response = {
+			...(clonedSchema.response as Record<string | number, unknown>),
+		};
 
-const RESPONSE_WRAPPERS = {
-	"2": (schema: SchemaField) => wrapSchema(schema, SUCCESS_REF, "data"),
-
-	"4": (schema: SchemaField) => wrapSchema(schema, FAILURE_REF, "errors"),
-
-	"5": (schema: SchemaField) => wrapSchema(schema, FAILURE_REF, "errors"),
-} as const;
-
-const transformResponse = (code: string, response: Response): Response => {
-	const schema = response.content?.["application/json"]?.schema;
-
-	if (!schema || typeof schema !== "object") {
-		return response;
-	}
-
-	const wrapper =
-		RESPONSE_WRAPPERS[code[0] as keyof typeof RESPONSE_WRAPPERS];
-
-	if (!wrapper) {
-		return response;
-	}
-
-	return {
-		...response,
-		content: {
-			"application/json": {
-				schema: wrapper(schema as SchemaField),
-			},
-		},
-	};
-};
-
-const transformOperation = (operation: OpenAPIV3.OperationObject) => {
-	for (const [code, response] of Object.entries(operation.responses)) {
-		if (!response) {
-			continue;
+		if (200 in response || "200" in response) {
+			const res200 = response[200] ?? response["200"];
+			response[200] = wrap200Response(res200);
 		}
 
-		operation.responses[code] = transformResponse(
-			code,
-			response as Response
-		);
+		response["4XX"] ??= createErrorSchema("Client Error");
+		response["5XX"] ??= createErrorSchema("Server Error");
+
+		clonedSchema.response = response;
 	}
 
-	operation.responses["4XX"] ??= CLIENT_ERROR_RESPONSE;
-	operation.responses["5XX"] ??= SERVER_ERROR_RESPONSE;
-};
-
-const transformObject = (schema: unknown) => {
-	const transformed = fastifyZodOpenApiTransformers.transformObject(
-		schema as OpenAPIObject
-	) as OpenAPIVDocument;
-
-	for (const pathItem of Object.values(transformed.paths ?? {})) {
-		if (!pathItem) {
-			continue;
-		}
-
-		for (const operation of Object.values(pathItem)) {
-			if (
-				operation &&
-				typeof operation === "object" &&
-				"responses" in operation
-			) {
-				transformOperation(operation as OpenAPIV3.OperationObject);
-			}
-		}
-	}
-
-	return transformed;
+	return fastifyZodOpenApiTransformers.transform({
+		...opts,
+		schema: clonedSchema,
+	});
 };
 
 export default fp(async (fastify) => {
-	await fastify.register(fastifyZodOpenApiPlugin);
+	await fastify.register(fastifyZodOpenApiPlugin, {
+		components: { schemas: { FailureSchema } },
+	});
 
 	await fastify.register(Swagger, {
 		openapi: {
@@ -181,33 +110,17 @@ export default fp(async (fastify) => {
 				description: "API documentation for ItsRose services",
 				version: "1.0.0",
 			},
-			components: {
-				securitySchemes: {
-					bearerAuth: {
-						type: "http",
-						scheme: "bearer",
-						description:
-							"API key authentication. Use the `Bearer` prefix followed by your API key.",
-					},
-				},
-				schemas: {
-					SuccessSchema: SuccessSchema.toJSONSchema() as object,
-					FailureSchema: FailureSchema.toJSONSchema() as object,
-				},
-			},
 		},
-		transform: fastifyZodOpenApiTransformers.transform,
-		transformObject,
+		...fastifyZodOpenApiTransformers,
+		transform,
 	});
 
-	fastify.route({
+	void fastify.route({
 		method: "GET",
 		url: "/openapi.json",
-		config: { disableAuth: true },
+		config: { authGuard: false },
 		handler: () => fastify.swagger(),
 		// Don't include this route in the OpenAPI spec to avoid recursion issues
-		schema: {
-			hide: true,
-		},
+		schema: { hide: true },
 	});
 });

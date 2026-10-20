@@ -5,11 +5,11 @@ import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
 const route: FastifyPluginAsync = async (fastify): Promise<void> => {
 	fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "POST",
-		url: "/create_ivc_voice",
+		url: "/create_clone_voice",
 		schema: {
-			tags: ["ElevenLabs"],
-			summary: "Create IVC Voice",
-			description: "Create a voice clone using ElevenLabs API",
+			tags: ["Audio"],
+			summary: "Create Clone Voice",
+			description: "Create a voice clone",
 			consumes: ["multipart/form-data"],
 			body: createIVCVoiceSchema.request,
 			response: {

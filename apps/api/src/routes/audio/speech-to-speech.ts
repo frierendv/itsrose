@@ -7,9 +7,9 @@ const route: FastifyPluginAsync = async (fastify): Promise<void> => {
 		method: "POST",
 		url: "/speech_to_speech",
 		schema: {
-			tags: ["ElevenLabs"],
+			tags: ["Audio"],
 			summary: "Speech to Speech",
-			description: "Convert speech to speech using ElevenLabs API",
+			description: "Convert speech to speech",
 			consumes: ["application/json", "multipart/form-data"],
 			body: speechToSpeechSchema.request,
 			response: {

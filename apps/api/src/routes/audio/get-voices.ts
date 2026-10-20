@@ -1,21 +1,22 @@
-import { getModels, getModelsSchema } from "@itsrose/elevenlabs";
+import { getVoices, getVoicesSchema } from "@itsrose/elevenlabs";
 import type { FastifyPluginAsync } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
 
 const route: FastifyPluginAsync = async (fastify): Promise<void> => {
 	fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "GET",
-		url: "/get_models",
+		url: "/get_voices",
 		schema: {
-			tags: ["ElevenLabs"],
-			summary: "Get Models",
-			description: "Get available models from ElevenLabs API",
+			tags: ["Audio"],
+			summary: "Get Voices",
+			description: "Get available voices",
+			querystring: getVoicesSchema.request,
 			response: {
-				200: getModelsSchema.response,
+				200: getVoicesSchema.response,
 			},
 		},
-		handler: async () => {
-			const response = await getModels();
+		handler: async (request) => {
+			const response = await getVoices(request.query);
 			return response;
 		},
 	});
