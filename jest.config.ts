@@ -18,10 +18,11 @@ const moduleNameMapper = {
 	"^superjson$": "<rootDir>/packages/others/lowdb/__mocks__/superjson.ts",
 	"^s3mini$": "<rootDir>/packages/internal/s3/__mocks__/s3mini.ts",
 	"^file-type$": "<rootDir>/packages/internal/s3/__mocks__/file-type.ts",
+	"^better-auth/api$": "<rootDir>/packages/auth/__mocks__/better-auth-api.ts",
 };
 
 const transformIgnorePatterns = [
-	"/node_modules/(?!(atomically|superjson|copy-anything)/)",
+	"/node_modules/(?!(atomically|superjson|copy-anything|better-auth)/)",
 ];
 
 function createProject<const Path extends `packages/${string}`>(
@@ -31,6 +32,7 @@ function createProject<const Path extends `packages/${string}`>(
 	return {
 		displayName: rootPath,
 		roots: [`<rootDir>/${rootPath}`],
+		testMatch: ["<rootDir>/packages/**/__tests__/**/*.test.[jt]s?(x)"],
 		moduleNameMapper,
 		transformIgnorePatterns,
 		...createDefaultEsmPreset({
