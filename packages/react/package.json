@@ -36,7 +36,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"peerDependencies": {
-		"motion": "^14.0.0",
+		"motion": "^14.1.0",
 		"react": "catalog:",
 		"react-dom": "catalog:",
 		"tailwindcss": "^4.3.3"
@@ -50,7 +50,7 @@
 		"@itsrose/standard": "workspace:*",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
-		"motion": "^14.0.0",
+		"motion": "^14.1.0",
 		"react": "catalog:",
 		"react-dom": "catalog:",
 		"tailwindcss": "^4.3.3"
