@@ -1,51 +1,53 @@
 ---
-type Props = {
-	siteName: string;
-	supportEmail: string;
-};
-const { siteName, supportEmail } = Astro.props as Props;
+interface Props {
+	siteName?: string;
+	supportEmail?: string;
+	statusUrl?: string;
+}
+
+const {
+	siteName = "ItsRose",
+	supportEmail = "support@itsrose.net",
+	statusUrl = "https://status.itsrose.net",
+} = Astro.props;
+
+const currentYear = new Date().getFullYear();
 ---
 
-<footer class="site__footer" role="contentinfo">
-	<hr class="site__footer__divider" />
+<footer class="site-footer" role="contentinfo">
+	<div class="footer-container">
+		<div class="footer-meta">
+			<span>&copy; {currentYear} {siteName}. All rights reserved.</span>
+			<span class="cf-secured-tag">
+				Secured &amp; Accelerated by
+				<a
+					href="https://www.cloudflare.com"
+					target="_blank"
+					rel="noopener noreferrer"
+					aria-label="Cloudflare edge network"
+				>
+					Cloudflare
+				</a>
+			</span>
+		</div>
 
-	<span class="site__footer__cf-info">
-		Cloudflare Ray ID:
-		<span class="__cf__ray-id"> ::RAY_ID:: </span>
-
-		<span class="__separator"> • </span>
-
-		Your IP:
-
-		<button id="cf-footer-ip-reveal" class="btn"> Click to reveal </button>
-
-		<span id="cf-footer-ip" class="hidden"> ::CLIENT_IP:: </span>
-
-		<span class="__separator"> • </span>
-
-		Performance &amp; security by{" "}
-		<a
-			href="https://www.cloudflare.com"
-			target="_blank"
-			rel="noopener noreferrer"
-			aria-label="Cloudflare website"
-		>
-			Cloudflare
-		</a>
-	</span>
-	<span class="site__contact">
-		Need assistance or believe this was triggered in error? Contact our{" "}
-		<a
-			href={`mailto:${supportEmail}?subject=ItsRose%20Page%20Support`}
-			target="_blank"
-			rel="noopener noreferrer"
-			aria-label="Contact the ItsRose support team via email"
-		>
-			support
-		</a>.
-	</span>
-
-	<span class="site__footer__copyright">
-		© 2025 {siteName}. All rights reserved.
-	</span>
+		<div class="footer-links">
+			<a
+				href={`mailto:${supportEmail}?subject=Edge%20Incident%20Report`}
+				class="footer-link"
+				aria-label={`Contact support at ${supportEmail}`}
+			>
+				Contact Support
+			</a>
+			<a
+				href={statusUrl}
+				target="_blank"
+				rel="noopener noreferrer"
+				class="footer-link"
+				aria-label="Network System Status"
+			>
+				System Status
+			</a>
+		</div>
+	</div>
 </footer>

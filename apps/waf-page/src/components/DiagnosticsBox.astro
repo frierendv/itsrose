@@ -1,0 +1,217 @@
+---
+interface Props {
+	rayId?: string;
+	clientIp?: string;
+	geo?: string;
+	compact?: boolean;
+	title?: string;
+}
+
+const {
+	rayId = "::RAY_ID::",
+	clientIp = "::CLIENT_IP::",
+	geo = "::GEO::",
+	compact = true,
+	title = "Edge Diagnostics",
+} = Astro.props;
+---
+
+<div
+	class={`diagnostics-card ${compact ? "compact" : ""}`}
+	role="region"
+	aria-label="Diagnostic Information"
+>
+	<div class="diagnostics-header">
+		<div class="diagnostics-title-group">
+			<div class="terminal-dots" aria-hidden="true">
+				<span class="terminal-dot"></span>
+				<span class="terminal-dot"></span>
+				<span class="terminal-dot"></span>
+			</div>
+			<span>{title}</span>
+		</div>
+
+		<button
+			type="button"
+			class="copy-diag-btn"
+			id="copy-diagnostics-btn"
+			aria-label="Copy all diagnostic details to clipboard"
+		>
+			<svg
+				class="copy-icon"
+				width="14"
+				height="14"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
+				<rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+				<path
+					d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
+				></path>
+			</svg>
+			<span class="btn-text">Copy</span>
+		</button>
+	</div>
+
+	<div class="diagnostics-grid">
+		<div class="diag-item">
+			<span class="diag-label">Cloudflare Ray ID</span>
+			<div class="diag-value-row">
+				<code class="diag-value" id="diag-ray-id">{rayId}</code>
+				<button
+					type="button"
+					class="diag-mini-copy"
+					id="copy-ray-btn"
+					title="Copy Ray ID"
+					aria-label="Copy Ray ID"
+				>
+					<svg
+						width="12"
+						height="12"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+					>
+						<rect width="14" height="14" x="8" y="8" rx="2" ry="2"
+						></rect>
+						<path
+							d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"
+						></path>
+					</svg>
+				</button>
+			</div>
+		</div>
+
+		<div class="diag-item">
+			<span class="diag-label">Client IP Address</span>
+			<div class="diag-value-row">
+				<code class="diag-value" id="diag-client-ip">{clientIp}</code>
+			</div>
+		</div>
+
+		<div class="diag-item">
+			<span class="diag-label">Edge Location / Colo</span>
+			<div class="diag-value-row">
+				<code class="diag-value" id="diag-geo">{geo}</code>
+			</div>
+		</div>
+
+		{
+			!compact && (
+				<div class="diag-item">
+					<span class="diag-label">Timestamp</span>
+					<div class="diag-value-row">
+						<code class="diag-value" id="diag-timestamp">
+							UTC
+						</code>
+					</div>
+				</div>
+			)
+		}
+	</div>
+</div>
+
+<script is:inline>
+	(function () {
+		// Populate dynamic UTC timestamp
+		var timeEl = document.getElementById("diag-timestamp");
+		if (timeEl) {
+			var now = new Date();
+			timeEl.textContent =
+				now.toISOString().replace("T", " ").substring(0, 19) + " UTC";
+		}
+
+		function copyToClipboard(text, btnElement, successText) {
+			if (!text) return;
+			var originalHTML = btnElement.innerHTML;
+
+			function showSuccess() {
+				btnElement.innerHTML =
+					'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span style="color:#10b981;font-weight:600">' +
+					successText +
+					"</span>";
+				setTimeout(function () {
+					btnElement.innerHTML = originalHTML;
+				}, 2200);
+			}
+
+			if (navigator.clipboard && navigator.clipboard.writeText) {
+				navigator.clipboard
+					.writeText(text)
+					.then(showSuccess)
+					.catch(function () {
+						fallbackCopy(text, showSuccess);
+					});
+			} else {
+				fallbackCopy(text, showSuccess);
+			}
+		}
+
+		function fallbackCopy(text, cb) {
+			var ta = document.createElement("textarea");
+			ta.value = text;
+			ta.style.position = "fixed";
+			ta.style.opacity = "0";
+			document.body.appendChild(ta);
+			ta.select();
+			try {
+				document.execCommand("copy");
+				if (cb) cb();
+			} catch (e) {}
+			document.body.removeChild(ta);
+		}
+
+		// Copy All Diagnostics Handler
+		var copyDiagBtn = document.getElementById("copy-diagnostics-btn");
+		if (copyDiagBtn) {
+			copyDiagBtn.addEventListener("click", function () {
+				var rayId =
+					(document.getElementById("diag-ray-id") || {})
+						.textContent || "";
+				var ip =
+					(document.getElementById("diag-client-ip") || {})
+						.textContent || "";
+				var geo =
+					(document.getElementById("diag-geo") || {}).textContent ||
+					"";
+				var time =
+					(document.getElementById("diag-timestamp") || {})
+						.textContent || new Date().toUTCString();
+				var host =
+					window.location.host ||
+					window.location.hostname ||
+					"itsrose.net";
+				var path = window.location.pathname || "/";
+
+				var report = [
+					"=== Cloudflare Edge Diagnostics ===",
+					"Ray ID: " + rayId.trim(),
+					"Client IP: " + ip.trim(),
+					"Location / Colo: " + geo.trim(),
+					"Timestamp: " + time.trim(),
+					"URL: https://" + host + path,
+					"User Agent: " + navigator.userAgent,
+				].join("\n");
+
+				copyToClipboard(report, copyDiagBtn, "Copied!");
+			});
+		}
+
+		// Mini Copy Ray ID Handler
+		var copyRayBtn = document.getElementById("copy-ray-btn");
+		if (copyRayBtn) {
+			copyRayBtn.addEventListener("click", function (e) {
+				e.stopPropagation();
+				var rayId =
+					(document.getElementById("diag-ray-id") || {})
+						.textContent || "";
+				copyToClipboard(rayId.trim(), copyRayBtn, "");
+			});
+		}
+	})();
+</script>

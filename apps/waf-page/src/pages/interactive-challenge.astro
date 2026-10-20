@@ -1,13 +1,36 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import DiagnosticsBox from "../components/DiagnosticsBox.astro";
+import ErrorHeader from "../components/ErrorHeader.astro";
+import LoadingSpinner from "../components/LoadingSpinner.astro";
+import ErrorLayout from "../layouts/ErrorLayout.astro";
 ---
 
-<Layout
-	content={{
-		title: "Security Verification",
-		subtitle: "Hold on a second...",
-		loading: true,
-		description: "Please complete the security check.",
-		cfTag: "::CAPTCHA_BOX::",
-	}}
-/>
+<ErrorLayout
+	title="Security Verification"
+	description="Please complete the security challenge below to verify your connection."
+	headerStatusText="Verification Required"
+	headerStatusType="info"
+>
+	<ErrorHeader
+		badge="Security Verification"
+		badgeType="info"
+		title="Verify You Are Human"
+		description="Please complete the security verification below to proceed to ItsRose Network. This check confirms that your connection is legitimate and protects our services from automated abuse."
+	/>
+
+	<div class="challenge-card">
+		<LoadingSpinner
+			label="Please interact with the security check to continue"
+		/>
+
+		<div
+			class="captcha-target-wrapper"
+			role="region"
+			aria-label="Cloudflare Turnstile Challenge"
+		>
+			::CAPTCHA_BOX::
+		</div>
+	</div>
+
+	<DiagnosticsBox compact={true} />
+</ErrorLayout>

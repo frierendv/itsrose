@@ -1,13 +1,116 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import DiagnosticsBox from "../components/DiagnosticsBox.astro";
+import ErrorHeader from "../components/ErrorHeader.astro";
+import NetworkHopDiagram from "../components/NetworkHopDiagram.astro";
+import ErrorLayout from "../layouts/ErrorLayout.astro";
 ---
 
-<Layout
-	content={{
-		title: "Slow Down!",
-		subtitle: "You're Going a Bit Too Fast",
-		description:
-			"We're receiving a lot of requests from your side right now. " +
-			"Please slow down and try again in a moment.",
-	}}
-/>
+<ErrorLayout
+	title="429 Too Many Requests | Rate Limit Exceeded"
+	description="You have reached the request rate limit for this website. Please slow down and try again."
+	headerStatusText="Rate Limit Active"
+	headerStatusType="warning"
+>
+	<ErrorHeader
+		badge="429 Too Many Requests"
+		badgeType="warning"
+		title="Request Rate Limit Reached"
+		description="We have detected an unusually high volume of requests from your client or network. Cloudflare has temporarily throttled your connection to ensure fair capacity and service stability for all users."
+	/>
+
+	<div class="cooldown-card">
+		<div
+			style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;"
+		>
+			<span
+				style="font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;"
+			>
+				<svg
+					width="15"
+					height="15"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<circle cx="12" cy="12" r="10"></circle>
+					<polyline points="12 6 12 12 14 14"></polyline>
+				</svg>
+				Cooling down period
+			</span>
+			<span
+				style="color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono);"
+			>
+				Please wait ~30-60 seconds
+			</span>
+		</div>
+		<div class="cooldown-bar-bg" aria-hidden="true">
+			<div class="cooldown-bar-fill"></div>
+		</div>
+	</div>
+
+	<NetworkHopDiagram state="rate-limit" />
+
+	<div class="guidance-grid">
+		<div class="guidance-card">
+			<h2 class="guidance-title">
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<path
+						d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+					></path>
+				</svg>
+				What should I do?
+			</h2>
+			<ul class="guidance-list">
+				<li>
+					Pause automated scripts, multi-tab refreshes, or
+					high-concurrency requests.
+				</li>
+				<li>Wait 30 to 60 seconds before submitting new requests.</li>
+				<li>
+					If using an API client, implement exponential backoff
+					algorithms with jitter.
+				</li>
+			</ul>
+		</div>
+
+		<div class="guidance-card">
+			<h2 class="guidance-title">
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<path
+						d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+					></path>
+					<polyline points="22,6 12,13 2,6"></polyline>
+				</svg>
+				Need higher thresholds?
+			</h2>
+			<ul class="guidance-list">
+				<li>Heavy API consumers can request custom quota increases.</li>
+				<li>
+					Ensure you are sending authentication tokens to bypass
+					public unauthenticated rate limits.
+				</li>
+				<li>
+					Contact support with your IP address and Ray ID for
+					assistance.
+				</li>
+			</ul>
+		</div>
+	</div>
+
+	<DiagnosticsBox />
+</ErrorLayout>

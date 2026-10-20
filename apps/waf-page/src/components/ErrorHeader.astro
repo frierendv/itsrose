@@ -1,0 +1,20 @@
+---
+interface Props {
+	badge: string;
+	badgeType?: "danger" | "warning" | "info" | "success";
+	title: string;
+	description: string;
+}
+
+const { badge, badgeType = "danger", title, description } = Astro.props;
+---
+
+<header class="error-header">
+	<div class={`badge badge-${badgeType}`}>
+		<span class={`pulse-dot ${badgeType}`}></span>
+		<span>{badge}</span>
+	</div>
+
+	<h1 class="error-title">{title}</h1>
+	<p class="error-description">{description}</p>
+</header>

@@ -1,14 +1,34 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import DiagnosticsBox from "../components/DiagnosticsBox.astro";
+import ErrorHeader from "../components/ErrorHeader.astro";
+import LoadingSpinner from "../components/LoadingSpinner.astro";
+import ErrorLayout from "../layouts/ErrorLayout.astro";
 ---
 
-<Layout
-	content={{
-		title: "Security Verification",
-		subtitle: "Hold on a second...",
-		loading: true,
-		description:
-			"Please wait while we check your browser and network to make sure that you are not a robot.",
-		cfTag: "::IM_UNDER_ATTACK_BOX::",
-	}}
-/>
+<ErrorLayout
+	title="Checking Your Browser"
+	description="Automatic browser and connection verification in progress."
+	headerStatusText="Automated Verification"
+	headerStatusType="info"
+>
+	<ErrorHeader
+		badge="Background Verification"
+		badgeType="info"
+		title="Just a Moment..."
+		description="Please wait while we automatically verify your browser and network connection. You will be redirected shortly."
+	/>
+
+	<div class="challenge-card">
+		<LoadingSpinner label="Performing automated security verification..." />
+
+		<div
+			class="captcha-target-wrapper"
+			role="region"
+			aria-label="Cloudflare Background Verification"
+		>
+			::CAPTCHA_BOX::
+		</div>
+	</div>
+
+	<DiagnosticsBox compact={true} />
+</ErrorLayout>
