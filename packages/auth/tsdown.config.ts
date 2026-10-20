@@ -1,4 +1,4 @@
-import { config } from "@itsrose/tsdown-config";
+import { config } from "@itsrose/standard/tsdown";
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
@@ -18,7 +18,9 @@ export default defineConfig({
 	entry: [
 		"src/server/index.ts",
 		"src/react/index.ts",
-		"src/product/index.ts",
+		"src/itsrose/index.ts",
+		"src/itsrose/client/index.ts",
+		"src/itsrose/server/index.ts",
 		"src/index.ts",
 	],
 });
