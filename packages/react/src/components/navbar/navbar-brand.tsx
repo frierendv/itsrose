@@ -15,3 +15,4 @@ export const NavbarBrand = forwardRef<"div", NavbarBrandProps>((props, ref) => {
 		</Component>
 	);
 });
+NavbarBrand.displayName = "NavbarBrand";

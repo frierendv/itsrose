@@ -23,3 +23,4 @@ export const NavbarItem = forwardRef<"li", NavbarItemProps>((props, ref) => {
 		</Component>
 	);
 });
+NavbarItem.displayName = "NavbarItem";

@@ -15,6 +15,21 @@ export default defineConfig(
 				return exports;
 			},
 		},
+		inputOptions: {
+			transform: {
+				jsx: "react-jsx",
+			},
+			onLog(level, log, defaultHandler) {
+				if (log.code === "MODULE_LEVEL_DIRECTIVE") {
+					return;
+				}
+				defaultHandler(level, log);
+			},
+		},
+		outputOptions: {
+			exports: "named",
+			preserveModules: true,
+		},
 		unused: { enabled: true, ignore: ["react-dom", "tailwindcss"] },
 		copy: ["./src/styles"],
 		entry: {

@@ -1,5 +1,3 @@
-"use client";
-
 import { cn, forwardRef } from "@itsrose/react/core";
 
 export type NavbarContentProps = {
@@ -31,3 +29,4 @@ export const NavbarContent = forwardRef<"ul", NavbarContentProps>(
 		);
 	}
 );
+NavbarContent.displayName = "NavbarContent";

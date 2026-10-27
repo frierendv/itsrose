@@ -209,29 +209,22 @@ describe("components/navbar", () => {
 	});
 
 	describe("NavbarMenuItem", () => {
-		it("renders within NavbarRoot context and sets data-active and data-menu-open", () => {
+		it("renders with navbar--menu-item class and sets data-active", () => {
 			render(
-				<NavbarRoot isMenuOpen={true}>
-					<NavbarMenuItem data-testid="menu-item" isActive={true}>
-						Menu Item
-					</NavbarMenuItem>
-				</NavbarRoot>
+				<NavbarMenuItem data-testid="menu-item" isActive={true}>
+					Menu Item
+				</NavbarMenuItem>
 			);
 
 			const item = screen.getByTestId("menu-item");
 			expect(item.tagName).toBe("LI");
 			expect(item).toHaveClass("navbar--menu-item");
 			expect(item).toHaveAttribute("data-active", "true");
-			expect(item).toHaveAttribute("data-menu-open", "true");
 		});
 
 		it("forwards ref to element", () => {
 			const ref = createRef<HTMLLIElement>();
-			render(
-				<NavbarRoot>
-					<NavbarMenuItem ref={ref} data-testid="menu-item" />
-				</NavbarRoot>
-			);
+			render(<NavbarMenuItem ref={ref} data-testid="menu-item" />);
 
 			expect(ref.current).toBe(screen.getByTestId("menu-item"));
 		});

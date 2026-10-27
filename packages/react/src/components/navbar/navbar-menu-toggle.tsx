@@ -105,3 +105,4 @@ export const NavbarMenuToggle = forwardRef<"button", NavbarMenuToggleProps>(
 		);
 	}
 );
+NavbarMenuToggle.displayName = "NavbarMenuToggle";

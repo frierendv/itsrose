@@ -85,3 +85,4 @@ export const NavbarMenu = forwardRef<"ul", NavbarMenuProps>((props, ref) => {
 		</AnimatePresence>
 	);
 });
+NavbarMenu.displayName = "NavbarMenu";
