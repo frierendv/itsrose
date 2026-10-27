@@ -1,9 +1,4 @@
-"use client";
-
-import {
-	createContext as reactCreateContext,
-	useContext as useReactContext,
-} from "react";
+import * as React from "react";
 
 export interface CreateContextOptions<T> {
 	/**
@@ -62,14 +57,14 @@ export function createContext<ContextType>(
 ): CreateContextReturn<any> {
 	const { strict = true, errorMessage, name, defaultValue } = options;
 
-	const Context = reactCreateContext<ContextType | undefined>(defaultValue);
+	const Context = React.createContext<ContextType | undefined>(defaultValue);
 
 	if (name) {
 		Context.displayName = name;
 	}
 
 	function useContext() {
-		const context = useReactContext(Context);
+		const context = React.useContext(Context);
 
 		if (!context && strict) {
 			const defaultMessage = name
