@@ -15,7 +15,6 @@ export default function () {
 	return [
 		passkeyClient(),
 		adminClient(),
-		multiSessionClient(),
 		apiKeyClient(),
 		oauthPopupClient(),
 		lastLoginMethodClient(),
