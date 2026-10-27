@@ -1,8 +1,7 @@
 import type { MidtransClient } from "@itsrose/midtrans";
 import { APIError, createAuthEndpoint } from "better-auth/api";
 import { z } from "zod/v4";
-import { runAllBillingCronTasks } from "../../cron";
-import { createRoute, isAdmin } from "../../server";
+import { createRoute, isAdmin, runAllBillingCronTasks } from "../../server";
 import type { ItsRosePluginOptions } from "../../types";
 
 export const billingCronSchema = z.object({
@@ -24,6 +23,7 @@ export const runBillingCronEndpoint = (
 		async (ctx) => {
 			// Require either admin session or secret header
 			const authHeader = ctx.request?.headers?.get("Authorization");
+			// eslint-disable-next-line turbo/no-undeclared-env-vars
 			const cronSecret = process.env.BILLING_CRON_SECRET;
 
 			const hasValidSecret =

@@ -12,7 +12,7 @@ export default defineConfig({
 	},
 	unused: {
 		enabled: true,
-		ignore: ["zod"],
+		ignore: ["zod", "react-dom"],
 	},
 	format: ["esm"],
 	entry: [
@@ -21,6 +21,8 @@ export default defineConfig({
 		"src/itsrose/index.ts",
 		"src/itsrose/client/index.ts",
 		"src/itsrose/server/index.ts",
+		"src/eusend/index.ts",
+		"src/storage/index.ts",
 		"src/index.ts",
 	],
 });

@@ -1,7 +1,6 @@
 import { apiKey } from "@better-auth/api-key";
 import { dash } from "@better-auth/infra";
 import { passkey } from "@better-auth/passkey";
-import { localization, type BuiltInLocales } from "better-auth-localization";
 import {
 	admin,
 	bearer,
@@ -11,26 +10,11 @@ import {
 	oauthPopup,
 	openAPI,
 } from "better-auth/plugins";
+import { eusendPlugin } from "../eusend";
 import { itsRosePlugin } from "../itsrose/plugin-server";
 import type { SharedEnv } from "../shared";
-import { WEBAUTHN_CHALLENGE_COOKIE } from "../shared";
-
-function parseAcceptLanguage(header: string | null): string[] {
-	if (!header) {
-		return [];
-	}
-	return header
-		.split(",")
-		.map((part) => {
-			const [localeStr, quality = "q=1"] = part.trim().split(";");
-			const q = Number.parseFloat(quality.replace("q=", ""));
-			const locale = localeStr?.trim().split("-")[0] ?? "";
-			return { locale, q };
-		})
-		.filter((item) => item.locale.length > 0)
-		.sort((a, b) => b.q - a.q)
-		.map((item) => item.locale);
-}
+import { LAST_LOGIN_METHOD_COOKIE, WEBAUTHN_CHALLENGE_COOKIE } from "../shared";
+import { storagePlugin } from "../storage/plugin-server";
 
 export default function (env = process.env as SharedEnv) {
 	const appName = typeof env.APP_NAME === "string" ? env.APP_NAME : undefined;
@@ -85,31 +69,8 @@ export default function (env = process.env as SharedEnv) {
 				},
 			},
 		}),
-		multiSession({ maximumSessions: 3 }),
-		haveIBeenPwned({
-			customPasswordCompromisedMessage:
-				"Please choose a more secure password.",
-		}),
-		localization({
-			defaultLocale: "id-ID",
-			fallbackLocale: "default",
-			getLocale: async (request) => {
-				const fallbackLocale = "default";
-				if (!request) {
-					return fallbackLocale;
-				}
-				try {
-					const acceptLang =
-						request.headers?.get("Accept-Language") ?? null;
-					const preferred = parseAcceptLanguage(acceptLang)[0];
-					return preferred?.startsWith("en") || !preferred
-						? "default"
-						: (preferred as BuiltInLocales);
-				} catch {
-					return fallbackLocale;
-				}
-			},
-		}),
+		multiSession({ maximumSessions: 2 }),
+		haveIBeenPwned(),
 		apiKey({
 			defaultPrefix: "sk_",
 			references: "user",
@@ -143,7 +104,7 @@ export default function (env = process.env as SharedEnv) {
 		}),
 		bearer(),
 		oauthPopup(),
-		lastLoginMethod(),
+		lastLoginMethod({ cookieName: LAST_LOGIN_METHOD_COOKIE }),
 		openAPI(),
 		dash({
 			apiKey: env.BETTER_AUTH_API_KEY,
@@ -151,6 +112,20 @@ export default function (env = process.env as SharedEnv) {
 				enabled: true, // Enable activity tracking
 			},
 		}),
+		eusendPlugin({
+			apiKey:
+				typeof env.EUSEND_API_KEY === "string"
+					? env.EUSEND_API_KEY
+					: undefined,
+			from:
+				typeof env.EUSEND_FROM === "string"
+					? env.EUSEND_FROM
+					: appDomain
+						? `noreply@${appDomain}`
+						: undefined,
+			appName,
+		}),
 		itsRosePlugin(),
+		storagePlugin(),
 	];
 }

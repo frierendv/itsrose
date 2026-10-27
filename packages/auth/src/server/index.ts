@@ -9,4 +9,6 @@ export type AuthServer = ReturnType<typeof createBetterAuthServer>;
 // reused
 export { defaultKeyHasher } from "@better-auth/api-key";
 export { itsRosePlugin } from "../itsrose/plugin-server";
+export { eusendPlugin, EusendService } from "../eusend";
+export { storagePlugin } from "../storage";
 export * from "./database";
