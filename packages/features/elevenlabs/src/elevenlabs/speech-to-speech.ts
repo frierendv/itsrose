@@ -84,7 +84,7 @@ export async function speechToSpeech(
 		throw new ThirdPartyApiError(error.message, error.statusCode);
 	}
 	return {
-		audio_base64: Buffer.from(data).toString("base64"),
+		audio: Buffer.from(data).toString("base64"),
 	};
 }
 
