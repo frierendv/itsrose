@@ -22,20 +22,27 @@
 		"editor.defaultFormatter": "astro-build.astro-vscode"
 	},
 	"[sql]": {
-		"editor.defaultFormatter": "inferrinizzard.prettier-sql-vscode"
+		"editor.defaultFormatter": "ReneSaarsoo.sql-formatter-vsc"
 	},
 
 	"search.exclude": {
 		"**/dist": true,
+		"**/.next": true,
+		"**/.sonda": true,
 		"**/node_modules": true,
 		"**/.turbo/**": true
 	},
 	"files.watcherExclude": {
 		"**/dist/**": true,
+		"**/.next/**": true,
+		"**/.sonda/**": true,
 		"**/node_modules/**": true,
 		"**/.turbo/**": true
 	},
 	"[dockercompose]": {
 		"editor.defaultFormatter": "ms-azuretools.vscode-containers"
-	}
+	},
+
+	// gitea source control
+	"gitea-for-vscode.baseUrl": "https://git.itsrose.my.id"
 }

@@ -4,6 +4,8 @@
 		"orta.vscode-jest",
 		"yoavbls.pretty-ts-errors",
 		"redhat.vscode-yaml",
-		"ms-azuretools.vscode-containers"
+		"ms-azuretools.vscode-containers",
+		"esbenp.prettier-vscode",
+		"ReneSaarsoo.sql-formatter-vsc"
 	]
 }
