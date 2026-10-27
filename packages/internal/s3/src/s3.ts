@@ -1,11 +1,8 @@
-import { SystemError } from "@itsrose/system";
+import { Readable } from "node:stream";
 import type { FileTypeResult } from "file-type";
 import {
 	runInBatches,
-	S3Error,
-	S3mini as S3Mini,
-	S3NetworkError,
-	S3ServiceError,
+	S3mini,
 	sanitizeETag,
 	type AWSHeaders,
 	type CompleteMultipartUploadResult,
@@ -25,21 +22,55 @@ import {
 	type SSECHeaders,
 	type UploadPart,
 } from "s3mini";
-import { getExtension, lookupExtension, lookupMimeType } from "./mime";
+import {
+	extractBucketName,
+	normalizePublicDomain,
+	PUBLIC_KEY,
+	resolveS3miniEndpoint,
+	TEMP_KEY,
+	type S3Config,
+} from "./config";
+import {
+	detectFileType,
+	lookupExtension,
+	lookupMimeType,
+	resolveContentType,
+} from "./mime";
 import type {
 	CreateKeyOptions,
-	S3Config,
+	DeleteBatchResult,
+	GetObjectOptions,
+	PresignedUrlOptions,
+	PutDataInput,
+	PutObjectOptions,
 	UploadOptions,
 	UploadResult,
 } from "./types";
+import {
+	getObjectPublicUrl,
+	normalizeStorageKey,
+	type GetObjectPublicUrlOptions,
+} from "./url";
 
-export const TEMP_KEY = "t" as const;
-export const PUBLIC_KEY = "public" as const;
+function isNodeReadable(val: unknown): val is Readable {
+	return Boolean(
+		val &&
+		typeof val === "object" &&
+		"pipe" in val &&
+		typeof (val as Record<string, unknown>).pipe === "function"
+	);
+}
 
 /**
- * S3 client for the ItsRose platform built on top of {@linkcode S3Mini}.
+ * Lightweight, zero-bloat S3 client tailored for modern runtimes, Cloudflare R2, and MinIO.
+ * Powered by `s3mini`.
  */
-export class S3 extends S3Mini {
+export class S3 extends S3mini {
+	/**
+	 * Cloudflare R2 custom domain or public CDN domain (e.g. `https://pub-cdn.itsrose.net`).
+	 */
+	readonly customDomain?: string;
+
 	/**
 	 * Domain for public asset serving (e.g. Cloudflare R2 custom domain, CloudFront, or `r2.dev`).
 	 */
@@ -51,24 +82,59 @@ export class S3 extends S3Mini {
 	readonly defaultPrefix: string;
 
 	/**
+	 * Active bucket name.
+	 */
+	readonly bucket: string;
+
+	/**
 	 * Protocol to use when generating public URLs for {@linkcode publicDomain}.
 	 */
 	protected readonly publicProtocol: string = "https:";
 
-	constructor({ publicDomain, defaultPrefix = TEMP_KEY, ...opts }: S3Config) {
-		super(opts);
-		this.defaultPrefix = defaultPrefix;
+	constructor(config: S3Config = {}) {
+		const rawEndpoint = config.endpoint ?? "https://s3.amazonaws.com";
+		const configuredBucket =
+			config.bucket ??
+			config.bucketName ??
+			extractBucketName(rawEndpoint) ??
+			"";
+		const resolvedEndpoint = resolveS3miniEndpoint(
+			rawEndpoint,
+			configuredBucket
+		);
 
-		if (publicDomain) {
-			const raw = publicDomain.trim();
-			if (/^https?:\/\//i.test(raw)) {
-				this.publicProtocol = raw.toLowerCase().startsWith("http://")
-					? "http:"
-					: "https:";
-			}
-			this.publicDomain = raw
-				.replace(/^https?:\/\//i, "")
-				.replace(/^\/+|\/+$/g, "");
+		super({
+			accessKeyId: config.accessKeyId ?? "",
+			secretAccessKey: config.secretAccessKey ?? "",
+			endpoint: resolvedEndpoint,
+			region: config.region ?? "auto",
+			requestSizeInBytes: config.requestSizeInBytes,
+			requestAbortTimeout: config.requestAbortTimeout,
+			minPartSize: config.minPartSize,
+			logger: config.logger,
+			fetch: config.fetch,
+		});
+
+		this.bucket = configuredBucket || this.bucketName;
+		this.defaultPrefix = config.defaultPrefix ?? TEMP_KEY;
+
+		const explicitCustomDomain = config.customDomain ?? config.publicCdnUrl;
+		if (explicitCustomDomain) {
+			this.customDomain = explicitCustomDomain.trim();
+		}
+
+		if (config.publicDomain) {
+			const { domain, protocol } = normalizePublicDomain(
+				config.publicDomain
+			);
+			this.publicDomain = domain;
+			this.publicProtocol = protocol;
+		} else if (this.customDomain) {
+			const { domain, protocol } = normalizePublicDomain(
+				this.customDomain
+			);
+			this.publicDomain = domain;
+			this.publicProtocol = protocol;
 		}
 	}
 
@@ -77,14 +143,6 @@ export class S3 extends S3Mini {
 	 *
 	 * Normalizes slashes, trims whitespace, sanitizes directory traversal sequences,
 	 * and defaults omitted or null paths to {@linkcode PUBLIC_KEY}.
-	 *
-	 * @example
-	 * ```ts
-	 * s3.createKey("audio.mp3"); // "t/public/audio.mp3"
-	 * s3.createKey("audio.mp3", "music"); // "t/music/audio.mp3"
-	 * s3.createKey("audio.mp3", "music", { prefix: "uploads" }); // "uploads/music/audio.mp3"
-	 * s3.createKey("audio.mp3", "music", { prefix: null }); // "music/audio.mp3"
-	 * ```
 	 */
 	public createKey<
 		const T extends string,
@@ -113,7 +171,6 @@ export class S3 extends S3Mini {
 
 		let joined = segments.join("/");
 
-		// Sanitize directory traversal if enabled (default true)
 		if (options?.sanitize !== false) {
 			joined = joined.replace(/(^|\/)\.\.(?=\/|$)/g, "");
 		}
@@ -127,133 +184,20 @@ export class S3 extends S3Mini {
 	}
 
 	/**
-	 * Detects the MIME type and file extension from a buffer or array buffer.
-	 * Falls back to extension lookup from `fallbackFileNameOrExt`, or `application/octet-stream`.
-	 *
-	 * @param data - Binary buffer or array buffer to inspect.
-	 * @param fallbackFileNameOrExt - Optional filename or extension to inspect if magic numbers don't match.
+	 * Detects MIME type and file extension from a buffer or array buffer.
 	 */
 	public async getFileType(
 		data: Buffer | Uint8Array | ArrayBuffer,
 		fallbackFileNameOrExt?: string
 	): Promise<FileTypeResult> {
-		const uint8 = data instanceof Uint8Array ? data : new Uint8Array(data);
-
-		if (uint8.byteLength > 0) {
-			const { fileTypeFromBuffer } = await import("file-type");
-			const ft = await fileTypeFromBuffer(uint8);
-			if (ft) {
-				return ft;
-			}
-		}
-
-		if (fallbackFileNameOrExt) {
-			const ext =
-				getExtension(fallbackFileNameOrExt) ??
-				fallbackFileNameOrExt.toLowerCase().replace(/^\./, "");
-			const mime = lookupMimeType(ext);
-			if (mime) {
-				return { ext, mime };
-			}
-		}
-
-		return { ext: "bin", mime: "application/octet-stream" };
+		return detectFileType(data, fallbackFileNameOrExt);
 	}
 
 	/**
-	 * Inferred content type resolver for uploads.
-	 */
-	protected async resolveContentType(
-		key: string,
-		data: unknown,
-		explicitType?: string
-	): Promise<string> {
-		if (explicitType && explicitType.trim().length > 0) {
-			return explicitType.trim();
-		}
-
-		if (typeof Blob !== "undefined" && data instanceof Blob && data.type) {
-			return data.type;
-		}
-
-		if (Buffer.isBuffer(data) || data instanceof Uint8Array) {
-			const ft = await this.getFileType(data, key);
-			if (ft.mime !== "application/octet-stream") {
-				return ft.mime;
-			}
-		} else if (data instanceof ArrayBuffer) {
-			const ft = await this.getFileType(new Uint8Array(data), key);
-			if (ft.mime !== "application/octet-stream") {
-				return ft.mime;
-			}
-		}
-
-		if (typeof data === "string") {
-			const ext = getExtension(key);
-			if (ext) {
-				const mime = lookupMimeType(ext);
-				if (mime) {
-					return mime.startsWith("text/") ||
-						mime === "application/json"
-						? `${mime}; charset=utf-8`
-						: mime;
-				}
-			}
-
-			const trimmed = data.trim();
-			if (
-				(trimmed.startsWith("{") && trimmed.endsWith("}")) ||
-				(trimmed.startsWith("[") && trimmed.endsWith("]"))
-			) {
-				try {
-					JSON.parse(trimmed);
-					return "application/json; charset=utf-8";
-				} catch {
-					// Fall through to plain text
-				}
-			}
-
-			return "text/plain; charset=utf-8";
-		}
-
-		const ext = getExtension(key);
-		if (ext) {
-			const mime = lookupMimeType(ext);
-			if (mime) {
-				return mime;
-			}
-		}
-
-		return "application/octet-stream";
-	}
-
-	/**
-	 * Uploads an object with automatic MIME-type inference if not explicitly provided.
-	 */
-	override async putObject(
-		key: string,
-		data: string | DataInput | ReadableStream | File | Blob,
-		fileType?: string,
-		ssecHeaders?: SSECHeaders,
-		additionalHeaders?: AWSHeaders,
-		contentLength?: number
-	): Promise<Response> {
-		const resolvedType = await this.resolveContentType(key, data, fileType);
-		return super.putObject(
-			key,
-			data,
-			resolvedType,
-			ssecHeaders,
-			additionalHeaders,
-			contentLength
-		);
-	}
-
-	/**
-	 * Uploads an object using single PUT or multipart upload depending on size,
+	 * Put object using single PUT or multipart upload depending on size,
 	 * with automatic MIME-type inference if not explicitly provided.
 	 */
-	override async putAnyObject(
+	public override async putAnyObject(
 		key: string,
 		data: DataInput,
 		fileType?: string,
@@ -261,9 +205,10 @@ export class S3 extends S3Mini {
 		additionalHeaders?: AWSHeaders,
 		contentLength?: number
 	) {
-		const resolvedType = await this.resolveContentType(key, data, fileType);
+		const cleanKey = normalizeStorageKey(key, this.bucket);
+		const resolvedType = await resolveContentType(cleanKey, data, fileType);
 		return super.putAnyObject(
-			key,
+			cleanKey,
 			data,
 			resolvedType,
 			ssecHeaders,
@@ -273,103 +218,492 @@ export class S3 extends S3Mini {
 	}
 
 	/**
-	 * High-level upload method that uploads data to S3 and returns the public URL.
-	 *
-	 * @example
-	 * ```ts
-	 * const { publicUrl } = await s3.upload(key, audioBuffer);
-	 * ```
+	 * Uploads an object to S3.
+	 * Supports options bag as 3rd parameter or positional parameters.
 	 */
-	public async upload(
+	public override putObject(
 		key: string,
-		data: DataInput,
-		options: UploadOptions = {}
-	): Promise<UploadResult> {
-		const contentType = options.contentType ?? options.fileType;
-		const response = await this.putAnyObject(
-			key,
+		body: PutDataInput,
+		options?: PutObjectOptions
+	): Promise<Response>;
+	public override putObject(
+		key: string,
+		data: string | DataInput | ReadableStream | File | Blob,
+		fileType?: string,
+		ssecHeaders?: SSECHeaders,
+		additionalHeaders?: AWSHeaders,
+		contentLength?: number
+	): Promise<Response>;
+	public override async putObject(
+		key: string,
+		body: PutDataInput,
+		optionsOrFileType?: string | PutObjectOptions,
+		maybeSsecHeaders?: SSECHeaders,
+		maybeAdditionalHeaders?: AWSHeaders,
+		maybeContentLength?: number
+	): Promise<Response> {
+		const cleanKey = normalizeStorageKey(key, this.bucket);
+
+		const options: PutObjectOptions =
+			typeof optionsOrFileType === "object"
+				? optionsOrFileType
+				: {
+						fileType: optionsOrFileType,
+						ssecHeaders: maybeSsecHeaders,
+						additionalHeaders: maybeAdditionalHeaders,
+						contentLength: maybeContentLength,
+					};
+
+		let data: DataInput;
+		if (isNodeReadable(body) && typeof Readable.toWeb === "function") {
+			data = Readable.toWeb(body) as unknown as DataInput;
+		} else {
+			data = body as DataInput;
+		}
+
+		const contentType = await resolveContentType(
+			cleanKey,
+			data,
+			options.contentType ?? options.fileType
+		);
+
+		const headers: Record<string, string> = {
+			...(options.additionalHeaders ?? {}),
+		};
+
+		if (options.cacheControl) {
+			headers["cache-control"] = options.cacheControl;
+		}
+
+		if (options.contentDisposition) {
+			headers["content-disposition"] = options.contentDisposition;
+		}
+
+		if (options.metadata) {
+			for (const [metaKey, metaValue] of Object.entries(
+				options.metadata
+			)) {
+				const headerKey = metaKey
+					.toLowerCase()
+					.startsWith("x-amz-meta-")
+					? metaKey.toLowerCase()
+					: `x-amz-meta-${metaKey.toLowerCase()}`;
+				headers[headerKey] = metaValue;
+			}
+		}
+
+		return super.putObject(
+			cleanKey,
 			data,
 			contentType,
 			options.ssecHeaders,
-			options.additionalHeaders,
+			headers as unknown as AWSHeaders,
+			options.contentLength
+		);
+	}
+
+	/**
+	 * High-level upload method that returns key, bucket, publicUrl, and etag.
+	 */
+	public async upload(
+		key: string,
+		data: PutDataInput,
+		options: UploadOptions = {}
+	): Promise<UploadResult> {
+		const cleanKey = normalizeStorageKey(key, this.bucket);
+		let payload: DataInput;
+		if (isNodeReadable(data) && typeof Readable.toWeb === "function") {
+			payload = Readable.toWeb(data) as unknown as DataInput;
+		} else {
+			payload = data as DataInput;
+		}
+
+		const contentType = options.contentType ?? options.fileType;
+		let headers: Record<string, string> | undefined =
+			options.additionalHeaders
+				? { ...options.additionalHeaders }
+				: undefined;
+
+		if (options.cacheControl) {
+			headers = headers ?? {};
+			headers["cache-control"] = options.cacheControl;
+		}
+
+		if (options.contentDisposition) {
+			headers = headers ?? {};
+			headers["content-disposition"] = options.contentDisposition;
+		}
+
+		if (options.metadata) {
+			headers = headers ?? {};
+			for (const [metaKey, metaValue] of Object.entries(
+				options.metadata
+			)) {
+				const headerKey = metaKey
+					.toLowerCase()
+					.startsWith("x-amz-meta-")
+					? metaKey.toLowerCase()
+					: `x-amz-meta-${metaKey.toLowerCase()}`;
+				headers[headerKey] = metaValue;
+			}
+		}
+
+		const response = await this.putAnyObject(
+			cleanKey,
+			payload,
+			contentType,
+			options.ssecHeaders,
+			headers ? (headers as unknown as AWSHeaders) : undefined,
 			options.contentLength
 		);
 
-		const publicUrl = this.getObjectPublicUrl(key);
-		return { key, publicUrl, response };
+		const rawEtag =
+			"headers" in response &&
+			typeof (response.headers as any).get === "function"
+				? (response.headers as any).get("etag")
+				: undefined;
+		const etag = rawEtag ? sanitizeETag(rawEtag) : undefined;
+		const publicUrl = this.getPublicUrl(cleanKey);
+
+		return {
+			key: cleanKey,
+			bucket: this.bucket,
+			publicUrl,
+			etag,
+			response: response as any,
+		};
+	}
+
+	/**
+	 * Retrieves an object as string. Supports options object for buffer or stream retrieval.
+	 */
+	public override getObject(
+		key: string,
+		opts?: Record<string, unknown>,
+		ssecHeaders?: SSECHeaders
+	): Promise<string | null>;
+	public override getObject(
+		key: string,
+		options?: GetObjectOptions
+	): Promise<
+		string | Buffer | NodeJS.ReadableStream | Response | unknown | null
+	>;
+	public override async getObject(
+		key: string,
+		optsOrOptions?: Record<string, unknown> | GetObjectOptions,
+		maybeSsecHeaders?: SSECHeaders
+	): Promise<
+		string | Buffer | NodeJS.ReadableStream | Response | unknown | null
+	> {
+		const cleanKey = normalizeStorageKey(key, this.bucket);
+
+		if (
+			optsOrOptions &&
+			("as" in optsOrOptions || "asBuffer" in optsOrOptions)
+		) {
+			const options = optsOrOptions as GetObjectOptions;
+			if (options.asBuffer || options.as === "buffer") {
+				return this.getObjectBuffer(cleanKey);
+			}
+			if (options.as === "stream") {
+				return this.getObjectStream(cleanKey);
+			}
+			if (options.as === "response") {
+				return super.getObjectResponse(
+					cleanKey,
+					options.opts,
+					options.ssecHeaders
+				);
+			}
+			if (options.as === "json") {
+				return super.getObjectJSON(
+					cleanKey,
+					options.opts,
+					options.ssecHeaders
+				);
+			}
+			return super.getObject(cleanKey, options.opts, options.ssecHeaders);
+		}
+
+		return super.getObject(
+			cleanKey,
+			optsOrOptions as Record<string, unknown> | undefined,
+			maybeSsecHeaders
+		);
+	}
+
+	/**
+	 * Retrieves an object as an in-memory Node.js Buffer.
+	 */
+	public async getObjectBuffer(key: string): Promise<Buffer | null> {
+		const cleanKey = normalizeStorageKey(key, this.bucket);
+		const arrayBuf = await super.getObjectArrayBuffer(cleanKey);
+		if (!arrayBuf) {
+			return null;
+		}
+		return Buffer.from(arrayBuf);
+	}
+
+	/**
+	 * Retrieves an object as a Node.js Readable stream.
+	 */
+	public async getObjectStream(
+		key: string
+	): Promise<NodeJS.ReadableStream | null> {
+		const cleanKey = normalizeStorageKey(key, this.bucket);
+		const res = await super.getObjectResponse(cleanKey);
+		if (!res || !res.body) {
+			return null;
+		}
+		if (typeof Readable.fromWeb === "function") {
+			return Readable.fromWeb(res.body as any);
+		}
+		return res.body as unknown as NodeJS.ReadableStream;
+	}
+
+	/**
+	 * Retrieves an object and parses it as JSON.
+	 */
+	public override async getObjectJSON<T = unknown>(
+		key: string,
+		opts?: Record<string, unknown>,
+		ssecHeaders?: SSECHeaders
+	): Promise<T | null> {
+		const cleanKey = normalizeStorageKey(key, this.bucket);
+		return super.getObjectJSON<T>(cleanKey, opts, ssecHeaders);
 	}
 
 	/**
 	 * Checks if an object exists in the bucket.
-	 * Returns `true` if found, `false` otherwise.
 	 */
 	public async exists(key: string): Promise<boolean> {
-		const res = await this.objectExists(key);
+		const cleanKey = normalizeStorageKey(key, this.bucket);
+		const res = await this.objectExists(cleanKey);
 		return res === true;
 	}
 
 	/**
-	 * Generates a public object URL.
-	 * Prioritizes the custom `publicDomain` and falls back to standard AWS S3 or endpoint logic.
-	 *
-	 * @param key - The key of the object.
-	 * @returns The resolved public URL string.
-	 * @throws {SystemError} If key is empty or bucket is missing.
+	 * Deletes a single object from the bucket.
 	 */
-	public getObjectPublicUrl(key: string): string {
-		const cleanKey = key.trim().replace(/^\/+|\/+$/g, "");
-		if (!cleanKey) {
-			throw new SystemError(
-				"Cannot generate an S3 public URL for an empty key."
+	public override deleteObject(
+		target: string | DeleteObject
+	): Promise<boolean>;
+	public override deleteObject(
+		target: string | DeleteObject,
+		options: { versionInfo: true }
+	): Promise<DeleteObjectResult>;
+	public override async deleteObject(
+		target: string | DeleteObject,
+		options?: { versionInfo?: boolean }
+	): Promise<boolean | DeleteObjectResult> {
+		const cleanTarget =
+			typeof target === "string"
+				? normalizeStorageKey(target, this.bucket)
+				: {
+						...target,
+						key: normalizeStorageKey(target.key, this.bucket),
+					};
+
+		if (options?.versionInfo) {
+			return super.deleteObject(cleanTarget, { versionInfo: true });
+		}
+		return super.deleteObject(cleanTarget);
+	}
+
+	/**
+	 * Deletes multiple objects in batch.
+	 */
+	public override deleteObjects(
+		targets: Array<string | DeleteObject>
+	): Promise<boolean[]>;
+	public override deleteObjects(
+		targets: Array<string | DeleteObject>,
+		options: { versionInfo: true }
+	): Promise<DeleteObjectResult[]>;
+	public override async deleteObjects(
+		targets: Array<string | DeleteObject>,
+		options?: { versionInfo?: boolean }
+	): Promise<boolean[] | DeleteObjectResult[]> {
+		if (!targets || targets.length === 0) {
+			return [];
+		}
+
+		const cleanTargets = targets.map((t) =>
+			typeof t === "string"
+				? normalizeStorageKey(t, this.bucket)
+				: { ...t, key: normalizeStorageKey(t.key, this.bucket) }
+		);
+
+		if (options?.versionInfo) {
+			return super.deleteObjects(cleanTargets, { versionInfo: true });
+		}
+		return super.deleteObjects(cleanTargets);
+	}
+
+	/**
+	 * Batch deletion returning aggregated deleted keys and errors.
+	 */
+	public async deleteBatch(
+		targets: Array<string | DeleteObject>
+	): Promise<DeleteBatchResult> {
+		if (!targets || targets.length === 0) {
+			return { deleted: [], errors: [] };
+		}
+		const results = await this.deleteObjects(targets, {
+			versionInfo: true,
+		});
+		const deleted: string[] = [];
+		const errors: Array<{ key: string; message?: string }> = [];
+
+		for (const res of results) {
+			if (res.deleted) {
+				deleted.push(res.key);
+			} else {
+				errors.push({ key: res.key, message: "Deletion unsuccessful" });
+			}
+		}
+
+		return { deleted, errors };
+	}
+
+	/**
+	 * Purges all keys under a given prefix.
+	 */
+	public async purgePrefix(
+		prefix: string,
+		_options?: Record<string, unknown>
+	): Promise<DeleteBatchResult> {
+		const cleanPrefix = normalizeStorageKey(prefix, this.bucket);
+		const objects = await super.listObjects("/", cleanPrefix);
+		if (!objects || objects.length === 0) {
+			return { deleted: [], errors: [] };
+		}
+		const keys = objects.map((o) => o.Key);
+		return this.deleteBatch(keys);
+	}
+
+	/**
+	 * Generates a pre-signed URL for direct client access.
+	 * Overloaded to support both `(method, key, expiresIn, ...)` and `(key, options)`.
+	 */
+	public override getPresignedUrl(
+		method: "GET" | "PUT",
+		key: string,
+		expiresIn?: number,
+		queryParams?: Record<string, string>,
+		headers?: Record<string, string>
+	): Promise<string>;
+	public override getPresignedUrl(
+		key: string,
+		options?: PresignedUrlOptions
+	): Promise<string>;
+	public override async getPresignedUrl(
+		methodOrKey: string,
+		keyOrOptions?: string | PresignedUrlOptions,
+		maybeExpiresIn?: number,
+		maybeQueryParams?: Record<string, string>,
+		maybeHeaders?: Record<string, string>
+	): Promise<string> {
+		if (
+			typeof methodOrKey === "string" &&
+			(methodOrKey === "GET" || methodOrKey === "PUT") &&
+			typeof keyOrOptions === "string"
+		) {
+			const cleanKey = normalizeStorageKey(keyOrOptions, this.bucket);
+			return super.getPresignedUrl(
+				methodOrKey,
+				cleanKey,
+				maybeExpiresIn,
+				maybeQueryParams,
+				maybeHeaders
 			);
 		}
 
-		// Prioritize custom domain or R2 public access setups
-		if (this.publicDomain) {
-			const rawDomain = this.publicDomain.trim();
-			const hasProtocol = /^https?:\/\//i.test(rawDomain);
-			const protocol = hasProtocol
-				? (rawDomain.match(/^https?:\/\//i)?.[0].toLowerCase() ??
-					`${this.publicProtocol}//`)
-				: `${this.publicProtocol}//`;
+		const key = methodOrKey;
+		const options = (
+			typeof keyOrOptions === "object" ? keyOrOptions : {}
+		) as PresignedUrlOptions;
+		const cleanKey = normalizeStorageKey(key, this.bucket);
+		const method = options.method ?? "GET";
+		const expiresIn = options.expiresIn ?? options.expiresInSeconds ?? 900;
 
-			const domainWithoutProto = rawDomain
-				.replace(/^https?:\/\//i, "")
-				.replace(/^\/+|\/+$/g, "");
-
-			const url = new URL(`${protocol}${domainWithoutProto}`);
-			const basePath = url.pathname.replace(/\/+$/, "");
-			url.pathname = basePath
-				? `${basePath}/${cleanKey}`
-				: `/${cleanKey}`;
-			return url.toString();
+		const headers: Record<string, string> = { ...(options.headers ?? {}) };
+		if (options.contentType) {
+			headers["Content-Type"] = options.contentType;
+		}
+		if (options.contentLength !== undefined) {
+			headers["Content-Length"] = String(options.contentLength);
 		}
 
-		// Fall back to standard S3 endpoint logic using s3mini configuration fields
-		const bucket = this.bucketName;
-		const hostname = this.endpoint.hostname;
+		return super.getPresignedUrl(
+			method,
+			cleanKey,
+			expiresIn,
+			options.queryParams,
+			headers
+		);
+	}
 
-		if (hostname.endsWith(".amazonaws.com")) {
-			if (!bucket) {
-				throw new SystemError(
-					"Cannot generate an S3 public URL without a configured bucket."
-				);
-			}
-			const region =
-				this.region && this.region !== "auto" ? this.region : undefined;
-			const host = region
-				? `${bucket}.s3.${region}.amazonaws.com`
-				: `${bucket}.s3.amazonaws.com`;
-			return `https://${host}/${cleanKey}`;
-		}
+	/**
+	 * Generates a short-lived pre-signed download URL.
+	 */
+	public async createPresignedDownloadUrl(params: {
+		key: string;
+		expiresInSeconds?: number;
+	}): Promise<string> {
+		return this.getPresignedUrl(params.key, {
+			method: "GET",
+			expiresIn: params.expiresInSeconds ?? 900,
+		});
+	}
 
-		// Custom or S3-compatible service (MinIO, R2, Wasabi, etc.)
-		const endpointHref = this.endpoint.href.replace(/\/+$/, "");
-		if (bucket && !this.endpoint.pathname.includes(bucket)) {
-			return `${endpointHref}/${bucket}/${cleanKey}`;
-		}
+	/**
+	 * Generates a short-lived pre-signed upload URL.
+	 */
+	public async createPresignedUploadUrl(params: {
+		key: string;
+		contentType?: string;
+		contentLength?: number;
+		expiresInSeconds?: number;
+	}): Promise<string> {
+		return this.getPresignedUrl(params.key, {
+			method: "PUT",
+			contentType: params.contentType,
+			contentLength: params.contentLength,
+			expiresIn: params.expiresInSeconds ?? 900,
+		});
+	}
 
-		return `${endpointHref}/${cleanKey}`;
+	/**
+	 * Resolves the public URL for an S3 / Cloudflare R2 object.
+	 */
+	public getPublicUrl(
+		key: string,
+		options?: Partial<GetObjectPublicUrlOptions>
+	): string {
+		const customDomainUrl =
+			this.customDomain ??
+			(this.publicDomain
+				? `${this.publicProtocol}//${this.publicDomain}`
+				: undefined);
+
+		return getObjectPublicUrl(key, {
+			customDomain: customDomainUrl,
+			endpoint: this.endpoint,
+			bucket: this.bucket,
+			region: this.region,
+			...options,
+		});
+	}
+
+	/**
+	 * Alias for {@link getPublicUrl}.
+	 */
+	public getObjectPublicUrl(
+		key: string,
+		options?: Partial<GetObjectPublicUrlOptions>
+	): string {
+		return this.getPublicUrl(key, options);
 	}
 
 	/**
@@ -383,19 +717,9 @@ export class S3 extends S3Mini {
 	public static lookupExtension = lookupExtension;
 }
 
-declare module "s3mini" {
-	interface S3Config {
-		publicDomain?: string;
-		defaultPrefix?: string;
-	}
-}
-
 export {
-	S3Error,
-	S3NetworkError,
-	S3ServiceError,
-	sanitizeETag,
 	runInBatches,
+	sanitizeETag,
 	type CompleteMultipartUploadResult,
 	type CopyObjectOptions,
 	type CopyObjectResult,
