@@ -16,6 +16,9 @@ export const SHARED_ENV_KEYS = [
 	"BETTER_AUTH_BASE_URL",
 	"BETTER_AUTH_SECRET",
 
+	// ROOT App domain, used for cross sub domain
+	"ROOT_DOMAIN",
+
 	// Client / Application
 	"APP_NAME",
 	"APP_DOMAIN",
@@ -26,6 +29,14 @@ export const SHARED_ENV_KEYS = [
 	"BETTER_AUTH_GOOGLE_SECRET",
 	"BETTER_AUTH_GITHUB_ID",
 	"BETTER_AUTH_GITHUB_SECRET",
+
+	// S3 Storage
+	"S3_ACCESS_KEY",
+	"S3_SECRET_KEY",
+	"S3_ENDPOINT",
+	"S3_BUCKET",
+	"S3_PUBLIC_DOMAIN",
+	"S3_REGION", // orphan
 ] as const;
 
 export type SharedEnvKey = typeof SHARED_ENV_KEYS;

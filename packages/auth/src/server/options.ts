@@ -12,7 +12,9 @@ export function getAuthOptions(
 			autoSignIn: true,
 			minPasswordLength: 8,
 			maxPasswordLength: 20,
-			resetPasswordTokenExpiresIn: 60 * 15,
+			// handled in eusend
+			// resetPasswordTokenExpiresIn: 60 * 15,
+			// requireEmailVerification: true,
 		},
 		socialProviders: {
 			github: {
@@ -67,10 +69,12 @@ export function getAuthOptions(
 				createdAt: "created_at",
 				updatedAt: "updated_at",
 			},
-			freshAge: 60 * 5,
+			// freshAge: 60 * 5, // let use default
 			cookieCache: {
 				enabled: true,
-				maxAge: 5 * 60,
+				// maxAge: 5 * 60, // let use default
+				strategy: "jwe",
+				version: env.NODE_ENV === "production" ? "pr_" : "dev_",
 			},
 		},
 		user: {
@@ -93,12 +97,26 @@ export function getAuthOptions(
 			},
 		},
 		advanced: {
+			ipAddress: {
+				ipAddressHeaders: ["x-forwarded-for", "cf-connecting-ip"],
+			},
 			database: {
 				joins: true,
 				generateId: "uuid",
 			},
-			useSecureCookies: false,
+			useSecureCookies: env.NODE_ENV === "production",
 			cookiePrefix: COOKIE_PREFIX,
+			crossSubDomainCookies: {
+				enabled: true,
+				// ie. "itsrose.my.id"
+				domain: env.ROOT_DOMAIN,
+			},
+			defaultCookieAttributes: {
+				sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+				secure: env.NODE_ENV === "production",
+				httpOnly: true,
+			},
+			trustedProxyHeaders: true,
 		},
 	} satisfies BetterAuthOptions;
 }
