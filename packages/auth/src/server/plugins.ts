@@ -6,7 +6,6 @@ import {
 	bearer,
 	haveIBeenPwned,
 	lastLoginMethod,
-	multiSession,
 	oauthPopup,
 	openAPI,
 } from "better-auth/plugins";
@@ -69,7 +68,6 @@ export default function (env = process.env as SharedEnv) {
 				},
 			},
 		}),
-		multiSession({ maximumSessions: 2 }),
 		haveIBeenPwned(),
 		apiKey({
 			defaultPrefix: "sk_",
