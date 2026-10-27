@@ -1,3 +1,5 @@
+import { fileTypeFromBuffer, type FileTypeResult } from "file-type";
+
 /**
  * Common extension to MIME type lookup map.
  */
@@ -103,4 +105,90 @@ export function lookupExtension(mimeType: string): string | undefined {
 		}
 	}
 	return undefined;
+}
+
+/**
+ * Detects the MIME type and file extension from a buffer or array buffer.
+ * Falls back to extension lookup from `fallbackFileNameOrExt`, or `application/octet-stream`.
+ */
+export async function detectFileType(
+	data: Buffer | Uint8Array | ArrayBuffer,
+	fallbackFileNameOrExt?: string
+): Promise<FileTypeResult> {
+	const uint8 = data instanceof Uint8Array ? data : new Uint8Array(data);
+
+	if (uint8.byteLength > 0) {
+		const ft = await fileTypeFromBuffer(uint8);
+		if (ft) {
+			return ft;
+		}
+	}
+
+	if (fallbackFileNameOrExt) {
+		const ext =
+			getExtension(fallbackFileNameOrExt) ??
+			fallbackFileNameOrExt.toLowerCase().replace(/^\./, "");
+		const mime = lookupMimeType(ext);
+		if (mime) {
+			return { ext, mime };
+		}
+	}
+
+	return { ext: "bin", mime: "application/octet-stream" };
+}
+
+/**
+ * Resolves the Content-Type header for an object payload.
+ */
+export async function resolveContentType(
+	key: string,
+	data: unknown,
+	explicitType?: string
+): Promise<string> {
+	if (explicitType && explicitType.trim().length > 0) {
+		return explicitType.trim();
+	}
+
+	if (typeof Blob !== "undefined" && data instanceof Blob && data.type) {
+		return data.type;
+	}
+
+	if (Buffer.isBuffer(data) || data instanceof Uint8Array) {
+		const ft = await detectFileType(data, key);
+		if (ft.mime !== "application/octet-stream") {
+			return ft.mime;
+		}
+	} else if (data instanceof ArrayBuffer) {
+		const ft = await detectFileType(new Uint8Array(data), key);
+		if (ft.mime !== "application/octet-stream") {
+			return ft.mime;
+		}
+	}
+
+	if (typeof data === "string") {
+		const ext = getExtension(key);
+		if (ext) {
+			const mime = lookupMimeType(ext);
+			if (mime) {
+				return mime.startsWith("text/") || mime === "application/json"
+					? `${mime}; charset=utf-8`
+					: mime;
+			}
+		}
+
+		const trimmed = data.trim();
+		if (
+			(trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+			(trimmed.startsWith("[") && trimmed.endsWith("]"))
+		) {
+			try {
+				JSON.parse(trimmed);
+				return "application/json; charset=utf-8";
+			} catch {
+				// Fall through
+			}
+		}
+	}
+
+	return "application/octet-stream";
 }

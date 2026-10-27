@@ -10,6 +10,8 @@ export class S3mini {
 		secretAccessKey: string;
 		endpoint: string;
 		region?: string;
+		requestSizeInBytes?: number;
+		minPartSize?: number;
 	}) {
 		this.endpoint = new URL(config.endpoint);
 		this.region = config.region ?? "auto";
@@ -60,8 +62,42 @@ export class S3mini {
 		return null;
 	}
 
-	async deleteObject(_key: string) {
-		return { deleted: true };
+	async getObjectResponse(_key: string) {
+		return new Response(null, { status: 200 });
+	}
+
+	async getObjectArrayBuffer(_key: string) {
+		return new ArrayBuffer(0);
+	}
+
+	async getObjectJSON(_key: string) {
+		return null;
+	}
+
+	async deleteObject(key: string | { key: string }) {
+		const keyStr = typeof key === "string" ? key : key.key;
+		return { key: keyStr, deleted: true };
+	}
+
+	async deleteObjects(targets: Array<string | { key: string }>) {
+		return targets.map((t) => ({
+			key: typeof t === "string" ? t : t.key,
+			deleted: true,
+		}));
+	}
+
+	async listObjects(_delimiter?: string, _prefix?: string) {
+		return [];
+	}
+
+	async getPresignedUrl(
+		method: string,
+		key: string,
+		_expiresIn?: number,
+		_queryParams?: Record<string, string>,
+		_headers?: Record<string, string>
+	) {
+		return `${this.endpoint.origin}/${this.bucketName}/${key}?X-Amz-Signature=mock&method=${method}`;
 	}
 }
 

@@ -1,10 +1,10 @@
-import { SystemError } from "@itsrose/system";
 import {
 	getExtension,
 	lookupExtension,
 	lookupMimeType,
 	PUBLIC_KEY,
 	S3,
+	S3ValidationError,
 	TEMP_KEY,
 } from "../src";
 
@@ -47,8 +47,8 @@ describe("internal/s3", () => {
 		const s3 = createTestClient();
 
 		it("creates key with default public path", () => {
-			const key = s3.createKey("avatar.png");
-			expect(key).toBe(`${TEMP_KEY}/${PUBLIC_KEY}/avatar.png`);
+			const key = s3.createKey("sample.png");
+			expect(key).toBe(`${TEMP_KEY}/${PUBLIC_KEY}/sample.png`);
 		});
 
 		it("creates key with custom path", () => {
@@ -218,10 +218,10 @@ describe("internal/s3", () => {
 			);
 		});
 
-		it("throws SystemError if key is empty", () => {
+		it("throws S3ValidationError if key is empty", () => {
 			const s3 = createTestClient();
 			expect(() => s3.getObjectPublicUrl("   ///   ")).toThrow(
-				SystemError
+				S3ValidationError
 			);
 		});
 	});
