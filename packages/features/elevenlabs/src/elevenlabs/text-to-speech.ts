@@ -36,7 +36,7 @@ export async function textToSpeech(
 		throw new ThirdPartyApiError(error.message, error.statusCode);
 	}
 	return {
-		audio_base64: Buffer.from(data).toString("base64"),
+		audio: Buffer.from(data).toString("base64"),
 	};
 }
 
@@ -55,7 +55,8 @@ export async function textToSpeechWithTiming(
 	if (error) {
 		throw new ThirdPartyApiError(error.message, error.statusCode);
 	}
-	return data;
+	const { audio_base64: audio, ...rest } = data;
+	return { audio, ...rest };
 }
 
 /**

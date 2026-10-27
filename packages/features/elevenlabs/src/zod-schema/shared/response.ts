@@ -2,19 +2,26 @@ import { z } from "zod/v4";
 
 /**
  * Shared response schema for ElevenLabs API.
-
  */
 export const ElevenLabsSharedResponseSchema = z
 	.object({
 		/**
-		 * base64 encoded audio.
+		 * The generated audio.
 		 */
-		audio_base64: z.string().describe("Base64-encoded audio data"),
+		audio: z.string().describe("Base64-encoded audio data"),
 	})
 	.meta({
 		id: "ElevenLabsData",
 	});
-
+export const ElevenLabsSharedResponseAudioSchema = z.object({
+	/**
+	 * Audio response format.
+	 */
+	"response-audio-format": z
+		.enum(["url", "base64"])
+		.optional()
+		.describe("By default the audio response format is base64"),
+});
 export interface IElevenLabsSharedResponse extends z.infer<
 	typeof ElevenLabsSharedResponseSchema
 > {}
