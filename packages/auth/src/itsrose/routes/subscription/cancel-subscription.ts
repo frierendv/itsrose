@@ -5,8 +5,12 @@ import {
 } from "better-auth/api";
 import { z } from "zod/v4";
 import { cancelSubscription, getUserSubscription } from "../../adapter";
-import { createRoute, isOwnerOrAdmin } from "../../server";
-import type { ItsRosePluginOptions } from "../../types";
+import {
+	createRoute,
+	isOwnerOrAdmin,
+	SUBSCRIPTION_TABLE_NAME,
+} from "../../server";
+import type { ItsRosePluginOptions, Subscription } from "../../types";
 
 export const cancelSubscriptionSchema = z.object({
 	subscription_id: z.string().optional(),
@@ -22,14 +26,22 @@ export const cancelSubscriptionEndpoint = (opts?: ItsRosePluginOptions) => {
 			body: cancelSubscriptionSchema,
 		},
 		async (ctx) => {
-			const { session } = ctx.context;
+			const { session, adapter } = ctx.context;
 			const { user } = session;
 
-			const targetSubscription = await getUserSubscription(ctx, user.id);
+			let targetSubscription: Subscription | null = null;
+			if (ctx.body.subscription_id) {
+				targetSubscription = await adapter.findOne<Subscription>({
+					model: SUBSCRIPTION_TABLE_NAME,
+					where: [{ field: "id", value: ctx.body.subscription_id }],
+				});
+			} else {
+				targetSubscription = await getUserSubscription(ctx, user.id);
+			}
 
 			if (!targetSubscription) {
 				throw new APIError("NOT_FOUND", {
-					message: "No active subscription found to cancel.",
+					message: "No subscription found to cancel.",
 				});
 			}
 
