@@ -118,6 +118,7 @@ export const invoiceSchema = {
 		modelName: INVOICE_EVENT_TABLE_NAME,
 		fields: {
 			event_name: { type: "string", required: true },
+			created_at: { type: "date", required: true },
 			event_json: {
 				type: "string",
 				required: true,

@@ -63,6 +63,7 @@ export const webhookEndpoint = (
 					model: INVOICE_EVENT_TABLE_NAME,
 					data: {
 						event_name: "midtrans.webhook.unresolvable_invoice",
+						created_at: new Date(),
 						event_json: json,
 					},
 				});
@@ -76,6 +77,7 @@ export const webhookEndpoint = (
 					model: INVOICE_EVENT_TABLE_NAME,
 					data: {
 						event_name: "midtrans.webhook.invoice_not_found",
+						created_at: new Date(),
 						event_json: { invoice_id: invoiceId, ...json },
 					},
 				});
@@ -89,6 +91,7 @@ export const webhookEndpoint = (
 					model: INVOICE_EVENT_TABLE_NAME,
 					data: {
 						event_name: "midtrans.webhook.duplicate_ignored",
+						created_at: new Date(),
 						event_json: {
 							invoice_id: invoiceId,
 							status: "already_paid",
@@ -138,6 +141,7 @@ export const webhookEndpoint = (
 					model: INVOICE_EVENT_TABLE_NAME,
 					data: {
 						event_name: `midtrans.invoice.${finalStatus}`,
+						created_at: new Date(),
 						event_json: {
 							invoice_id: invoiceId,
 							order_id: existingInvoice.order_id,

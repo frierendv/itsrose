@@ -324,14 +324,19 @@ export async function applyRenewalSettlement(
 	invoice: TransactionInvoice
 ): Promise<Subscription> {
 	const existing = await getUserSubscription(ctx, invoice.user_id);
-	const now = new Date();
+	const paidDate = invoice.paid_date
+		? new Date(invoice.paid_date)
+		: new Date();
 
-	// Advance cycle anchor from previous period_end if future, else from now
+	// Advance cycle anchor from previous period_end if future relative to payment, else from paidDate
 	let anchorStart: Date;
-	if (existing && new Date(existing.period_end).getTime() > now.getTime()) {
+	if (
+		existing &&
+		new Date(existing.period_end).getTime() > paidDate.getTime()
+	) {
 		anchorStart = new Date(existing.period_end);
 	} else {
-		anchorStart = now;
+		anchorStart = paidDate;
 	}
 
 	const newPeriodEnd = new Date(anchorStart.getTime() + BILLING_PERIOD_MS);

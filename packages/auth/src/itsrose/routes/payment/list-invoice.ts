@@ -1,13 +1,14 @@
 import { createAuthEndpoint, sessionMiddleware } from "better-auth/api";
 import { z } from "zod/v4";
-import { createRoute, INVOICE_TABLE_NAME } from "../../server";
+import { createRoute, INVOICE_TABLE_NAME, isAdmin } from "../../server";
 import type { TransactionInvoice } from "../../types";
 
 export const listInvoiceSchema = z.object({
 	status: z.string().optional(),
-	limit: z.coerce.number().min(1).max(100).default(20).optional(),
+	limit: z.coerce.number().min(1).max(100).default(50).optional(),
 	offset: z.coerce.number().min(0).default(0).optional(),
 	user_id: z.string().optional(),
+	invoice_type: z.string().optional(),
 });
 
 export const listInvoiceEndpoint = () => {
@@ -20,24 +21,28 @@ export const listInvoiceEndpoint = () => {
 		},
 		async (ctx) => {
 			const { session, adapter } = ctx.context;
+			const isUserAdmin = isAdmin(session.user);
 
-			// Non-admin users are strictly scoped to their own invoices
-			const targetUserId =
-				session.user.role === "admin" && ctx.query?.user_id
-					? ctx.query.user_id
-					: session.user.id;
+			const whereClauses: { field: string; value: string }[] = [];
 
-			const whereClauses: { field: string; value: string }[] = [
-				{
+			if (!isUserAdmin || ctx.query?.user_id) {
+				whereClauses.push({
 					field: "user_id",
-					value: targetUserId,
-				},
-			];
+					value: ctx.query?.user_id || session.user.id,
+				});
+			}
 
 			if (ctx.query?.status) {
 				whereClauses.push({
 					field: "status",
 					value: ctx.query.status,
+				});
+			}
+
+			if (ctx.query?.invoice_type) {
+				whereClauses.push({
+					field: "invoice_type",
+					value: ctx.query.invoice_type,
 				});
 			}
 

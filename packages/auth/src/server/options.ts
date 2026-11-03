@@ -107,7 +107,7 @@ export function getAuthOptions(
 			useSecureCookies: env.NODE_ENV === "production",
 			cookiePrefix: COOKIE_PREFIX,
 			crossSubDomainCookies: {
-				enabled: true,
+				enabled: env.NODE_ENV === "production",
 				// ie. "itsrose.my.id"
 				domain: env.ROOT_DOMAIN,
 			},

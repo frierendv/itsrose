@@ -19,6 +19,15 @@ describe("Downgrade Scheduling and Renewal Execution", () => {
 	const serverKey = "test_midtrans_key";
 	const client = createMockMidtransClient(serverKey);
 
+	beforeEach(() => {
+		jest.useFakeTimers();
+		jest.setSystemTime(new Date("2026-10-15T00:00:00.000Z"));
+	});
+
+	afterEach(() => {
+		jest.useRealTimers();
+	});
+
 	test("Downgrade endpoint sets scheduled_tier, issues NO payment requests, and retains current tier access", async () => {
 		const adapter = createMockDbAdapter();
 		const userId = "user-123";

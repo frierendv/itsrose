@@ -1,5 +1,9 @@
 import type { MidtransClient } from "@itsrose/midtrans";
-import { APIError, createAuthEndpoint } from "better-auth/api";
+import {
+	APIError,
+	createAuthEndpoint,
+	getSessionFromCtx,
+} from "better-auth/api";
 import { z } from "zod/v4";
 import { createRoute, isAdmin, runAllBillingCronTasks } from "../../server";
 import type { ItsRosePluginOptions } from "../../types";
@@ -31,8 +35,8 @@ export const runBillingCronEndpoint = (
 				(ctx.body?.secret === cronSecret ||
 					authHeader === `Bearer ${cronSecret}`);
 
-			const hasAdminSession =
-				ctx.context.session?.user && isAdmin(ctx.context.session.user);
+			const session = await getSessionFromCtx(ctx);
+			const hasAdminSession = session && isAdmin(session.user);
 
 			if (!hasValidSecret && !hasAdminSession) {
 				throw new APIError("FORBIDDEN", {

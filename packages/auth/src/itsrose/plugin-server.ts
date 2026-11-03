@@ -37,6 +37,7 @@ export const itsRosePlugin = (
 			createInvoice: payment.createInvoiceEndpoint(client, pluginOpts),
 			getInvoice: payment.getInvoiceEndpoint(client),
 			listInvoice: payment.listInvoiceEndpoint(),
+			listEvents: payment.listEventsEndpoint(),
 			voidInvoice: payment.voidInvoiceEndpoint(client, pluginOpts),
 			webhook: payment.webhookEndpoint(client, pluginOpts),
 

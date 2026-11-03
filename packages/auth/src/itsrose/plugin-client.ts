@@ -12,6 +12,7 @@ export const itsRosePluginClient = () => {
 			[createRoute("/payment/create-invoice")]: "POST",
 			[createRoute("/payment/get-invoice")]: "GET",
 			[createRoute("/payment/list-invoice")]: "GET",
+			[createRoute("/payment/list-events")]: "GET",
 			[createRoute("/payment/void-invoice")]: "POST",
 			[createRoute("/payment/webhook")]: "POST",
 

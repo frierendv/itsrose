@@ -85,6 +85,7 @@ export const voidInvoiceEndpoint = (
 				model: INVOICE_EVENT_TABLE_NAME,
 				data: {
 					event_name: "invoice.voided",
+					created_at: new Date(),
 					event_json: {
 						invoice_id: ctx.body.invoice_id,
 						order_id: invoice.order_id,
