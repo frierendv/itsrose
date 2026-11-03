@@ -153,9 +153,19 @@ function createPlanRepository(
 		return plan;
 	}
 
+	async function findStoredById(planId: string): Promise<ApiPlan | null> {
+		const raw = await adapter.findOne<Record<string, unknown>>({
+			model: API_PLAN_TABLE_NAME,
+			where: [{ field: "plan_id", value: planId }],
+		});
+
+		return raw ? normalizePlan(raw) : null;
+	}
+
 	return {
 		findAll,
 		findById,
+		findStoredById,
 		seed,
 		async create(data) {
 			const created = await adapter.create<Record<string, unknown>>({
