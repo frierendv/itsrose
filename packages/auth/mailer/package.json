@@ -1,0 +1,71 @@
+{
+	"name": "@itsrose/auth-mailer",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"private": true,
+	"type": "module",
+	"license": "MIT",
+	"description": "Eusend-backed transactional email service and Better Auth plugin for ItsRose.",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/frierendv/itsrose.git",
+		"directory": "packages/auth/mailer"
+	},
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "./dist/index.mjs",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"files": [
+		"dist"
+	],
+	"keywords": [
+		"itsrose",
+		"auth",
+		"mailer",
+		"email",
+		"eusend",
+		"better-auth"
+	],
+	"exports": {
+		".": "./src/index.ts",
+		"./client": "./src/client.ts",
+		"./plugin-server": "./src/plugin-server.ts",
+		"./renderer": "./src/renderer.ts",
+		"./service": "./src/service.ts",
+		"./types": "./src/types.ts",
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"build": "tsdown",
+		"build:fast": "tsdown src",
+		"clean": "rimraf dist .sonda",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@better-auth-ui/heroui": "^1.7.30",
+		"@eusend_dev/sdk": "^0.19.0",
+		"@react-email/render": "^2.1.1",
+		"better-auth": "^1.7.7",
+		"react": "catalog:"
+	},
+	"devDependencies": {
+		"@itsrose/standard": "workspace:*",
+		"@types/jest": "^30.0.0",
+		"@types/node": "catalog:",
+		"@types/react": "catalog:"
+	},
+	"publishConfig": {
+		"exports": {
+			".": "./dist/index.mjs",
+			"./client": "./dist/client.mjs",
+			"./plugin-server": "./dist/plugin-server.mjs",
+			"./renderer": "./dist/renderer.mjs",
+			"./service": "./dist/service.mjs",
+			"./types": "./dist/types.mjs",
+			"./package.json": "./package.json"
+		}
+	}
+}

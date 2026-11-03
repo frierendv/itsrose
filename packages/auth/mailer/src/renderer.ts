@@ -17,7 +17,7 @@ export async function renderEmail(component: ReactElement<any>): Promise<{
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		throw new Error(
-			`[Eusend] Failed to render email template: ${message}`,
+			`[Mailer] Failed to render email template: ${message}`,
 			{
 				cause: error,
 			}

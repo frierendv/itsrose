@@ -3,16 +3,16 @@ import {
 	type SendEmailOptions,
 	type SendEmailResponse,
 } from "@eusend_dev/sdk";
-import type { EusendClientOptions } from "./types";
+import type { MailerClientOptions } from "./types";
 
 /**
- * wrapper around the `@eusend_dev/sdk` client.
+ * Thin wrapper around the `@eusend_dev/sdk` client.
  */
-export class EusendClient {
-	private readonly options: EusendClientOptions;
+export class MailerClient {
+	private readonly options: MailerClientOptions;
 	private sdkInstance: Eusend | null = null;
 
-	constructor(options: EusendClientOptions = {}) {
+	constructor(options: MailerClientOptions = {}) {
 		this.options = options;
 	}
 
@@ -35,7 +35,7 @@ export class EusendClient {
 
 		if (!apiKey) {
 			throw new Error(
-				"[Eusend] Missing API key. Please provide 'apiKey' in client options or set the 'EUSEND_API_KEY' environment variable."
+				"[Mailer] Missing API key. Please provide 'apiKey' in client options or set the 'EUSEND_API_KEY' environment variable."
 			);
 		}
 
@@ -54,7 +54,7 @@ export class EusendClient {
 		const from = payload.from ?? this.options.from;
 		if (!from) {
 			throw new Error(
-				"[Eusend] Sender email address is required. Provide 'from' in EusendClient options or in the send payload."
+				"[Mailer] Sender email address is required. Provide 'from' in MailerClient options or in the send payload."
 			);
 		}
 
@@ -82,10 +82,13 @@ export class EusendClient {
 				? payload.to.join(", ")
 				: payload.to;
 			throw new Error(
-				`[Eusend] Failed to send email to ${recipient}: ${response.error.message} (${response.error.name})`
+				`[Mailer] Failed to send email to ${recipient}: ${response.error.message} (${response.error.name})`
 			);
 		}
 
 		return response.data;
 	}
 }
+
+/** @deprecated Use {@link MailerClient}. */
+export { MailerClient as EusendClient };

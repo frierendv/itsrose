@@ -9,20 +9,20 @@ import {
 	type ResetPasswordEmailProps,
 } from "@better-auth-ui/heroui/email";
 import { createElement, type ReactElement } from "react";
-import { EusendClient } from "./client";
+import { MailerClient } from "./client";
 import { renderEmail } from "./renderer";
-import type { EusendPluginOptions } from "./types";
+import type { MailerPluginOptions } from "./types";
 
 /**
  * High-level orchestration service for rendering templates and dispatching emails via Eusend.
  */
-export class EusendService {
-	public readonly client: EusendClient;
-	public readonly options: EusendPluginOptions;
+export class MailerService {
+	public readonly client: MailerClient;
+	public readonly options: MailerPluginOptions;
 
-	constructor(options: EusendPluginOptions = {}) {
+	constructor(options: MailerPluginOptions = {}) {
 		this.options = options;
-		this.client = new EusendClient({
+		this.client = new MailerClient({
 			apiKey: options.apiKey,
 			from: options.from,
 			baseUrl: options.baseUrl,
@@ -69,7 +69,7 @@ export class EusendService {
 		} catch (error) {
 			const message =
 				error instanceof Error ? error.message : String(error);
-			throw new Error(`[Eusend] Failed to send email: ${message}`, {
+			throw new Error(`[Mailer] Failed to send email: ${message}`, {
 				cause: error,
 			});
 		}
@@ -211,3 +211,6 @@ export class EusendService {
 		});
 	}
 }
+
+/** @deprecated Use {@link MailerService}. */
+export { MailerService as EusendService };

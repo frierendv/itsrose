@@ -1,0 +1,5 @@
+{
+	"extends": "@itsrose/standard/typescript/node.json",
+	"include": ["src"],
+	"exclude": ["node_modules", "dist"]
+}

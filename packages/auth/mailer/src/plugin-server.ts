@@ -1,15 +1,16 @@
 import type { BetterAuthPlugin } from "better-auth";
-import { EusendService } from "./service";
-import type { EusendPluginOptions } from "./types";
+import { MailerService } from "./service";
+import type { MailerPluginOptions } from "./types";
 
 /**
- * Standard Better Auth server plugin for Eusend email delivery.
- * Automatically wires up emailVerification, emailAndPassword, and user deletion hooks.
+ * Standard Better Auth server plugin for transactional email delivery.
+ * Automatically wires up emailVerification, emailAndPassword, and user
+ * deletion hooks.
  */
-export function eusendPlugin(
-	options: EusendPluginOptions & { service?: EusendService } = {}
+export function mailerPlugin(
+	options: MailerPluginOptions & { service?: MailerService } = {}
 ) {
-	const service = options?.service ?? new EusendService(options);
+	const service = options?.service ?? new MailerService(options);
 
 	return {
 		id: "eusend",
@@ -48,16 +49,22 @@ export function eusendPlugin(
 					},
 				},
 			},
-			context: { eusend: service },
+			context: { eusend: service, mailer: service },
 		}),
 	} satisfies BetterAuthPlugin;
 }
+
+/**
+ * @deprecated Use {@link mailerPlugin}. The plugin id remains `eusend` so
+ * existing routes and context keys keep working.
+ */
+export const eusendPlugin = mailerPlugin;
 
 declare module "better-auth" {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	interface BetterAuthPluginRegistry<AuthOptions, Options> {
 		eusend: {
-			creator: typeof eusendPlugin;
+			creator: typeof mailerPlugin;
 		};
 	}
 }
