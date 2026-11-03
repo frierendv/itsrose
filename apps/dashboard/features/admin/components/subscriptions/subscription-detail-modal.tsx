@@ -17,7 +17,7 @@ import {
 	Surface,
 	Typography,
 } from "@heroui/react";
-import type { Subscription } from "@itsrose/auth/itsrose";
+import type { Subscription } from "@itsrose/auth-billing";
 import { formatDateTime, getSubscriptionStatusProps } from "../../utils";
 
 export interface SubscriptionDetailModalProps {

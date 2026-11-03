@@ -1,6 +1,9 @@
 import { apiKey } from "@better-auth/api-key";
 import { dash } from "@better-auth/infra";
 import { passkey } from "@better-auth/passkey";
+import { itsRosePlugin } from "@itsrose/auth-billing/plugin-server";
+import { mailerPlugin } from "@itsrose/auth-mailer/plugin";
+import { storagePlugin } from "@itsrose/auth-storage/plugin";
 import {
 	admin,
 	bearer,
@@ -9,11 +12,8 @@ import {
 	oauthPopup,
 	openAPI,
 } from "better-auth/plugins";
-import { eusendPlugin } from "../eusend";
-import { itsRosePlugin } from "../itsrose/plugin-server";
 import type { SharedEnv } from "../shared";
 import { LAST_LOGIN_METHOD_COOKIE, WEBAUTHN_CHALLENGE_COOKIE } from "../shared";
-import { storagePlugin } from "../storage/plugin-server";
 
 export default function (env = process.env as SharedEnv) {
 	const appName = typeof env.APP_NAME === "string" ? env.APP_NAME : undefined;
@@ -110,7 +110,7 @@ export default function (env = process.env as SharedEnv) {
 				enabled: true, // Enable activity tracking
 			},
 		}),
-		eusendPlugin({
+		mailerPlugin({
 			apiKey:
 				typeof env.EUSEND_API_KEY === "string"
 					? env.EUSEND_API_KEY

@@ -15,7 +15,7 @@ import {
 	ModalHeading,
 	Typography,
 } from "@heroui/react";
-import type { TransactionInvoiceEvent } from "@itsrose/auth/itsrose";
+import type { TransactionInvoiceEvent } from "@itsrose/auth-billing";
 import {
 	extractEventIdentifiers,
 	formatDateTime,

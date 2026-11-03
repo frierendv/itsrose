@@ -3,7 +3,7 @@
 import { withAuthQuery } from "@/lib/api";
 import { authClient } from "@/lib/auth";
 import { toast } from "@heroui/react";
-import type { Invoice } from "@itsrose/auth/itsrose";
+import type { Invoice } from "@itsrose/auth-billing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { InvoiceFilters, VoidInvoiceInput } from "../types";
 import { adminQueryKeys } from "./query-keys";

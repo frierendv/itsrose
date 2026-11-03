@@ -34,7 +34,10 @@ export const listSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
 				);
 			}
 
-			return ctx.json(subscriptions);
+			const offset = ctx.query?.offset ?? 0;
+			const limit = ctx.query?.limit ?? 50;
+
+			return ctx.json(subscriptions.slice(offset, offset + limit));
 		}
 	);
 };

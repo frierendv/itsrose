@@ -20,7 +20,7 @@ import {
 	Typography,
 	type SortDescriptor,
 } from "@heroui/react";
-import type { Invoice } from "@itsrose/auth/itsrose";
+import type { Invoice } from "@itsrose/auth-billing";
 import type { SortingState } from "@tanstack/react-table";
 import {
 	createColumnHelper,

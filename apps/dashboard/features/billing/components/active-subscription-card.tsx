@@ -13,7 +13,7 @@ import {
 	type ApiPlan,
 	type PlanTier,
 	type Subscription,
-} from "@itsrose/auth/itsrose";
+} from "@itsrose/auth-billing";
 import { formatDateID, formatIDR, getSubscriptionStatusProps } from "../utils";
 
 export interface ActiveSubscriptionCardProps {

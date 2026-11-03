@@ -8,7 +8,7 @@ import {
 	type Invoice,
 	type ProrationDetails,
 	type Subscription,
-} from "@itsrose/auth/itsrose";
+} from "@itsrose/auth-billing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const BILLING_QUERY_KEYS = queryKeys.billing;

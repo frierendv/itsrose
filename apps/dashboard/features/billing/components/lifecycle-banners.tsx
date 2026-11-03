@@ -1,7 +1,7 @@
 "use client";
 
 import { Alert, Button, toast } from "@heroui/react";
-import type { Invoice, Subscription } from "@itsrose/auth/itsrose";
+import type { Invoice, Subscription } from "@itsrose/auth-billing";
 import { useCancelDowngradeMutation } from "../hooks";
 import { formatDateID } from "../utils";
 

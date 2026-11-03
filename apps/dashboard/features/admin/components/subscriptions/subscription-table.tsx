@@ -15,7 +15,7 @@ import {
 	Tooltip,
 	Typography,
 } from "@heroui/react";
-import type { Subscription } from "@itsrose/auth/itsrose";
+import type { Subscription } from "@itsrose/auth-billing";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import {

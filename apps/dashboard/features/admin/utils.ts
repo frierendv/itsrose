@@ -2,7 +2,7 @@ import {
 	formatDateID,
 	formatDateTimeID,
 	formatIDR,
-} from "@itsrose/auth/itsrose/client";
+} from "@itsrose/auth-billing/client";
 import type { InvoiceType, SubscriptionStatus } from "./types";
 
 export { formatDateID, formatDateTimeID, formatIDR };
