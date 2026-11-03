@@ -1,0 +1,77 @@
+{
+	"name": "@itsrose/auth-billing",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"private": true,
+	"type": "module",
+	"license": "MIT",
+	"description": "SaaS billing domain (plans, subscriptions, proration, invoices, Midtrans webhooks, cron) and Better Auth plugin for ItsRose.",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/frierendv/itsrose.git",
+		"directory": "packages/auth/billing"
+	},
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "./dist/index.mjs",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"files": [
+		"dist",
+		"src"
+	],
+	"keywords": [
+		"itsrose",
+		"auth",
+		"billing",
+		"subscription",
+		"midtrans",
+		"better-auth"
+	],
+	"exports": {
+		".": "./src/index.ts",
+		"./client": "./src/client/index.ts",
+		"./plugin/plugin-client": "./src/plugin/plugin-client.ts",
+		"./plugin/plugin-server": "./src/plugin/plugin-server.ts",
+		"./schema": "./src/schema/index.ts",
+		"./server": "./src/server.ts",
+		"./types": "./src/types.ts",
+		"./package.json": "./package.json",
+		"./plugin": "./src/plugin/plugin-server.ts",
+		"./plugin-server": "./src/plugin/plugin-server.ts",
+		"./plugin-client": "./src/plugin/plugin-client.ts"
+	},
+	"scripts": {
+		"build": "tsdown",
+		"build:fast": "tsdown src",
+		"clean": "rimraf dist .sonda",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@itsrose/midtrans": "workspace:*",
+		"better-auth": "^1.7.7",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@itsrose/standard": "workspace:*",
+		"@types/jest": "^30.0.0",
+		"@types/node": "catalog:"
+	},
+	"publishConfig": {
+		"exports": {
+			".": "./dist/index.mjs",
+			"./client": "./dist/client/index.mjs",
+			"./plugin/plugin-client": "./dist/plugin/plugin-client.mjs",
+			"./plugin/plugin-server": "./dist/plugin/plugin-server.mjs",
+			"./schema": "./dist/schema/index.mjs",
+			"./server": "./dist/server.mjs",
+			"./types": "./dist/types.mjs",
+			"./package.json": "./package.json",
+			"./plugin": "./dist/plugin/plugin-server.mjs",
+			"./plugin-server": "./dist/plugin/plugin-server.mjs",
+			"./plugin-client": "./dist/plugin/plugin-client.mjs"
+		}
+	}
+}

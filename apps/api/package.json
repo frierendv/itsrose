@@ -35,6 +35,7 @@
 		"@fastify/websocket": "^11.3.4",
 		"@itsrose/api-response": "workspace:*",
 		"@itsrose/auth": "workspace:*",
+		"@itsrose/auth-billing": "workspace:*",
 		"@itsrose/character-ai": "workspace:*",
 		"@itsrose/elevenlabs": "workspace:*",
 		"@itsrose/instagram": "workspace:*",

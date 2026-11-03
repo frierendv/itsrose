@@ -3,7 +3,7 @@
 import { withAuthQuery } from "@/lib/api";
 import { authClient } from "@/lib/auth";
 import { toast } from "@heroui/react";
-import type { ApiPlan } from "@itsrose/auth/itsrose";
+import type { ApiPlan } from "@itsrose/auth-billing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CreatePlanInput, UpdatePlanInput } from "../types";
 import { adminQueryKeys } from "./query-keys";

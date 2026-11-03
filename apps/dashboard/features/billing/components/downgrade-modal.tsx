@@ -13,7 +13,7 @@ import {
 	toast,
 	Typography,
 } from "@heroui/react";
-import type { ApiPlan, Subscription } from "@itsrose/auth/itsrose";
+import type { ApiPlan, Subscription } from "@itsrose/auth-billing";
 import { useDowngradeMutation } from "../hooks";
 import { formatDateID, formatIDR } from "../utils";
 

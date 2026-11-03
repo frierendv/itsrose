@@ -6,6 +6,26 @@ import {
 
 const moduleNameMapper = {
 	"^@itsrose/react/(.*)$": "<rootDir>/packages/react/src/$1",
+	"^@itsrose/auth-billing/plugin-server$":
+		"<rootDir>/packages/auth/billing/src/plugin/plugin-server.ts",
+	"^@itsrose/auth-billing/plugin-client$":
+		"<rootDir>/packages/auth/billing/src/plugin/plugin-client.ts",
+	"^@itsrose/auth-billing/plugin$":
+		"<rootDir>/packages/auth/billing/src/plugin/plugin-server.ts",
+	"^@itsrose/auth-billing/schema$":
+		"<rootDir>/packages/auth/billing/src/schema/index.ts",
+	"^@itsrose/auth-billing$": "<rootDir>/packages/auth/billing/src/index.ts",
+	"^@itsrose/auth-billing/(.*)$": "<rootDir>/packages/auth/billing/src/$1",
+	"^@itsrose/auth-mailer/plugin$":
+		"<rootDir>/packages/auth/mailer/src/plugin-server.ts",
+	"^@itsrose/auth-mailer$": "<rootDir>/packages/auth/mailer/src/index.ts",
+	"^@itsrose/auth-mailer/(.*)$": "<rootDir>/packages/auth/mailer/src/$1",
+	"^@itsrose/auth-storage/plugin$":
+		"<rootDir>/packages/auth/storage/src/plugin-server.ts",
+	"^@itsrose/auth-storage$": "<rootDir>/packages/auth/storage/src/index.ts",
+	"^@itsrose/auth-storage/(.*)$": "<rootDir>/packages/auth/storage/src/$1",
+	"^@itsrose/auth$": "<rootDir>/packages/auth/core/src/index.ts",
+	"^@itsrose/auth/(.*)$": "<rootDir>/packages/auth/core/src/$1",
 	"^@itsrose/([^/]+)$": [
 		"<rootDir>/packages/core/$1/src",
 		"<rootDir>/packages/features/$1/src",
@@ -18,7 +38,8 @@ const moduleNameMapper = {
 	"^superjson$": "<rootDir>/packages/others/lowdb/__mocks__/superjson.ts",
 	"^s3mini$": "<rootDir>/packages/internal/s3/__mocks__/s3mini.ts",
 	"^file-type$": "<rootDir>/packages/internal/s3/__mocks__/file-type.ts",
-	"^better-auth/api$": "<rootDir>/packages/auth/__mocks__/better-auth-api.ts",
+	"^better-auth/api$":
+		"<rootDir>/packages/auth/core/__mocks__/better-auth-api.ts",
 };
 
 const transformIgnorePatterns = [

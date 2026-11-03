@@ -1,0 +1,73 @@
+{
+	"name": "@itsrose/auth-storage",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"private": true,
+	"type": "module",
+	"license": "MIT",
+	"description": "S3-backed ephemeral storage service and Better Auth plugin for ItsRose.",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/auth/storage"
+	},
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "./dist/index.mjs",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"files": [
+		"dist",
+		"src"
+	],
+	"keywords": [
+		"itsrose",
+		"auth",
+		"storage",
+		"s3",
+		"better-auth"
+	],
+	"exports": {
+		".": "./src/index.ts",
+		"./client": "./src/client.ts",
+		"./config": "./src/config.ts",
+		"./keys": "./src/keys.ts",
+		"./operations": "./src/operations.ts",
+		"./plugin-server": "./src/plugin-server.ts",
+		"./types": "./src/types.ts",
+		"./package.json": "./package.json",
+		"./plugin": "./src/plugin-server.ts"
+	},
+	"scripts": {
+		"build": "tsdown",
+		"build:fast": "tsdown src",
+		"clean": "rimraf dist .sonda",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@itsrose/s3": "workspace:*",
+		"@itsrose/system": "workspace:*",
+		"better-auth": "^1.7.7",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@itsrose/standard": "workspace:*",
+		"@types/jest": "^30.0.0",
+		"@types/node": "catalog:"
+	},
+	"publishConfig": {
+		"exports": {
+			".": "./dist/index.mjs",
+			"./client": "./dist/client.mjs",
+			"./config": "./dist/config.mjs",
+			"./keys": "./dist/keys.mjs",
+			"./operations": "./dist/operations.mjs",
+			"./plugin-server": "./dist/plugin-server.mjs",
+			"./types": "./dist/types.mjs",
+			"./package.json": "./package.json",
+			"./plugin": "./dist/plugin-server.mjs"
+		}
+	}
+}

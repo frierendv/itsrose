@@ -21,7 +21,7 @@ import {
 	Tooltip,
 	Typography,
 } from "@heroui/react";
-import type { Invoice } from "@itsrose/auth/itsrose";
+import type { Invoice } from "@itsrose/auth-billing";
 import NextLink from "next/link";
 import {
 	formatDateTime,

@@ -20,6 +20,7 @@
 		"@heroui/react": "^3.2.6",
 		"@heroui/styles": "^3.2.6",
 		"@itsrose/auth": "workspace:*",
+		"@itsrose/auth-billing": "workspace:*",
 		"@itsrose/react": "workspace:*",
 		"@react-aria/overlays": "^3.32.1",
 		"@react-stately/utils": "^3.12.1",

@@ -13,7 +13,7 @@ import type {
 	TransactionInvoice,
 	TransactionInvoiceEvent,
 	UserSubscription,
-} from "@itsrose/auth/itsrose";
+} from "@itsrose/auth-billing";
 
 export type {
 	ApiPlan,
