@@ -10,7 +10,10 @@ export type ThemeProviderProps = PropsWithChildren<NextThemeProviderProps>;
 /**
  * Should be used in `base-provider`
  */
-export const ThemeProvider = ({ children, ...props }: ThemeProviderProps) => {
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({
+	children,
+	...props
+}) => {
 	return (
 		<NextThemesProvider
 			attribute="class"

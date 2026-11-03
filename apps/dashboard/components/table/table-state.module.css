@@ -1,0 +1,8 @@
+@reference "tailwindcss";
+
+.table__state-container {
+	@apply flex flex-col gap-2;
+	@apply w-full h-full;
+	@apply items-center text-center;
+	@apply pt-4 pb-4;
+}

@@ -12,7 +12,10 @@ export type HeroUIProviderProps = PropsWithChildren<{
 /**
  * MUST be used in `base-provider`
  */
-export const HeroUIProvider = ({ children, toast }: HeroUIProviderProps) => {
+export const HeroUIProvider: React.FC<HeroUIProviderProps> = ({
+	children,
+	toast,
+}) => {
 	const router = useRouter();
 
 	return (

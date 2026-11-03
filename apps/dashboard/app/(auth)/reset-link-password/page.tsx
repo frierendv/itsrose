@@ -1,4 +1,8 @@
-export {
-	ResetPassword as default,
-	generateMetadata,
-} from "@/server/auth/reset-link-password";
+import { createAuthMetadata } from "@/lib/auth";
+import { ResetPassword } from "@better-auth-ui/heroui";
+
+export const generateMetadata = createAuthMetadata("auth", "resetPassword");
+
+export default function ResetPasswordPage() {
+	return <ResetPassword />;
+}

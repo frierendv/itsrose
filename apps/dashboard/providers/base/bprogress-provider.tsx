@@ -8,10 +8,10 @@ export type ProgressProviderProps = PropsWithChildren<AppProgressProviderProps>;
 /**
  * Should be used in `base-provider`
  */
-export const ProgressProvider = ({
+export const ProgressProvider: React.FC<ProgressProviderProps> = ({
 	children,
 	...props
-}: ProgressProviderProps) => (
+}) => (
 	<BProgressProvider
 		color="#FF66CC"
 		spinnerPosition="top-right"

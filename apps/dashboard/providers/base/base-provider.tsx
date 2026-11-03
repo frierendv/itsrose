@@ -9,7 +9,7 @@ import { ProgressProvider } from "./bprogress-provider";
 import { HeroUIProvider } from "./heroui-provider";
 import { ThemeProvider } from "./theme-provider";
 
-export const BaseProvider = ({ children }: PropsWithChildren) => {
+export const BaseProvider: React.FC<PropsWithChildren> = ({ children }) => {
 	// s -> state; Get all state fallback to DEFAULT_WEB_SETTINGS
 	const state = useHydratedWebSetting((s) => s) || DEFAULT_WEB_SETTING;
 

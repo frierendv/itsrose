@@ -13,7 +13,7 @@ export const PathBreadcrumbs = memo(() => {
 	);
 
 	const items = useMemo(() => {
-		const out = [];
+		const out = [{ key: "home", url: "/", title: "Home" }];
 		let acc = "";
 		for (const seg of pathSegments) {
 			acc += `/${seg}`;
@@ -25,14 +25,15 @@ export const PathBreadcrumbs = memo(() => {
 		}
 		return out;
 	}, [pathSegments]);
-	if (!items.length) {
-		return null;
-	}
 
 	return (
 		<Breadcrumbs aria-label="Navigation Breadcrumbs">
 			{items.map(({ key, url, title }) => (
-				<Breadcrumbs.Item key={key} href={url} className="capitalize">
+				<Breadcrumbs.Item
+					key={key}
+					href={url}
+					className="capitalize font-bold"
+				>
 					{title}
 				</Breadcrumbs.Item>
 			))}

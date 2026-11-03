@@ -1,2 +1,2 @@
 export * from "./shared";
-export * from "./faq";
+export * from "./sidebar";
