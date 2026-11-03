@@ -16,8 +16,9 @@ export const autoConfig: FastifyCorsOptions = {
 			});
 		}
 		return callback(null, {
-			origin: "*",
+			origin: true,
 			methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+			credentials: true,
 			exposedHeaders: [
 				// Rate limit headers
 				"x-ratelimit-remaining",

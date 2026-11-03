@@ -1,4 +1,5 @@
 import {
+	ElevenLabsSharedResponseAudioSchema,
 	textToSpeech,
 	textToSpeechSchema,
 	textToSpeechWithTiming,
@@ -16,11 +17,25 @@ const route: FastifyPluginAsync = async (fastify): Promise<void> => {
 			summary: "Text to Speech",
 			description: "Convert text to speech",
 			body: textToSpeechSchema.request,
+			headers: ElevenLabsSharedResponseAudioSchema,
 			response: {
 				200: textToSpeechSchema.response,
 			},
 		},
-		handler: async (request) => textToSpeech(request.body),
+		handler: async (request) => {
+			const response = await textToSpeech(request.body);
+			const audioFormat = request.headers["response-audio-format"];
+
+			if (audioFormat === "url") {
+				response.audio = await fastify.s3.uploadUserFile(
+					request,
+					response.audio,
+					{ preprocess: (data) => Buffer.from(data, "base64") }
+				);
+			}
+
+			return response;
+		},
 	});
 
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({

@@ -243,29 +243,6 @@ export default fp(
 				if (requireSubscription && !subscription.has_access) {
 					return deny(reply, AUTH_ERRORS.SUBSCRIPTION_REQUIRED);
 				}
-
-				// // Enforce minimum plan tier if required by route configuration
-				// const requiredTier = request.routeOptions.config.requiredTier;
-				// if (requiredTier) {
-				// 	if (
-				// 		!subscription.has_access ||
-				// 		PLAN_TIER_ORDER[subscription.tier] <
-				// 			PLAN_TIER_ORDER[requiredTier]
-				// 	) {
-				// 		return deny(reply, AUTH_ERRORS.INSUFFICIENT_TIER);
-				// 	}
-				// }
-
-				// Enforce allowed plan tiers if specified by route configuration
-				// const allowedTiers = request.routeOptions.config.allowedTiers;
-				// if (allowedTiers && allowedTiers.length > 0) {
-				// 	if (
-				// 		!subscription.has_access ||
-				// 		!allowedTiers.includes(subscription.tier)
-				// 	) {
-				// 		return deny(reply, AUTH_ERRORS.INSUFFICIENT_TIER);
-				// 	}
-				// }
 			}
 		);
 	},

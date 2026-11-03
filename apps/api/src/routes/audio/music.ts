@@ -1,4 +1,5 @@
 import {
+	ElevenLabsSharedResponseAudioSchema,
 	musicCompose,
 	musicComposePlan,
 	musicComposePlanSchema,
@@ -17,29 +18,20 @@ const route: FastifyPluginAsync = async (fastify): Promise<void> => {
 			description: "Compose a song from a prompt or a composition plan.",
 			consumes: ["application/json"],
 			body: musicComposeSchema.request,
+			headers: ElevenLabsSharedResponseAudioSchema,
 			response: {
 				200: musicComposeSchema.response,
 			},
 		},
 		handler: async (request) => {
 			const response = await musicCompose(request.body);
-			if (fastify.s3) {
-				const audioBuffer = Buffer.from(response.audio, "base64");
-				const ft = await fastify.s3.getFileType(audioBuffer);
-
-				const fileName = `${response.song_metadata?.title?.replace(/\s+/g, "_") || String(Date.now())}`;
-				const key = fastify.s3.createKey(
-					`${fileName}.${ft.ext}`,
-					request.userId
+			const audioFormat = request.headers["response-audio-format"];
+			if (audioFormat !== "base64") {
+				response.audio = await fastify.s3.uploadUserFile(
+					request,
+					response.audio,
+					{ preprocess: (data) => Buffer.from(data, "base64") }
 				);
-
-				const { publicUrl } = await fastify.s3.upload(
-					key,
-					audioBuffer,
-					{ contentType: ft.mime }
-				);
-
-				response.audio = publicUrl;
 			}
 			return response;
 		},
