@@ -219,8 +219,11 @@ export function buildSubscriptionUpsertPayload(
 	};
 }
 
-function resolvePaidDate(invoice: TransactionInvoice): Date {
-	return invoice.paid_date ? new Date(invoice.paid_date) : new Date();
+function resolvePaidDate(
+	invoice: TransactionInvoice,
+	now: Date = new Date()
+): Date {
+	return invoice.paid_date ? new Date(invoice.paid_date) : now;
 }
 
 /**
@@ -231,9 +234,10 @@ function resolvePaidDate(invoice: TransactionInvoice): Date {
  */
 export function buildUpgradeSettlement(
 	existing: Subscription | null,
-	invoice: TransactionInvoice
+	invoice: TransactionInvoice,
+	now: Date = new Date()
 ): Partial<Subscription> {
-	const paidDate = resolvePaidDate(invoice);
+	const paidDate = resolvePaidDate(invoice, now);
 	const isCycleReset = Boolean(invoice.proration_details?.is_cycle_reset);
 
 	let periodStart = paidDate;
@@ -264,9 +268,10 @@ export function buildUpgradeSettlement(
  */
 export function buildRenewalSettlement(
 	existing: Subscription | null,
-	invoice: TransactionInvoice
+	invoice: TransactionInvoice,
+	now: Date = new Date()
 ): Partial<Subscription> {
-	const paidDate = resolvePaidDate(invoice);
+	const paidDate = resolvePaidDate(invoice, now);
 	const anchorStart =
 		existing && new Date(existing.period_end).getTime() > paidDate.getTime()
 			? new Date(existing.period_end)
@@ -289,9 +294,10 @@ export function buildRenewalSettlement(
  * New subscription settlement: full 30-day period from the paid date.
  */
 export function buildNewSubscriptionSettlement(
-	invoice: TransactionInvoice
+	invoice: TransactionInvoice,
+	now: Date = new Date()
 ): Partial<Subscription> {
-	const paidDate = resolvePaidDate(invoice);
+	const paidDate = resolvePaidDate(invoice, now);
 
 	return {
 		plan_id: invoice.target_tier,

@@ -168,8 +168,8 @@ export async function applyUpgradeSettlement(
 		repositories,
 		clock,
 		invoice,
-		(existing, currentInvoice) =>
-			buildUpgradeSettlement(existing, currentInvoice)
+		(existing, currentInvoice, now) =>
+			buildUpgradeSettlement(existing, currentInvoice, now)
 	);
 }
 
@@ -188,8 +188,8 @@ export async function applyRenewalSettlement(
 		repositories,
 		clock,
 		invoice,
-		(existing, currentInvoice) =>
-			buildRenewalSettlement(existing, currentInvoice)
+		(existing, currentInvoice, now) =>
+			buildRenewalSettlement(existing, currentInvoice, now)
 	);
 }
 
@@ -208,8 +208,8 @@ export async function applyNewSubscriptionSettlement(
 		repositories,
 		clock,
 		invoice,
-		(_existing, currentInvoice) =>
-			buildNewSubscriptionSettlement(currentInvoice)
+		(_existing, currentInvoice, now) =>
+			buildNewSubscriptionSettlement(currentInvoice, now)
 	);
 }
 
