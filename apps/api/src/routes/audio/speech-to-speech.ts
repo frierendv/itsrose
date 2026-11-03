@@ -1,4 +1,8 @@
-import { speechToSpeech, speechToSpeechSchema } from "@itsrose/elevenlabs";
+import {
+	ElevenLabsSharedResponseAudioSchema,
+	speechToSpeech,
+	speechToSpeechSchema,
+} from "@itsrose/elevenlabs";
 import type { FastifyPluginAsync } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
 
@@ -12,14 +16,24 @@ const route: FastifyPluginAsync = async (fastify): Promise<void> => {
 			description: "Convert speech to speech",
 			consumes: ["application/json", "multipart/form-data"],
 			body: speechToSpeechSchema.request,
+			headers: ElevenLabsSharedResponseAudioSchema,
 			response: {
 				200: speechToSpeechSchema.response,
 			},
 		},
 		handler: async (request) => {
 			const { audio, ...options } = request.body;
-
+			const audioFormat = request.headers["response-audio-format"];
 			const response = await speechToSpeech(audio, options);
+
+			if (audioFormat === "url") {
+				response.audio = await fastify.s3.uploadUserFile(
+					request,
+					response.audio,
+					{ preprocess: (data) => Buffer.from(data, "base64") }
+				);
+			}
+
 			return response;
 		},
 	});

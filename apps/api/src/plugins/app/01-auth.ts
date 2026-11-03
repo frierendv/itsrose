@@ -16,8 +16,17 @@ export default fp(
 		}
 		// #endif
 
+		const allowedHosts = fastify.env.ROOT_DOMAIN
+			? [fastify.env.ROOT_DOMAIN, `*.${fastify.env.ROOT_DOMAIN}`]
+			: [];
+		if (allowedHosts.length > 1) {
+			trustedOrigins.push(`https://*.${fastify.env.ROOT_DOMAIN}`);
+		}
+		const fallbackHost =
+			fastify.env.BETTER_AUTH_BASE_URL ?? fastify.env.APP_BASE_URL;
+
 		const auth = createBetterAuthServer({
-			baseURL: fastify.env.BETTER_AUTH_BASE_URL,
+			baseURL: { allowedHosts, fallback: fallbackHost },
 			trustedOrigins,
 			basePath: "/auth",
 			database: fastify.database,

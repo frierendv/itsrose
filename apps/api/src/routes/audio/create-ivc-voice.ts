@@ -24,15 +24,7 @@ const route: FastifyPluginAsync = async (fastify): Promise<void> => {
 				},
 			},
 		},
-		handler: async (request) => {
-			const { files, ...options } = request.body;
-
-			const response = await createIVCVoice(
-				Array.isArray(files) ? files : [files],
-				options
-			);
-			return response;
-		},
+		handler: async (request) => createIVCVoice(request.body),
 	});
 };
 

@@ -41,7 +41,6 @@
 		"@itsrose/midtrans": "workspace:*",
 		"@itsrose/mtxx": "workspace:*",
 		"@itsrose/remini": "workspace:*",
-		"@itsrose/s3": "workspace:*",
 		"@itsrose/system": "workspace:*",
 		"@itsrose/tiktok": "workspace:*",
 		"better-auth": "^1.7.7",
