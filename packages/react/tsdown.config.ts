@@ -16,9 +16,6 @@ export default defineConfig(
 			},
 		},
 		inputOptions: {
-			transform: {
-				jsx: "react-jsx",
-			},
 			onLog(level, log, defaultHandler) {
 				if (log.code === "MODULE_LEVEL_DIRECTIVE") {
 					return;
