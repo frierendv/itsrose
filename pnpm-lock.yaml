@@ -608,6 +608,28 @@ importers:
         specifier: ^8.23.1
         version: 8.23.1
 
+  packages/auth/billing:
+    dependencies:
+      '@itsrose/midtrans':
+        specifier: workspace:*
+        version: link:../../midtrans
+      better-auth:
+        specifier: ^1.7.7
+        version: 1.7.7(@opentelemetry/api@1.9.1)(drizzle-orm@0.45.4(@cloudflare/workers-types@5.20261010.1)(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(kysely@0.29.6)(pg@8.23.1))(next@16.4.3(@babel/core@7.29.7(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@types/node@24.12.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(pg@8.23.1)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(solid-js@1.9.15)
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.7
+    devDependencies:
+      '@itsrose/standard':
+        specifier: workspace:*
+        version: link:../../standard
+      '@types/jest':
+        specifier: ^30.0.0
+        version: 30.0.0
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.12.0
+
   packages/auth/mailer:
     dependencies:
       '@better-auth-ui/heroui':
