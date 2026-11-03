@@ -1,4 +1,4 @@
-import type { InvoiceType, SubscriptionStatus } from "@itsrose/auth/itsrose";
+import type { InvoiceType, SubscriptionStatus } from "@itsrose/auth-billing";
 
 export {
 	formatDateID,
@@ -9,7 +9,7 @@ export {
 	isUpgrade,
 	type ProrationPreviewInput,
 	type ProrationPreviewResult,
-} from "@itsrose/auth/itsrose/client";
+} from "@itsrose/auth-billing/client";
 
 export function getSubscriptionStatusProps(
 	status?: SubscriptionStatus | string | null

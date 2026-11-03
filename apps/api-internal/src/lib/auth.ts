@@ -1,11 +1,11 @@
 import { FailureResponse } from "@itsrose/api-response";
+import type { UserSubscription } from "@itsrose/auth-billing";
 import {
 	FREE_PLAN,
 	normalizePlan,
 	RATE_LIMIT,
 	resolveUserSubscription,
-	type UserSubscription,
-} from "@itsrose/auth/itsrose";
+} from "@itsrose/auth-billing/server";
 import type { AuthServer } from "@itsrose/auth/server";
 import type { FastifyReply } from "fastify";
 

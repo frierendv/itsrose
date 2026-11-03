@@ -14,7 +14,7 @@ import {
 	Switch,
 	Typography,
 } from "@heroui/react";
-import type { Subscription, SubscriptionStatus } from "@itsrose/auth/itsrose";
+import type { Subscription, SubscriptionStatus } from "@itsrose/auth-billing";
 import { useState } from "react";
 import { useAdminPlans, useUpdateSubscriptionMutation } from "../../api";
 

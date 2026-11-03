@@ -15,7 +15,7 @@ import {
 	toast,
 	Typography,
 } from "@heroui/react";
-import type { ApiPlan, Subscription } from "@itsrose/auth/itsrose";
+import type { ApiPlan, Subscription } from "@itsrose/auth-billing";
 import { useUpgradeMutation } from "../hooks";
 import { calculateProrationPreview, formatDateID, formatIDR } from "../utils";
 

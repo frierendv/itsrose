@@ -35,7 +35,10 @@
 		"./schema": "./src/schema/index.ts",
 		"./server": "./src/server.ts",
 		"./types": "./src/types.ts",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./plugin": "./src/plugin/plugin-server.ts",
+		"./plugin-server": "./src/plugin/plugin-server.ts",
+		"./plugin-client": "./src/plugin/plugin-client.ts"
 	},
 	"scripts": {
 		"build": "tsdown",
@@ -64,7 +67,10 @@
 			"./schema": "./dist/schema/index.mjs",
 			"./server": "./dist/server.mjs",
 			"./types": "./dist/types.mjs",
-			"./package.json": "./package.json"
+			"./package.json": "./package.json",
+			"./plugin": "./dist/plugin/plugin-server.mjs",
+			"./plugin-server": "./dist/plugin/plugin-server.mjs",
+			"./plugin-client": "./dist/plugin/plugin-client.mjs"
 		}
 	}
 }

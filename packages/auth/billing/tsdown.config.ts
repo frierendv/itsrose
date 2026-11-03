@@ -14,6 +14,21 @@ export default defineConfig({
 		enabled: true,
 		ignore: ["zod"],
 	},
+	exports: {
+		...(typeof config.exports === "object" ? config.exports : {}),
+		customExports: (exports, { isPublish }) => ({
+			...exports,
+			"./plugin": isPublish
+				? "./dist/plugin/plugin-server.mjs"
+				: "./src/plugin/plugin-server.ts",
+			"./plugin-server": isPublish
+				? "./dist/plugin/plugin-server.mjs"
+				: "./src/plugin/plugin-server.ts",
+			"./plugin-client": isPublish
+				? "./dist/plugin/plugin-client.mjs"
+				: "./src/plugin/plugin-client.ts",
+		}),
+	},
 	format: ["esm"],
 	entry: [
 		"src/index.ts",

@@ -13,7 +13,7 @@ import {
 	ModalHeading,
 	Typography,
 } from "@heroui/react";
-import type { Invoice } from "@itsrose/auth/itsrose";
+import type { Invoice } from "@itsrose/auth-billing";
 import { useState } from "react";
 import { useVoidInvoiceMutation } from "../../api";
 

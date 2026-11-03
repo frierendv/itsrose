@@ -2,7 +2,7 @@
 
 import { withAuthQuery } from "@/lib/api";
 import { authClient } from "@/lib/auth";
-import type { TransactionInvoiceEvent } from "@itsrose/auth/itsrose";
+import type { TransactionInvoiceEvent } from "@itsrose/auth-billing";
 import { useQuery } from "@tanstack/react-query";
 import type { EventFilters } from "../types";
 import { adminQueryKeys } from "./query-keys";

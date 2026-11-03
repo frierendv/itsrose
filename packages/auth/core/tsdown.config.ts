@@ -15,14 +15,5 @@ export default defineConfig({
 		ignore: ["zod", "react-dom"],
 	},
 	format: ["esm"],
-	entry: [
-		"src/server/index.ts",
-		"src/react/index.ts",
-		"src/itsrose/index.ts",
-		"src/itsrose/client/index.ts",
-		"src/itsrose/server/index.ts",
-		"src/eusend/index.ts",
-		"src/storage/index.ts",
-		"src/index.ts",
-	],
+	entry: ["src/server/index.ts", "src/react/index.ts", "src/index.ts"],
 });

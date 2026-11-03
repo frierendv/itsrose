@@ -1,7 +1,7 @@
 import { AUTH_ERRORS, deny, extractBearerToken, parseJson } from "@/lib/auth";
 import { CACHE_KEYS, CACHE_TTL } from "@/lib/cache";
 import type { ApiKey } from "@itsrose/auth";
-import { type PlanLimits, type UserSubscription } from "@itsrose/auth/itsrose";
+import { type PlanLimits, type UserSubscription } from "@itsrose/auth-billing";
 import { defaultKeyHasher } from "@itsrose/auth/server";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import fp from "fastify-plugin";

@@ -17,7 +17,7 @@ import {
 	Table,
 	Typography,
 } from "@heroui/react";
-import type { ApiPlan } from "@itsrose/auth/itsrose";
+import type { ApiPlan } from "@itsrose/auth-billing";
 import { useState } from "react";
 import { useAdminPlans, useDeletePlanMutation } from "../../api";
 import { formatIDR } from "../../utils";

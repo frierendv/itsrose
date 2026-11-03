@@ -13,7 +13,7 @@ import {
 	Table,
 	Typography,
 } from "@heroui/react";
-import type { TransactionInvoiceEvent } from "@itsrose/auth/itsrose";
+import type { TransactionInvoiceEvent } from "@itsrose/auth-billing";
 import { useMemo, useState } from "react";
 import { useAdminEvents } from "../../api";
 import {

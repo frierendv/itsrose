@@ -1,7 +1,7 @@
 import { getSubscription } from "@/lib/auth";
 import { CACHE_KEYS } from "@/lib/cache";
 import { redisStorage } from "@better-auth/redis-storage";
-import type { UserSubscription } from "@itsrose/auth/itsrose";
+import type { UserSubscription } from "@itsrose/auth-billing";
 import { createBetterAuthServer, type AuthServer } from "@itsrose/auth/server";
 import fp from "fastify-plugin";
 

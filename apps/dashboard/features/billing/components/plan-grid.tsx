@@ -13,7 +13,7 @@ import {
 	PLAN_TIER_RANK,
 	type ApiPlan,
 	type Subscription,
-} from "@itsrose/auth/itsrose";
+} from "@itsrose/auth-billing";
 import { useState } from "react";
 import { formatIDR, isDowngrade, isUpgrade } from "../utils";
 import { DowngradeModal } from "./downgrade-modal";
