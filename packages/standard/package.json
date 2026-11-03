@@ -1,7 +1,6 @@
 {
 	"name": "@itsrose/standard",
 	"version": "1.0.0",
-	"private": true,
 	"type": "module",
 	"description": "Shared configuration presets for the ItsRose monorepo.",
 	"keywords": [
@@ -17,7 +16,31 @@
 			"types": "./tsdown/config.d.ts",
 			"default": "./tsdown/config.mjs"
 		},
-		"./typescript/*.json": "./typescript/*.json",
-		"./eslint/*": "./eslint/*.js"
+		"./typescript/base.json": "./typescript/base.json",
+		"./typescript/nextjs.json": "./typescript/nextjs.json",
+		"./typescript/node.json": "./typescript/node.json",
+		"./typescript/react-library.json": "./typescript/react-library.json",
+		"./eslint/base": "./eslint/base.js",
+		"./eslint/next": "./eslint/next.js",
+		"./eslint/react-internal": "./eslint/react-internal.js"
+	},
+	"devDependencies": {
+		"@eslint/js": "^10.0.1",
+		"@vitejs/plugin-react": "^6.1.2",
+		"babel-plugin-react-compiler": "^1.0.0",
+		"eslint": "^10.12.0",
+		"eslint-config-flat-gitignore": "^2.4.0",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-only-warn": "^1.2.1",
+		"eslint-plugin-react-hooks": "^7.1.1",
+		"eslint-plugin-turbo": "^2.11.7",
+		"sonda": "^0.14.0",
+		"tsdown": "^0.23.1",
+		"typescript": "catalog:",
+		"typescript-eslint": "^8.71.2",
+		"unplugin-macros": "^0.23.3",
+		"unplugin-preprocessor-directives": "^1.2.0",
+		"unplugin-purge-polyfills": "^0.1.0",
+		"unplugin-unused": "^0.6.0"
 	}
 }
