@@ -1,20 +1,20 @@
 "use client";
 
-import { AnimatedText, FlowerOutline } from "@/components/common";
-import { BaseLayout } from "@/components/layout";
+import { AnimatedText } from "@/components/common";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { config } from "@/config";
-import { memo, type PropsWithChildren } from "react";
+import { BrandIcon } from "@itsrose/react/itsrose";
+import type { PropsWithChildren } from "react";
 
-export const AuthLayout = memo<PropsWithChildren>(({ children }) => (
-	<BaseLayout>
+export const AuthLayout: React.FC<PropsWithChildren> = ({ children }) => (
+	<div className="flex flex-col shrink-0">
 		<div className="grid min-h-svh lg:grid-cols-2">
 			{/* left */}
 			<div className="flex flex-col gap-4 p-6 md:p-10" data-layout="left">
 				{/* top ? */}
 				<div className="flex justify-center gap-2 md:justify-start">
 					<div className="flex items-center gap-1 font-medium">
-						<FlowerOutline size={32} />
+						<BrandIcon size={32} />
 						{config.APP_TITLE}
 					</div>
 				</div>
@@ -30,8 +30,16 @@ export const AuthLayout = memo<PropsWithChildren>(({ children }) => (
 				</AnimatedText>
 			</div>
 		</div>
-		<ThemeSwitch />
-	</BaseLayout>
-));
+
+		{/* Flaoting docked */}
+		<div
+			className="overflow-hidden fixed z-10 flex-1 bottom-2 right-2"
+			role="toolbar"
+			id="__docked_theme-switch"
+		>
+			<ThemeSwitch />
+		</div>
+	</div>
+);
 
 AuthLayout.displayName = "AuthLayout";

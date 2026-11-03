@@ -1,4 +1,8 @@
-export {
-	VerifyEmail as default,
-	generateMetadata,
-} from "@/server/auth/verify-email";
+import { createAuthMetadata } from "@/lib/auth";
+import { VerifyEmail } from "@better-auth-ui/heroui";
+
+export const generateMetadata = createAuthMetadata("auth", "verifyEmail");
+
+export default function VerifyEmailPage() {
+	return <VerifyEmail />;
+}

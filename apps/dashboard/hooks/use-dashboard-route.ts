@@ -1,16 +1,16 @@
 "use client";
 
-import { authClient } from "@/client/auth";
 import {
 	ADMIN_SIDEBAR_ITEMS,
 	DEFAULT_SIDEBAR_ITEMS,
 	EXTERNAL_RESOURCE,
-	USER_FEATURES_IMAGE,
-	USER_FEATURES_NEURAL_VOICE,
+	// USER_FEATURES_IMAGE,
+	// USER_FEATURES_NEURAL_VOICE,
 	USER_LOGS_SIDEBAR_ITEMS,
 	USER_SETTINGS_SIDEBAR_ITEMS,
-	type SidebarItem,
-} from "@/client/route-sidebar";
+} from "@/constants/sidebar";
+import { authClient } from "@/lib/auth";
+import type { SidebarItem } from "@/types/sidebar";
 import { useSession } from "@better-auth-ui/react";
 
 export function useDashboardRoute() {
@@ -23,8 +23,8 @@ export function useDashboardRoute() {
 
 	const sidebarMainItems: SidebarItem[] = [
 		DEFAULT_SIDEBAR_ITEMS,
-		USER_FEATURES_IMAGE,
-		USER_FEATURES_NEURAL_VOICE,
+		// USER_FEATURES_IMAGE,
+		// USER_FEATURES_NEURAL_VOICE,
 	];
 	const sidebarSecondaryItems: SidebarItem[] = [
 		USER_LOGS_SIDEBAR_ITEMS,

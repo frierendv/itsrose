@@ -3,6 +3,7 @@
 import { Drawer, Surface } from "@heroui/react";
 import { cn, forwardRef } from "@itsrose/react/core";
 import { useIsMobile } from "@itsrose/react/hooks/use-is-mobile";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	SIDEBAR_KEYBOARD_SHORTCUT,
@@ -37,9 +38,10 @@ export const SidebarProvider = forwardRef<"div", SidebarProviderProps>(
 		ref
 	) => {
 		const isMobile = useIsMobile();
+		const pathname = usePathname();
 		const [openMobile, setOpenMobile] = useState(false);
 
-		// Internal open state persisted to localStorage for uncontrolled usage
+		// Internal open state persisted to cookie / localStorage for uncontrolled usage
 		const [persistedOpen, setPersistedOpen] =
 			useSidebarPersistedState(defaultOpen);
 		const open = openProp ?? persistedOpen;
@@ -64,6 +66,11 @@ export const SidebarProvider = forwardRef<"div", SidebarProviderProps>(
 				setOpen((prev) => !prev);
 			}
 		}, [isMobile, setOpen]);
+
+		// Automatically close mobile drawer when navigation route changes
+		useEffect(() => {
+			setOpenMobile(false);
+		}, [pathname]);
 
 		// Keyboard shortcut (⌘+B or Ctrl+B)
 		useEffect(() => {
@@ -198,11 +205,7 @@ export const Sidebar = forwardRef<"div", SidebarProps>(
 						"w-(--sidebar-width)",
 						"group-data-[collapsible=offcanvas]:w-0",
 						"group-data-[side=right]:rotate-180",
-
-						// variant === "floating" || variant === "inset"
-						// 	? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+1rem)]"
-						// 	: "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
-						"group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+1rem)]"
+						"group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
 					)}
 				/>
 				{/* Fixed sidebar content container */}
@@ -211,16 +214,8 @@ export const Sidebar = forwardRef<"div", SidebarProps>(
 					className={cn(
 						"duration-200 fixed inset-y-0 z-20 flex flex-col h-svh w-(--sidebar-width)",
 						"transition-[left,right,width] ease-linear shrink-0",
-
-						// left/right side
 						`${side}-0 group-data-[collapsible=offcanvas]:-${side}-(--sidebar-width)`,
-
-						// variant based
-						// variant === "floating" || variant === "inset"
-						// 	? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+1rem)]"
-						// 	: "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l border-border",
-
-						"group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+1rem)]",
+						"group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
 						"group-data-[side=left]:border-r group-data-[side=right]:border-l border-border",
 						className
 					)}
@@ -234,12 +229,12 @@ export const Sidebar = forwardRef<"div", SidebarProps>(
 						className={cn(
 							"flex h-full w-full flex-col px-2",
 							"bg-background",
-							// border side
 							`border-${side === "right" ? "l" : "r"} border-border`,
 							{
-								// variants
-								"rounded-2xl": variant === "floating",
-								"inset rounded-2xl": variant === "inset",
+								"rounded-(--field-radius)":
+									variant === "floating",
+								"inset rounded-(--field-radius)":
+									variant === "inset",
 							}
 						)}
 					>

@@ -8,10 +8,11 @@ export const config = {
 	/** `NEXT_PUBLIC_APP_TITLE` */
 	APP_TITLE: process.env[asNextPublic("APP_TITLE")] || "ItsRose Platform",
 	/** `NEXT_PUBLIC_APP_DOMAIN` */
-	APP_DOMAIN: process.env[asNextPublic("APP_DOMAIN")] || "itsrose.net",
+	APP_DOMAIN: process.env[asNextPublic("APP_DOMAIN")] || "dash.itsrose.my.id",
 	/** `NEXT_PUBLIC_APP_BASE_URL` */
 	APP_BASE_URL: new URL(
-		process.env[asNextPublic("APP_BASE_URL")] || "https://itsrose.net"
+		process.env[asNextPublic("APP_BASE_URL")] ||
+			"https://dash.itsrose.my.id"
 	),
 	/** `NEXT_PUBLIC_APP_DESCRIPTION` */
 	APP_DESCRIPTION:
@@ -26,7 +27,7 @@ export const config = {
 	/** `NEXT_PUBLIC_ITSROSE_API_BASE_URL` */
 	ITSROSE_API_BASE_URL: new URL(
 		process.env[asNextPublic("ITSROSE_API_BASE_URL")] ||
-			"http://localhost:3002"
+			"https://api.itsrose.my.id"
 	),
 
 	/**  ----------------- MISC -----------------  */

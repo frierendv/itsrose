@@ -25,7 +25,7 @@ export const SidebarGroupLabel = forwardRef<"div">(
 				ref={ref}
 				data-sidebar="group-label"
 				className={cn(
-					"duration-200 flex h-8 shrink-0 items-center rounded-md text-xs font-semibold uppercase tracking-wider text-muted outline-none transition-[margin,opacity] ease-linear",
+					"duration-200 flex h-8 shrink-0 items-center rounded-(--radius) text-xs font-semibold uppercase tracking-wider text-muted outline-none transition-[margin,opacity] ease-linear",
 					"group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:-mt-8",
 					className
 				)}

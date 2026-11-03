@@ -30,7 +30,7 @@ export const SidebarMenu = forwardRef<"ul">(
 SidebarMenu.displayName = "SidebarMenu";
 
 export type SidebarMenuItemProps = {
-	level?: 1 | 2;
+	level?: number;
 	isCurrent?: boolean;
 	isExpanded?: boolean;
 	hasChildItems?: boolean;
@@ -66,7 +66,7 @@ export const SidebarMenuItem = forwardRef<"li", SidebarMenuItemProps>(
 					} as React.CSSProperties
 				}
 				className={cn(
-					"sidebar__menu-item group/menu-item relative list-none",
+					"sidebar__menu-item group/menu-item relative list-none px-1",
 					className
 				)}
 				{...props}
@@ -327,9 +327,9 @@ export const SidebarMenuSub = forwardRef<"ul">(
 				className={cn(
 					"sidebar__menu-sub",
 					"group-data-[collapsible=icon]:hidden",
-					"flex flex-col gap-2.5",
+					"flex flex-col gap-2",
 					"ml-4 w-auto",
-					"border-l border-border-secondary pl-2 p-2",
+					"border-l border-border pl-2 py-1 my-0.5",
 					className
 				)}
 				{...props}
@@ -404,16 +404,11 @@ export const SidebarMenuSkeleton = forwardRef<"div", SidebarMenuSkeletonProps>(
 			<div
 				ref={ref}
 				data-sidebar="menu-skeleton"
-				className={cn(
-					"flex h-8 items-center gap-2 rounded-xl px-2",
-					className
-				)}
+				className={cn("flex h-8 items-center gap-2 px-2", className)}
 				{...props}
 			>
-				{showIcon && (
-					<Skeleton className="size-4 shrink-0 rounded-md" />
-				)}
-				<Skeleton className="h-4 max-w-[calc(100%-2rem)] flex-1 rounded-md" />
+				{showIcon && <Skeleton className="size-4 shrink-0" />}
+				<Skeleton className="h-4 max-w-[calc(100%-2rem)] flex-1" />
 			</div>
 		);
 	}

@@ -1,25 +1,51 @@
 "use client";
 
-import type { ButtonRootProps } from "@heroui/react/button";
-import { cn, forwardRef } from "@itsrose/react/core";
-import { ThemeSwitchBase } from "./theme-switch-base";
+import Moon from "@gravity-ui/icons/Moon";
+import Sun from "@gravity-ui/icons/Sun";
+import { Button, type ButtonRootProps } from "@heroui/react/button";
+import { useTheme } from "next-themes";
+import { memo, useCallback, useEffect, useState } from "react";
+import {
+	ThemeAnimationType,
+	useModeAnimation,
+} from "react-theme-switch-animation";
 
-export const ThemeSwitch = forwardRef<"div", ButtonRootProps>(
-	({ as: Component = "div", className, ...props }, ref) => (
-		<Component
-			className="overflow-hidden fixed z-10 flex-1 bottom-2 right-2"
-			role="toolbar"
-			id="__docked_theme-switch"
-			ref={ref}
+export const ThemeSwitch = memo<ButtonRootProps>((props) => {
+	const [mounted, setMounted] = useState<boolean>(false);
+	const { resolvedTheme, setTheme } = useTheme();
+
+	useEffect(() => setMounted(true), []);
+
+	const isDarkMode = resolvedTheme === "dark";
+	const onDarkModeChange = useCallback(
+		(isDark: boolean) => setTheme(isDark ? "dark" : "light"),
+		[setTheme]
+	);
+	const { ref: buttonRef, toggleSwitchTheme } = useModeAnimation({
+		animationType: ThemeAnimationType.POLYGON,
+		isDarkMode,
+		onDarkModeChange,
+	});
+
+	if (!mounted) {
+		return null;
+	}
+
+	return (
+		<Button
+			ref={buttonRef}
+			isIconOnly
+			variant="ghost"
+			aria-label={
+				isDarkMode ? "Switch to light mode" : "Switch to dark mode"
+			}
+			{...props}
+			onPress={toggleSwitchTheme}
 		>
-			<ThemeSwitchBase
-				isIconOnly
-				variant="outline"
-				className={cn("rounded-full", className)}
-				{...props}
-			/>
-		</Component>
-	)
-);
+			{isDarkMode ? <Moon aria-hidden /> : <Sun aria-hidden />}
+			<span className="sr-only">Toggle theme</span>
+		</Button>
+	);
+});
 
 ThemeSwitch.displayName = "ThemeSwitch";

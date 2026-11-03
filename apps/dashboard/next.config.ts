@@ -12,7 +12,7 @@ const standaloneConfig: NextConfig = {
 };
 
 const devConfig: NextConfig = !env.isProd
-	? { allowedDevOrigins: ["*.itsrose.net", "192.168.1.100"] }
+	? { allowedDevOrigins: ["*.itsrose.my.id"] }
 	: {};
 
 const nextConfig: NextConfig = {

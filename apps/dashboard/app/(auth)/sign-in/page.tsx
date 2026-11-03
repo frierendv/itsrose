@@ -1,1 +1,8 @@
-export { SignIn as default, generateMetadata } from "@/server/auth/sign-in";
+import { createAuthMetadata } from "@/lib/auth";
+import { SignIn } from "@better-auth-ui/heroui";
+
+export const generateMetadata = createAuthMetadata("auth", "signIn");
+
+export default function SignInPage() {
+	return <SignIn />;
+}
