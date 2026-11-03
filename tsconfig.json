@@ -3,7 +3,16 @@
 	"include": [],
 	"references": [
 		{
-			"path": "packages/auth"
+			"path": "packages/auth/core"
+		},
+		{
+			"path": "packages/auth/billing"
+		},
+		{
+			"path": "packages/auth/mailer"
+		},
+		{
+			"path": "packages/auth/storage"
 		},
 		{
 			"path": "packages/core/logger"

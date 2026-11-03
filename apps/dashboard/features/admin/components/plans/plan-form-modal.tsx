@@ -15,7 +15,7 @@ import {
 	TextArea,
 	Typography,
 } from "@heroui/react";
-import type { ApiPlan } from "@itsrose/auth/itsrose";
+import type { ApiPlan } from "@itsrose/auth-billing";
 import { useState } from "react";
 import { useCreatePlanMutation, useUpdatePlanMutation } from "../../api";
 

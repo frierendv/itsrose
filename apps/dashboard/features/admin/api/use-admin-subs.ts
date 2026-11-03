@@ -3,7 +3,7 @@
 import { withAuthQuery } from "@/lib/api";
 import { authClient } from "@/lib/auth";
 import { toast } from "@heroui/react";
-import type { CronExecutionResult, Subscription } from "@itsrose/auth/itsrose";
+import type { CronExecutionResult, Subscription } from "@itsrose/auth-billing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
 	BillingCronInput,

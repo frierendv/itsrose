@@ -14,7 +14,7 @@ import {
 	Tooltip,
 	Typography,
 } from "@heroui/react";
-import type { Invoice } from "@itsrose/auth/itsrose";
+import type { Invoice } from "@itsrose/auth-billing";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { useAdminInvoices } from "../../api";

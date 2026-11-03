@@ -25,7 +25,6 @@ describe("features/tiktok", () => {
 
 	describe("TikTok Config", () => {
 		it("loads environment configuration", async () => {
-			// eslint-disable-next-line @typescript-eslint/naming-convention
 			const { TIKTOK_TIKWM_BASE_URL, TIKWM_APIKEY } =
 				await import("../src/config");
 			expect(TIKTOK_TIKWM_BASE_URL).toBe("https://tikwm.com/api");
