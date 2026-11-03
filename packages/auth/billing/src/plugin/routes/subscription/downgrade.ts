@@ -7,10 +7,11 @@ import {
 	getPlanById,
 	getUserSubscription,
 	scheduleDowngrade,
-} from "../../../adapter";
+} from "../../../application";
 import { planDowngrade } from "../../../domain/subscription.service";
 import { downgradeSubscriptionSchema } from "../../../schema";
 import type { BillingPluginOptions } from "../../../types";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const downgradeSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
@@ -24,8 +25,12 @@ export const downgradeSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
 		async (ctx) => {
 			const { user } = ctx.context.session;
 			const targetPlanId = ctx.body.target_tier.toLowerCase();
+			const { repositories } = createBillingServices(ctx);
 
-			const subscription = await getUserSubscription(ctx, user.id);
+			const subscription = await getUserSubscription(
+				repositories.subscriptions,
+				user.id
+			);
 			const decision = planDowngrade(subscription, targetPlanId);
 
 			if (decision.action === "reject") {
@@ -49,7 +54,10 @@ export const downgradeSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
 
 			// Free is always a valid downgrade target; paid targets must exist.
 			if (targetPlanId !== "free") {
-				const plan = await getPlanById(ctx, targetPlanId);
+				const plan = await getPlanById(
+					repositories.plans,
+					targetPlanId
+				);
 				if (!plan) {
 					throw new APIError("NOT_FOUND", {
 						message: `Plan '${targetPlanId}' does not exist.`,
@@ -57,7 +65,11 @@ export const downgradeSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
 				}
 			}
 
-			const updated = await scheduleDowngrade(ctx, user.id, targetPlanId);
+			const updated = await scheduleDowngrade(
+				repositories.subscriptions,
+				user.id,
+				targetPlanId
+			);
 
 			if (!updated) {
 				throw new APIError("INTERNAL_SERVER_ERROR", {

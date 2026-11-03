@@ -3,7 +3,7 @@ import {
 	runAllBillingCronTasks,
 	sweepPastDueAndExpired,
 	trackGracePeriods,
-} from "../src/adapter/cron";
+} from "../src/application/cron.service";
 import {
 	GRACE_PERIOD_MS,
 	INVOICE_TABLE_NAME,
@@ -15,6 +15,7 @@ import {
 	createMockDbAdapter,
 	createMockEndpointContext,
 	createMockMidtransClient,
+	createTestDependencies,
 } from "./test-helpers";
 
 describe("Recurring Billing Cron Engine", () => {
@@ -43,7 +44,10 @@ describe("Recurring Billing Cron Engine", () => {
 			});
 
 			const ctx = createMockEndpointContext({ adapter });
-			const result = await dispatchRenewalInvoices(ctx, client, { now });
+			const result = await dispatchRenewalInvoices(
+				createTestDependencies(ctx, client),
+				{ now }
+			);
 
 			expect(result.dispatched).toBe(1);
 			expect(result.errors.length).toBe(0);
@@ -82,7 +86,10 @@ describe("Recurring Billing Cron Engine", () => {
 			});
 
 			const ctx = createMockEndpointContext({ adapter });
-			const result = await dispatchRenewalInvoices(ctx, client, { now });
+			const result = await dispatchRenewalInvoices(
+				createTestDependencies(ctx, client),
+				{ now }
+			);
 
 			expect(result.dispatched).toBe(0);
 		});
@@ -108,15 +115,17 @@ describe("Recurring Billing Cron Engine", () => {
 			const ctx = createMockEndpointContext({ adapter });
 
 			// Run 1: dispatches 1
-			const firstRun = await dispatchRenewalInvoices(ctx, client, {
-				now,
-			});
+			const firstRun = await dispatchRenewalInvoices(
+				createTestDependencies(ctx, client),
+				{ now }
+			);
 			expect(firstRun.dispatched).toBe(1);
 
 			// Run 2: skips duplicate
-			const secondRun = await dispatchRenewalInvoices(ctx, client, {
-				now,
-			});
+			const secondRun = await dispatchRenewalInvoices(
+				createTestDependencies(ctx, client),
+				{ now }
+			);
 			expect(secondRun.dispatched).toBe(0);
 
 			const invoices = await adapter.findMany({
@@ -146,7 +155,12 @@ describe("Recurring Billing Cron Engine", () => {
 			});
 
 			const ctx = createMockEndpointContext({ adapter });
-			const result = await trackGracePeriods(ctx, { now });
+			const result = await trackGracePeriods(
+				createTestDependencies(ctx, client),
+				{
+					now,
+				}
+			);
 
 			expect(result.tracked).toBe(1);
 
@@ -206,7 +220,12 @@ describe("Recurring Billing Cron Engine", () => {
 			});
 
 			const ctx = createMockEndpointContext({ adapter });
-			const result = await sweepPastDueAndExpired(ctx, client, { now });
+			const result = await sweepPastDueAndExpired(
+				createTestDependencies(ctx, client),
+				{
+					now,
+				}
+			);
 
 			expect(result.swept).toBe(1);
 
@@ -233,7 +252,12 @@ describe("Recurring Billing Cron Engine", () => {
 			const now = new Date("2026-10-28T00:00:00.000Z");
 
 			const ctx = createMockEndpointContext({ adapter });
-			const result = await runAllBillingCronTasks(ctx, client, { now });
+			const result = await runAllBillingCronTasks(
+				createTestDependencies(ctx, client),
+				{
+					now,
+				}
+			);
 
 			expect(result).toHaveProperty("dispatched_renewals");
 			expect(result).toHaveProperty("tracked_grace_periods");

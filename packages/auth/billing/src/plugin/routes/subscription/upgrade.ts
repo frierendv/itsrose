@@ -4,9 +4,10 @@ import {
 	createAuthEndpoint,
 	sessionMiddleware,
 } from "better-auth/api";
-import { createUpgradeInvoiceForUser } from "../../../adapter";
+import { createUpgradeInvoiceForUser } from "../../../application";
 import { upgradeSubscriptionSchema } from "../../../schema";
 import type { BillingPluginOptions } from "../../../types";
+import { createBillingContext } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const upgradeSubscriptionEndpoint = (
@@ -22,10 +23,14 @@ export const upgradeSubscriptionEndpoint = (
 		},
 		async (ctx) => {
 			const { user } = ctx.context.session;
-
-			const result = await createUpgradeInvoiceForUser(
+			const { dependencies, options } = createBillingContext(
 				ctx,
 				client,
+				opts
+			);
+
+			const result = await createUpgradeInvoiceForUser(
+				dependencies,
 				{
 					userId: user.id,
 					user,
@@ -33,7 +38,7 @@ export const upgradeSubscriptionEndpoint = (
 					notes: ctx.body.notes,
 					customer: ctx.body.customer,
 				},
-				opts
+				options
 			);
 
 			switch (result.status) {

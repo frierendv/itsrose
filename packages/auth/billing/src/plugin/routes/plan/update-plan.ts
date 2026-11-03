@@ -3,9 +3,10 @@ import {
 	createAuthEndpoint,
 	sessionMiddleware,
 } from "better-auth/api";
-import { updatePlanRecord } from "../../../adapter";
+import { updatePlanRecord } from "../../../application";
 import { isAdmin } from "../../../domain/permissions";
 import { updatePlanSchema } from "../../../schema";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const updatePlanEndpoint = () => {
@@ -23,7 +24,8 @@ export const updatePlanEndpoint = () => {
 				});
 			}
 
-			const result = await updatePlanRecord(ctx, ctx.body);
+			const { repositories } = createBillingServices(ctx);
+			const result = await updatePlanRecord(repositories.plans, ctx.body);
 
 			if (result.status === "not_found") {
 				throw new APIError("NOT_FOUND", {

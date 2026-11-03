@@ -1,5 +1,7 @@
 import { createAuthEndpoint, sessionMiddleware } from "better-auth/api";
-import { resolveUserSubscription } from "../../../adapter";
+import { resolveUserSubscription } from "../../../application";
+import { systemClock } from "../../../domain/ports";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const userPlanEndpoint = () => {
@@ -10,9 +12,11 @@ export const userPlanEndpoint = () => {
 			use: [sessionMiddleware],
 		},
 		async (ctx) => {
+			const { repositories } = createBillingServices(ctx);
 			const subscription = await resolveUserSubscription(
-				ctx,
-				ctx.context.session.user.id
+				repositories,
+				ctx.context.session.user.id,
+				systemClock
 			);
 
 			return ctx.json(subscription);

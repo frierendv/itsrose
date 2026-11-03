@@ -7,10 +7,12 @@ import {
 	cancelSubscription,
 	getSubscriptionById,
 	getUserSubscription,
-} from "../../../adapter";
+} from "../../../application";
 import { isOwnerOrAdmin } from "../../../domain/permissions";
+import { systemClock } from "../../../domain/ports";
 import { cancelSubscriptionSchema } from "../../../schema";
 import type { BillingPluginOptions } from "../../../types";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const cancelSubscriptionEndpoint = (opts?: BillingPluginOptions) => {
@@ -23,10 +25,17 @@ export const cancelSubscriptionEndpoint = (opts?: BillingPluginOptions) => {
 		},
 		async (ctx) => {
 			const { user } = ctx.context.session;
+			const { repositories, options } = createBillingServices(ctx, opts);
 
 			const targetSubscription = ctx.body.subscription_id
-				? await getSubscriptionById(ctx, ctx.body.subscription_id)
-				: await getUserSubscription(ctx, user.id);
+				? await getSubscriptionById(
+						repositories.subscriptions,
+						ctx.body.subscription_id
+					)
+				: await getUserSubscription(
+						repositories.subscriptions,
+						user.id
+					);
 
 			if (!targetSubscription) {
 				throw new APIError("NOT_FOUND", {
@@ -41,14 +50,18 @@ export const cancelSubscriptionEndpoint = (opts?: BillingPluginOptions) => {
 				});
 			}
 
-			const canceled = await cancelSubscription(ctx, {
-				userId: targetSubscription.user_id,
-				subscriptionId: targetSubscription.id,
-				cancelAtPeriodEnd: ctx.body.cancel_at_period_end,
-			});
+			const canceled = await cancelSubscription(
+				repositories.subscriptions,
+				{
+					userId: targetSubscription.user_id,
+					subscriptionId: targetSubscription.id,
+					cancelAtPeriodEnd: ctx.body.cancel_at_period_end,
+				},
+				systemClock
+			);
 
 			if (canceled) {
-				await opts?.onSubscriptionCanceled?.(canceled, ctx);
+				await options.hooks?.onSubscriptionCanceled?.(canceled);
 			}
 
 			return ctx.json(canceled);

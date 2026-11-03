@@ -1,8 +1,8 @@
 import { createAuthEndpoint, sessionMiddleware } from "better-auth/api";
-import { createBillingRepositories } from "../../../adapter";
 import { isAdmin } from "../../../domain/permissions";
 import { listSubscriptionSchema } from "../../../schema";
 import type { BillingPluginOptions } from "../../../types";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const listSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
@@ -22,7 +22,7 @@ export const listSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
 				? ctx.query?.userId || user.id
 				: undefined;
 
-			const repositories = createBillingRepositories(ctx);
+			const { repositories } = createBillingServices(ctx);
 
 			let subscriptions = userId
 				? await repositories.subscriptions.findManyByUser(userId)

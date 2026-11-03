@@ -1,6 +1,7 @@
 import { MidtransClient, type ClientOptions } from "@itsrose/midtrans";
 import type { BetterAuthPlugin } from "better-auth";
-import { getAllPlans } from "../adapter";
+import { createBillingRepositories } from "../adapter";
+import { getAllPlans } from "../application";
 import { ITSROSE_PLUGIN_ID } from "../domain/constants";
 import { billingSchema } from "../schema";
 import type { BillingPluginOptions } from "../types";
@@ -76,7 +77,13 @@ export const itsRosePlugin = (
 		init: async (ctx) => {
 			if (pluginOpts.autoSeedPlans !== false && ctx.adapter) {
 				try {
-					await getAllPlans(ctx as any, pluginOpts.defaultPlans);
+					const repositories = createBillingRepositories(
+						ctx as never
+					);
+					await getAllPlans(
+						repositories.plans,
+						pluginOpts.defaultPlans
+					);
 				} catch {
 					// Soft failure on init if migrations haven't run yet.
 				}

@@ -26,7 +26,7 @@ import { isNonTerminalStatus } from "./subscription.service";
  * Kept structural (instead of the full zod-inferred response) so the domain
  * layer does not depend on the gateway transport types.
  */
-export type MidtransInvoiceResult = {
+export type GatewayInvoice = {
 	id: string;
 	status?: string | null;
 	invoice_date?: string | null;
@@ -296,7 +296,7 @@ export function buildInvoiceCustomerDetails(input: {
 }
 
 export interface BuildInvoiceRecordInput {
-	midtrans: MidtransInvoiceResult;
+	midtrans: GatewayInvoice;
 	userId: string;
 	orderId: string;
 	invoiceType: InvoiceType;
@@ -358,7 +358,7 @@ export function isVoidableStatus(status: string): boolean {
  * Midtrans invoice, or `null` when nothing changed.
  */
 export function resolveInvoiceSyncUpdate(
-	remote: MidtransInvoiceResult | null | undefined,
+	remote: GatewayInvoice | null | undefined,
 	existing: TransactionInvoice
 ): Partial<TransactionInvoice> | null {
 	if (!remote || !remote.status || remote.status === existing.status) {

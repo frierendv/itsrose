@@ -1,5 +1,3 @@
-import type { MidtransClient } from "@itsrose/midtrans";
-import type { GenericEndpointContext } from "better-auth";
 import { INVOICE_TYPE } from "../domain/constants";
 import {
 	buildInvoiceRecord,
@@ -8,18 +6,20 @@ import {
 	planUpgradeInvoice,
 	resolveInvoiceSyncUpdate,
 	type InvoiceCreationPlan,
-	type MidtransInvoiceResult,
 } from "../domain/invoice.service";
 import type {
+	BillingDependencies,
+	BillingServiceOptions,
+	InvoiceEventFilter,
+	InvoiceFilter,
+} from "../domain/ports";
+import type {
 	ApiPlan,
-	BillingPluginOptions,
 	TransactionInvoice,
 	TransactionInvoiceEvent,
 } from "../types";
-import { getPlanById } from "./plan";
-import { createBillingRepositories } from "./repository";
-import { getUserSubscription } from "./subscription";
-import type { InvoiceEventFilter, InvoiceFilter } from "./types";
+import { getPlanById } from "./plan.service";
+import { getUserSubscription } from "./subscription.service";
 
 type InvoiceRejection = Extract<InvoiceCreationPlan, { action: "reject" }>;
 
@@ -59,62 +59,66 @@ export interface CreateUpgradeInvoiceInput {
  * Generates the next per-year invoice number.
  */
 export async function generateInvoiceNumber(
-	ctx: GenericEndpointContext,
+	dependencies: Pick<BillingDependencies, "repositories">,
 	prefix?: string
 ): Promise<string> {
-	return createBillingRepositories(ctx).sequences.next(prefix);
+	return dependencies.repositories.sequences.next(prefix);
 }
 
 export async function findInvoiceById(
-	ctx: GenericEndpointContext,
+	dependencies: Pick<BillingDependencies, "repositories">,
 	invoiceId: string
 ): Promise<TransactionInvoice | null> {
-	return createBillingRepositories(ctx).invoices.findById(invoiceId);
+	return dependencies.repositories.invoices.findById(invoiceId);
 }
 
 export async function findInvoiceByOrderId(
-	ctx: GenericEndpointContext,
+	dependencies: Pick<BillingDependencies, "repositories">,
 	orderId: string
 ): Promise<TransactionInvoice | null> {
-	return createBillingRepositories(ctx).invoices.findByOrderId(orderId);
+	return dependencies.repositories.invoices.findByOrderId(orderId);
 }
 
 export async function createInvoiceRecord(
-	ctx: GenericEndpointContext,
+	dependencies: Pick<BillingDependencies, "repositories">,
 	data: TransactionInvoice
 ): Promise<TransactionInvoice> {
-	return createBillingRepositories(ctx).invoices.create(data);
+	return dependencies.repositories.invoices.create(data);
 }
 
 export async function recordInvoiceEvent(
-	ctx: GenericEndpointContext,
+	dependencies: Pick<BillingDependencies, "repositories" | "clock">,
 	eventName: string,
 	eventJson: Record<string, unknown>
 ): Promise<void> {
-	return createBillingRepositories(ctx).events.record(eventName, eventJson);
+	return dependencies.repositories.events.record(
+		eventName,
+		eventJson,
+		dependencies.clock.now()
+	);
 }
 
 export async function listInvoices(
-	ctx: GenericEndpointContext,
+	dependencies: Pick<BillingDependencies, "repositories">,
 	filter?: InvoiceFilter
 ): Promise<TransactionInvoice[]> {
-	return createBillingRepositories(ctx).invoices.findMany(filter);
+	return dependencies.repositories.invoices.findMany(filter);
 }
 
 export async function listInvoiceEvents(
-	ctx: GenericEndpointContext,
+	dependencies: Pick<BillingDependencies, "repositories">,
 	filter?: InvoiceEventFilter
 ): Promise<TransactionInvoiceEvent[]> {
-	return createBillingRepositories(ctx).events.findMany(filter);
+	return dependencies.repositories.events.findMany(filter);
 }
 
 /**
- * Best-effort status sync with Midtrans for pending/published invoices.
- * Upstream failures are swallowed so reads never fail because of the gateway.
+ * Best-effort status sync with the payment provider for pending/published
+ * invoices. Upstream failures are swallowed so reads never fail because of the
+ * gateway.
  */
 export async function syncInvoiceWithMidtrans(
-	ctx: GenericEndpointContext,
-	client: MidtransClient,
+	dependencies: Pick<BillingDependencies, "repositories" | "gateway">,
 	invoice: TransactionInvoice
 ): Promise<TransactionInvoice> {
 	if (invoice.status !== "pending" && invoice.status !== "published") {
@@ -122,18 +126,20 @@ export async function syncInvoiceWithMidtrans(
 	}
 
 	try {
-		const { data } = await client.invoice.get(invoice.invoice_id);
-		const update = resolveInvoiceSyncUpdate(data, invoice);
+		const remote = await dependencies.gateway.getInvoice(
+			invoice.invoice_id
+		);
+		const update = resolveInvoiceSyncUpdate(remote, invoice);
 
 		if (update) {
-			await createBillingRepositories(ctx).invoices.update(
+			await dependencies.repositories.invoices.update(
 				invoice.invoice_id,
 				update
 			);
 			Object.assign(invoice, update);
 		}
 	} catch {
-		// Fall through safely if Midtrans upstream is temporarily unreachable.
+		// Fall through safely if the provider is temporarily unreachable.
 	}
 
 	return invoice;
@@ -155,44 +161,12 @@ function resolveCustomerName(
 	return input.name ?? fallback ?? "Customer";
 }
 
-/**
- * Application service behind `POST /payment/create-invoice`.
- * Validates the plan transition, creates the Midtrans invoice, persists the
- * local record and runs the `onInvoiceCreated` hook.
- */
-export async function createInvoiceForUser(
-	ctx: GenericEndpointContext,
-	client: MidtransClient,
-	input: CreateInvoiceInput,
-	opts?: BillingPluginOptions
-): Promise<CreateInvoiceResult> {
-	const targetPlanId = input.planId.toLowerCase();
-	const targetPlan = await getPlanById(ctx, targetPlanId);
-
-	if (!targetPlan) {
-		return { status: "plan_not_found", planId: input.planId };
-	}
-
-	const existingSubscription = await getUserSubscription(ctx, input.userId);
-	const currentTier = existingSubscription?.plan_id?.toLowerCase() ?? "free";
-	const currentPlan = await getPlanById(ctx, currentTier);
-
-	const decision = planInvoiceChange({
-		currentSubscription: existingSubscription,
-		currentPlan,
-		targetPlan,
-		defaultDueDays: opts?.defaultDueDays,
-	});
-
-	if (decision.action === "reject") {
-		return rejectionToResult(decision);
-	}
-
-	const repositories = createBillingRepositories(ctx);
-	const orderId = client.merchant.generateOrderId(input.userId);
-	const invoiceNumber = await repositories.sequences.next();
-
-	const customerDetails = {
+function buildCustomerPayload(input: {
+	userId: string;
+	user: { name?: string | null; email?: string | null };
+	customer?: { name?: string; email?: string };
+}): { id: string; name: string; email?: string } {
+	return {
 		id: input.userId,
 		name: resolveCustomerName(
 			{ name: input.customer?.name },
@@ -200,6 +174,53 @@ export async function createInvoiceForUser(
 		),
 		email: input.customer?.email ?? input.user.email ?? undefined,
 	};
+}
+
+/**
+ * Application service behind `POST /payment/create-invoice`.
+ * Validates the plan transition, creates the provider invoice, persists the
+ * local record and runs the `onInvoiceCreated` hook.
+ */
+export async function createInvoiceForUser(
+	dependencies: BillingDependencies,
+	input: CreateInvoiceInput,
+	options?: BillingServiceOptions
+): Promise<CreateInvoiceResult> {
+	const targetPlanId = input.planId.toLowerCase();
+	const targetPlan = await getPlanById(
+		dependencies.repositories.plans,
+		targetPlanId
+	);
+
+	if (!targetPlan) {
+		return { status: "plan_not_found", planId: input.planId };
+	}
+
+	const existingSubscription = await getUserSubscription(
+		dependencies.repositories.subscriptions,
+		input.userId
+	);
+	const currentTier = existingSubscription?.plan_id?.toLowerCase() ?? "free";
+	const currentPlan = await getPlanById(
+		dependencies.repositories.plans,
+		currentTier
+	);
+
+	const decision = planInvoiceChange({
+		currentSubscription: existingSubscription,
+		currentPlan,
+		targetPlan,
+		now: dependencies.clock.now(),
+		defaultDueDays: options?.defaultDueDays,
+	});
+
+	if (decision.action === "reject") {
+		return rejectionToResult(decision);
+	}
+
+	const orderId = dependencies.gateway.generateOrderId(input.userId);
+	const invoiceNumber = await dependencies.repositories.sequences.next();
+	const customerDetails = buildCustomerPayload(input);
 	const itemDetails = [
 		{
 			item_id: targetPlan.plan_id,
@@ -215,7 +236,7 @@ export async function createInvoiceForUser(
 			? `Mid-cycle upgrade to ${targetPlan.name}.`
 			: `Subscription for ${targetPlan.name} (${targetPlan.price.interval})`);
 
-	const { data, error } = await client.invoice.create(
+	const gatewayResult = await dependencies.gateway.createInvoice(
 		{
 			order_id: orderId,
 			invoice_number: invoiceNumber,
@@ -229,17 +250,12 @@ export async function createInvoiceForUser(
 		{ idempotencyKey: orderId }
 	);
 
-	if (error || !data) {
-		return {
-			status: "gateway_error",
-			message:
-				error?.error_messages?.join("; ") ||
-				"Failed to create Midtrans invoice.",
-		};
+	if (!gatewayResult.ok) {
+		return { status: "gateway_error", message: gatewayResult.message };
 	}
 
 	const invoice = buildInvoiceRecord({
-		midtrans: data as MidtransInvoiceResult,
+		midtrans: gatewayResult.data,
 		userId: input.userId,
 		orderId,
 		invoiceType: decision.invoiceType,
@@ -253,8 +269,8 @@ export async function createInvoiceForUser(
 		prorationDetails: decision.prorationDetails,
 	});
 
-	const stored = await createInvoiceRecord(ctx, invoice);
-	await opts?.onInvoiceCreated?.(stored, ctx);
+	const stored = await createInvoiceRecord(dependencies, invoice);
+	await options?.hooks?.onInvoiceCreated?.(stored);
 
 	return {
 		status: "created",
@@ -267,44 +283,44 @@ export async function createInvoiceForUser(
  * Application service behind `POST /subscription/upgrade`.
  */
 export async function createUpgradeInvoiceForUser(
-	ctx: GenericEndpointContext,
-	client: MidtransClient,
+	dependencies: BillingDependencies,
 	input: CreateUpgradeInvoiceInput,
-	opts?: BillingPluginOptions
+	options?: BillingServiceOptions
 ): Promise<CreateInvoiceResult> {
 	const targetPlanId = input.targetTier.toLowerCase();
-	const targetPlan = await getPlanById(ctx, targetPlanId);
+	const targetPlan = await getPlanById(
+		dependencies.repositories.plans,
+		targetPlanId
+	);
 
 	if (!targetPlan) {
 		return { status: "plan_not_found", planId: input.targetTier };
 	}
 
-	const existingSubscription = await getUserSubscription(ctx, input.userId);
+	const existingSubscription = await getUserSubscription(
+		dependencies.repositories.subscriptions,
+		input.userId
+	);
 	const currentTier = existingSubscription?.plan_id?.toLowerCase() ?? "free";
-	const currentPlan = await getPlanById(ctx, currentTier);
+	const currentPlan = await getPlanById(
+		dependencies.repositories.plans,
+		currentTier
+	);
 
 	const decision = planUpgradeInvoice({
 		currentSubscription: existingSubscription,
 		currentPlan,
 		targetPlan,
+		now: dependencies.clock.now(),
 	});
 
 	if (decision.action === "reject") {
 		return rejectionToResult(decision);
 	}
 
-	const repositories = createBillingRepositories(ctx);
-	const orderId = client.merchant.generateOrderId(input.userId);
-	const invoiceNumber = await repositories.sequences.next();
-
-	const customerDetails = {
-		id: input.userId,
-		name: resolveCustomerName(
-			{ name: input.customer?.name },
-			input.user.name
-		),
-		email: input.customer?.email ?? input.user.email ?? undefined,
-	};
+	const orderId = dependencies.gateway.generateOrderId(input.userId);
+	const invoiceNumber = await dependencies.repositories.sequences.next();
+	const customerDetails = buildCustomerPayload(input);
 	const itemDetails = [
 		{
 			item_id: targetPlan.plan_id,
@@ -314,7 +330,7 @@ export async function createUpgradeInvoiceForUser(
 		},
 	];
 
-	const { data, error } = await client.invoice.create(
+	const gatewayResult = await dependencies.gateway.createInvoice(
 		{
 			order_id: orderId,
 			invoice_number: invoiceNumber,
@@ -330,17 +346,12 @@ export async function createUpgradeInvoiceForUser(
 		{ idempotencyKey: orderId }
 	);
 
-	if (error || !data) {
-		return {
-			status: "gateway_error",
-			message:
-				error?.error_messages?.join("; ") ||
-				"Failed to create Midtrans upgrade invoice.",
-		};
+	if (!gatewayResult.ok) {
+		return { status: "gateway_error", message: gatewayResult.message };
 	}
 
 	const invoice = buildInvoiceRecord({
-		midtrans: data as MidtransInvoiceResult,
+		midtrans: gatewayResult.data,
 		userId: input.userId,
 		orderId,
 		invoiceType: INVOICE_TYPE.UPGRADE,
@@ -354,8 +365,8 @@ export async function createUpgradeInvoiceForUser(
 		prorationDetails: decision.prorationDetails,
 	});
 
-	const stored = await createInvoiceRecord(ctx, invoice);
-	await opts?.onInvoiceCreated?.(stored, ctx);
+	const stored = await createInvoiceRecord(dependencies, invoice);
+	await options?.hooks?.onInvoiceCreated?.(stored);
 
 	return {
 		status: "created",
@@ -374,12 +385,11 @@ export type VoidInvoiceResult =
  * Application service behind `POST /payment/void-invoice`.
  */
 export async function voidInvoiceForUser(
-	ctx: GenericEndpointContext,
-	client: MidtransClient,
+	dependencies: BillingDependencies,
 	input: { invoiceId: string; actorId: string; reason?: string },
-	opts?: BillingPluginOptions
+	options?: BillingServiceOptions
 ): Promise<VoidInvoiceResult> {
-	const invoice = await findInvoiceById(ctx, input.invoiceId);
+	const invoice = await findInvoiceById(dependencies, input.invoiceId);
 
 	if (!invoice) {
 		return { status: "not_found" };
@@ -389,39 +399,32 @@ export async function voidInvoiceForUser(
 		return { status: "not_voidable", invoiceStatus: invoice.status };
 	}
 
-	const { error } = await client.invoice.void(input.invoiceId);
+	const gatewayResult = await dependencies.gateway.voidInvoice(
+		input.invoiceId
+	);
 
-	if (error) {
-		return {
-			status: "gateway_error",
-			message:
-				error.error_messages?.join("; ") ||
-				"Failed to void Midtrans invoice.",
-		};
+	if (!gatewayResult.ok) {
+		return { status: "gateway_error", message: gatewayResult.message };
 	}
 
-	const repositories = createBillingRepositories(ctx);
-	const updated = await repositories.invoices.update(input.invoiceId, {
-		status: "voided",
-	});
+	const updated = await dependencies.repositories.invoices.update(
+		input.invoiceId,
+		{ status: "voided" }
+	);
 
-	await repositories.events.record("invoice.voided", {
-		invoice_id: input.invoiceId,
-		order_id: invoice.order_id,
-		reason: input.reason ?? "User voided invoice",
-		voided_by: input.actorId,
-	});
+	await dependencies.repositories.events.record(
+		"invoice.voided",
+		{
+			invoice_id: input.invoiceId,
+			order_id: invoice.order_id,
+			reason: input.reason ?? "User voided invoice",
+			voided_by: input.actorId,
+		},
+		dependencies.clock.now()
+	);
 
 	const result = updated ?? { ...invoice, status: "voided" };
-	await opts?.onInvoiceVoided?.(result, ctx);
+	await options?.hooks?.onInvoiceVoided?.(result);
 
 	return { status: "voided", invoiceId: input.invoiceId };
-}
-
-export async function voidInvoiceRecord(
-	ctx: GenericEndpointContext,
-	invoiceId: string
-): Promise<TransactionInvoice | null> {
-	const repositories = createBillingRepositories(ctx);
-	return repositories.invoices.update(invoiceId, { status: "voided" });
 }

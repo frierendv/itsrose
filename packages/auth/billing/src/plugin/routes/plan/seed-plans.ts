@@ -3,10 +3,11 @@ import {
 	createAuthEndpoint,
 	sessionMiddleware,
 } from "better-auth/api";
-import { getAllPlans, seedDefaultPlans } from "../../../adapter";
+import { getAllPlans, seedDefaultPlans } from "../../../application";
 import { isAdmin } from "../../../domain/permissions";
 import { seedPlansSchema } from "../../../schema";
 import type { BillingPluginOptions } from "../../../types";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const seedPlansEndpoint = (opts?: BillingPluginOptions) => {
@@ -24,8 +25,12 @@ export const seedPlansEndpoint = (opts?: BillingPluginOptions) => {
 				});
 			}
 
-			await seedDefaultPlans(ctx, opts?.defaultPlans);
-			const plans = await getAllPlans(ctx, opts?.defaultPlans);
+			const { repositories, options } = createBillingServices(ctx, opts);
+			await seedDefaultPlans(repositories.plans, options.defaultPlans);
+			const plans = await getAllPlans(
+				repositories.plans,
+				options.defaultPlans
+			);
 
 			return ctx.json({
 				success: true,

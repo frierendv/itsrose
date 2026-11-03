@@ -1,7 +1,13 @@
 import { createHash } from "node:crypto";
 import type { MidtransClient } from "@itsrose/midtrans";
 import type { GenericEndpointContext } from "better-auth";
+import {
+	createBillingRepositories,
+	createBillingUnitOfWork,
+	createMidtransPaymentGateway,
+} from "../src/adapter";
 import { BILLING_PLANS } from "../src/domain/constants";
+import { systemClock, type BillingDependencies } from "../src/domain/ports";
 
 export interface MockDbState {
 	subscriptions: any[];
@@ -219,4 +225,22 @@ export function createMockEndpointContext(opts: {
 	};
 
 	return ctx as GenericEndpointContext;
+}
+
+/**
+ * Builds the application dependency graph for tests, using the real
+ * Better Auth adapter (mock DB) + Midtrans gateway adapter.
+ */
+export function createTestDependencies(
+	ctx: GenericEndpointContext,
+	client: MidtransClient
+): BillingDependencies {
+	const repositories = createBillingRepositories(ctx);
+
+	return {
+		repositories,
+		gateway: createMidtransPaymentGateway(client),
+		clock: systemClock,
+		unitOfWork: createBillingUnitOfWork(ctx, repositories),
+	};
 }

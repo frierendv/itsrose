@@ -5,6 +5,19 @@ import type {
 	SecondaryStorage,
 } from "better-auth";
 
+export type DatabaseAdapter =
+	GenericEndpointContext["context"]["adapter"] | DBAdapter<any>;
+
+/**
+ * Minimal persistence context accepted by the repository factory. This lets
+ * callers pass either a Better Auth endpoint context or a bare
+ * `AuthContext`/`auth.$context` object.
+ */
+export interface BillingPersistenceSource {
+	adapter: DatabaseAdapter;
+	secondaryStorage?: SecondaryStorage | null;
+}
+
 /**
  * Secondary storage (Redis/KV) attached to the Better Auth context.
  */
@@ -15,12 +28,36 @@ export function getStorageInstance(
 }
 
 /**
+ * Resolves secondary storage from an endpoint context or a bare auth context.
+ */
+export function resolveStorageInstance(
+	source: GenericEndpointContext | BillingPersistenceSource
+): SecondaryStorage | null {
+	const endpoint = source as Partial<GenericEndpointContext>;
+	const bare = source as BillingPersistenceSource;
+
+	return endpoint.context?.secondaryStorage ?? bare.secondaryStorage ?? null;
+}
+
+/**
  * Database adapter attached to the Better Auth context.
  */
 export function getDbAdapterInstance<
 	Options extends BetterAuthOptions = BetterAuthOptions,
 >(ctx: GenericEndpointContext): DBAdapter<Options> {
 	return ctx.context.adapter;
+}
+
+/**
+ * Resolves the DB adapter from an endpoint context or a bare auth context.
+ */
+export function resolveDatabaseAdapter(
+	source: GenericEndpointContext | BillingPersistenceSource
+): DatabaseAdapter {
+	const endpoint = source as Partial<GenericEndpointContext>;
+	const bare = source as BillingPersistenceSource;
+
+	return endpoint.context?.adapter ?? bare.adapter;
 }
 
 /** @internal */

@@ -4,10 +4,11 @@ import {
 	createAuthEndpoint,
 	sessionMiddleware,
 } from "better-auth/api";
-import { findInvoiceById, voidInvoiceForUser } from "../../../adapter";
+import { findInvoiceById, voidInvoiceForUser } from "../../../application";
 import { isOwnerOrAdmin } from "../../../domain/permissions";
 import { voidInvoiceSchema } from "../../../schema";
 import type { BillingPluginOptions } from "../../../types";
+import { createBillingContext } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const voidInvoiceEndpoint = (
@@ -23,8 +24,16 @@ export const voidInvoiceEndpoint = (
 		},
 		async (ctx) => {
 			const { user } = ctx.context.session;
+			const { dependencies, options } = createBillingContext(
+				ctx,
+				client,
+				opts
+			);
 
-			const invoice = await findInvoiceById(ctx, ctx.body.invoice_id);
+			const invoice = await findInvoiceById(
+				dependencies,
+				ctx.body.invoice_id
+			);
 
 			if (!invoice) {
 				throw new APIError("NOT_FOUND", {
@@ -39,14 +48,13 @@ export const voidInvoiceEndpoint = (
 			}
 
 			const result = await voidInvoiceForUser(
-				ctx,
-				client,
+				dependencies,
 				{
 					invoiceId: ctx.body.invoice_id,
 					actorId: user.id,
 					reason: ctx.body.reason,
 				},
-				opts
+				options
 			);
 
 			switch (result.status) {

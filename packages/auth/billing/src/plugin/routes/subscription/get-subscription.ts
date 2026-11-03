@@ -1,8 +1,9 @@
 import { createAuthEndpoint, sessionMiddleware } from "better-auth/api";
-import { getUserSubscription } from "../../../adapter";
+import { getUserSubscription } from "../../../application";
 import { isOwnerOrAdmin } from "../../../domain/permissions";
 import { getSubscriptionSchema } from "../../../schema";
 import type { BillingPluginOptions } from "../../../types";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const getSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
@@ -19,8 +20,12 @@ export const getSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
 				ctx.query?.user_id && isOwnerOrAdmin(user, ctx.query.user_id)
 					? ctx.query.user_id
 					: user.id;
+			const { repositories } = createBillingServices(ctx);
 
-			const subscription = await getUserSubscription(ctx, targetUserId);
+			const subscription = await getUserSubscription(
+				repositories.subscriptions,
+				targetUserId
+			);
 			return ctx.json(subscription);
 		}
 	);

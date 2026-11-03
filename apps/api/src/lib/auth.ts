@@ -1,10 +1,12 @@
 import { FailureResponse } from "@itsrose/api-response";
 import type { UserSubscription } from "@itsrose/auth-billing";
 import {
+	createBillingRepositories,
 	FREE_PLAN,
 	normalizePlan,
 	RATE_LIMIT,
 	resolveUserSubscription,
+	systemClock,
 } from "@itsrose/auth-billing/server";
 import type { AuthServer } from "@itsrose/auth/server";
 import type { FastifyReply } from "fastify";
@@ -96,7 +98,11 @@ export async function getSubscription(
 ): Promise<UserSubscription> {
 	try {
 		const ctx = await auth.$context;
-		return await resolveUserSubscription(ctx as any, userId);
+		return await resolveUserSubscription(
+			createBillingRepositories(ctx),
+			userId,
+			systemClock
+		);
 	} catch {
 		return {
 			has_access: false,

@@ -4,9 +4,10 @@ import {
 	createAuthEndpoint,
 	sessionMiddleware,
 } from "better-auth/api";
-import { createInvoiceForUser } from "../../../adapter";
+import { createInvoiceForUser } from "../../../application";
 import { createInvoiceSchema } from "../../../schema";
 import type { BillingPluginOptions } from "../../../types";
+import { createBillingContext } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const createInvoiceEndpoint = (
@@ -22,10 +23,14 @@ export const createInvoiceEndpoint = (
 		},
 		async (ctx) => {
 			const { user } = ctx.context.session;
-
-			const result = await createInvoiceForUser(
+			const { dependencies, options } = createBillingContext(
 				ctx,
 				client,
+				opts
+			);
+
+			const result = await createInvoiceForUser(
+				dependencies,
 				{
 					userId: user.id,
 					user,
@@ -34,7 +39,7 @@ export const createInvoiceEndpoint = (
 					notes: ctx.body.notes,
 					customer: ctx.body.customer,
 				},
-				opts
+				options
 			);
 
 			switch (result.status) {
