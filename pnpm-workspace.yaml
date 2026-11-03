@@ -29,3 +29,6 @@ allowBuilds:
   '@parcel/watcher': true
 
 nodeLinker: isolated
+injectWorkspacePackages: true
+syncInjectedDepsAfterScripts:
+  - build
