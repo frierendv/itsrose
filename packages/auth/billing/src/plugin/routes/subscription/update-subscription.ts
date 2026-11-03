@@ -3,10 +3,11 @@ import {
 	createAuthEndpoint,
 	sessionMiddleware,
 } from "better-auth/api";
-import { updateSubscriptionRecord } from "../../../adapter";
+import { updateSubscriptionRecord } from "../../../application";
 import { isAdmin } from "../../../domain/permissions";
 import { updateSubscriptionSchema } from "../../../schema";
 import type { BillingPluginOptions } from "../../../types";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const updateSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
@@ -24,7 +25,8 @@ export const updateSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
 				});
 			}
 
-			const updated = await updateSubscriptionRecord(ctx, {
+			const { repositories } = createBillingServices(ctx);
+			const updated = await updateSubscriptionRecord(repositories, {
 				subscriptionId: ctx.body.subscription_id,
 				userId: ctx.body.userId,
 				plan_id: ctx.body.plan_id,

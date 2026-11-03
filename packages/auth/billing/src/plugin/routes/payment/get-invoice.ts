@@ -4,9 +4,10 @@ import {
 	createAuthEndpoint,
 	sessionMiddleware,
 } from "better-auth/api";
-import { findInvoiceById, syncInvoiceWithMidtrans } from "../../../adapter";
+import { findInvoiceById, syncInvoiceWithMidtrans } from "../../../application";
 import { isOwnerOrAdmin } from "../../../domain/permissions";
 import { getInvoiceSchema } from "../../../schema";
+import { createBillingContext } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const getInvoiceEndpoint = (client: MidtransClient) => {
@@ -18,7 +19,11 @@ export const getInvoiceEndpoint = (client: MidtransClient) => {
 			query: getInvoiceSchema,
 		},
 		async (ctx) => {
-			const invoice = await findInvoiceById(ctx, ctx.query.invoice_id);
+			const { dependencies } = createBillingContext(ctx, client);
+			const invoice = await findInvoiceById(
+				dependencies,
+				ctx.query.invoice_id
+			);
 
 			if (!invoice) {
 				throw new APIError("NOT_FOUND", {
@@ -32,7 +37,7 @@ export const getInvoiceEndpoint = (client: MidtransClient) => {
 				});
 			}
 
-			const synced = await syncInvoiceWithMidtrans(ctx, client, invoice);
+			const synced = await syncInvoiceWithMidtrans(dependencies, invoice);
 			return ctx.json(synced);
 		}
 	);

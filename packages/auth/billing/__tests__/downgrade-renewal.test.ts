@@ -1,4 +1,5 @@
-import { resolveUserSubscription } from "../src/adapter";
+import { createBillingRepositories } from "../src/adapter";
+import { resolveUserSubscription } from "../src/application";
 import {
 	BILLING_PERIOD_MS,
 	INVOICE_TABLE_NAME,
@@ -6,6 +7,7 @@ import {
 	SUBSCRIPTION_STATUS,
 	SUBSCRIPTION_TABLE_NAME,
 } from "../src/domain/constants";
+import { systemClock } from "../src/domain/ports";
 import { webhookEndpoint } from "../src/plugin/routes/payment/webhook";
 import { cancelDowngradeEndpoint } from "../src/plugin/routes/subscription/cancel-downgrade";
 import { downgradeSubscriptionEndpoint } from "../src/plugin/routes/subscription/downgrade";
@@ -72,7 +74,11 @@ describe("Downgrade Scheduling and Renewal Execution", () => {
 		expect(invoices.length).toBe(0);
 
 		// 3. User still retains full Business access
-		const accessState = await resolveUserSubscription(ctx, userId);
+		const accessState = await resolveUserSubscription(
+			createBillingRepositories(ctx),
+			userId,
+			systemClock
+		);
 		expect(accessState.has_access).toBe(true);
 		expect(accessState.plan.plan_id).toBe("business");
 		expect(accessState.scheduled_tier).toBe("hobby");

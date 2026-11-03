@@ -1,4 +1,4 @@
-import type { GenericEndpointContext } from "better-auth";
+import type { BillingRepositories, ClockPort } from "../domain/ports";
 import {
 	buildAdminSubscriptionUpdate,
 	buildCancellationUpdate,
@@ -17,63 +17,61 @@ import type {
 	TransactionInvoice,
 	UserSubscription,
 } from "../types";
-import { getPlanById } from "./plan";
-import { createBillingRepositories } from "./repository";
+import { getPlanById } from "./plan.service";
 
 /**
  * Returns the user's authoritative subscription from cache or database.
  */
 export async function getUserSubscription(
-	ctx: GenericEndpointContext,
+	repositories: Pick<
+		BillingRepositories["subscriptions"],
+		"findCurrentByUser"
+	>,
 	userId: string
 ): Promise<Subscription | null> {
-	return createBillingRepositories(ctx).subscriptions.findCurrentByUser(
-		userId
-	);
-}
-
-export async function invalidateUserSubscriptionCache(
-	ctx: GenericEndpointContext,
-	userId: string
-): Promise<void> {
-	await createBillingRepositories(ctx).subscriptions.invalidateCache(userId);
+	return repositories.findCurrentByUser(userId);
 }
 
 export async function getSubscriptionById(
-	ctx: GenericEndpointContext,
+	repositories: Pick<BillingRepositories["subscriptions"], "findById">,
 	subscriptionId: string
 ): Promise<Subscription | null> {
-	return createBillingRepositories(ctx).subscriptions.findById(
-		subscriptionId
-	);
+	return repositories.findById(subscriptionId);
+}
+
+export async function invalidateUserSubscriptionCache(
+	repositories: Pick<BillingRepositories["subscriptions"], "invalidateCache">,
+	userId: string
+): Promise<void> {
+	await repositories.invalidateCache(userId);
 }
 
 /**
  * Creates or updates the user's base subscription record.
  */
 export async function createOrUpdateSubscription(
-	ctx: GenericEndpointContext,
+	repositories: Pick<
+		BillingRepositories["subscriptions"],
+		"findCurrentByUser" | "update" | "create" | "invalidateCache"
+	>,
 	data: SubscriptionUpsertInput
 ): Promise<Subscription> {
-	const repositories = createBillingRepositories(ctx);
-	const existing = await repositories.subscriptions.findCurrentByUser(
-		data.user_id
-	);
+	const existing = await repositories.findCurrentByUser(data.user_id);
 	const payload = buildSubscriptionUpsertPayload(data);
 
 	let result: Subscription;
 
 	if (existing) {
-		const updated = await repositories.subscriptions.update(
+		const updated = await repositories.update(
 			existing.id,
 			payload as Partial<Subscription>
 		);
 		result = updated ?? ({ ...existing, ...payload } as Subscription);
 	} else {
-		result = await repositories.subscriptions.create(payload);
+		result = await repositories.create(payload);
 	}
 
-	await repositories.subscriptions.invalidateCache(data.user_id);
+	await repositories.invalidateCache(data.user_id);
 	return result;
 }
 
@@ -82,18 +80,19 @@ export async function createOrUpdateSubscription(
  * renewal cycle. Does NOT change the active tier or generate invoices.
  */
 export async function scheduleDowngrade(
-	ctx: GenericEndpointContext,
+	repositories: Pick<
+		BillingRepositories["subscriptions"],
+		"findCurrentByUser" | "update"
+	>,
 	userId: string,
 	targetTier: string
 ): Promise<Subscription | null> {
-	const repositories = createBillingRepositories(ctx);
-	const subscription =
-		await repositories.subscriptions.findCurrentByUser(userId);
+	const subscription = await repositories.findCurrentByUser(userId);
 	if (!subscription) {
 		return null;
 	}
 
-	const updated = await repositories.subscriptions.update(subscription.id, {
+	const updated = await repositories.update(subscription.id, {
 		scheduled_tier: targetTier,
 	});
 
@@ -104,17 +103,18 @@ export async function scheduleDowngrade(
  * Cancels a pending scheduled downgrade, reverting scheduled_tier to null.
  */
 export async function cancelScheduledDowngrade(
-	ctx: GenericEndpointContext,
+	repositories: Pick<
+		BillingRepositories["subscriptions"],
+		"findCurrentByUser" | "update"
+	>,
 	userId: string
 ): Promise<Subscription | null> {
-	const repositories = createBillingRepositories(ctx);
-	const subscription =
-		await repositories.subscriptions.findCurrentByUser(userId);
+	const subscription = await repositories.findCurrentByUser(userId);
 	if (!subscription) {
 		return null;
 	}
 
-	const updated = await repositories.subscriptions.update(subscription.id, {
+	const updated = await repositories.update(subscription.id, {
 		scheduled_tier: null,
 	});
 
@@ -122,35 +122,34 @@ export async function cancelScheduledDowngrade(
 }
 
 async function applySettlement(
-	ctx: GenericEndpointContext,
+	repositories: Pick<
+		BillingRepositories["subscriptions"],
+		"findCurrentByUser" | "update" | "create" | "invalidateCache"
+	>,
+	clock: ClockPort,
 	invoice: TransactionInvoice,
 	buildPayload: (
 		existing: Subscription | null,
-		invoice: TransactionInvoice
+		invoice: TransactionInvoice,
+		now: Date
 	) => Partial<Subscription>
 ): Promise<Subscription> {
-	const repositories = createBillingRepositories(ctx);
-	const existing = await repositories.subscriptions.findCurrentByUser(
-		invoice.user_id
-	);
-	const payload = buildPayload(existing, invoice);
+	const existing = await repositories.findCurrentByUser(invoice.user_id);
+	const payload = buildPayload(existing, invoice, clock.now());
 
 	let result: Subscription;
 
 	if (existing) {
-		const updated = await repositories.subscriptions.update(
-			existing.id,
-			payload
-		);
+		const updated = await repositories.update(existing.id, payload);
 		result = updated ?? ({ ...existing, ...payload } as Subscription);
 	} else {
-		result = await repositories.subscriptions.create({
+		result = await repositories.create({
 			user_id: invoice.user_id,
 			...payload,
 		});
 	}
 
-	await repositories.subscriptions.invalidateCache(invoice.user_id);
+	await repositories.invalidateCache(invoice.user_id);
 	return result;
 }
 
@@ -158,31 +157,59 @@ async function applySettlement(
  * Applies mid-cycle upgrade payment settlement.
  */
 export async function applyUpgradeSettlement(
-	ctx: GenericEndpointContext,
+	repositories: Pick<
+		BillingRepositories["subscriptions"],
+		"findCurrentByUser" | "update" | "create" | "invalidateCache"
+	>,
+	clock: ClockPort,
 	invoice: TransactionInvoice
 ): Promise<Subscription> {
-	return applySettlement(ctx, invoice, buildUpgradeSettlement);
+	return applySettlement(
+		repositories,
+		clock,
+		invoice,
+		(existing, currentInvoice) =>
+			buildUpgradeSettlement(existing, currentInvoice)
+	);
 }
 
 /**
  * Applies renewal payment settlement.
  */
 export async function applyRenewalSettlement(
-	ctx: GenericEndpointContext,
+	repositories: Pick<
+		BillingRepositories["subscriptions"],
+		"findCurrentByUser" | "update" | "create" | "invalidateCache"
+	>,
+	clock: ClockPort,
 	invoice: TransactionInvoice
 ): Promise<Subscription> {
-	return applySettlement(ctx, invoice, buildRenewalSettlement);
+	return applySettlement(
+		repositories,
+		clock,
+		invoice,
+		(existing, currentInvoice) =>
+			buildRenewalSettlement(existing, currentInvoice)
+	);
 }
 
 /**
  * Applies new subscription payment settlement.
  */
 export async function applyNewSubscriptionSettlement(
-	ctx: GenericEndpointContext,
+	repositories: Pick<
+		BillingRepositories["subscriptions"],
+		"findCurrentByUser" | "update" | "create" | "invalidateCache"
+	>,
+	clock: ClockPort,
 	invoice: TransactionInvoice
 ): Promise<Subscription> {
-	return applySettlement(ctx, invoice, (_existing, currentInvoice) =>
-		buildNewSubscriptionSettlement(currentInvoice)
+	return applySettlement(
+		repositories,
+		clock,
+		invoice,
+		(_existing, currentInvoice) =>
+			buildNewSubscriptionSettlement(currentInvoice)
 	);
 }
 
@@ -190,32 +217,31 @@ export async function applyNewSubscriptionSettlement(
  * Cancels a subscription — either gracefully at period end or immediately.
  */
 export async function cancelSubscription(
-	ctx: GenericEndpointContext,
+	repositories: Pick<
+		BillingRepositories["subscriptions"],
+		"findById" | "findCurrentByUser" | "update"
+	>,
 	opts: {
 		userId: string;
 		subscriptionId?: string;
 		cancelAtPeriodEnd?: boolean;
-	}
+	},
+	clock: ClockPort
 ): Promise<Subscription | null> {
-	const repositories = createBillingRepositories(ctx);
-
 	const subscription = opts.subscriptionId
-		? await repositories.subscriptions.findById(opts.subscriptionId)
-		: await repositories.subscriptions.findCurrentByUser(opts.userId);
+		? await repositories.findById(opts.subscriptionId)
+		: await repositories.findCurrentByUser(opts.userId);
 
 	if (!subscription) {
 		return null;
 	}
 
 	const updatePayload = buildCancellationUpdate(
-		new Date(),
+		clock.now(),
 		opts.cancelAtPeriodEnd ?? true
 	);
 
-	const updated = await repositories.subscriptions.update(
-		subscription.id,
-		updatePayload
-	);
+	const updated = await repositories.update(subscription.id, updatePayload);
 
 	return updated ?? { ...subscription, ...updatePayload };
 }
@@ -224,26 +250,24 @@ export async function cancelSubscription(
  * Restores a subscription that was canceled at period end.
  */
 export async function restoreSubscription(
-	ctx: GenericEndpointContext,
+	repositories: Pick<
+		BillingRepositories["subscriptions"],
+		"findById" | "findCurrentByUser" | "update"
+	>,
 	opts: {
 		userId: string;
 		subscriptionId?: string;
 	}
 ): Promise<boolean> {
-	const repositories = createBillingRepositories(ctx);
-
 	const subscription = opts.subscriptionId
-		? await repositories.subscriptions.findById(opts.subscriptionId)
-		: await repositories.subscriptions.findCurrentByUser(opts.userId);
+		? await repositories.findById(opts.subscriptionId)
+		: await repositories.findCurrentByUser(opts.userId);
 
 	if (!subscription || !subscription.cancel_at_period_end) {
 		return false;
 	}
 
-	await repositories.subscriptions.update(
-		subscription.id,
-		buildRestoreUpdate()
-	);
+	await repositories.update(subscription.id, buildRestoreUpdate());
 
 	return true;
 }
@@ -252,31 +276,33 @@ export async function restoreSubscription(
  * Resolves the user's full subscription state and feature access.
  */
 export async function resolveUserSubscription(
-	ctx: GenericEndpointContext,
-	userId: string
+	repositories: BillingRepositories,
+	userId: string,
+	clock: ClockPort
 ): Promise<UserSubscription> {
-	const subscription = await getUserSubscription(ctx, userId);
+	const subscription = await getUserSubscription(
+		repositories.subscriptions,
+		userId
+	);
 
 	if (!subscription) {
 		return buildFreeUserSubscription();
 	}
 
-	const plan = await getPlanById(ctx, subscription.plan_id);
-	return buildUserSubscription(subscription, plan);
+	const plan = await getPlanById(repositories.plans, subscription.plan_id);
+	return buildUserSubscription(subscription, plan, clock.now());
 }
 
 /**
  * Admin override used by `POST /subscription/update`.
  */
 export async function updateSubscriptionRecord(
-	ctx: GenericEndpointContext,
+	repositories: BillingRepositories,
 	input: AdminSubscriptionUpdateInput & {
 		subscriptionId?: string;
 		userId?: string;
 	}
 ): Promise<Subscription | null> {
-	const repositories = createBillingRepositories(ctx);
-
 	const existing = input.subscriptionId
 		? await repositories.subscriptions.findById(input.subscriptionId)
 		: input.userId

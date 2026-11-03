@@ -7,10 +7,11 @@ import {
 	getSubscriptionById,
 	getUserSubscription,
 	restoreSubscription,
-} from "../../../adapter";
+} from "../../../application";
 import { isOwnerOrAdmin } from "../../../domain/permissions";
 import { restoreSubscriptionSchema } from "../../../schema";
 import type { BillingPluginOptions } from "../../../types";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const restoreSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
@@ -23,10 +24,17 @@ export const restoreSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
 		},
 		async (ctx) => {
 			const { user } = ctx.context.session;
+			const { repositories } = createBillingServices(ctx);
 
 			const targetSubscription = ctx.body.subscription_id
-				? await getSubscriptionById(ctx, ctx.body.subscription_id)
-				: await getUserSubscription(ctx, user.id);
+				? await getSubscriptionById(
+						repositories.subscriptions,
+						ctx.body.subscription_id
+					)
+				: await getUserSubscription(
+						repositories.subscriptions,
+						user.id
+					);
 
 			if (!targetSubscription) {
 				throw new APIError("NOT_FOUND", {
@@ -41,10 +49,13 @@ export const restoreSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
 				});
 			}
 
-			const restored = await restoreSubscription(ctx, {
-				userId: targetSubscription.user_id,
-				subscriptionId: targetSubscription.id,
-			});
+			const restored = await restoreSubscription(
+				repositories.subscriptions,
+				{
+					userId: targetSubscription.user_id,
+					subscriptionId: targetSubscription.id,
+				}
+			);
 
 			return ctx.json({ restored });
 		}

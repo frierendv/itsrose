@@ -1,7 +1,8 @@
 import type { MidtransClient } from "@itsrose/midtrans";
 import { APIError, createAuthEndpoint } from "better-auth/api";
-import { processWebhookEvent } from "../../../adapter";
+import { processWebhookEvent } from "../../../application";
 import type { BillingPluginOptions } from "../../../types";
+import { createBillingContext } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const webhookEndpoint = (
@@ -23,12 +24,16 @@ export const webhookEndpoint = (
 			}
 
 			const payload = await ctx.request.json().catch(() => ({}));
-
-			const result = await processWebhookEvent(
+			const { dependencies, options } = createBillingContext(
 				ctx,
 				client,
-				payload,
 				opts
+			);
+
+			const result = await processWebhookEvent(
+				dependencies,
+				payload,
+				options
 			);
 
 			switch (result.status) {

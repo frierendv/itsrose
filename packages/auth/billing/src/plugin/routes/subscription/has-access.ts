@@ -3,10 +3,12 @@ import {
 	createAuthEndpoint,
 	sessionMiddleware,
 } from "better-auth/api";
-import { resolveUserSubscription } from "../../../adapter";
+import { resolveUserSubscription } from "../../../application";
 import { isAdmin } from "../../../domain/permissions";
+import { systemClock } from "../../../domain/ports";
 import { hasAccessQuerySchema } from "../../../schema";
 import type { BillingPluginOptions } from "../../../types";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const hasAccessEndpoint = (_opts?: BillingPluginOptions) => {
@@ -32,9 +34,11 @@ export const hasAccessEndpoint = (_opts?: BillingPluginOptions) => {
 				});
 			}
 
+			const { repositories } = createBillingServices(ctx);
 			const subscriptionAccess = await resolveUserSubscription(
-				ctx,
-				targetUserId
+				repositories,
+				targetUserId,
+				systemClock
 			);
 
 			return ctx.json(subscriptionAccess);

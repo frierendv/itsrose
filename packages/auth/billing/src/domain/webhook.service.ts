@@ -1,6 +1,6 @@
 import type { InvoiceType, TransactionInvoice } from "../types";
 import { INVOICE_TYPE } from "./constants";
-import type { MidtransInvoiceResult } from "./invoice.service";
+import type { GatewayInvoice } from "./invoice.service";
 
 export type WebhookPayload = Record<string, unknown>;
 
@@ -61,10 +61,12 @@ export type WebhookNotificationOutcome = {
  */
 export function resolveWebhookNotification(input: {
 	existingInvoice: TransactionInvoice;
-	remoteData?: MidtransInvoiceResult | null;
+	remoteData?: GatewayInvoice | null;
 	payload: WebhookPayload;
+	now?: Date;
 }): WebhookNotificationOutcome {
 	const { existingInvoice, remoteData, payload } = input;
+	const now = input.now ?? new Date();
 
 	const finalStatus =
 		remoteData?.status ||
@@ -73,7 +75,7 @@ export function resolveWebhookNotification(input: {
 			: "pending");
 	const paidDate =
 		remoteData?.paid_date ||
-		(finalStatus === "paid" ? new Date().toISOString() : null);
+		(finalStatus === "paid" ? now.toISOString() : null);
 
 	return {
 		finalStatus,
@@ -104,12 +106,13 @@ export function resolveWebhookNotification(input: {
  */
 export function buildPaidInvoiceSnapshot(
 	existingInvoice: TransactionInvoice,
-	outcome: WebhookNotificationOutcome
+	outcome: WebhookNotificationOutcome,
+	now: Date = new Date()
 ): TransactionInvoice {
 	return {
 		...existingInvoice,
 		status: "paid",
-		paid_date: outcome.paidDate ?? new Date().toISOString(),
+		paid_date: outcome.paidDate ?? now.toISOString(),
 	};
 }
 

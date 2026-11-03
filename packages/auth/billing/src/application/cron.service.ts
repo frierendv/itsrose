@@ -1,5 +1,3 @@
-import type { MidtransClient } from "@itsrose/midtrans";
-import type { GenericEndpointContext } from "better-auth";
 import { INVOICE_TYPE, SUBSCRIPTION_STATUS } from "../domain/constants";
 import {
 	buildExpiryUpdate,
@@ -12,13 +10,12 @@ import {
 	resolveRenewalTier,
 	type BillingCronOptions,
 } from "../domain/cron.service";
-import {
-	buildInvoiceRecord,
-	type MidtransInvoiceResult,
-} from "../domain/invoice.service";
-import type { CronExecutionResult, ItsRosePluginOptions } from "../types";
-import { getPlanById } from "./plan";
-import { createBillingRepositories } from "./repository";
+import { buildInvoiceRecord } from "../domain/invoice.service";
+import type {
+	BillingDependencies,
+	InvoiceCreatePayload,
+} from "../domain/ports";
+import type { CronExecutionResult } from "../types";
 
 /**
  * Scheduled Renewal Invoice Dispatcher:
@@ -28,15 +25,17 @@ import { createBillingRepositories } from "./repository";
  * cycle.
  */
 export async function dispatchRenewalInvoices(
-	ctx: GenericEndpointContext,
-	client: MidtransClient,
+	dependencies: BillingDependencies,
 	opts?: BillingCronOptions
 ): Promise<{
 	dispatched: number;
 	errors: Array<{ id: string; error: string }>;
 }> {
-	const window = resolveCronWindow(opts);
-	const repositories = createBillingRepositories(ctx);
+	const window = resolveCronWindow({
+		...opts,
+		now: opts?.now ?? dependencies.clock.now(),
+	});
+	const { repositories, gateway } = dependencies;
 	const subscriptions = await repositories.subscriptions.findAll();
 
 	let dispatched = 0;
@@ -63,14 +62,12 @@ export async function dispatchRenewalInvoices(
 				continue;
 			}
 
-			const targetPlan = await getPlanById(ctx, targetTierId);
+			const targetPlan = await repositories.plans.findById(targetTierId);
 			if (!targetPlan || targetPlan.price.amount <= 0) {
 				continue;
 			}
 
-			const orderId = client.merchant.generateOrderId(
-				subscription.user_id
-			);
+			const orderId = gateway.generateOrderId(subscription.user_id);
 			const invoiceNumber = await repositories.sequences.next();
 			const { invoiceDate, dueDate } = buildRenewalInvoiceDates(
 				subscription,
@@ -94,32 +91,31 @@ export async function dispatchRenewalInvoices(
 				},
 			];
 
-			const { data, error } = await client.invoice.create(
-				{
-					order_id: orderId,
-					invoice_number: invoiceNumber,
-					payment_type: "payment_link",
-					invoice_date: invoiceDate,
-					due_date: dueDate,
-					customer_details: customerDetails,
-					notes: `Renewal invoice for ${targetPlan.name}. Due on ${new Date(dueDate).toLocaleDateString()}`,
-					item_details: itemDetails,
-				},
-				{ idempotencyKey: orderId }
-			);
+			const payload: InvoiceCreatePayload = {
+				order_id: orderId,
+				invoice_number: invoiceNumber,
+				payment_type: "payment_link",
+				invoice_date: invoiceDate,
+				due_date: dueDate,
+				customer_details: customerDetails,
+				notes: `Renewal invoice for ${targetPlan.name}. Due on ${new Date(dueDate).toLocaleDateString()}`,
+				item_details: itemDetails,
+			};
 
-			if (error || !data) {
+			const gatewayResult = await gateway.createInvoice(payload, {
+				idempotencyKey: orderId,
+			});
+
+			if (!gatewayResult.ok) {
 				errors.push({
 					id: subscription.id,
-					error:
-						error?.error_messages?.join("; ") ||
-						"Failed to create Midtrans renewal invoice.",
+					error: gatewayResult.message,
 				});
 				continue;
 			}
 
 			const invoiceRecord = buildInvoiceRecord({
-				midtrans: data as MidtransInvoiceResult,
+				midtrans: gatewayResult.data,
 				userId: subscription.user_id,
 				orderId,
 				invoiceType: INVOICE_TYPE.RENEWAL,
@@ -151,14 +147,17 @@ export async function dispatchRenewalInvoices(
  * records the grace window end.
  */
 export async function trackGracePeriods(
-	ctx: GenericEndpointContext,
+	dependencies: BillingDependencies,
 	opts?: BillingCronOptions
 ): Promise<{ tracked: number; errors: Array<{ id: string; error: string }> }> {
-	const window = resolveCronWindow(opts);
-	const repositories = createBillingRepositories(ctx);
-	const subscriptions = await repositories.subscriptions.findManyByStatus(
-		SUBSCRIPTION_STATUS.ACTIVE
-	);
+	const window = resolveCronWindow({
+		...opts,
+		now: opts?.now ?? dependencies.clock.now(),
+	});
+	const subscriptions =
+		await dependencies.repositories.subscriptions.findManyByStatus(
+			SUBSCRIPTION_STATUS.ACTIVE
+		);
 
 	let tracked = 0;
 	const errors: Array<{ id: string; error: string }> = [];
@@ -169,7 +168,7 @@ export async function trackGracePeriods(
 				continue;
 			}
 
-			await repositories.subscriptions.update(
+			await dependencies.repositories.subscriptions.update(
 				subscription.id,
 				buildGraceUpdate(subscription, window)
 			);
@@ -191,12 +190,14 @@ export async function trackGracePeriods(
  * voids pending unpaid invoices.
  */
 export async function sweepPastDueAndExpired(
-	ctx: GenericEndpointContext,
-	client?: MidtransClient,
+	dependencies: BillingDependencies,
 	opts?: BillingCronOptions
 ): Promise<{ swept: number; errors: Array<{ id: string; error: string }> }> {
-	const window = resolveCronWindow(opts);
-	const repositories = createBillingRepositories(ctx);
+	const window = resolveCronWindow({
+		...opts,
+		now: opts?.now ?? dependencies.clock.now(),
+	});
+	const { repositories, gateway } = dependencies;
 	const subscriptions = await repositories.subscriptions.findAll();
 
 	let swept = 0;
@@ -213,21 +214,23 @@ export async function sweepPastDueAndExpired(
 				buildExpiryUpdate(window)
 			);
 
-			if (client) {
-				const pendingInvoices =
-					await repositories.invoices.findPendingByUser(
-						subscription.user_id
-					);
+			const pendingInvoices =
+				await repositories.invoices.findPendingByUser(
+					subscription.user_id
+				);
 
-				for (const invoice of pendingInvoices) {
-					try {
-						await client.invoice.void(invoice.invoice_id);
+			for (const invoice of pendingInvoices) {
+				try {
+					const voidResult = await gateway.voidInvoice(
+						invoice.invoice_id
+					);
+					if (voidResult.ok) {
 						await repositories.invoices.update(invoice.invoice_id, {
 							status: "void",
 						});
-					} catch {
-						// Best-effort voiding.
 					}
+				} catch {
+					// Best-effort voiding.
 				}
 			}
 
@@ -247,23 +250,22 @@ export async function sweepPastDueAndExpired(
  * Runs all billing recurring engine cron tasks sequentially.
  */
 export async function runAllBillingCronTasks(
-	ctx: GenericEndpointContext,
-	client: MidtransClient,
-	opts?: BillingCronOptions & { pluginOpts?: ItsRosePluginOptions }
+	dependencies: BillingDependencies,
+	opts?: BillingCronOptions
 ): Promise<CronExecutionResult> {
 	const allErrors: Array<{ task: string; id?: string; error: string }> = [];
 
-	const renewalsResult = await dispatchRenewalInvoices(ctx, client, opts);
+	const renewalsResult = await dispatchRenewalInvoices(dependencies, opts);
 	for (const error of renewalsResult.errors) {
 		allErrors.push({ task: "dispatchRenewalInvoices", ...error });
 	}
 
-	const graceResult = await trackGracePeriods(ctx, opts);
+	const graceResult = await trackGracePeriods(dependencies, opts);
 	for (const error of graceResult.errors) {
 		allErrors.push({ task: "trackGracePeriods", ...error });
 	}
 
-	const sweeperResult = await sweepPastDueAndExpired(ctx, client, opts);
+	const sweeperResult = await sweepPastDueAndExpired(dependencies, opts);
 	for (const error of sweeperResult.errors) {
 		allErrors.push({ task: "sweepPastDueAndExpired", ...error });
 	}

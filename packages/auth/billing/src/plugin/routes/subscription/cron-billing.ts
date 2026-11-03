@@ -4,10 +4,11 @@ import {
 	createAuthEndpoint,
 	getSessionFromCtx,
 } from "better-auth/api";
-import { runAllBillingCronTasks } from "../../../adapter";
+import { runAllBillingCronTasks } from "../../../application";
 import { isAdmin } from "../../../domain/permissions";
 import { billingCronSchema } from "../../../schema";
 import type { BillingPluginOptions } from "../../../types";
+import { createBillingContext } from "../../bindings";
 import { createRoute } from "../../route";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -50,10 +51,10 @@ export const runBillingCronEndpoint = (
 				? ctx.body.grace_days * DAY_MS
 				: undefined;
 
-			const result = await runAllBillingCronTasks(ctx, client, {
+			const { dependencies } = createBillingContext(ctx, client, opts);
+			const result = await runAllBillingCronTasks(dependencies, {
 				leadMs,
 				graceMs,
-				pluginOpts: opts,
 			});
 
 			return ctx.json({

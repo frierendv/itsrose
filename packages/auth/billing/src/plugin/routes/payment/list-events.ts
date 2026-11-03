@@ -3,9 +3,10 @@ import {
 	createAuthEndpoint,
 	sessionMiddleware,
 } from "better-auth/api";
-import { listInvoiceEvents } from "../../../adapter";
+import { listInvoiceEvents } from "../../../application";
 import { isAdmin } from "../../../domain/permissions";
 import { listEventsSchema } from "../../../schema";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const listEventsEndpoint = () => {
@@ -23,11 +24,15 @@ export const listEventsEndpoint = () => {
 				});
 			}
 
-			const events = await listInvoiceEvents(ctx, {
-				eventName: ctx.query?.event_name,
-				limit: ctx.query?.limit,
-				offset: ctx.query?.offset,
-			});
+			const { repositories } = createBillingServices(ctx);
+			const events = await listInvoiceEvents(
+				{ repositories },
+				{
+					eventName: ctx.query?.event_name,
+					limit: ctx.query?.limit,
+					offset: ctx.query?.offset,
+				}
+			);
 
 			return ctx.json(events);
 		}

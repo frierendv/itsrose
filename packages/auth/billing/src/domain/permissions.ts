@@ -1,6 +1,7 @@
-import type { User } from "better-auth/types";
-
-export type SessionUser = User & { role?: string };
+export type SessionUser = {
+	id: string;
+	role?: string | null;
+};
 
 /**
  * Returns true when the session user holds the "admin" role.

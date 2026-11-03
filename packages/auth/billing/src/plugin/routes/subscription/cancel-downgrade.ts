@@ -6,9 +6,10 @@ import {
 import {
 	cancelScheduledDowngrade,
 	getUserSubscription,
-} from "../../../adapter";
+} from "../../../application";
 import { planCancelDowngrade } from "../../../domain/subscription.service";
 import type { BillingPluginOptions } from "../../../types";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const cancelDowngradeEndpoint = (_opts?: BillingPluginOptions) => {
@@ -20,8 +21,12 @@ export const cancelDowngradeEndpoint = (_opts?: BillingPluginOptions) => {
 		},
 		async (ctx) => {
 			const { user } = ctx.context.session;
+			const { repositories } = createBillingServices(ctx);
 
-			const subscription = await getUserSubscription(ctx, user.id);
+			const subscription = await getUserSubscription(
+				repositories.subscriptions,
+				user.id
+			);
 			const decision = planCancelDowngrade(subscription);
 
 			if (decision.action === "reject") {
@@ -36,7 +41,10 @@ export const cancelDowngradeEndpoint = (_opts?: BillingPluginOptions) => {
 				});
 			}
 
-			const reverted = await cancelScheduledDowngrade(ctx, user.id);
+			const reverted = await cancelScheduledDowngrade(
+				repositories.subscriptions,
+				user.id
+			);
 
 			if (!reverted) {
 				throw new APIError("INTERNAL_SERVER_ERROR", {

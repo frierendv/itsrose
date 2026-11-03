@@ -3,9 +3,10 @@ import {
 	createAuthEndpoint,
 	sessionMiddleware,
 } from "better-auth/api";
-import { deletePlanRecord } from "../../../adapter";
+import { deletePlanRecord } from "../../../application";
 import { isAdmin } from "../../../domain/permissions";
 import { deletePlanSchema } from "../../../schema";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const deletePlanEndpoint = () => {
@@ -23,7 +24,11 @@ export const deletePlanEndpoint = () => {
 				});
 			}
 
-			const result = await deletePlanRecord(ctx, ctx.body.plan_id);
+			const { repositories } = createBillingServices(ctx);
+			const result = await deletePlanRecord(
+				repositories.plans,
+				ctx.body.plan_id
+			);
 
 			if (result.status === "not_found") {
 				throw new APIError("NOT_FOUND", {

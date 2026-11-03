@@ -1,6 +1,7 @@
 import { APIError, createAuthEndpoint } from "better-auth/api";
-import { getPlanById } from "../../../adapter";
+import { getPlanById } from "../../../application";
 import { getPlanSchema } from "../../../schema";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const getPlanEndpoint = () => {
@@ -11,7 +12,11 @@ export const getPlanEndpoint = () => {
 			query: getPlanSchema,
 		},
 		async (ctx) => {
-			const plan = await getPlanById(ctx, ctx.query.plan_id);
+			const { repositories } = createBillingServices(ctx);
+			const plan = await getPlanById(
+				repositories.plans,
+				ctx.query.plan_id
+			);
 			if (!plan) {
 				throw new APIError("NOT_FOUND", {
 					message: `Plan '${ctx.query.plan_id}' does not exist.`,

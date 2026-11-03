@@ -3,9 +3,10 @@ import {
 	createAuthEndpoint,
 	sessionMiddleware,
 } from "better-auth/api";
-import { createPlanRecord } from "../../../adapter";
+import { createPlanRecord } from "../../../application";
 import { isAdmin } from "../../../domain/permissions";
 import { createPlanSchema } from "../../../schema";
+import { createBillingServices } from "../../bindings";
 import { createRoute } from "../../route";
 
 export const createPlanEndpoint = () => {
@@ -23,7 +24,8 @@ export const createPlanEndpoint = () => {
 				});
 			}
 
-			const result = await createPlanRecord(ctx, ctx.body);
+			const { repositories } = createBillingServices(ctx);
+			const result = await createPlanRecord(repositories.plans, ctx.body);
 
 			if (result.status === "conflict") {
 				throw new APIError("CONFLICT", {

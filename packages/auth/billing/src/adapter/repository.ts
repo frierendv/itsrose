@@ -1,4 +1,4 @@
-import type { GenericEndpointContext, SecondaryStorage } from "better-auth";
+import type { SecondaryStorage } from "better-auth";
 import {
 	API_PLAN_TABLE_NAME,
 	BILLING_PLANS,
@@ -15,6 +15,17 @@ import {
 	findBuiltInPlan,
 	normalizePlan,
 } from "../domain/plan.service";
+import type {
+	BillingRepositories,
+	InvoiceEventFilter,
+	InvoiceFilter,
+	InvoiceRepository,
+	InvoiceSequenceRepository,
+	PlanRepository,
+	SubscriptionRepository,
+	UserRepository,
+	WebhookEventStore,
+} from "../domain/ports";
 import { selectCurrentSubscription } from "../domain/subscription.service";
 import type {
 	ApiPlan,
@@ -26,21 +37,12 @@ import type {
 import {
 	deleteCachedValue,
 	getCachedValue,
-	getDbAdapterInstance,
-	getStorageInstance,
+	resolveDatabaseAdapter,
+	resolveStorageInstance,
 	setCachedValue,
+	type BillingPersistenceSource,
+	type DatabaseAdapter,
 } from "./storage";
-import type {
-	BillingRepositories,
-	InvoiceEventFilter,
-	InvoiceEventRepository,
-	InvoiceFilter,
-	InvoiceRepository,
-	InvoiceSequenceRepository,
-	PlanRepository,
-	SubscriptionRepository,
-	UserRepository,
-} from "./types";
 
 const PLAN_LIST_CACHE_KEY = "plans:all";
 const PLAN_ITEM_CACHE_PREFIX = "plans:by-id";
@@ -56,11 +58,9 @@ function subscriptionCacheKey(userId: string): string {
 }
 
 function createPlanRepository(
-	ctx: GenericEndpointContext,
+	adapter: DatabaseAdapter,
 	storage: SecondaryStorage | null
 ): PlanRepository {
-	const adapter = getDbAdapterInstance(ctx);
-
 	async function invalidateCache(planId?: string): Promise<void> {
 		await deleteCachedValue(storage, PLAN_LIST_CACHE_KEY);
 		if (planId) {
@@ -209,11 +209,9 @@ function subscriptionTtl(subscription: Subscription | null): number {
 }
 
 function createSubscriptionRepository(
-	ctx: GenericEndpointContext,
+	adapter: DatabaseAdapter,
 	storage: SecondaryStorage | null
 ): SubscriptionRepository {
-	const adapter = getDbAdapterInstance(ctx);
-
 	async function invalidateCache(userId: string): Promise<void> {
 		await deleteCachedValue(storage, subscriptionCacheKey(userId));
 	}
@@ -299,11 +297,7 @@ function createSubscriptionRepository(
 	};
 }
 
-function createInvoiceRepository(
-	ctx: GenericEndpointContext
-): InvoiceRepository {
-	const adapter = getDbAdapterInstance(ctx);
-
+function createInvoiceRepository(adapter: DatabaseAdapter): InvoiceRepository {
 	return {
 		async findById(invoiceId) {
 			return adapter.findOne<TransactionInvoice>({
@@ -385,17 +379,15 @@ function createInvoiceRepository(
 }
 
 function createInvoiceEventRepository(
-	ctx: GenericEndpointContext
-): InvoiceEventRepository {
-	const adapter = getDbAdapterInstance(ctx);
-
+	adapter: DatabaseAdapter
+): WebhookEventStore {
 	return {
-		async record(eventName, eventJson) {
+		async record(eventName, eventJson, createdAt) {
 			await adapter.create({
 				model: INVOICE_EVENT_TABLE_NAME,
 				data: {
 					event_name: eventName,
-					created_at: new Date(),
+					created_at: createdAt ?? new Date(),
 					event_json: eventJson,
 				},
 			});
@@ -425,10 +417,8 @@ function createInvoiceEventRepository(
 }
 
 function createInvoiceSequenceRepository(
-	ctx: GenericEndpointContext
+	adapter: DatabaseAdapter
 ): InvoiceSequenceRepository {
-	const adapter = getDbAdapterInstance(ctx);
-
 	return {
 		async next(prefix = DEFAULT_INVOICE_PREFIX) {
 			const currentYear = new Date().getUTCFullYear();
@@ -473,9 +463,7 @@ function createInvoiceSequenceRepository(
 	};
 }
 
-function createUserRepository(ctx: GenericEndpointContext): UserRepository {
-	const adapter = getDbAdapterInstance(ctx);
-
+function createUserRepository(adapter: DatabaseAdapter): UserRepository {
 	return {
 		async findContact(userId) {
 			return adapter.findOne<{
@@ -491,19 +479,22 @@ function createUserRepository(ctx: GenericEndpointContext): UserRepository {
 }
 
 /**
- * Builds the repository set bound to a Better Auth endpoint context.
+ * Builds the repository set bound to a Better Auth endpoint context or a bare
+ * `auth.$context` object.
  */
 export function createBillingRepositories(
-	ctx: GenericEndpointContext
+	source:
+		BillingPersistenceSource | Parameters<typeof resolveDatabaseAdapter>[0]
 ): BillingRepositories {
-	const storage = getStorageInstance(ctx);
+	const adapter = resolveDatabaseAdapter(source);
+	const storage = resolveStorageInstance(source);
 
 	return {
-		plans: createPlanRepository(ctx, storage),
-		subscriptions: createSubscriptionRepository(ctx, storage),
-		invoices: createInvoiceRepository(ctx),
-		events: createInvoiceEventRepository(ctx),
-		sequences: createInvoiceSequenceRepository(ctx),
-		users: createUserRepository(ctx),
+		plans: createPlanRepository(adapter, storage),
+		subscriptions: createSubscriptionRepository(adapter, storage),
+		invoices: createInvoiceRepository(adapter),
+		events: createInvoiceEventRepository(adapter),
+		sequences: createInvoiceSequenceRepository(adapter),
+		users: createUserRepository(adapter),
 	};
 }
