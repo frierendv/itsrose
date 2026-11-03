@@ -21,7 +21,9 @@
 	"exports": {
 		".": "./src/index.ts",
 		"./core": "./src/core/index.ts",
+		"./hooks/use-clipboard": "./src/hooks/use-clipboard.ts",
 		"./hooks/use-is-mobile": "./src/hooks/use-is-mobile.ts",
+		"./itsrose": "./src/components/itsrose/index.ts",
 		"./navbar": "./src/components/navbar/index.ts",
 		"./utils": "./src/utils/index.ts",
 		"./styles": "./src/styles/index.css",
@@ -59,7 +61,9 @@
 		"exports": {
 			".": "./dist/index.mjs",
 			"./core": "./dist/core.mjs",
+			"./hooks/use-clipboard": "./dist/hooks/use-clipboard.mjs",
 			"./hooks/use-is-mobile": "./dist/hooks/use-is-mobile.mjs",
+			"./itsrose": "./dist/itsrose/index.mjs",
 			"./navbar": "./dist/navbar/index.mjs",
 			"./utils": "./dist/utils.mjs",
 			"./styles": "./dist/styles/index.css",
