@@ -13,9 +13,9 @@ import {
 	sanitizeFilename,
 	sanitizeJobId,
 	sanitizeUserId,
-} from "../keys";
+} from "../src/keys";
 
-describe("packages/auth/src/storage/keys", () => {
+describe("packages/auth/storage/keys", () => {
 	describe("sanitizeUserId", () => {
 		it("accepts valid alphanumeric, hyphen, and underscore user IDs", () => {
 			expect(sanitizeUserId("user-123_abc")).toBe("user-123_abc");

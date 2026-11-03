@@ -6,9 +6,9 @@ export type OtpType =
 	| (string & {});
 
 /**
- * Client connection and execution options for @eusend_dev/sdk.
+ * Client connection and execution options for the Eusend SDK.
  */
-export interface EusendClientOptions {
+export interface MailerClientOptions {
 	/**
 	 * API key for Eusend.
 	 * Falls back to `process.env.EUSEND_API_KEY`.
@@ -33,7 +33,7 @@ export interface EusendClientOptions {
 /**
  * Common branding and app metadata options passed down to email templates.
  */
-export interface EusendBrandingOptions {
+export interface MailerBrandingOptions {
 	/**
 	 * Application display name (e.g. "ItsRose").
 	 * Defaults to "ItsRose" or `process.env.APP_NAME`.
@@ -43,9 +43,6 @@ export interface EusendBrandingOptions {
 	 * Logo URL or dual light/dark variants.
 	 */
 	logoURL?: string | { light: string; dark: string };
-	/**
-	 * Support email address displayed in security & notification footers.
-	 */
 	/**
 	 * Whether to render templates in dark mode.
 	 */
@@ -59,7 +56,7 @@ export interface EusendBrandingOptions {
 /**
  * Subject generation overrides.
  */
-export interface EusendSubjectOverrides {
+export interface MailerSubjectOverrides {
 	verification?:
 		| string
 		| ((data: { url: string; token?: string; appName: string }) => string);
@@ -82,14 +79,14 @@ export interface EusendSubjectOverrides {
 }
 
 /**
- * Full configuration options for the Better Auth Eusend server plugin.
+ * Full configuration options for the Better Auth mailer server plugin.
  */
-export interface EusendPluginOptions
-	extends EusendClientOptions, EusendBrandingOptions {
+export interface MailerPluginOptions
+	extends MailerClientOptions, MailerBrandingOptions {
 	/**
 	 * Custom email subject overrides.
 	 */
-	subjects?: EusendSubjectOverrides;
+	subjects?: MailerSubjectOverrides;
 	/**
 	 * Default expiration overrides.
 	 */
@@ -101,3 +98,9 @@ export interface EusendPluginOptions
 		deleteAccountHours?: number;
 	};
 }
+
+/* Deprecated `Eusend*` names kept for source compatibility. */
+export type EusendClientOptions = MailerClientOptions;
+export type EusendBrandingOptions = MailerBrandingOptions;
+export type EusendSubjectOverrides = MailerSubjectOverrides;
+export type EusendPluginOptions = MailerPluginOptions;

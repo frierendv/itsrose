@@ -5,9 +5,9 @@ import {
 	deleteUserTempFiles,
 	getEphemeralFileUrl,
 	saveEphemeralFile,
-} from "../operations";
+} from "../src/operations";
 
-describe("packages/auth/src/storage/operations", () => {
+describe("packages/auth/storage/operations", () => {
 	const mockS3 = {
 		upload: jest.fn().mockResolvedValue({
 			key: "t/users/u123/exports/report.csv",
