@@ -40,6 +40,8 @@ export interface UserContact {
 export interface PlanRepository {
 	findAll(customDefaults?: readonly ApiPlan<true>[]): Promise<ApiPlan[]>;
 	findById(planId: string): Promise<ApiPlan | null>;
+	/** Database-only lookup; used by write paths so memory fallbacks never mask a missing row. */
+	findStoredById(planId: string): Promise<ApiPlan | null>;
 	seed(plans?: readonly (ApiPlan<true> | ApiPlan)[]): Promise<void>;
 	create(data: Record<string, unknown>): Promise<ApiPlan>;
 	update(

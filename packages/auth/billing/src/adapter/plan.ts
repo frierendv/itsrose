@@ -50,7 +50,7 @@ export async function createPlanRecord(
 ): Promise<PlanWriteResult> {
 	const repositories = createBillingRepositories(ctx);
 
-	const existing = await repositories.plans.findById(input.plan_id);
+	const existing = await repositories.plans.findStoredById(input.plan_id);
 	if (existing) {
 		return { status: "conflict" };
 	}
@@ -65,7 +65,7 @@ export async function updatePlanRecord(
 ): Promise<PlanWriteResult> {
 	const repositories = createBillingRepositories(ctx);
 
-	const existing = await repositories.plans.findById(input.plan_id);
+	const existing = await repositories.plans.findStoredById(input.plan_id);
 	if (!existing) {
 		return { status: "not_found" };
 	}
@@ -84,7 +84,7 @@ export async function deletePlanRecord(
 ): Promise<PlanWriteResult> {
 	const repositories = createBillingRepositories(ctx);
 
-	const existing = await repositories.plans.findById(planId);
+	const existing = await repositories.plans.findStoredById(planId);
 	if (!existing) {
 		return { status: "not_found" };
 	}
