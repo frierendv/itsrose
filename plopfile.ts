@@ -10,13 +10,28 @@ export interface ModuleAnswers {
 	name: string;
 	author: string;
 	description?: string;
-	lognDescription?: string;
+	longDescription?: string;
 }
 
 const scope = "@itsrose";
 const workspaceDevDependencies = [
 	"standard", // @itsrose/standard
 ].map((dep) => `${scope}/${dep}` as const);
+
+/**
+ * Builds a minimal Jest/Vitest smoke test for a freshly scaffolded module.
+ * Importing the package entry point keeps the file from being flagged as an
+ * unused or empty test suite while the module is still a stub.
+ */
+function buildModuleTest(category: string, name: string): string {
+	return `describe("${category}/${name}", () => {
+\tit("is importable", async () => {
+\t\tconst module = await import("../src/index");
+\t\texpect(module).toBeDefined();
+\t});
+});
+`;
+}
 
 export default function (plop: NodePlopAPI) {
 	plop.setActionType("runCommand", async (_answers, config) => {
@@ -87,18 +102,16 @@ export default function (plop: NodePlopAPI) {
 		actions: (data) => {
 			const answers = data as ModuleAnswers;
 
-			let destination = "packages/{{category}}/{{name}}";
-			let directory = `packages/${answers.category}/${answers.name}`;
-			if (answers.category === "root") {
-				destination = "packages/{{name}}";
-				directory = `packages/${answers.name}`;
-			}
+			const directory =
+				answers.category === "root"
+					? `packages/${answers.name}`
+					: `packages/${answers.category}/${answers.name}`;
 			const packageName = `${scope}/${answers.name}`;
 
 			const actions: ActionType[] = [
 				{
 					type: "addMany",
-					destination,
+					destination: directory,
 					base: "plop-templates/module",
 					templateFiles: "plop-templates/module/**/*",
 					data: { directory },
@@ -108,37 +121,37 @@ export default function (plop: NodePlopAPI) {
 				},
 				{
 					type: "add",
-					path: `${destination}/src/index.ts`,
+					path: `${directory}/src/index.ts`,
 					template: `export * from "./${answers.name}";\n`,
 					skipIfExists: true,
 				},
 				{
 					type: "add",
-					path: `${destination}/src/{{name}}/index.ts`,
+					path: `${directory}/src/${answers.name}/index.ts`,
 					template: "export {};\n",
 					skipIfExists: true,
 				},
 				{
 					type: "add",
-					path: `${destination}/__tests__/{{name}}.test.ts`,
-					template: `describe("${answers.category}/${answers.name}", () => {\n\n\t/\** test for ${packageName} */\n\n});`,
+					path: `${directory}/__tests__/${answers.name}.test.ts`,
+					template: buildModuleTest(answers.category, answers.name),
 					skipIfExists: true,
 				},
 				{
 					type: "add",
-					path: `${destination}/README.md`,
-					template: `# \`${packageName}\`\n\n${answers.lognDescription || "..."}`,
+					path: `${directory}/README.md`,
+					template: `# \`${packageName}\`\n\n${answers.longDescription || "..."}`,
 					skipIfExists: true,
 				},
 				{
 					type: "runCommand",
-					command: `pnpm -F ${answers.name} add ${workspaceDevDependencies.join(" ")} -D --workspace`,
+					command: `pnpm --filter ${packageName} add ${workspaceDevDependencies.join(" ")} -D --workspace`,
 				},
 			];
 			const finalCmds = [
-				`syncpack fix --source ${directory}/package.json`,
-				`syncpack format --source ${directory}/package.json`,
-				`prettier --write --list-different ${directory}`,
+				`syncpack fix --source-mode replace --source "${directory}/package.json"`,
+				`syncpack format --source-mode replace --source "${directory}/package.json"`,
+				`prettier --write "${directory}"`,
 			];
 			for (const command of finalCmds) {
 				actions.push({ type: "runCommand", command });
