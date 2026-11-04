@@ -1,4 +1,4 @@
-import { SyncState } from "@itsrose/common";
+import { SyncState } from "../constants/sync-state";
 import type { IInferenceData, Result } from "../types";
 import type { ISharedResponse } from "../zod-schema";
 

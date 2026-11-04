@@ -38,7 +38,6 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@itsrose/common": "workspace:*",
 		"@itsrose/http-client": "workspace:*",
 		"@itsrose/shared-schema": "workspace:*",
 		"@itsrose/system": "workspace:*",

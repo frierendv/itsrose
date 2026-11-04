@@ -1,26 +1,27 @@
 {
-	"name": "@itsrose/common",
+	"name": "@itsrose/types",
 	"version": "1.0.0",
 	"author": "FrierenDv",
 	"type": "module",
+	"sideEffects": false,
 	"license": "MIT",
-	"description": "Common shared enums and status utilities.",
+	"description": "Global, purely type-only TypeScript utility types for the ItsRose monorepo.",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/frierendv/itsrose.git",
-		"directory": "packages/shared/common"
+		"directory": "packages/types"
 	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
-	"main": "./dist/index.js",
+	"main": "./dist/index.mjs",
 	"module": "./dist/index.mjs",
-	"types": "./dist/index.d.cts",
+	"types": "./dist/index.d.ts",
 	"files": [
 		"dist"
 	],
 	"keywords": [
 		"itsrose",
-		"shared",
+		"types",
 		"typescript",
 		"utilities"
 	],
@@ -30,7 +31,6 @@
 	},
 	"scripts": {
 		"build": "tsdown",
-		"build:fast": "tsdown src",
 		"clean": "rimraf dist .sonda",
 		"lint": "eslint . --max-warnings 0",
 		"lint:fix": "eslint . --max-warnings 0 --fix",
@@ -42,8 +42,8 @@
 	"publishConfig": {
 		"exports": {
 			".": {
-				"import": "./dist/index.mjs",
-				"require": "./dist/index.js"
+				"types": "./dist/index.d.ts",
+				"import": "./dist/index.mjs"
 			},
 			"./package.json": "./package.json"
 		}
