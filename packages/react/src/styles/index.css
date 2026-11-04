@@ -3,4 +3,8 @@
 /* Base tailwindcss v4 */
 @import "tailwindcss";
 
+/* Ensure consumer Tailwind builds scan the component sources for the inline
+   utilities they use. */
+@source "../components";
+
 @import "./components/index.css" layer(components);

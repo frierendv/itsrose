@@ -25,6 +25,7 @@
 		"./hooks/use-is-mobile": "./src/hooks/use-is-mobile.ts",
 		"./itsrose": "./src/components/itsrose/index.ts",
 		"./navbar": "./src/components/navbar/index.ts",
+		"./sidebar": "./src/components/sidebar/index.ts",
 		"./utils": "./src/utils/index.ts",
 		"./styles": "./src/styles/index.css",
 		"./package.json": "./package.json"
@@ -38,10 +39,16 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"peerDependencies": {
+		"@heroui/react": "^3.2.6",
 		"motion": "^14.1.0",
 		"react": "catalog:",
 		"react-dom": "catalog:",
 		"tailwindcss": "^4.3.3"
+	},
+	"peerDependenciesMeta": {
+		"@heroui/react": {
+			"optional": true
+		}
 	},
 	"dependencies": {
 		"@react-aria/overlays": "^3.32.1",
@@ -65,6 +72,7 @@
 			"./hooks/use-is-mobile": "./dist/hooks/use-is-mobile.mjs",
 			"./itsrose": "./dist/itsrose/index.mjs",
 			"./navbar": "./dist/navbar/index.mjs",
+			"./sidebar": "./dist/sidebar/index.mjs",
 			"./utils": "./dist/utils.mjs",
 			"./styles": "./dist/styles/index.css",
 			"./package.json": "./package.json"
