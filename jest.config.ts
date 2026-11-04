@@ -79,6 +79,22 @@ const config: Config = {
 				tsconfig: "<rootDir>/packages/react/tsconfig.json",
 			}),
 		},
+		{
+			displayName: "apps/dashboard",
+			testEnvironment: "jsdom",
+			roots: ["<rootDir>/apps/dashboard/"],
+			testMatch: [
+				"<rootDir>/apps/dashboard/**/__tests__/**/*.test.[jt]s?(x)",
+			],
+			moduleNameMapper: {
+				...moduleNameMapper,
+				"^@/(.*)$": "<rootDir>/apps/dashboard/$1",
+			},
+			transformIgnorePatterns,
+			...createDefaultEsmPreset({
+				tsconfig: "<rootDir>/apps/dashboard/tsconfig.json",
+			}),
+		},
 	],
 	coverageProvider: "v8",
 	coverageDirectory: "<rootDir>/coverage",
