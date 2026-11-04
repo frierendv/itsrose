@@ -1,5 +1,5 @@
-import { SyncState } from "@itsrose/common";
 import { z } from "zod/v4";
+import { SyncState } from "../../constants/sync-state";
 
 const SharedResponseBaseSchema = z.object({
 	status: z.enum(SyncState).describe("Task status"),

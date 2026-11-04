@@ -63,7 +63,7 @@
 			"path": "packages/react"
 		},
 		{
-			"path": "packages/shared/common"
+			"path": "packages/types"
 		},
 		{
 			"path": "packages/shared/fastify-utils"
