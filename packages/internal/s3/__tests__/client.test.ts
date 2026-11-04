@@ -1,6 +1,8 @@
 import {
 	DeleteObjectCommand,
+	DeleteObjectsCommand,
 	GetObjectCommand,
+	ListObjectsV2Command,
 	PutObjectCommand,
 	S3Client,
 } from "@aws-sdk/client-s3";
@@ -13,6 +15,7 @@ import {
 	StorageClient,
 	StorageClientError,
 	StorageConfigError,
+	StorageValidationError,
 	toBuffer,
 } from "../src";
 import type { StorageClientConfig } from "../src";
@@ -136,6 +139,13 @@ describe("StorageClient construction", () => {
 		expect(error).toBeInstanceOf(StorageClientError);
 		expect(error).toBeInstanceOf(Error);
 		expect(error.name).toBe("StorageConfigError");
+	});
+
+	it("StorageValidationError extends StorageClientError", () => {
+		const error = new StorageValidationError("invalid key");
+
+		expect(error).toBeInstanceOf(StorageClientError);
+		expect(error.name).toBe("StorageValidationError");
 	});
 
 	it("builds the R2 endpoint and defaults", () => {
@@ -291,6 +301,21 @@ describe("StorageClient.upload", () => {
 			url: "https://cdn.myapp.com/app/assets/avatar.png",
 		});
 	});
+
+	it("passes cacheControl and returns the ETag", async () => {
+		s3Mock.on(PutObjectCommand).resolves({ ETag: "abc123" });
+
+		const client = new StorageClient(baseConfig);
+
+		const result = await client.upload("doc.pdf", Buffer.from("pdf"), {
+			contentType: "application/pdf",
+			cacheControl: "public, max-age=3600",
+		});
+
+		const [call] = s3Mock.commandCalls(PutObjectCommand);
+		expect(call!.args[0].input.CacheControl).toBe("public, max-age=3600");
+		expect(result).toEqual({ key: "doc.pdf", etag: "abc123" });
+	});
 });
 
 describe("StorageClient.download", () => {
@@ -425,5 +450,162 @@ describe("StorageClient.getPresignedUrl", () => {
 
 		expect(url).toContain("X-Amz-Expires=600");
 		expect(url).toContain("app/assets/report.pdf");
+	});
+});
+
+describe("StorageClient.getPresignedUploadUrl", () => {
+	it("generates a pre-signed PUT URL with the default expiry", async () => {
+		const client = new StorageClient(baseConfig);
+
+		const url = await client.getPresignedUploadUrl("report.pdf");
+
+		expect(url).toContain("X-Amz-Signature=");
+		expect(url).toContain("X-Amz-Expires=3600");
+		expect(url).toContain("report.pdf");
+		expect(url).toContain("x-id=PutObject");
+	});
+
+	it("signs a content type and honors a custom expiry", async () => {
+		const client = new StorageClient(baseConfig);
+
+		const url = await client.getPresignedUploadUrl("doc.pdf", {
+			contentType: "application/pdf",
+			expiresIn: 600,
+		});
+
+		expect(url).toContain("X-Amz-Expires=600");
+		expect(url).toContain("doc.pdf");
+	});
+});
+
+describe("StorageClient.listObjects", () => {
+	it("lists objects with a prefix", async () => {
+		const lastModified = new Date("2026-01-01T00:00:00.000Z");
+		s3Mock.on(ListObjectsV2Command).resolves({
+			IsTruncated: false,
+			Contents: [
+				{
+					Key: "app/assets/a.png",
+					Size: 10,
+					LastModified: lastModified,
+					ETag: "etag-a",
+				},
+			],
+		});
+
+		const client = new StorageClient({ ...baseConfig, keyPrefix: "app" });
+
+		const objects = await client.listObjects("assets");
+
+		expect(objects).toEqual([
+			{
+				key: "app/assets/a.png",
+				size: 10,
+				lastModified,
+				etag: "etag-a",
+			},
+		]);
+
+		const [call] = s3Mock.commandCalls(ListObjectsV2Command);
+		expect(call!.args[0].input.Prefix).toBe("app/assets");
+	});
+
+	it("follows pagination until IsTruncated is false", async () => {
+		s3Mock
+			.on(ListObjectsV2Command)
+			.resolvesOnce({
+				IsTruncated: true,
+				NextContinuationToken: "token-1",
+				Contents: [{ Key: "a.txt" }],
+			})
+			.resolvesOnce({
+				IsTruncated: false,
+				Contents: [{ Key: "b.txt" }],
+			});
+
+		const client = new StorageClient(baseConfig);
+
+		const objects = await client.listObjects();
+
+		expect(objects.map((object) => object.key)).toEqual(["a.txt", "b.txt"]);
+
+		const calls = s3Mock.commandCalls(ListObjectsV2Command);
+		expect(calls).toHaveLength(2);
+		expect(calls[1]!.args[0].input.ContinuationToken).toBe("token-1");
+	});
+});
+
+describe("StorageClient.purgePrefix", () => {
+	it("returns empty when no objects match", async () => {
+		s3Mock.on(ListObjectsV2Command).resolves({
+			IsTruncated: false,
+			Contents: [],
+		});
+
+		const client = new StorageClient(baseConfig);
+
+		await expect(client.purgePrefix("t/users")).resolves.toEqual({
+			deleted: [],
+			errors: [],
+		});
+	});
+
+	it("deletes matching objects and reports deleted keys", async () => {
+		s3Mock.on(ListObjectsV2Command).resolves({
+			IsTruncated: false,
+			Contents: [
+				{ Key: "t/users/u1/1.txt" },
+				{ Key: "t/users/u1/2.txt" },
+			],
+		});
+		s3Mock.on(DeleteObjectsCommand).resolves({
+			Deleted: [{ Key: "t/users/u1/1.txt" }, { Key: "t/users/u1/2.txt" }],
+			Errors: [],
+		});
+
+		const client = new StorageClient(baseConfig);
+
+		const result = await client.purgePrefix("t/users/u1");
+
+		expect(result).toEqual({
+			deleted: ["t/users/u1/1.txt", "t/users/u1/2.txt"],
+			errors: [],
+		});
+
+		const [call] = s3Mock.commandCalls(DeleteObjectsCommand);
+		expect(call!.args[0].input.Delete?.Objects).toEqual([
+			{ Key: "t/users/u1/1.txt" },
+			{ Key: "t/users/u1/2.txt" },
+		]);
+	});
+
+	it("reports deletion errors", async () => {
+		s3Mock.on(ListObjectsV2Command).resolves({
+			IsTruncated: false,
+			Contents: [{ Key: "t/users/u1/bad.txt" }],
+		});
+		s3Mock.on(DeleteObjectsCommand).resolves({
+			Deleted: [],
+			Errors: [
+				{
+					Key: "t/users/u1/bad.txt",
+					Code: "AccessDenied",
+					Message: "nope",
+				},
+			],
+		});
+
+		const client = new StorageClient(baseConfig);
+
+		await expect(client.purgePrefix("t/users/u1")).resolves.toEqual({
+			deleted: [],
+			errors: [
+				{
+					key: "t/users/u1/bad.txt",
+					code: "AccessDenied",
+					message: "nope",
+				},
+			],
+		});
 	});
 });
