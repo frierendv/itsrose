@@ -1,4 +1,5 @@
 import fp from "fastify-plugin";
+import { recordUsage } from "./usage-stats";
 
 const fastifyRequestTracker = fp(
 	async (fastify) => {
@@ -23,6 +24,20 @@ const fastifyRequestTracker = fp(
 				durationMs: reply.elapsedTime,
 				userId: request.userId,
 			});
+
+			// Aggregate per-user daily usage counters for the dashboard.
+			if (request.userId) {
+				void recordUsage(
+					fastify.redis,
+					request.userId,
+					reply.elapsedTime
+				).catch((err: unknown) => {
+					fastify.log.warn(
+						{ err, userId: request.userId },
+						"Failed to record usage counters"
+					);
+				});
+			}
 		});
 
 		// Always return the request ID in response
