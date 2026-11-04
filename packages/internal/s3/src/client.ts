@@ -1,18 +1,28 @@
 import {
 	DeleteObjectCommand,
+	DeleteObjectsCommand,
 	GetObjectCommand,
+	ListObjectsV2Command,
 	PutObjectCommand,
 	S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { StorageConfigError } from "./errors";
 import { detectMimeType } from "./mime";
-import type { StorageClientConfig, UploadOptions, UploadResult } from "./types";
+import type {
+	DeleteResult,
+	PresignedUploadOptions,
+	StorageClientConfig,
+	StorageObject,
+	UploadOptions,
+	UploadResult,
+} from "./types";
 import { resolveKey, toBuffer } from "./utils";
 
 const R2_REGION = "auto" as const;
 const R2_ENDPOINT_SUFFIX = ".r2.cloudflarestorage.com" as const;
 const DEFAULT_PRESIGNED_URL_EXPIRES_IN = 3600;
+const MAX_BATCH_DELETE_KEYS = 1000;
 
 /**
  * Trims and validates a required configuration string.
@@ -102,18 +112,25 @@ export class StorageClient {
 		const contentType =
 			options.contentType?.trim() || (await detectMimeType(body));
 
-		await this.client.send(
+		const response = await this.client.send(
 			new PutObjectCommand({
 				Bucket: this.bucket,
 				Key: resolvedKey,
 				Body: body,
 				ContentType: contentType,
+				...(options.cacheControl
+					? { CacheControl: options.cacheControl }
+					: {}),
 				...(options.metadata ? { Metadata: options.metadata } : {}),
 			})
 		);
 
 		const url = this.buildPublicUrl(resolvedKey);
-		return url ? { key: resolvedKey, url } : { key: resolvedKey };
+		return {
+			key: resolvedKey,
+			...(url ? { url } : {}),
+			...(response?.ETag ? { etag: response.ETag } : {}),
+		};
 	}
 
 	/**
@@ -142,6 +159,64 @@ export class StorageClient {
 	}
 
 	/**
+	 * Lists objects in the bucket, optionally scoped to a prefix.
+	 */
+	async listObjects(prefix?: string): Promise<StorageObject[]> {
+		const resolvedPrefix = prefix
+			? resolveKey(this.keyPrefix, prefix)
+			: undefined;
+		return this.listObjectsResolved(resolvedPrefix);
+	}
+
+	/**
+	 * Deletes every object under a prefix, returning the deleted keys and any errors.
+	 */
+	async purgePrefix(prefix: string): Promise<DeleteResult> {
+		const resolvedPrefix = resolveKey(this.keyPrefix, prefix);
+		const objects = await this.listObjectsResolved(resolvedPrefix);
+		const keys = objects.map((object) => object.key);
+
+		if (keys.length === 0) {
+			return { deleted: [], errors: [] };
+		}
+
+		const deleted: string[] = [];
+		const errors: DeleteResult["errors"] = [];
+
+		for (
+			let index = 0;
+			index < keys.length;
+			index += MAX_BATCH_DELETE_KEYS
+		) {
+			const batch = keys.slice(index, index + MAX_BATCH_DELETE_KEYS);
+			const response = await this.client.send(
+				new DeleteObjectsCommand({
+					Bucket: this.bucket,
+					Delete: {
+						Objects: batch.map((key) => ({ Key: key })),
+					},
+				})
+			);
+
+			for (const entry of response.Deleted ?? []) {
+				if (entry.Key) {
+					deleted.push(entry.Key);
+				}
+			}
+
+			for (const entry of response.Errors ?? []) {
+				errors.push({
+					key: entry.Key ?? "",
+					code: entry.Code,
+					message: entry.Message,
+				});
+			}
+		}
+
+		return { deleted, errors };
+	}
+
+	/**
 	 * Resolves the public URL for an object, or `null` when no `publicDomain`
 	 * is configured.
 	 */
@@ -150,7 +225,7 @@ export class StorageClient {
 	}
 
 	/**
-	 * Generates a short-lived pre-signed GET URL for an object.
+	 * Generates a short-lived pre-signed GET (download) URL for an object.
 	 */
 	async getPresignedUrl(
 		key: string,
@@ -166,6 +241,28 @@ export class StorageClient {
 	}
 
 	/**
+	 * Generates a short-lived pre-signed PUT (upload) URL for an object.
+	 */
+	async getPresignedUploadUrl(
+		key: string,
+		options: PresignedUploadOptions = {}
+	): Promise<string> {
+		const resolvedKey = resolveKey(this.keyPrefix, key);
+
+		return getSignedUrl(
+			this.client,
+			new PutObjectCommand({
+				Bucket: this.bucket,
+				Key: resolvedKey,
+				...(options.contentType
+					? { ContentType: options.contentType }
+					: {}),
+			}),
+			{ expiresIn: options.expiresIn ?? DEFAULT_PRESIGNED_URL_EXPIRES_IN }
+		);
+	}
+
+	/**
 	 * Builds a public URL from an already-resolved key.
 	 */
 	private buildPublicUrl(resolvedKey: string): string | null {
@@ -173,5 +270,44 @@ export class StorageClient {
 			return null;
 		}
 		return `${this.publicDomain}/${resolvedKey}`;
+	}
+
+	/**
+	 * Lists objects using an already-resolved prefix, following pagination.
+	 */
+	private async listObjectsResolved(
+		prefix?: string
+	): Promise<StorageObject[]> {
+		const objects: StorageObject[] = [];
+		let continuationToken: string | undefined;
+
+		do {
+			const response = await this.client.send(
+				new ListObjectsV2Command({
+					Bucket: this.bucket,
+					...(prefix ? { Prefix: prefix } : {}),
+					...(continuationToken
+						? { ContinuationToken: continuationToken }
+						: {}),
+				})
+			);
+
+			for (const item of response.Contents ?? []) {
+				if (item.Key) {
+					objects.push({
+						key: item.Key,
+						size: item.Size,
+						lastModified: item.LastModified,
+						etag: item.ETag,
+					});
+				}
+			}
+
+			continuationToken = response.IsTruncated
+				? response.NextContinuationToken
+				: undefined;
+		} while (continuationToken);
+
+		return objects;
 	}
 }

@@ -1,5 +1,16 @@
 export { StorageClient } from "./client";
-export { StorageClientError, StorageConfigError } from "./errors";
+export {
+	StorageClientError,
+	StorageConfigError,
+	StorageValidationError,
+} from "./errors";
 export { detectMimeType } from "./mime";
 export { resolveKey, toBuffer } from "./utils";
-export type { StorageClientConfig, UploadOptions, UploadResult } from "./types";
+export type {
+	DeleteResult,
+	PresignedUploadOptions,
+	StorageClientConfig,
+	StorageObject,
+	UploadOptions,
+	UploadResult,
+} from "./types";

@@ -12,3 +12,8 @@ export class StorageClientError extends Error {
  * Thrown when the storage client is constructed with invalid or missing config.
  */
 export class StorageConfigError extends StorageClientError {}
+
+/**
+ * Thrown when an object key or other input fails validation.
+ */
+export class StorageValidationError extends StorageClientError {}

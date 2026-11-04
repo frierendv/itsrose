@@ -1,4 +1,4 @@
-import type { S3 } from "@itsrose/s3";
+import type { StorageClient } from "@itsrose/s3";
 import {
 	createPresignedUpload,
 	deleteEphemeralFile,
@@ -11,24 +11,21 @@ describe("packages/auth/storage/operations", () => {
 	const mockS3 = {
 		upload: jest.fn().mockResolvedValue({
 			key: "t/users/u123/exports/report.csv",
-			publicUrl:
-				"https://pub-cdn.itsrose.net/t/users/u123/exports/report.csv",
+			url: "https://pub-cdn.itsrose.net/t/users/u123/exports/report.csv",
 			etag: '"abc123etag"',
 		}),
-		getObjectPublicUrl: jest
+		getPublicUrl: jest
 			.fn()
 			.mockImplementation(
 				(key: string) => `https://pub-cdn.itsrose.net/${key}`
 			),
-		createPresignedDownloadUrl: jest
+		getPresignedUrl: jest
 			.fn()
 			.mockResolvedValue("https://s3.signed.download.url"),
-		createPresignedUploadUrl: jest
+		getPresignedUploadUrl: jest
 			.fn()
 			.mockResolvedValue("https://s3.signed.upload.url"),
-		deleteObject: jest
-			.fn()
-			.mockResolvedValue({ key: "any", deleted: true }),
+		delete: jest.fn().mockResolvedValue(undefined),
 		purgePrefix: jest.fn().mockResolvedValue({
 			deleted: [
 				"t/users/u123/exports/1.csv",
@@ -36,7 +33,7 @@ describe("packages/auth/storage/operations", () => {
 			],
 			errors: [],
 		}),
-	} as unknown as S3;
+	} as unknown as StorageClient;
 
 	beforeEach(() => {
 		jest.clearAllMocks();
@@ -94,7 +91,7 @@ describe("packages/auth/storage/operations", () => {
 			expect(url).toBe(
 				"https://pub-cdn.itsrose.net/t/artifacts/data.json"
 			);
-			expect(mockS3.getObjectPublicUrl).toHaveBeenCalledWith(
+			expect(mockS3.getPublicUrl).toHaveBeenCalledWith(
 				"t/artifacts/data.json"
 			);
 		});
@@ -110,10 +107,10 @@ describe("packages/auth/storage/operations", () => {
 			);
 
 			expect(url).toBe("https://s3.signed.download.url");
-			expect(mockS3.createPresignedDownloadUrl).toHaveBeenCalledWith({
-				key: "t/users/u1/private/statement.pdf",
-				expiresInSeconds: 600,
-			});
+			expect(mockS3.getPresignedUrl).toHaveBeenCalledWith(
+				"t/users/u1/private/statement.pdf",
+				600
+			);
 		});
 	});
 
@@ -146,9 +143,7 @@ describe("packages/auth/storage/operations", () => {
 				mockS3
 			);
 			expect(deleted).toBe(true);
-			expect(mockS3.deleteObject).toHaveBeenCalledWith(
-				"t/artifacts/temp.bin"
-			);
+			expect(mockS3.delete).toHaveBeenCalledWith("t/artifacts/temp.bin");
 		});
 	});
 
@@ -157,10 +152,7 @@ describe("packages/auth/storage/operations", () => {
 			const result = await deleteUserTempFiles("u123", mockS3);
 			expect(result.userId).toBe("u123");
 			expect(result.deleted.length).toBe(2);
-			expect(mockS3.purgePrefix).toHaveBeenCalledWith(
-				"t/users/u123/",
-				expect.any(Object)
-			);
+			expect(mockS3.purgePrefix).toHaveBeenCalledWith("t/users/u123/");
 		});
 	});
 });

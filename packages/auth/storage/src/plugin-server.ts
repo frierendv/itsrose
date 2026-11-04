@@ -1,4 +1,3 @@
-import type { DataInput } from "@itsrose/s3";
 import type { BetterAuthPlugin } from "better-auth";
 import {
 	APIError,
@@ -21,7 +20,6 @@ export const presignedUploadSchema = z.object({
 	category: z.string().default("uploads"),
 	filename: z.string().min(1, "Filename is required."),
 	contentType: z.string().optional(),
-	contentLength: z.number().positive().optional(),
 	expiresIn: z.number().int().min(60).max(86400).optional(),
 });
 
@@ -63,7 +61,6 @@ export function storagePlugin(options: StoragePluginOptions = {}) {
 								category: ctx.body.category,
 								filename: ctx.body.filename,
 								contentType: ctx.body.contentType,
-								contentLength: ctx.body.contentLength,
 								expiresInSeconds: ctx.body.expiresIn,
 							},
 							s3
@@ -180,7 +177,7 @@ export function storagePlugin(options: StoragePluginOptions = {}) {
 						userId: string,
 						category: string,
 						filename: string,
-						data: DataInput
+						data: Buffer | string
 					) => uploadUserFile(s3, userId, category, filename, data),
 					purgeUserStorage: (userId: string) =>
 						deleteUserTempFiles(userId, s3),

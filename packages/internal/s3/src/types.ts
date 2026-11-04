@@ -50,6 +50,11 @@ export interface UploadOptions {
 	contentType?: string;
 
 	/**
+	 * `Cache-Control` header applied to the uploaded object.
+	 */
+	cacheControl?: string;
+
+	/**
 	 * Custom metadata stored alongside the object in R2.
 	 */
 	metadata?: Record<string, string>;
@@ -68,4 +73,35 @@ export interface UploadResult {
 	 * Public URL of the uploaded object, when a `publicDomain` is configured.
 	 */
 	url?: string;
+
+	/**
+	 * ETag returned by R2 for the uploaded object.
+	 */
+	etag?: string;
+}
+
+/**
+ * A listed object, normalized from the S3 `ListObjectsV2` response.
+ */
+export interface StorageObject {
+	key: string;
+	size?: number;
+	lastModified?: Date;
+	etag?: string;
+}
+
+/**
+ * Options for {@link StorageClient.getPresignedUploadUrl}.
+ */
+export interface PresignedUploadOptions {
+	contentType?: string;
+	expiresIn?: number;
+}
+
+/**
+ * Result of a batch delete operation.
+ */
+export interface DeleteResult {
+	deleted: string[];
+	errors: Array<{ key: string; code?: string; message?: string }>;
 }
