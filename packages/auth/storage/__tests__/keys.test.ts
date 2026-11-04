@@ -1,4 +1,4 @@
-import { S3ValidationError } from "@itsrose/s3";
+import { StorageValidationError } from "@itsrose/s3";
 import {
 	buildArtifactKey,
 	buildArtifactPrefix,
@@ -24,19 +24,23 @@ describe("packages/auth/storage/keys", () => {
 			);
 		});
 
-		it("throws S3ValidationError on empty or whitespace user ID", () => {
-			expect(() => sanitizeUserId("")).toThrow(S3ValidationError);
-			expect(() => sanitizeUserId("   ")).toThrow(S3ValidationError);
+		it("throws StorageValidationError on empty or whitespace user ID", () => {
+			expect(() => sanitizeUserId("")).toThrow(StorageValidationError);
+			expect(() => sanitizeUserId("   ")).toThrow(StorageValidationError);
 		});
 
 		it("rejects path traversal attempts in user ID", () => {
-			expect(() => sanitizeUserId("../admin")).toThrow(S3ValidationError);
-			expect(() => sanitizeUserId("user/123")).toThrow(S3ValidationError);
+			expect(() => sanitizeUserId("../admin")).toThrow(
+				StorageValidationError
+			);
+			expect(() => sanitizeUserId("user/123")).toThrow(
+				StorageValidationError
+			);
 			expect(() => sanitizeUserId("user\\123")).toThrow(
-				S3ValidationError
+				StorageValidationError
 			);
 			expect(() => sanitizeUserId("user..name")).toThrow(
-				S3ValidationError
+				StorageValidationError
 			);
 		});
 	});
@@ -46,9 +50,11 @@ describe("packages/auth/storage/keys", () => {
 			expect(sanitizeJobId("job-456_xyz")).toBe("job-456_xyz");
 		});
 
-		it("throws S3ValidationError on empty or traversal job ID", () => {
-			expect(() => sanitizeJobId("")).toThrow(S3ValidationError);
-			expect(() => sanitizeJobId("../job")).toThrow(S3ValidationError);
+		it("throws StorageValidationError on empty or traversal job ID", () => {
+			expect(() => sanitizeJobId("")).toThrow(StorageValidationError);
+			expect(() => sanitizeJobId("../job")).toThrow(
+				StorageValidationError
+			);
 		});
 	});
 
@@ -60,12 +66,12 @@ describe("packages/auth/storage/keys", () => {
 
 		it("rejects path traversal and illegal characters in category", () => {
 			expect(() => sanitizeCategory("../root")).toThrow(
-				S3ValidationError
+				StorageValidationError
 			);
 			expect(() => sanitizeCategory("docs/private")).toThrow(
-				S3ValidationError
+				StorageValidationError
 			);
-			expect(() => sanitizeCategory("")).toThrow(S3ValidationError);
+			expect(() => sanitizeCategory("")).toThrow(StorageValidationError);
 		});
 	});
 
@@ -84,9 +90,11 @@ describe("packages/auth/storage/keys", () => {
 		});
 
 		it("throws on empty or traversal-only names", () => {
-			expect(() => sanitizeFilename("")).toThrow(S3ValidationError);
-			expect(() => sanitizeFilename("..")).toThrow(S3ValidationError);
-			expect(() => sanitizeFilename(".")).toThrow(S3ValidationError);
+			expect(() => sanitizeFilename("")).toThrow(StorageValidationError);
+			expect(() => sanitizeFilename("..")).toThrow(
+				StorageValidationError
+			);
+			expect(() => sanitizeFilename(".")).toThrow(StorageValidationError);
 		});
 	});
 

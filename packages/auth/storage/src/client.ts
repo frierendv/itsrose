@@ -1,31 +1,29 @@
-import { S3 } from "@itsrose/s3";
+import { StorageClient } from "@itsrose/s3";
 import { resolveStorageConfig, type StorageConfig } from "./config";
 
-let cachedStorageClient: S3 | null = null;
+let cachedStorageClient: StorageClient | null = null;
 let lastConfigHash = "";
 
 function hashConfig(config: StorageConfig): string {
-	return `${config.accessKeyId ?? ""}:${config.endpoint ?? ""}:${config.bucket ?? ""}:${config.customDomain ?? config.publicDomain ?? ""}:${config.region ?? ""}`;
+	return `${config.accountId ?? ""}:${config.accessKeyId ?? ""}:${config.bucket ?? ""}:${config.publicDomain ?? ""}`;
 }
 
 /**
- * Resolves or creates a singleton S3 client instance bound to the ephemeral storage configuration.
+ * Resolves or creates a singleton storage client instance bound to the ephemeral storage configuration.
  */
-export function getStorageClient(overrides: Partial<StorageConfig> = {}): S3 {
+export function getStorageClient(
+	overrides: Partial<StorageConfig> = {}
+): StorageClient {
 	const resolved = resolveStorageConfig(overrides);
 	const hash = hashConfig(resolved);
 
 	if (!cachedStorageClient || lastConfigHash !== hash) {
-		cachedStorageClient = new S3({
-			accessKeyId: resolved.accessKeyId,
-			secretAccessKey: resolved.secretAccessKey,
-			endpoint: resolved.endpoint,
-			bucket: resolved.bucket,
-			bucketName: resolved.bucket,
-			customDomain: resolved.customDomain,
-			publicDomain: resolved.customDomain ?? resolved.publicDomain,
-			region: resolved.region,
-			defaultPrefix: "t",
+		cachedStorageClient = new StorageClient({
+			accountId: resolved.accountId ?? "",
+			accessKeyId: resolved.accessKeyId ?? "",
+			secretAccessKey: resolved.secretAccessKey ?? "",
+			bucket: resolved.bucket ?? "",
+			publicDomain: resolved.publicDomain,
 		});
 		lastConfigHash = hash;
 	}

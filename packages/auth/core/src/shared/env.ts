@@ -31,12 +31,11 @@ export const SHARED_ENV_KEYS = [
 	"BETTER_AUTH_GITHUB_SECRET",
 
 	// S3 Storage
+	"S3_ACCOUNT_ID",
 	"S3_ACCESS_KEY",
 	"S3_SECRET_KEY",
-	"S3_ENDPOINT",
 	"S3_BUCKET",
 	"S3_PUBLIC_DOMAIN",
-	"S3_REGION", // orphan
 ] as const;
 
 export type SharedEnvKey = typeof SHARED_ENV_KEYS;

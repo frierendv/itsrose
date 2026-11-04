@@ -1,4 +1,4 @@
-import { S3ValidationError } from "@itsrose/s3";
+import { StorageValidationError } from "@itsrose/s3";
 
 export const EPHEMERAL_ROOT = "t" as const;
 
@@ -12,11 +12,11 @@ const JOB_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
 export function sanitizeUserId(userId: string): string {
 	const trimmed = (userId || "").trim();
 	if (!trimmed) {
-		throw new S3ValidationError("userId cannot be empty.");
+		throw new StorageValidationError("userId cannot be empty.");
 	}
 
 	if (!USER_ID_PATTERN.test(trimmed)) {
-		throw new S3ValidationError(
+		throw new StorageValidationError(
 			`Invalid userId format "${trimmed}". Only alphanumeric, hyphen, and underscore characters are allowed.`
 		);
 	}
@@ -30,11 +30,11 @@ export function sanitizeUserId(userId: string): string {
 export function sanitizeJobId(jobId: string): string {
 	const trimmed = (jobId || "").trim();
 	if (!trimmed) {
-		throw new S3ValidationError("jobId cannot be empty.");
+		throw new StorageValidationError("jobId cannot be empty.");
 	}
 
 	if (!JOB_ID_PATTERN.test(trimmed)) {
-		throw new S3ValidationError(
+		throw new StorageValidationError(
 			`Invalid jobId format "${trimmed}". Only alphanumeric, hyphen, and underscore characters are allowed.`
 		);
 	}
@@ -48,11 +48,11 @@ export function sanitizeJobId(jobId: string): string {
 export function sanitizeCategory(category: string): string {
 	const trimmed = (category || "").trim().toLowerCase();
 	if (!trimmed) {
-		throw new S3ValidationError("Storage category cannot be empty.");
+		throw new StorageValidationError("Storage category cannot be empty.");
 	}
 
 	if (!CATEGORY_PATTERN.test(trimmed)) {
-		throw new S3ValidationError(
+		throw new StorageValidationError(
 			`Invalid storage category "${trimmed}". Only alphanumeric, hyphen, and underscore are allowed.`
 		);
 	}
@@ -83,7 +83,7 @@ export function sanitizeFilename(filename: string): string {
 		.replace(/^\/+|\/+$/g, ""); // strip leading/trailing slashes
 
 	if (!clean || clean === "." || clean === "..") {
-		throw new S3ValidationError("Invalid or empty filename.");
+		throw new StorageValidationError("Invalid or empty filename.");
 	}
 
 	// Normalize spaces to hyphens and collapse multiple dashes
