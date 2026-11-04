@@ -3,7 +3,6 @@
 import { Drawer, Surface } from "@heroui/react";
 import { cn, forwardRef } from "@itsrose/react/core";
 import { useIsMobile } from "@itsrose/react/hooks/use-is-mobile";
-import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	SIDEBAR_KEYBOARD_SHORTCUT,
@@ -21,6 +20,12 @@ export type SidebarProviderProps = {
 	defaultOpen?: boolean;
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
+	/**
+	 * Current route pathname. When provided, the mobile drawer closes
+	 * automatically on navigation. Hosts using a router should supply it
+	 * (e.g. Next.js `usePathname()`).
+	 */
+	pathname?: string;
 };
 
 export const SidebarProvider = forwardRef<"div", SidebarProviderProps>(
@@ -30,6 +35,7 @@ export const SidebarProvider = forwardRef<"div", SidebarProviderProps>(
 			defaultOpen = true,
 			open: openProp,
 			onOpenChange: setOpenProp,
+			pathname: pathnameProp,
 			className,
 			style,
 			children,
@@ -38,7 +44,6 @@ export const SidebarProvider = forwardRef<"div", SidebarProviderProps>(
 		ref
 	) => {
 		const isMobile = useIsMobile();
-		const pathname = usePathname();
 		const [openMobile, setOpenMobile] = useState(false);
 
 		// Internal open state persisted to cookie / localStorage for uncontrolled usage
@@ -70,7 +75,7 @@ export const SidebarProvider = forwardRef<"div", SidebarProviderProps>(
 		// Automatically close mobile drawer when navigation route changes
 		useEffect(() => {
 			setOpenMobile(false);
-		}, [pathname]);
+		}, [pathnameProp]);
 
 		// Keyboard shortcut (⌘+B or Ctrl+B)
 		useEffect(() => {
