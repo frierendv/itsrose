@@ -4,7 +4,6 @@ export * from "./invoices/invoice-detail-modal";
 export * from "./invoices/invoice-table";
 export * from "./invoices/void-invoice-dialog";
 export * from "./overview/admin-metrics-cards";
-export * from "./overview/admin-quick-actions";
 export * from "./plans/plan-form-modal";
 export * from "./plans/plan-table";
 export * from "./plans/seed-plans-button";

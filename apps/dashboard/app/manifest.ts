@@ -27,26 +27,9 @@ export default async (): Promise<MetadataRoute.Manifest> => {
 		background_color: "#ffffff",
 		start_url: "/",
 		scope: "/",
-		display: "fullscreen",
+		display: "standalone",
 		display_override: ["standalone", "minimal-ui"],
 		categories: ["productivity", "business"],
 		orientation: "portrait",
-		shortcuts: [
-			{
-				name: "Dashboard",
-				short_name: "Dashboard",
-				description: "View your dashboard",
-				url: "/dashboard",
-				icons: [
-					{
-						src: "/web-app-manifest-192x192.png",
-						sizes: "192x192",
-						type: "image/png",
-					},
-				],
-			},
-		],
 	};
 };
-
-// export default manifest;

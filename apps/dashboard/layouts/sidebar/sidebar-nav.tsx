@@ -1,11 +1,11 @@
 "use client";
 
+import type { SidebarItemProps } from "@/types/sidebar";
 import {
 	SidebarGroup,
 	SidebarGroupLabel,
 	SidebarMenu,
-} from "@/components/ui/sidebar";
-import type { SidebarItemProps } from "@/types/sidebar";
+} from "@itsrose/react/sidebar";
 import { SidebarNavItem } from "./sidebar-nav-item";
 
 export type SidebarNavProps = SidebarItemProps & {

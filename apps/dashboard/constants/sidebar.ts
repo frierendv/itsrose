@@ -1,14 +1,12 @@
 import type { SidebarItem } from "@/types/sidebar";
 import {
 	Archive,
-	Camera,
 	CreditCard,
 	FileDollar,
 	FolderTree,
 	Gear,
 	House,
 	LayersVertical,
-	Microphone,
 	PersonGear,
 	Persons,
 	Sack,
@@ -75,19 +73,6 @@ export const USER_LOGS_SIDEBAR_ITEMS = {
 			url: "/logs/activity",
 		},
 	],
-} satisfies SidebarItem;
-
-// Dashboard service features
-export const USER_FEATURES_IMAGE = {
-	title: "AI Vision & Image",
-	url: "/ai-image-vision",
-	icon: Camera,
-} satisfies SidebarItem;
-
-export const USER_FEATURES_NEURAL_VOICE = {
-	title: "AI Voice Generator",
-	url: "/ai-voice",
-	icon: Microphone,
 } satisfies SidebarItem;
 
 export const EXTERNAL_RESOURCE = {

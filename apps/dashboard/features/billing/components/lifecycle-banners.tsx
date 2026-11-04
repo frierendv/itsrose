@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/errors";
 import { Alert, Button, toast } from "@heroui/react";
 import type { Invoice, Subscription } from "@itsrose/auth-billing";
 import { useCancelDowngradeMutation } from "../hooks";
@@ -31,10 +32,12 @@ export const LifecycleBanners: React.FC<LifecycleBannersProps> = ({
 						"Scheduled downgrade canceled. You will renew on your current plan."
 				);
 			},
-			onError: (err: any) => {
+			onError: (err) => {
 				toast.danger(
-					err?.message ||
+					getErrorMessage(
+						err,
 						"Failed to cancel downgrade. Please contact support."
+					)
 				);
 			},
 		});
@@ -54,9 +57,7 @@ export const LifecycleBanners: React.FC<LifecycleBannersProps> = ({
 			);
 
 	const paymentLink =
-		pendingInvoice?.payment_link_url ||
-		pendingInvoice?.payment_url ||
-		"/account/billing/invoices";
+		pendingInvoice?.payment_link_url || "/account/billing/invoices";
 
 	return (
 		<div className="flex flex-col gap-3">

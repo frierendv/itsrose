@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({
 			>
 				{children}
 			</BetterAuthUIProvider>
-			<ReactQueryDevtools />
+			{process.env.NODE_ENV !== "production" && <ReactQueryDevtools />}
 		</QueryClientProvider>
 	);
 };

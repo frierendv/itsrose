@@ -48,7 +48,7 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
 	const statusProps = getInvoiceStatusProps(invoice.status);
 	const typeProps = getInvoiceTypeProps(invoice.invoice_type);
 
-	const paymentUrl = invoice.payment_link_url || invoice.payment_url;
+	const paymentUrl = invoice.payment_link_url;
 	const pdfUrl = invoice.paid_pdf_url || invoice.pdf_url;
 
 	const proration = invoice.proration_details;
@@ -206,8 +206,7 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
 											</Typography>
 											<Typography type="h4">
 												{formatIDR(
-													invoice.gross_amount ??
-														invoice.amount_idr ??
+													invoice.gross_amount ||
 														proration.payable_amount
 												)}
 											</Typography>
@@ -219,11 +218,7 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
 											Gross Billed Amount:
 										</span>
 										<Typography type="h4">
-											{formatIDR(
-												invoice.gross_amount ??
-													invoice.amount_idr ??
-													0
-											)}
+											{formatIDR(invoice.gross_amount)}
 										</Typography>
 									</div>
 								)}

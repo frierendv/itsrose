@@ -8,14 +8,38 @@ const matchesRoute = (pathname: string, routes: string[]) =>
 		(route) => pathname === route || pathname.startsWith(`${route}/`)
 	);
 
-export async function proxy(request: NextRequest) {
-	const { pathname } = request.nextUrl;
-	const isAuthRoute = matchesRoute(pathname, AUTH_ROUTES);
-	const { data: session } = await authClient.getSession({
+/**
+ * Deduplicates the session RPC for a given request instance so the proxy path
+ * performs at most one session fetch per request, even if invoked more than
+ * once (e.g. by future instrumentation).
+ *
+ * Cross-request caching was evaluated and intentionally NOT added: a TTL cache
+ * keyed by the session cookie would weaken revocation guarantees for a
+ * security boundary. The single RPC per page load is the measured cost.
+ */
+const sessionPromises = new WeakMap<
+	NextRequest,
+	ReturnType<typeof authClient.getSession>
+>();
+
+async function getSessionForRequest(request: NextRequest) {
+	const existing = sessionPromises.get(request);
+	if (existing) {
+		return existing;
+	}
+	const promise = authClient.getSession({
 		fetchOptions: {
 			headers: await headers(),
 		},
 	});
+	sessionPromises.set(request, promise);
+	return promise;
+}
+
+export async function proxy(request: NextRequest) {
+	const { pathname } = request.nextUrl;
+	const isAuthRoute = matchesRoute(pathname, AUTH_ROUTES);
+	const { data: session } = await getSessionForRequest(request);
 
 	if (isAuthRoute) {
 		if (session) {

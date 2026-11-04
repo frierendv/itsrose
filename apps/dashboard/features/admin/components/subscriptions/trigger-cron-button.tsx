@@ -10,7 +10,7 @@ import {
 	Typography,
 } from "@heroui/react";
 import { useState } from "react";
-import { useTriggerCronMutation } from "../../api";
+import { useTriggerCronMutation } from "../../hooks";
 
 export const TriggerCronButton: React.FC = () => {
 	const [isOpen, setIsOpen] = useState(false);

@@ -70,6 +70,11 @@ const nextConfig: NextConfig = {
 			permanent: true,
 			source: "/manifest.json",
 		},
+		{
+			destination: "/admin/transaction",
+			permanent: true,
+			source: "/admin/invoices",
+		},
 	],
 	devIndicators: false,
 	pageExtensions: ["ts", "tsx", "md", "mdx"],

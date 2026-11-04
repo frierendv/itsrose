@@ -121,8 +121,8 @@ export const BillingPage: React.FC = () => {
 					</Typography>
 				</div>
 				<BillingFaq
-					fagItems={FAQ_ITEMS}
-					KeyPoints={BILLING_KEY_POINTS}
+					faqItems={FAQ_ITEMS}
+					keyPoints={BILLING_KEY_POINTS}
 				/>
 			</section>
 		</div>
