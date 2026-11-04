@@ -36,8 +36,6 @@ const moduleNameMapper = {
 	],
 	"^atomically$": "<rootDir>/packages/others/lowdb/__mocks__/atomically.ts",
 	"^superjson$": "<rootDir>/packages/others/lowdb/__mocks__/superjson.ts",
-	"^s3mini$": "<rootDir>/packages/internal/s3/__mocks__/s3mini.ts",
-	"^file-type$": "<rootDir>/packages/internal/s3/__mocks__/file-type.ts",
 	"^better-auth/api$":
 		"<rootDir>/packages/auth/core/__mocks__/better-auth-api.ts",
 };
