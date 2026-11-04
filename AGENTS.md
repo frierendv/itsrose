@@ -5,7 +5,7 @@
 > **Scope Prefix**: `@itsrose/*`
 > **Package Manager**: `pnpm@11.20.0` (with isolated node linker & workspace dependency sync)
 > **Task Orchestrator**: `Turbo@^2.11.7`
-> **Runtime Target**: Node.js `>=24` (ESM native)
+> **Runtime Target**: Node.js `>=24` (ESM native; `.nvmrc` pins `v24.12.0`)
 > **Last Updated**: November 2026
 
 ---
@@ -20,7 +20,7 @@ Every directive in this document is **mandatory**. If a user request contradicts
 
 ## 2. Monorepo Topology & Workspace Map
 
-The workspace strictly uses the **`@itsrose`** namespace (`@itsrose/*`) for all internal packages. Applications residing in `apps/*` are deployment targets and do not use package scope prefixes.
+The workspace strictly uses the **`@itsrose`** namespace (`@itsrose/*`) for all internal packages. Applications residing in `apps/*` are deployment targets and do not use package scope prefixes. Internal `@itsrose/*` packages resolve from the private registry configured in [`.npmrc`](.npmrc) (`https://git.itsrose.my.id/api/packages/itsrose/npm/`) — never assume they exist on the public npm registry.
 
 ```mermaid
 flowchart TD
@@ -49,48 +49,95 @@ flowchart TD
     end
 
     subgraph InternalInfra ["Infrastructure Adapters (packages/internal/*)"]
-        HTTP_CLIENT["@itsrose/http-client (Resilient Fetch Client)"]
+        HTTP_CLIENT["@itsrose/http-client (Axios-based Resilient Client)"]
         API_RESP["@itsrose/api-response (Standard Envelopes)"]
         HTTP_CODE["@itsrose/http-code (Status Enums)"]
         S3["@itsrose/s3 (Cloudflare R2 / AWS S3 v3)"]
     end
 
-    subgraph CoreShared ["Core, Types & Tooling"]
+    subgraph CorePlatform ["Core Platform (packages/core/*)"]
+        SYSTEM["@itsrose/system (Constants, Env, Error Classes)"]
+        LOGGER["@itsrose/logger (Pino Structured Logging)"]
+    end
+
+    subgraph Shared ["Shared Utilities (packages/shared/*)"]
+        FASTIFY_UTILS["@itsrose/fastify-utils (Plugins & HyperID)"]
+        SHARED_SCHEMA["@itsrose/shared-schema (Common Zod Schemas)"]
+    end
+
+    subgraph Auxiliary ["Auxiliary (packages/others/*)"]
+        API_CLIENT["@itsrose/api-client (Typed OpenAPI Client)"]
+        LOWDB["@itsrose/lowdb (File-backed JSON DB)"]
+    end
+
+    subgraph TopLevel ["Top-level Packages"]
         TYPES["@itsrose/types (Zero-Runtime Types)"]
         STANDARD["@itsrose/standard (tsdown, TS & ESLint Presets)"]
-        SYSTEM["@itsrose/system (Shared Platform Constants)"]
-        LOGGER["@itsrose/logger (Pino Structured Logging)"]
-        MIDTRANS["@itsrose/midtrans (Payment Gateway SDK)"]
+        MIDTRANS["@itsrose/midtrans (Payment Gateway Client)"]
         REACT_PKG["@itsrose/react (UI Component Library)"]
-        SHARED_SCHEMA["@itsrose/shared-schema (Common Zod Schemas)"]
-        FASTIFY_UTILS["@itsrose/fastify-utils (Plugins & HyperID)"]
     end
 
     API --> AUTH_CORE
     API --> AUTH_BILLING
     API --> API_RESP
-    API --> Features
     API --> MIDTRANS
+    API --> SYSTEM
+    API --> CHAR_AI
+    API --> ELEVEN
+    API --> IG
+    API --> MTXX
+    API --> REMINI
+    API --> TIKTOK
+
+    API_INT --> API_RESP
+    API_INT --> SYSTEM
+    API_INT --> ELEVEN
+    API_INT --> IG
+    API_INT --> MTXX
+    API_INT --> REMINI
+    API_INT --> TIKTOK
 
     DASH --> AUTH_CORE
     DASH --> AUTH_BILLING
     DASH --> REACT_PKG
 
+    WEB --> REACT_PKG
+
     AUTH_CORE --> AUTH_BILLING
     AUTH_CORE --> AUTH_MAILER
     AUTH_CORE --> AUTH_STORAGE
+    AUTH_CORE --> SYSTEM
     AUTH_BILLING --> MIDTRANS
-
-    Features --> HTTP_CLIENT
-    Features --> SYSTEM
     AUTH_STORAGE --> S3
+    AUTH_STORAGE --> SYSTEM
+
+    CHAR_AI --> HTTP_CLIENT
+    ELEVEN --> HTTP_CLIENT
+    IG --> HTTP_CLIENT
+    MTXX --> HTTP_CLIENT
+    REMINI --> HTTP_CLIENT
+    TIKTOK --> HTTP_CLIENT
+    CHAR_AI --> SYSTEM
+    ELEVEN --> SYSTEM
+    IG --> SYSTEM
+    MTXX --> SYSTEM
+    REMINI --> SYSTEM
+    TIKTOK --> SYSTEM
+
+    API_RESP --> HTTP_CODE
+    HTTP_CLIENT --> SYSTEM
+    MIDTRANS --> HTTP_CLIENT
+    MIDTRANS --> SYSTEM
+    API_CLIENT --> HTTP_CLIENT
 ```
+
+> Some feature packages additionally depend on `@itsrose/shared-schema` (`elevenlabs`, `instagram`, `mtxx`, `remini`); those edges are omitted from the diagram for readability.
 
 ### 2.1. Applications (`apps/*`)
 | Directory           | Name           | Framework             | Responsibility                                                                                                                       |
 | :------------------ | :------------- | :-------------------- | :----------------------------------------------------------------------------------------------------------------------------------- |
 | `apps/api`          | `api`          | Fastify 5 (ESM)       | High-throughput public REST & WebSocket API. Implements OpenAPI/Scalar, rate-limiting, Better Auth plugin, and upstream AI features. |
-| `apps/api-internal` | `api-internal` | Fastify 5 (ESM)       | Internal operational API service with ngrok tunnel integration for background and administrative workflows.                          |
+| `apps/api-internal` | `api-internal` | Fastify 5 (ESM)       | Internal operational/administrative API with ngrok tunnel integration and selected upstream feature clients (no public auth surface). |
 | `apps/dashboard`    | `dashboard`    | Next.js 16 (React 19) | Customer and administrative web dashboard. Built using HeroUI, TanStack Query/Table, and Better Auth client.                         |
 | `apps/waf-page`     | `waf-page`     | Astro 7               | Cloudflare edge challenge, bot-fight, and WAF landing pages.                                                                         |
 | `apps/web`          | `web`          | Next.js 16 (React 19) | Public marketing, landing, and MDX-powered documentation site.                                                                       |
@@ -113,13 +160,21 @@ Feature packages provide isolated, typed client wrappers around upstream AI and 
 
 ### 2.4. Infrastructure Adapters (`packages/internal/*`)
 - `packages/internal/api-response` (`@itsrose/api-response`): Standardized JSON response envelopes (`ApiResponse`, `ApiErrorResponse`).
-- `packages/internal/http-client` (`@itsrose/http-client`): Resilient HTTP client wrapper over native fetch/undici with retry policies and exponential backoff.
+- `packages/internal/http-client` (`@itsrose/http-client`): Resilient HTTP client built on **axios** (`axios-retry`) with retry policies and exponential backoff.
 - `packages/internal/http-code` (`@itsrose/http-code`): Standard HTTP status codes and business-logic semantic enums.
-- `packages/internal/s3` (`@itsrose/s3`): Cloudflare R2 / AWS S3 client using AWS SDK v3 with presigned URL creation and magic-byte MIME detection.
+- `packages/internal/s3` (`@itsrose/s3`): Cloudflare R2 / AWS S3 client using AWS SDK v3 (`@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`) with presigned URL creation and magic-byte MIME detection (`file-type`).
 
-### 2.5. Global Types & Standard Tooling
+### 2.5. Core, Shared, Auxiliary & Tooling Packages
+- `packages/core/logger` (`@itsrose/logger`): Pino structured logging with a custom pretty transport.
+- `packages/core/system` (`@itsrose/system`): Shared platform constants, environment access helpers, and typed error classes.
+- `packages/shared/fastify-utils` (`@itsrose/fastify-utils`): Fastify plugins and HyperID (`hyperid`) helpers.
+- `packages/shared/shared-schema` (`@itsrose/shared-schema`): Common Zod schemas shared across feature packages.
+- `packages/others/api-client` (`@itsrose/api-client`): Typed API client generated from the ItsRose OpenAPI surface; wraps `@itsrose/http-client`.
+- `packages/others/lowdb` (`@itsrose/lowdb`): File-backed, document-style local database (lowdb-inspired) with SuperJSON serialization, atomic writes, and an encrypted adapter.
 - `packages/types` (`@itsrose/types`): Pure zero-runtime TypeScript utility types (`Prettify<T>`, `DeepPartial<T>`, `ValueOf<T>`, `Nullable<T>`, `Brand<T, B>`, etc.).
-- `packages/standard` (`@itsrose/standard`): Shared tooling configs (`@itsrose/standard/tsdown`, `@itsrose/standard/typescript/*`, `@itsrose/standard/eslint/*`).
+- `packages/midtrans` (`@itsrose/midtrans`): In-house Midtrans payment-gateway client (HTTP + Zod validation) with `./api`, `./client`, `./helper`, `./schema`, and `./typings` subpaths.
+- `packages/react` (`@itsrose/react`): Shared React UI component library with `./core`, `./itsrose`, `./navbar`, `./utils`, `./styles`, and `./hooks/*` subpaths.
+- `packages/standard` (`@itsrose/standard`): Shared tooling presets — `@itsrose/standard/tsdown` (build), `@itsrose/standard/typescript/{base,node,nextjs,react-library}.json` (tsconfig), and `@itsrose/standard/eslint/{base,next,react-internal}` (ESLint flat configs).
 
 ---
 
@@ -128,7 +183,7 @@ Feature packages provide isolated, typed client wrappers around upstream AI and 
 ### 3.1. Strict Hexagonal Architecture (Ports & Adapters)
 Subsystems (most notably `@itsrose/auth-billing` and service layers in `apps/api`) MUST strictly conform to Hexagonal boundaries:
 
-```
+```text
 [ Transport: Routes / Fastify / Plugins ]
                  │
                  ▼
@@ -148,7 +203,7 @@ Subsystems (most notably `@itsrose/auth-billing` and service layers in `apps/api
 
 #### Layer 2: `adapter/*` — Raw I/O & External Provider Integrations
 1. **Implement Domain Ports**: Every adapter must implement a corresponding port defined in `domain/ports.ts`.
-2. **Encapsulate Third-Party SDKs**: All external vendor libraries (AWS SDK, Midtrans SDK, Redis, PostgreSQL drivers) live solely in this layer.
+2. **Encapsulate Third-Party SDKs**: All external vendor libraries (AWS SDK, Midtrans client, Redis, PostgreSQL drivers) live solely in this layer.
 3. **Data Mapping**: Adapters must map external vendor payloads into clean domain entities (`ApiPlan`, `Subscription`, `TransactionInvoice`) before returning them to domain services.
 4. **Webhook Security & Idempotency**: Signature verification (e.g., Midtrans HMAC SHA-512) and idempotency key handling must be resolved inside the adapter.
 
@@ -171,23 +226,25 @@ Subsystems (most notably `@itsrose/auth-billing` and service layers in `apps/api
 The monorepo enforces absolute separation between server-side code (Node.js runtime) and client-side code (browser/React runtime).
 
 1. **Subpath Export Architecture**:
-   Multi-target packages must declare clean subpaths in `package.json`:
+   Multi-target packages declare clean subpaths in `package.json` and add one `tsdown` entry per subpath. For example, `@itsrose/auth` (`packages/auth/core`):
    ```json
    {
      "exports": {
-       ".": "./src/index.ts",
-       "./client": "./src/client/index.ts",
-       "./react": "./src/react/index.ts",
-       "./server": "./src/server/index.ts",
-       "./schema": "./src/schema/index.ts",
-       "./types": "./src/types.ts",
+       ".": "./dist/index.mjs",
+       "./react": "./dist/react/index.mjs",
+       "./server": "./dist/server/index.mjs",
        "./package.json": "./package.json"
      }
    }
    ```
-   - `.` / `./types` / `./schema`: Zero Node.js runtime dependencies. Safe for universal consumption.
-   - `./server`: Node.js server composition roots, database drivers (`pg`), Redis (`ioredis`), AWS SDK (`@aws-sdk/client-s3`), secret keys.
-   - `./client` / `./react`: Pure React components, hooks, formatting helpers, and Better Auth client plugins.
+   - `.`: Universal root (types, shared constants).
+   - `./react`: Client-side React hooks and Better Auth client plugins. Safe for browser consumption.
+   - `./server`: Node.js server composition roots, database drivers (`pg`), Better Auth server plugins.
+
+   Other auth packages expose richer subpaths:
+   - `@itsrose/auth-billing`: `.`, `./client`, `./server`, `./schema`, `./types`, `./plugin` (alias of `./plugin-server`), `./plugin-server`, `./plugin-client`.
+   - `@itsrose/auth-mailer`: `.`, `./client`, `./plugin-server` (`./plugin`), `./renderer`, `./service`, `./types`.
+   - `@itsrose/auth-storage`: `.`, `./client`, `./config`, `./keys`, `./operations`, `./plugin-server` (`./plugin`), `./types`.
 
 2. **Frontend Consumption Boundaries**:
    - Frontend applications (`apps/dashboard`, `apps/web`) must **NEVER** import from:
@@ -202,21 +259,24 @@ The monorepo enforces absolute separation between server-side code (Node.js runt
 ## 4. Monorepo Build Tooling (`tsdown`) & Export Mechanics
 
 ### 4.1. Configuration Presets (`@itsrose/standard/tsdown`)
-All internal packages build with `tsdown` (Rolldown/esbuild under the hood) via presets exported by `@itsrose/standard/tsdown`:
-- `config` / `baseConfig`: Standard library preset (ES2024 target, CJS/ESM dual output, `.d.ts` generation, `deps.neverBundle: true`, macro preprocessors).
-- `reactConfig`: React 19 component library preset with Babel React Compiler plugin.
-- `fastifyConfig`: Node.js API application preset (`unbundle: true`, ESM-only, `exports: false`).
-- `mergeConfig(base, overrides)`: Preserves nested preset options while applying package-specific configurations.
+All internal packages build with `tsdown` (Rolldown/esbuild under the hood) via presets exported by `@itsrose/standard/tsdown` (`packages/standard/tsdown/tsdown.config.mjs`). The exported presets are:
+- `config`: Standard library preset — ES2024 target, dual CJS/ESM output (`.js`/`.mjs` with `.d.cts`/`.d.mts`), `deps.neverBundle: true`, `devExports` handling, plus the plugin stack (`unplugin-macros`, `unplugin-preprocessor-directives`, `unplugin-purge-polyfills`, and Sonda bundle analysis).
+- `reactConfig`: React 19 component-library preset — ESM-only, neutral platform, minification disabled, with the Babel React Compiler plugin (`reactCompilerPreset`, annotation mode, target `19`).
+- `fastifyConfig`: Node.js API application preset — `unbundle: true`, ESM-only, `exports: false`, `dts: false`, entry `src/**/*.ts`, sourcemaps disabled, `failOnWarn: false`.
+- `mergeConfig(base, overrides)`: Shallow-merges nested preset options while applying package-specific configurations.
+- `getProdConfig()`: Returns `{ sourcemap: true, minify: true }` when `NODE_ENV === "production"`.
+
+> Note: `baseConfig` is an internal (non-exported) constant; the importable library preset is `config` (which merges `baseConfig` with production overrides and the plugin stack).
 
 ### 4.2. The `devExports` Mechanism
-Inside `packages/standard/tsdown/config.mjs`:
+Inside `packages/standard/tsdown/tsdown.config.mjs`:
 ```javascript
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const IS_BUILD =
   process.env.BUILDING === "true" ||
   process.env.NEXT_PHASE === "phase-production-build";
 
-export const baseConfig = {
+const baseConfig = {
   // ...
   exports: {
     enabled: true,
@@ -289,7 +349,13 @@ syncInjectedDepsAfterScripts:
 - **Docker Isolated Builds**: Dockerfiles (`apps/api/Dockerfile`) use `turbo prune <app> --docker` followed by `pnpm deploy --filter=<app> --prod /prod/app`.
 - If workspace dependencies were standard symbolic links, `/prod/app` would contain broken symlinks pointing outside the deployment root, causing fatal `Cannot find module` errors in the runner container.
 - With `injectWorkspacePackages: true`, pnpm copies/hard-links workspace dependencies as self-contained standalone packages into target `node_modules`.
-- **The `"files": ["dist", "src"]` Invariant**: When injecting packages, pnpm respects `"files"`. Every workspace `package.json` must declare `"files": ["dist", "src"]` so both development source references and production distribution bundles are available when injected.
+
+#### The `"files"` Field Invariant:
+When injecting packages, pnpm respects each package's `"files"` field. Two rules apply:
+1. **Always include `dist`** in `"files"` — production deployments resolve exports against `./dist/*`.
+2. **Include `src`** for any package consumed from source during development (server composition roots and their subpaths, e.g. `@itsrose/auth*`, `@itsrose/http-client`, `@itsrose/system`, `@itsrose/s3`, `@itsrose/midtrans`) so `devExports` source references survive injection.
+
+> Not every package lists `"src"`: leaf libraries (`@itsrose/types`, `@itsrose/react`, feature packages, `api-response`, `http-code`, `logger`, `shared-*`, `others/*`) publish `"files": ["dist"]` only. This is correct — do not "normalize" `files` across packages.
 
 ---
 
@@ -351,6 +417,7 @@ export const VideoResponseSchema = z.object({
      });
      export type CreateInvoice = z.infer<typeof CreateInvoiceSchema>;
      ```
+   - Import Zod from the v4 entrypoint: `import { z } from "zod/v4"`.
 3. **Utility Types**: Use `@itsrose/types` (`Prettify<T>`, `DeepPartial<T>`, `ValueOf<T>`, `Brand<T, B>`, .etc) for type manipulations.
 
 ### 5.3. Approved Stack & No Hallucinated Libraries
@@ -358,34 +425,39 @@ Do not install or import alternative libraries when monorepo standards already e
 
 | Capability             | Approved Monorepo Tool                                             | Prohibited / Hallucinated Alternatives          |
 | :--------------------- | :----------------------------------------------------------------- | :---------------------------------------------- |
-| **API Framework**      | Fastify 5 (`fastify@^5.12.5`, `@fastify/*`)                        | Express, Koa, Hono, NestJS                      |
-| **Runtime Validation** | Zod v4 (`zod/v4`, `zod@^4.6.2`)                                    | Joi, Yup, TypeBox, Valibot                      |
-| **Authentication**     | Better Auth (`better-auth@^1.7.7`)                                 | NextAuth, Auth0, Lucia, Passport                |
-| **Cloud Storage**      | `@itsrose/s3` (AWS SDK v3 `@aws-sdk/client-s3`)                    | AWS SDK v2, Google Cloud Storage, MinIO         |
-| **Payment Gateway**    | `@itsrose/midtrans` (Midtrans SDK)                                 | Stripe SDK, PayPal SDK, Razorpay                |
-| **HTTP Transport**     | `@itsrose/http-client`                                             | Axios, Got, Superagent, request                 |
-| **Database & Cache**   | PostgreSQL (`pg`), Redis (`ioredis`, `@better-auth/redis-storage`) | Prisma, TypeORM, Drizzle (standalone), Mongoose |
-| **Frontend Framework** | Next.js 16 (`next@^16.4.3`), React 19 (`react@^19.3.0`)            | React 18, Remix, Vite standalone                |
-| **Component UI**       | HeroUI (`@heroui/react`), React Aria                               | Shadcn UI, MUI, Chakra UI, Ant Design           |
-| **Styling & Motion**   | Tailwind CSS v4, Motion (`motion@^14.1.0`)                         | Tailwind v3, Framer Motion v11, Emotion         |
-| **Build Pipeline**     | Turborepo (`turbo@^2.11.7`), `tsdown@^0.23.1`                      | Tsup, Rollup manual, Babel CLI                  |
+| **API Framework**      | Fastify 5 (`fastify@^5.12.5`, `@fastify/*`)            | Express, Koa, Hono, NestJS                      |
+| **Runtime Validation** | Zod v4 (`zod/v4`, `zod@^4.6.2`)                        | Joi, Yup, TypeBox, Valibot                      |
+| **Authentication**     | Better Auth (`better-auth@^1.7.7`)                           | NextAuth, Auth0, Lucia, Passport                |
+| **Cloud Storage**      | `@itsrose/s3` (AWS SDK v3 `@aws-sdk/client-s3@^3.1161.0`) | AWS SDK v2, Google Cloud Storage, MinIO         |
+| **Payment Gateway**    | `@itsrose/midtrans` (in-house client)                        | Stripe SDK, PayPal SDK, Razorpay                |
+| **HTTP Transport**     | `@itsrose/http-client` (axios-based wrapper)                 | direct `axios`, Got, Superagent, node-fetch, request |
+| **Database & Cache**   | PostgreSQL (`pg@^8.23.1`), Redis (`ioredis@^6.0.0`, `@better-auth/redis-storage`) | Prisma, TypeORM, Drizzle (standalone), Mongoose |
+| **Frontend Framework** | Next.js 16 (`next@^16.4.3`), React 19 (`react@^19.3.0`) | React 18, Remix, Vite standalone                |
+| **Component UI**       | HeroUI v3 (`@heroui/react@^3.2.6`), React Aria                | Shadcn UI, MUI, Chakra UI, Ant Design           |
+| **Styling & Motion**   | Tailwind CSS v4 (`tailwindcss@^4.3.3`), Motion (`motion@^14.1.0`) | Tailwind v3, Framer Motion v11, Emotion         |
+| **Build Pipeline**     | Turborepo (`turbo@^2.11.7`), `tsdown@^0.23.1`            | Tsup, Rollup manual, Babel CLI                  |
 
-### 5.4. Atomic Edits & Verification Protocol
+### 5.4. Dependency Version Pinning (pnpm Catalog)
+Shared dependency versions are pinned centrally in `pnpm-workspace.yaml` under the `catalog:` key (e.g. `zod`, `next`, `react`, `typescript`, `@types/*`). In `package.json`, reference catalog-managed dependencies with `"catalog:"` rather than an explicit version. New shared versions should be added to the catalog, not duplicated per-package.
+
+### 5.5. Atomic Edits & Verification Protocol
 1. **Atomic Commits**:
    - Scope each change to a single feature or fix.
    - Changes to shared packages (`@itsrose/types`, `@itsrose/auth-billing/types`, `@itsrose/api-response`) must atomically update all consuming packages in the same change set.
 2. **Conventional Commits**:
    - Format: `<type>(<scope>): <subject>`
-   - Types: `feat`, `fix`, `refactor`, `perf`, `test`, `chore`, `docs`, `ci`.
+   - Types: `feat`, `fix`, `refactor`, `perf`, `test`, `build`, `chore`, `ci`, `docs`, `style`, `revert`.
    - Examples:
      - `feat(s3): add presigned upload helper for r2`
      - `refactor(auth-billing): inject clock into settlement timestamps`
      - `fix(tiktok): align response schema with upstream snake_case fields`
 3. **Local Verification**:
-   Before submitting changes, ensure clean execution of:
+   Before submitting changes, ensure clean execution of (mirroring the CI `qa` + `coverage` jobs):
    ```bash
+   pnpm build
    pnpm typecheck
    pnpm run lint
+   pnpm test
    ```
 
 ---
@@ -419,21 +491,21 @@ ENOENT: no such file or directory, stat '.../packages/auth/core/...'
 Instruct the user to run (or execute) the standard monorepo `node_modules` clean and reinstall:
 
 ```bash
-# Step 1: Delete all node_modules across monorepo
-# Triggers the native package manager command, safely
-# scrubbing node_modules out of the root and every
-# single workspace package while preserving custom
-# hidden cache entries.
-pnpm pm clean
+# Step 1: Scrub all node_modules across the monorepo.
+# pnpm 11 ships a built-in clean command (alias purge) that safely removes
+# node_modules from every workspace project. Because the root package.json
+# defines a clean script (turbo run clean -> rimraf dist .sonda), use the
+# purge alias to reach the built-in scrubber instead of that script.
+pnpm purge
 
-# Step 2: Reinstall `node_modules`
-pnpm install # `--frozen-lockfile` is only used in prod
+# Step 2: Reinstall node_modules (plain install for local dev; CI uses
+# --frozen-lockfile)
+pnpm install
 
-# Step 3: Re-sync TypeScript project references
+# Step 3: Re-sync TypeScript project references (tsx sync-package.ts)
 pnpm sync:package
 
-# Step 4: Build workspace packages to populate dist/
-# and sync injected dependencies
+# Step 4: Build workspace packages to populate dist/ and sync injected deps
 pnpm build
 ```
 
