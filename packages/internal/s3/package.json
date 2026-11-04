@@ -1,10 +1,10 @@
 {
 	"name": "@itsrose/s3",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"author": "FrierenDv",
 	"type": "module",
 	"license": "MIT",
-	"description": "",
+	"description": "Modern, ergonomic Cloudflare R2 storage client built on the AWS SDK for JavaScript.",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/frierendv/itsrose.git",
@@ -19,7 +19,14 @@
 		"dist",
 		"src"
 	],
-	"keywords": [],
+	"keywords": [
+		"cloudflare",
+		"itsrose",
+		"r2",
+		"s3",
+		"storage",
+		"typescript"
+	],
 	"exports": {
 		".": "./src/index.ts",
 		"./package.json": "./package.json"
@@ -33,11 +40,13 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"file-type": "^22.1.1",
-		"s3mini": "^1.0.3"
+		"@aws-sdk/client-s3": "^3.1161.0",
+		"@aws-sdk/s3-request-presigner": "^3.1161.0",
+		"file-type": "^22.1.1"
 	},
 	"devDependencies": {
-		"@itsrose/standard": "workspace:*"
+		"@itsrose/standard": "workspace:*",
+		"aws-sdk-client-mock": "^4.1.0"
 	},
 	"publishConfig": {
 		"exports": {

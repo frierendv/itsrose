@@ -1,4 +1,4 @@
-import type { DataInput, S3 } from "@itsrose/s3";
+import type { StorageClient } from "@itsrose/s3";
 import type { StorageConfig } from "./config";
 
 /**
@@ -26,19 +26,14 @@ export interface SaveEphemeralFileParams {
 	filename?: string;
 
 	/**
-	 * Binary data, stream, string, or buffer to write.
+	 * Binary payload to write (Buffer or base64 string).
 	 */
-	body: DataInput;
+	body: Buffer | string;
 
 	/**
 	 * Optional MIME type of the payload.
 	 */
 	contentType?: string;
-
-	/**
-	 * Optional content length in bytes.
-	 */
-	contentLength?: number;
 
 	/**
 	 * Optional Cache-Control header override.
@@ -89,7 +84,6 @@ export interface CreatePresignedUploadParams {
 	category?: string;
 	filename?: string;
 	contentType?: string;
-	contentLength?: number;
 	expiresInSeconds?: number;
 }
 
@@ -103,7 +97,6 @@ export interface PresignedUploadResult {
 export interface PresignedUploadOptions {
 	expiresIn?: number;
 	contentType?: string;
-	contentLength?: number;
 }
 
 export interface UserStorageFile {
@@ -126,7 +119,7 @@ export interface UserStoragePurgeResult {
 
 export interface StoragePluginOptions {
 	config?: Partial<StorageConfig>;
-	s3?: S3;
+	s3?: StorageClient;
 	autoPurgeOnAccountDelete?: boolean;
 }
 

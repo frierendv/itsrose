@@ -1,4 +1,4 @@
-import type { DataInput, S3 } from "@itsrose/s3";
+import type { StorageClient } from "@itsrose/s3";
 import { getStorageClient } from "./client";
 import { MUTABLE_CACHE_CONTROL } from "./config";
 import {
@@ -21,14 +21,22 @@ import type {
 	UserStoragePurgeResult,
 } from "./types";
 
+type StoragePayload = Buffer | string;
+
+interface UploadFileOptions {
+	contentType?: string;
+	cacheControl?: string;
+}
+
 /**
- * Safely resolves the public URL using whichever method is present on the client.
+ * Resolves the public URL for a key, throwing when no public domain is configured.
  */
-function resolvePublicUrl(s3: S3, key: string): string {
-	if (typeof s3.getPublicUrl === "function") {
-		return s3.getPublicUrl(key);
+function resolvePublicUrl(s3: StorageClient, key: string): string {
+	const url = s3.getPublicUrl(key);
+	if (!url) {
+		throw new Error(`No public URL is configured for key "${key}".`);
 	}
-	return s3.getObjectPublicUrl(key);
+	return url;
 }
 
 /**
@@ -65,20 +73,19 @@ function resolveEphemeralKey(
  */
 export async function saveEphemeralFile(
 	params: SaveEphemeralFileParams,
-	client?: S3
+	client?: StorageClient
 ): Promise<EphemeralFileResult> {
 	const s3 = client ?? getStorageClient();
 	const key = resolveEphemeralKey(params);
 
 	const uploadResult = await s3.upload(key, params.body, {
 		contentType: params.contentType,
-		contentLength: params.contentLength,
 		cacheControl: params.cacheControl ?? MUTABLE_CACHE_CONTROL,
 	});
 
 	return {
 		key,
-		publicUrl: uploadResult.publicUrl,
+		publicUrl: resolvePublicUrl(s3, key),
 		etag: uploadResult.etag,
 		contentType: params.contentType,
 	};
@@ -89,7 +96,7 @@ export async function saveEphemeralFile(
  */
 export async function getEphemeralFileUrl(
 	params: GetEphemeralUrlParams,
-	client?: S3
+	client?: StorageClient
 ): Promise<string> {
 	const s3 = client ?? getStorageClient();
 
@@ -97,10 +104,7 @@ export async function getEphemeralFileUrl(
 		return resolvePublicUrl(s3, params.key);
 	}
 
-	return s3.createPresignedDownloadUrl({
-		key: params.key,
-		expiresInSeconds: params.expiresInSeconds ?? 900,
-	});
+	return s3.getPresignedUrl(params.key, params.expiresInSeconds ?? 900);
 }
 
 /**
@@ -108,17 +112,15 @@ export async function getEphemeralFileUrl(
  */
 export async function createPresignedUpload(
 	params: CreatePresignedUploadParams,
-	client?: S3
+	client?: StorageClient
 ): Promise<PresignedUploadResult> {
 	const s3 = client ?? getStorageClient();
 	const key = resolveEphemeralKey(params);
 	const expiresIn = params.expiresInSeconds ?? 900; // 15 mins default
 
-	const uploadUrl = await s3.createPresignedUploadUrl({
-		key,
+	const uploadUrl = await s3.getPresignedUploadUrl(key, {
 		contentType: params.contentType,
-		contentLength: params.contentLength,
-		expiresInSeconds: expiresIn,
+		expiresIn,
 	});
 
 	const publicUrl = resolvePublicUrl(s3, key);
@@ -137,11 +139,11 @@ export async function createPresignedUpload(
  */
 export async function deleteEphemeralFile(
 	key: string,
-	client?: S3
+	client?: StorageClient
 ): Promise<boolean> {
 	const s3 = client ?? getStorageClient();
-	const res = await s3.deleteObject(key);
-	return typeof res === "boolean" ? res : Boolean((res as any)?.deleted);
+	await s3.delete(key);
+	return true;
 }
 
 /**
@@ -151,16 +153,13 @@ export async function deleteEphemeralFile(
  */
 export async function deleteUserTempFiles(
 	userId: string,
-	client?: S3
+	client?: StorageClient
 ): Promise<UserStoragePurgeResult> {
 	const s3 = client ?? getStorageClient();
 	const validUserId = sanitizeUserId(userId);
 	const prefix = buildUserPrefix(validUserId);
 
-	const result = await s3.purgePrefix(prefix, {
-		batchSize: 500,
-		concurrency: 5,
-	});
+	const result = await s3.purgePrefix(prefix);
 
 	return {
 		userId: validUserId,
@@ -173,7 +172,7 @@ export async function deleteUserTempFiles(
  * Lists ephemeral files belonging to a user, optionally filtered by category.
  */
 export async function listUserFiles(
-	s3OrUserId: S3 | string,
+	s3OrUserId: StorageClient | string,
 	userIdOrCategory?: string,
 	maybeCategory?: string
 ): Promise<UserStorageFile[]> {
@@ -188,21 +187,21 @@ export async function listUserFiles(
 		? `${buildUserPrefix(validUserId)}${sanitizeCategory(category)}/`
 		: buildUserPrefix(validUserId);
 
-	const objects = (await s3.listObjects("/", prefix)) ?? [];
+	const objects = (await s3.listObjects(prefix)) ?? [];
 	const results: UserStorageFile[] = [];
 
 	for (const obj of objects) {
-		const parsed = parseUserStorageKey(obj.Key);
+		const parsed = parseUserStorageKey(obj.key);
 		if (parsed) {
 			results.push({
-				key: obj.Key,
+				key: obj.key,
 				userId: parsed.userId,
 				category: parsed.category,
 				filename: parsed.filename,
-				publicUrl: resolvePublicUrl(s3, obj.Key),
-				size: obj.Size,
-				lastModified: obj.LastModified,
-				etag: obj.ETag,
+				publicUrl: resolvePublicUrl(s3, obj.key),
+				size: obj.size,
+				lastModified: obj.lastModified,
+				etag: obj.etag,
 			});
 		}
 	}
@@ -215,7 +214,7 @@ export async function listUserFiles(
  * when a user account is deleted.
  */
 export async function purgeUserStorage(
-	s3OrUserId: S3 | string,
+	s3OrUserId: StorageClient | string,
 	maybeUserId?: string
 ): Promise<UserStoragePurgeResult> {
 	const s3 = typeof s3OrUserId === "string" ? getStorageClient() : s3OrUserId;
@@ -228,49 +227,33 @@ export async function purgeUserStorage(
  * Uploads a user-scoped ephemeral file: `t/users/{userId}/{category}/{filename}`.
  */
 export async function uploadUserFile(
-	s3OrUserId: S3 | string,
+	s3OrUserId: StorageClient | string,
 	userIdOrCategory: string,
 	categoryOrFilename: string,
-	filenameOrData: string | DataInput,
-	dataOrOptions?:
-		| DataInput
-		| {
-				contentType?: string;
-				cacheControl?: string;
-				contentLength?: number;
-		  },
-	maybeOptions?: {
-		contentType?: string;
-		cacheControl?: string;
-		contentLength?: number;
-	}
+	filenameOrData: string | StoragePayload,
+	dataOrOptions?: StoragePayload | UploadFileOptions,
+	maybeOptions?: UploadFileOptions
 ): Promise<UserStorageFile> {
-	let s3: S3;
+	let s3: StorageClient;
 	let userId: string;
 	let category: string;
 	let filename: string;
-	let data: DataInput;
-	let options:
-		| {
-				contentType?: string;
-				cacheControl?: string;
-				contentLength?: number;
-		  }
-		| undefined;
+	let data: StoragePayload;
+	let options: UploadFileOptions | undefined;
 
 	if (typeof s3OrUserId === "string") {
 		s3 = getStorageClient();
 		userId = s3OrUserId;
 		category = userIdOrCategory;
 		filename = categoryOrFilename;
-		data = filenameOrData as DataInput;
-		options = dataOrOptions as any;
+		data = filenameOrData as StoragePayload;
+		options = dataOrOptions as UploadFileOptions | undefined;
 	} else {
 		s3 = s3OrUserId;
 		userId = userIdOrCategory;
 		category = categoryOrFilename;
 		filename = filenameOrData as string;
-		data = dataOrOptions as DataInput;
+		data = dataOrOptions as StoragePayload;
 		options = maybeOptions;
 	}
 
@@ -281,7 +264,6 @@ export async function uploadUserFile(
 			filename,
 			body: data,
 			contentType: options?.contentType,
-			contentLength: options?.contentLength,
 			cacheControl: options?.cacheControl,
 		},
 		s3
@@ -302,7 +284,7 @@ export async function uploadUserFile(
  * Deletes a specific user ephemeral file.
  */
 export async function deleteUserFile(
-	s3OrUserId: S3 | string,
+	s3OrUserId: StorageClient | string,
 	userIdOrCategory: string,
 	categoryOrFilename: string,
 	maybeFilename?: string
@@ -325,13 +307,13 @@ export async function deleteUserFile(
  * Generates a scoped pre-signed upload URL for direct user uploads.
  */
 export async function createUserPresignedUpload(
-	s3OrUserId: S3 | string,
+	s3OrUserId: StorageClient | string,
 	userIdOrCategory: string,
 	categoryOrFilename: string,
 	filenameOrOptions?: string | PresignedUploadOptions,
 	maybeOptions?: PresignedUploadOptions
 ): Promise<PresignedUploadResult> {
-	let s3: S3;
+	let s3: StorageClient;
 	let userId: string;
 	let category: string;
 	let filename: string;
@@ -357,7 +339,6 @@ export async function createUserPresignedUpload(
 			category,
 			filename,
 			contentType: options?.contentType,
-			contentLength: options?.contentLength,
 			expiresInSeconds: options?.expiresIn,
 		},
 		s3
@@ -368,7 +349,7 @@ export async function createUserPresignedUpload(
  * Resolves the public URL for a user ephemeral file.
  */
 export function getUserFileUrl(
-	s3OrUserId: S3 | string,
+	s3OrUserId: StorageClient | string,
 	userIdOrCategory: string,
 	categoryOrFilename: string,
 	maybeFilename?: string
