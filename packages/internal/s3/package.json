@@ -37,7 +37,6 @@
 		"clean": "rimraf dist .sonda",
 		"lint": "eslint . --max-warnings 0",
 		"lint:fix": "eslint . --max-warnings 0 --fix",
-		"test": "jest --config jest.config.ts --runInBand",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
