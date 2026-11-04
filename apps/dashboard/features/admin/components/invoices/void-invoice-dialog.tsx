@@ -15,7 +15,7 @@ import {
 } from "@heroui/react";
 import type { Invoice } from "@itsrose/auth-billing";
 import { useState } from "react";
-import { useVoidInvoiceMutation } from "../../api";
+import { useVoidInvoiceMutation } from "../../hooks";
 
 export interface VoidInvoiceDialogProps {
 	invoice: Invoice | null;

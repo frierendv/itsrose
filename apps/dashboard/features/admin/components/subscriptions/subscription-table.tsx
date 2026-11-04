@@ -22,7 +22,7 @@ import {
 	useAdminSubscriptions,
 	useCancelSubscriptionMutation,
 	useRestoreSubscriptionMutation,
-} from "../../api";
+} from "../../hooks";
 import { formatDate, getSubscriptionStatusProps } from "../../utils";
 import { SUBSCRIPTION_FILTER_BY_STATUS } from "../constants";
 import { ViewUserPopover } from "../view-popover";

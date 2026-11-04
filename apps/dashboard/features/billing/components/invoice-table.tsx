@@ -1,5 +1,6 @@
 "use client";
 
+import { DataTable, type DataTableFeatures } from "@/components/table";
 import {
 	ArrowDownToLine,
 	ArrowUpRightFromSquare,
@@ -13,26 +14,12 @@ import {
 	Card,
 	Chip,
 	Input,
-	Pagination,
 	Skeleton,
-	Table,
 	Tabs,
 	Typography,
-	type SortDescriptor,
 } from "@heroui/react";
 import type { Invoice } from "@itsrose/auth-billing";
-import type { SortingState } from "@tanstack/react-table";
-import {
-	createColumnHelper,
-	createPaginatedRowModel,
-	createSortedRowModel,
-	flexRender,
-	rowPaginationFeature,
-	rowSortingFeature,
-	sortFn_alphanumeric,
-	tableFeatures,
-	useTable,
-} from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { useInvoices } from "../hooks";
 import {
@@ -42,38 +29,7 @@ import {
 	getInvoiceTypeProps,
 } from "../utils";
 
-const features = tableFeatures({
-	paginatedRowModel: createPaginatedRowModel(),
-	rowPaginationFeature,
-	rowSortingFeature,
-	sortFns: {
-		// eslint-disable-next-line camelcase
-		alphanumeric: sortFn_alphanumeric,
-	},
-	sortedRowModel: createSortedRowModel(),
-});
-
-const columnHelper = createColumnHelper<typeof features, Invoice>();
-
-function toSortDescriptor(sorting: SortingState): SortDescriptor | undefined {
-	const first = sorting[0];
-	if (!first) {
-		return undefined;
-	}
-	return {
-		column: first.id,
-		direction: first.desc ? "descending" : "ascending",
-	};
-}
-
-function toSortingState(descriptor: SortDescriptor): SortingState {
-	return [
-		{
-			desc: descriptor.direction === "descending",
-			id: descriptor.column as string,
-		},
-	];
-}
+const columnHelper = createColumnHelper<DataTableFeatures, Invoice>();
 
 export interface InvoiceTableProps {
 	invoices?: Invoice[];
@@ -92,9 +48,6 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 	showPagination = true,
 	emptyMessage = "No billing invoices found.",
 }) => {
-	const [sorting, setSorting] = useState<SortingState>([
-		{ id: "invoice_date", desc: true },
-	]);
 	const [statusFilter, setStatusFilter] = useState<string>("all");
 	const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -204,17 +157,11 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 				}),
 				columnHelper.accessor("gross_amount", {
 					header: "Amount",
-					cell: (info) => {
-						const amount =
-							info.getValue() ??
-							info.row.original.amount_idr ??
-							0;
-						return (
-							<Typography type="body-sm">
-								{formatIDR(amount)}
-							</Typography>
-						);
-					},
+					cell: (info) => (
+						<Typography type="body-sm">
+							{formatIDR(info.getValue())}
+						</Typography>
+					),
 				}),
 				columnHelper.accessor("status", {
 					header: "Status",
@@ -237,7 +184,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 						const isPendingStatus =
 							(inv.status || "").toLowerCase() === "pending" ||
 							(inv.status || "").toLowerCase() === "unpaid";
-						const payUrl = inv.payment_link_url || inv.payment_url;
+						const payUrl = inv.payment_link_url;
 						const pdfUrl = inv.paid_pdf_url || inv.pdf_url;
 
 						return (
@@ -281,97 +228,91 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 		[]
 	);
 
-	const table = useTable({
-		columns,
-		data: filteredData,
-		features,
-		initialState: {
-			pagination: { pageIndex: 0, pageSize },
-			sorting: [{ id: "invoice_date", desc: true }],
-		},
-		onSortingChange: setSorting,
-		state: { sorting },
-	});
-
-	const sortDescriptor = useMemo(() => toSortDescriptor(sorting), [sorting]);
-	const { pageIndex } = table.state.pagination;
-	const pageCount = table.getPageCount();
-	const pages = Array.from({ length: pageCount }, (_, i) => i + 1);
-	const start = filteredData.length === 0 ? 0 : pageIndex * pageSize + 1;
-	const end = Math.min((pageIndex + 1) * pageSize, filteredData.length);
-
 	if (isLoading) {
 		return <InvoiceTableSkeleton />;
 	}
 
 	return (
-		<div className="flex flex-col gap-4">
-			{showFilters && (
-				<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-					<Tabs
-						selectedKey={statusFilter}
-						onSelectionChange={(k) => {
-							setStatusFilter(String(k));
-							table.setPageIndex(0);
-						}}
-					>
-						<Tabs.ListContainer>
-							<Tabs.List aria-label="Filter invoices by status">
-								<Tabs.Tab id="all">
-									All
-									<Tabs.Indicator />
-								</Tabs.Tab>
-								<Tabs.Tab id="paid">
-									Paid
-									<Tabs.Indicator />
-								</Tabs.Tab>
-								<Tabs.Tab id="pending">
-									Pending
-									<Tabs.Indicator />
-								</Tabs.Tab>
-								<Tabs.Tab id="expired">
-									Expired
-									<Tabs.Indicator />
-								</Tabs.Tab>
-								<Tabs.Tab id="void">
-									Void
-									<Tabs.Indicator />
-								</Tabs.Tab>
-							</Tabs.List>
-						</Tabs.ListContainer>
-					</Tabs>
-
-					<div className="flex items-center gap-2">
-						<div className="relative w-full sm:w-64">
-							<Input
-								variant="secondary"
-								placeholder="Search order ID..."
-								value={searchQuery}
-								onChange={(e) => {
-									setSearchQuery(e.target.value);
-									table.setPageIndex(0);
-								}}
-							/>
-							{searchQuery ? (
-								<button
-									type="button"
-									onClick={() => setSearchQuery("")}
-									className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer text-muted hover:text-foreground"
-									aria-label="Clear search"
+		<DataTable
+			aria-label="Billing Invoices"
+			data={filteredData}
+			columns={columns}
+			rowHeaderId="order_id"
+			initialSorting={[{ id: "invoice_date", desc: true }]}
+			pageSize={pageSize}
+			showPagination={showPagination}
+			paginationLabel="invoices"
+			filterBar={
+				showFilters
+					? ({ resetPage }) => (
+							<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+								<Tabs
+									selectedKey={statusFilter}
+									onSelectionChange={(k) => {
+										setStatusFilter(String(k));
+										resetPage();
+									}}
 								>
-									<Xmark className="size-3.5" />
-								</button>
-							) : (
-								<div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted">
-									<Magnifier className="size-3.5" />
-								</div>
-							)}
-						</div>
-					</div>
-				</div>
-			)}
+									<Tabs.ListContainer>
+										<Tabs.List aria-label="Filter invoices by status">
+											<Tabs.Tab id="all">
+												All
+												<Tabs.Indicator />
+											</Tabs.Tab>
+											<Tabs.Tab id="paid">
+												Paid
+												<Tabs.Indicator />
+											</Tabs.Tab>
+											<Tabs.Tab id="pending">
+												Pending
+												<Tabs.Indicator />
+											</Tabs.Tab>
+											<Tabs.Tab id="expired">
+												Expired
+												<Tabs.Indicator />
+											</Tabs.Tab>
+											<Tabs.Tab id="void">
+												Void
+												<Tabs.Indicator />
+											</Tabs.Tab>
+										</Tabs.List>
+									</Tabs.ListContainer>
+								</Tabs>
 
-			{filteredData.length === 0 ? (
+								<div className="flex items-center gap-2">
+									<div className="relative w-full sm:w-64">
+										<Input
+											variant="secondary"
+											placeholder="Search order ID..."
+											value={searchQuery}
+											onChange={(e) => {
+												setSearchQuery(e.target.value);
+												resetPage();
+											}}
+										/>
+										{searchQuery ? (
+											<button
+												type="button"
+												onClick={() =>
+													setSearchQuery("")
+												}
+												className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer text-muted hover:text-foreground"
+												aria-label="Clear search"
+											>
+												<Xmark className="size-3.5" />
+											</button>
+										) : (
+											<div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted">
+												<Magnifier className="size-3.5" />
+											</div>
+										)}
+									</div>
+								</div>
+							</div>
+						)
+					: undefined
+			}
+			emptyState={
 				<Card variant="transparent" className="py-12">
 					<div className="flex flex-col items-center justify-center text-center gap-3">
 						<div className="p-3 text-muted">
@@ -399,115 +340,8 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 						)}
 					</div>
 				</Card>
-			) : (
-				<Table variant="secondary">
-					<Table.ScrollContainer>
-						<Table.Content
-							aria-label="Billing Invoices"
-							sortDescriptor={sortDescriptor}
-							onSortChange={(d) => setSorting(toSortingState(d))}
-						>
-							<Table.Header>
-								{table
-									.getHeaderGroups()[0]
-									?.headers.map((header) => (
-										<Table.Column
-											key={header.id}
-											allowsSorting={header.column.getCanSort()}
-											id={header.id}
-											isRowHeader={
-												header.id === "order_id"
-											}
-										>
-											{({ sortDirection }) =>
-												header.column.getCanSort() ? (
-													<Table.SortableColumnHeader
-														sortDirection={
-															sortDirection
-														}
-													>
-														{flexRender(
-															header.column
-																.columnDef
-																.header,
-															header.getContext()
-														)}
-													</Table.SortableColumnHeader>
-												) : (
-													flexRender(
-														header.column.columnDef
-															.header,
-														header.getContext()
-													)
-												)
-											}
-										</Table.Column>
-									))}
-							</Table.Header>
-							<Table.Body>
-								{table.getRowModel().rows.map((row) => (
-									<Table.Row key={row.id} id={row.id}>
-										{row.getAllCells().map((cell) => (
-											<Table.Cell key={cell.id}>
-												{flexRender(
-													cell.column.columnDef.cell,
-													cell.getContext()
-												)}
-											</Table.Cell>
-										))}
-									</Table.Row>
-								))}
-							</Table.Body>
-						</Table.Content>
-					</Table.ScrollContainer>
-
-					{showPagination && pageCount > 1 && (
-						<Table.Footer>
-							<Pagination size="sm">
-								<Pagination.Summary>
-									{start} to {end} of {filteredData.length}{" "}
-									invoices
-								</Pagination.Summary>
-								<Pagination.Content>
-									<Pagination.Item>
-										<Pagination.Previous
-											isDisabled={
-												!table.getCanPreviousPage()
-											}
-											onPress={() => table.previousPage()}
-										>
-											<Pagination.PreviousIcon />
-											Prev
-										</Pagination.Previous>
-									</Pagination.Item>
-									{pages.map((p) => (
-										<Pagination.Item key={p}>
-											<Pagination.Link
-												isActive={p === pageIndex + 1}
-												onPress={() =>
-													table.setPageIndex(p - 1)
-												}
-											>
-												{p}
-											</Pagination.Link>
-										</Pagination.Item>
-									))}
-									<Pagination.Item>
-										<Pagination.Next
-											isDisabled={!table.getCanNextPage()}
-											onPress={() => table.nextPage()}
-										>
-											Next
-											<Pagination.NextIcon />
-										</Pagination.Next>
-									</Pagination.Item>
-								</Pagination.Content>
-							</Pagination>
-						</Table.Footer>
-					)}
-				</Table>
-			)}
-		</div>
+			}
+		/>
 	);
 };
 

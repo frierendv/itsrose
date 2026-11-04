@@ -5,7 +5,6 @@ import type {
 } from "@bprogress/next";
 import type { ToastVariants } from "@heroui/react";
 import type { ThemeProviderProps } from "next-themes";
-import type { ReactThemeSwitchAnimationProps } from "react-theme-switch-animation";
 
 type SettingSetter<T> = (value: T) => void;
 
@@ -20,16 +19,6 @@ export type ToastOptions = Pick<ToastVariants, "placement">;
 export type ThemeOptions = Pick<
 	ThemeProviderProps,
 	"enableColorScheme" | "defaultTheme" | "enableSystem"
->;
-
-export type ThemeSwitchOptions = Omit<
-	ReactThemeSwitchAnimationProps,
-	| "styleId"
-	| "easing"
-	| "isDarkMode"
-	| "onDarkModeChange"
-	| "pseudoElement"
-	| "globalClassName"
 >;
 
 /**
@@ -51,11 +40,6 @@ export type WebSettingStore = {
 	 * See {@linkcode ThemeOptions}
 	 */
 	theme: ThemeOptions;
-	/**
-	 * Partial {@linkcode ReactThemeSwitchAnimationProps | Theme Switch} options.
-	 * See {@linkcode ThemeSwitchOptions}
-	 */
-	themeSwitch: ThemeSwitchOptions;
 };
 export type WebSettingActions = {
 	/**
@@ -63,17 +47,13 @@ export type WebSettingActions = {
 	 */
 	setProgress: SettingSetter<DeepPartial<ProgressOptions>>;
 	/**
-	 * Change option for {@linkcode ProgressOptions}
+	 * Change option for {@linkcode ToastOptions}
 	 */
 	setToast: SettingSetter<DeepPartial<ToastOptions>>;
 	/**
-	 * Change option for {@linkcode ProgressOptions}
+	 * Change option for {@linkcode ThemeOptions}
 	 */
 	setTheme: SettingSetter<DeepPartial<ThemeOptions>>;
-	/**
-	 * Change option for {@linkcode ThemeSwitchOptions}
-	 */
-	setThemeSwitch: SettingSetter<DeepPartial<ThemeSwitchOptions>>;
 	/** Reset to {@linkcode DefaultWebSetting | default} values  */
 	resetDefault: () => void;
 };

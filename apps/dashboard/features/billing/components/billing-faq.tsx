@@ -79,18 +79,18 @@ const BillingKeyPoint: React.FC<{ items: KeyPoint[] }> = ({ items }) => (
 BillingKeyPoint.displayName = "BillingKeyPoint";
 
 export type BillingFaqProps = {
-	fagItems: FaqItem[];
-	KeyPoints: KeyPoint[];
+	faqItems: FaqItem[];
+	keyPoints: KeyPoint[];
 };
 export const BillingFaq: React.FC<BillingFaqProps> = ({
-	fagItems = [],
-	KeyPoints = [],
+	faqItems = [],
+	keyPoints = [],
 }) => {
 	return (
 		<div className="flex flex-col gap-6 w-full">
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 				{/* Rails & Rates Panels */}
-				<BillingKeyPoint items={KeyPoints} />
+				<BillingKeyPoint items={keyPoints} />
 				{/* FAQ Accordion */}
 				<Card variant="default" className="lg:col-span-2">
 					<Card.Header className="pb-3 border-b border-border">
@@ -105,7 +105,7 @@ export const BillingFaq: React.FC<BillingFaqProps> = ({
 
 					<Card.Content>
 						<Accordion allowsMultipleExpanded>
-							{fagItems.map((item) => (
+							{faqItems.map((item) => (
 								<Accordion.Item key={item.id} id={item.id}>
 									<Accordion.Heading>
 										<Accordion.Trigger>

@@ -7,13 +7,7 @@ export default async (): Promise<MetadataRoute.Robots> => {
 			{
 				userAgent: ["*"],
 				allow: ["/"],
-				disallow: [
-					"/api/",
-					"/sw.js",
-					"/_next/",
-					"/_static/",
-					"/firebase-messaging-sw.js",
-				],
+				disallow: ["/api/", "/_next/", "/_static/"],
 			},
 		],
 		sitemap: `${config.APP_BASE_URL.href}/sitemap.xml`,

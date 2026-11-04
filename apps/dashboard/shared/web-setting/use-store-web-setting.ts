@@ -3,8 +3,10 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { DEFAULT_WEB_SETTING } from "./constants";
 import type { WebSetting } from "./types";
 
+type PersistedWebSetting = Pick<WebSetting, "progress" | "toast" | "theme">;
+
 export const useStoreWebSetting = create<WebSetting>()(
-	persist(
+	persist<WebSetting, [], [], PersistedWebSetting>(
 		(set) => ({
 			/** value */
 			...DEFAULT_WEB_SETTING,
@@ -24,11 +26,6 @@ export const useStoreWebSetting = create<WebSetting>()(
 			setTheme: (v) =>
 				set((state) => ({ theme: { ...state.theme, ...v } })),
 
-			setThemeSwitch: (v) =>
-				set((state) => ({
-					themeSwitch: { ...state.themeSwitch, ...v },
-				})),
-
 			resetDefault: () => set(DEFAULT_WEB_SETTING),
 		}),
 		{
@@ -37,10 +34,22 @@ export const useStoreWebSetting = create<WebSetting>()(
 				progress: state.progress,
 				toast: state.toast,
 				theme: state.theme,
-				themeSwitch: state.themeSwitch,
 			}),
 			storage: createJSONStorage(() => localStorage),
-			version: 1,
+			version: 2,
+			migrate: (persistedState, version) => {
+				if (version < 2) {
+					// The themeSwitch slice was removed in v2; strip it from
+					// previously persisted state.
+					const legacy = persistedState as PersistedWebSetting;
+					return {
+						progress: legacy.progress,
+						toast: legacy.toast,
+						theme: legacy.theme,
+					};
+				}
+				return persistedState as PersistedWebSetting;
+			},
 		}
 	)
 );

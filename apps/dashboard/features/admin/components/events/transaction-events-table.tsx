@@ -15,7 +15,7 @@ import {
 } from "@heroui/react";
 import type { TransactionInvoiceEvent } from "@itsrose/auth-billing";
 import { useMemo, useState } from "react";
-import { useAdminEvents } from "../../api";
+import { useAdminEvents } from "../../hooks";
 import {
 	extractEventIdentifiers,
 	formatDateTime,

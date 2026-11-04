@@ -1,6 +1,16 @@
 function asNextPublic(envKey: string) {
 	return "NEXT_PUBLIC_" + envKey;
 }
+
+function resolveAppBaseUrl(): URL {
+	return new URL(
+		process.env[asNextPublic("APP_BASE_URL")] ||
+			"https://dash.itsrose.my.id"
+	);
+}
+
+const APP_BASE_URL = resolveAppBaseUrl();
+
 export const config = {
 	/**  ----------------- site config -----------------  */
 	/** `NEXT_PUBLIC_APP_NAME` */
@@ -10,27 +20,21 @@ export const config = {
 	/** `NEXT_PUBLIC_APP_DOMAIN` */
 	APP_DOMAIN: process.env[asNextPublic("APP_DOMAIN")] || "dash.itsrose.my.id",
 	/** `NEXT_PUBLIC_APP_BASE_URL` */
-	APP_BASE_URL: new URL(
-		process.env[asNextPublic("APP_BASE_URL")] ||
-			"https://dash.itsrose.my.id"
-	),
+	APP_BASE_URL,
 	/** `NEXT_PUBLIC_APP_DESCRIPTION` */
 	APP_DESCRIPTION:
 		process.env[asNextPublic("APP_DESCRIPTION")] ||
 		"ItsRose provide you an easy to integrate APIs.",
 
 	/**  ----------------- auth config -----------------  */
-	/** `NEXT_PUBLIC_AUTH_BASE_URL` */
-	AUTH_BASE_URL: process.env[asNextPublic("AUTH_BASE_URL")],
-	/** `NEXT_PUBLIC_GOOGLE_CLIENT_ID` */
-	GOOGLE_CLIENT_ID: process.env[asNextPublic("GOOGLE_CLIENT_ID")],
-	/** `NEXT_PUBLIC_ITSROSE_API_BASE_URL` */
-	ITSROSE_API_BASE_URL: new URL(
-		process.env[asNextPublic("ITSROSE_API_BASE_URL")] ||
-			"https://api.itsrose.my.id"
-	),
+	/**
+	 * `NEXT_PUBLIC_AUTH_BASE_URL`
+	 * Falls back to the app origin so server-side calls (proxy) and the
+	 * browser client resolve against the same deployment.
+	 */
+	AUTH_BASE_URL:
+		process.env[asNextPublic("AUTH_BASE_URL")] || APP_BASE_URL.origin,
 
-	/**  ----------------- MISC -----------------  */
 	/**  ----------------- author config -----------------  */
 	authors: {
 		github: {

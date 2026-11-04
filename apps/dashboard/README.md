@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ItsRose Dashboard
 
-## Getting Started
+Customer and administrative web dashboard for the ItsRose platform.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Next.js 16** (App Router, React 19, React Compiler) with `proxy.ts` route protection
+- **HeroUI v3** + Tailwind CSS v4
+- **TanStack Query v5** for server state and **TanStack Table v9** for data tables
+- **Better Auth** through `@itsrose/auth/react`, with UI surfaces from `@better-auth-ui/heroui`
+- **Zustand** (persist) for user web settings
+
+## Structure
+
+```
+app/                      Next.js routes; thin wrappers with metadata only
+  (auth)/                 Auth pages (better-auth-ui views)
+  (dashboard)/            Authenticated app pages
+components/               Shared UI primitives (table states, copy button,
+                          json view, theme switch, sidebar)
+config/                   NEXT_PUBLIC_* runtime configuration
+constants/                Route and sidebar constants
+features/
+  admin/                  Admin pages, components, hooks, query keys
+  billing/                Customer billing pages, components, hooks, query keys
+  home/                   Dashboard home (subscription snapshot + quick links)
+hooks/                    Generic client hooks
+layouts/                  App, auth, navbar, and sidebar layouts
+lib/                      api glue (withAuthQuery), auth client, query client
+providers/                Base providers (theme, progress, toast) and auth/query providers
+server/                   Server-only utilities
+shared/                   Cross-feature modules (web settings, status props)
+styles/                   Global styles and HeroUI theme tokens
+types/                    Shared TypeScript types
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+All public configuration is read through `NEXT_PUBLIC_*`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable                        | Description                          |
+| :------------------------------ | :----------------------------------- |
+| `NEXT_PUBLIC_APP_NAME`          | Short product name (sidebar)         |
+| `NEXT_PUBLIC_APP_TITLE`         | Full product title (metadata)        |
+| `NEXT_PUBLIC_APP_DOMAIN`        | Deployment domain                    |
+| `NEXT_PUBLIC_APP_BASE_URL`      | App origin (metadata, auth fallback) |
+| `NEXT_PUBLIC_APP_DESCRIPTION`   | Product description                  |
+| `NEXT_PUBLIC_AUTH_BASE_URL`     | Better Auth server origin            |
+| `NEXT_PUBLIC_AUTHOR_GITHUB_*`   | Optional author metadata             |
 
-## Learn More
+## Development
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm --filter dashboard dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The dashboard expects the Better Auth API to be reachable at `NEXT_PUBLIC_AUTH_BASE_URL` (falls back to the app origin).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Commands
 
-## Deploy on Vercel
+```bash
+pnpm --filter dashboard typecheck   # tsc --noEmit
+pnpm --filter dashboard lint        # eslint
+pnpm --filter dashboard build       # next build (+ standalone postbuild)
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Production
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app builds with `output: "standalone"`. See `Dockerfile` for the
+containerized build; run the standalone server with:
+
+```bash
+node .next/standalone/apps/dashboard/server.js
+```

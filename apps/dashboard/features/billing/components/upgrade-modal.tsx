@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/errors";
 import { Wallet } from "@gravity-ui/icons";
 import {
 	Button,
@@ -55,9 +56,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
 				targetTier: targetPlan.plan_id,
 			});
 
-			const paymentUrl =
-				result?.invoice?.payment_link_url ||
-				result?.invoice?.payment_url;
+			const paymentUrl = result?.invoice?.payment_link_url;
 
 			if (!paymentUrl) {
 				toast.danger(
@@ -74,10 +73,12 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
 
 			// Redirect to Midtrans payment portal
 			window.location.href = paymentUrl;
-		} catch (err: any) {
+		} catch (err) {
 			toast.danger(
-				err?.message ||
+				getErrorMessage(
+					err,
 					"Failed to initiate upgrade invoice. Please try again."
+				)
 			);
 		}
 	};

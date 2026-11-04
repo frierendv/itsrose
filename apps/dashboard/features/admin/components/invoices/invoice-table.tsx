@@ -17,7 +17,7 @@ import {
 import type { Invoice } from "@itsrose/auth-billing";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
-import { useAdminInvoices } from "../../api";
+import { useAdminInvoices } from "../../hooks";
 import {
 	formatDate,
 	formatIDR,
@@ -105,9 +105,7 @@ export const InvoiceTable: React.FC = () => {
 						{typeProps.label}
 					</Chip>
 				</Table.Cell>
-				<Table.Cell>
-					{formatIDR(invoice.gross_amount ?? invoice.amount_idr ?? 0)}
-				</Table.Cell>
+				<Table.Cell>{formatIDR(invoice.gross_amount)}</Table.Cell>
 				<Table.Cell>
 					<Chip size="sm" variant="soft" color={statusProps.color}>
 						{statusProps.label}

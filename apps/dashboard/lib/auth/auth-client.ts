@@ -1,8 +1,5 @@
 import { config } from "@/config";
-import {
-	createBetterAuthClient,
-	type BetterAuthClient,
-} from "@itsrose/auth/react";
+import { createBetterAuthClient } from "@itsrose/auth/react";
 
 export const authClient = createBetterAuthClient({
 	baseURL: config.AUTH_BASE_URL,
@@ -10,4 +7,4 @@ export const authClient = createBetterAuthClient({
 	fetchOptions: {
 		credentials: "include",
 	},
-}) as BetterAuthClient;
+});
