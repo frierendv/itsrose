@@ -11,6 +11,28 @@ export {
 	getSubscriptionStatusProps,
 } from "@/shared/status-props";
 
+const numberFormatter = new Intl.NumberFormat("id-ID");
+
+/**
+ * Groups digits for admin readouts (quotas, request counts).
+ */
+export function formatUsageNumber(value: number | null | undefined): string {
+	if (value === null || value === undefined || !Number.isFinite(value)) {
+		return "—";
+	}
+	return numberFormatter.format(Math.max(0, Math.trunc(value)));
+}
+
+export function formatUnitsMicro(value: number | null | undefined): string {
+	if (value === null || value === undefined || !Number.isFinite(value)) {
+		return "—";
+	}
+	const whole = value / 1_000_000;
+	return new Intl.NumberFormat("id-ID", {
+		maximumFractionDigits: 3,
+	}).format(whole);
+}
+
 export function formatDate(date: string | Date | null | undefined): string {
 	if (!date) {
 		return "-";

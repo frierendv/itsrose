@@ -45,8 +45,11 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 	const [interval] = useState<"month" | "year">(
 		plan?.price?.interval ?? "month"
 	);
-	const [rateLimitMax, setRateLimitMax] = useState<number>(
-		plan?.limits?.max ?? 60
+	// Blank means "unlimited"; the API accepts `null` for that case.
+	const [quotaRequests, setQuotaRequests] = useState<string>(
+		plan?.quota_requests === null || plan?.quota_requests === undefined
+			? ""
+			: String(plan.quota_requests)
 	);
 	const [featuresText, setFeaturesText] = useState(
 		plan?.features
@@ -65,6 +68,10 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 			.split("\n")
 			.map((s) => s.trim())
 			.filter(Boolean);
+		const quotaRequestsValue =
+			quotaRequests.trim().length === 0
+				? null
+				: Math.max(0, Math.trunc(Number(quotaRequests)));
 
 		try {
 			if (isEdit) {
@@ -74,7 +81,7 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 					description,
 					price_amount: amount,
 					interval,
-					rate_limit_max: rateLimitMax,
+					quota_requests: quotaRequestsValue,
 					features,
 					highlighted,
 				});
@@ -85,7 +92,7 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 					description,
 					price_amount: amount,
 					interval,
-					rate_limit_max: rateLimitMax,
+					quota_requests: quotaRequestsValue,
 					features,
 					highlighted,
 				});
@@ -102,8 +109,8 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 		<form onSubmit={handleSubmit}>
 			<ModalBody className="flex flex-col gap-4">
 				<Typography type="body-sm" color="muted">
-					Configure tier specifications, pricing in IDR, and
-					associated rate limits.
+					Configure tier specifications, pricing in IDR, and the
+					monthly request allowance.
 				</Typography>
 
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -173,17 +180,15 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 
 					<div className="flex flex-col gap-1.5">
 						<label className="text-xs font-medium text-muted">
-							Rate Limit (RPM)
+							Monthly Request Quota
 						</label>
 						<Input
 							variant="secondary"
 							type="number"
-							min={1}
-							placeholder="120"
-							value={String(rateLimitMax)}
-							onChange={(e) =>
-								setRateLimitMax(Number(e.target.value))
-							}
+							min={0}
+							placeholder="Blank = unlimited"
+							value={quotaRequests}
+							onChange={(e) => setQuotaRequests(e.target.value)}
 						/>
 					</div>
 				</div>

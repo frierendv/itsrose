@@ -7,7 +7,7 @@ import { CircleInfo } from "@gravity-ui/icons";
 import { Button, Popover, Skeleton, Tooltip } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
 import React, { useState, type PropsWithChildren } from "react";
-import { SubscriptionDetailOverview } from "./subscriptions/subscription-detail-modal";
+import { SubscriptionDetailOverview } from "./subscriptions/subscription-inspect-drawer";
 
 export type ViewUserPopoverProps = PropsWithChildren<{
 	userId?: string;

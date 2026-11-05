@@ -1,4 +1,5 @@
 export * from "./admin-data-table";
+export * from "./admin-select";
 export * from "./admin-page";
 export * from "./confirm-action-dialog";
 export * from "./entity-drawer";

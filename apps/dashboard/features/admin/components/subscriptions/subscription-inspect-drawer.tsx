@@ -1,33 +1,19 @@
 "use client";
 
 import { JsonView } from "@/components/json-view";
-import {
-	Button,
-	Chip,
-	ModalBackdrop,
-	ModalBody,
-	ModalCloseTrigger,
-	ModalContainer,
-	ModalDialog,
-	ModalFooter,
-	ModalHeader,
-	ModalHeading,
-	ScrollShadow,
-	Separator,
-	Surface,
-	Typography,
-} from "@heroui/react";
+import { Button, Separator, Surface, Typography } from "@heroui/react";
 import type { Subscription } from "@itsrose/auth-billing";
 import { formatDateTime, getSubscriptionStatusProps } from "../../utils";
+import { EntityDrawer } from "../shell";
 
-export interface SubscriptionDetailModalProps {
+export interface SubscriptionInspectDrawerProps {
 	subscription: Subscription | null;
 	isOpen: boolean;
 	onOpenChange: (open: boolean) => void;
 }
 
 export type SubscriptionDetailOverviewProps = Pick<
-	SubscriptionDetailModalProps,
+	SubscriptionInspectDrawerProps,
 	"subscription"
 >;
 
@@ -134,8 +120,8 @@ export const SubscriptionDetailOverviewRaw: React.FC<
 	);
 };
 
-export const SubscriptionDetailModal: React.FC<
-	SubscriptionDetailModalProps
+export const SubscriptionInspectDrawer: React.FC<
+	SubscriptionInspectDrawerProps
 > = ({ subscription, isOpen, onOpenChange }) => {
 	if (!subscription) {
 		return null;
@@ -144,49 +130,24 @@ export const SubscriptionDetailModal: React.FC<
 	const statusProps = getSubscriptionStatusProps(subscription.status);
 
 	return (
-		<ModalBackdrop isOpen={isOpen} onOpenChange={onOpenChange}>
-			<ModalContainer size="lg">
-				<ModalDialog>
-					<ModalCloseTrigger />
-					<ModalHeader>
-						<div className="flex items-center gap-2">
-							<ModalHeading>Subscription Inspector</ModalHeading>
-							<Chip
-								color={statusProps.color}
-								size="sm"
-								variant="soft"
-							>
-								{statusProps.label}
-							</Chip>
-						</div>
-					</ModalHeader>
-
-					<ModalBody>
-						<ScrollShadow className="flex flex-col gap-4 p-1">
-							{/* Key Value Overview */}
-							<SubscriptionDetailOverview
-								subscription={subscription}
-							/>
-							<Separator />
-							{/* Raw JSON Dump for Debugging */}
-							<SubscriptionDetailOverviewRaw
-								subscription={subscription}
-							/>
-						</ScrollShadow>
-					</ModalBody>
-
-					<ModalFooter className="flex justify-end gap-2">
-						<Button
-							variant="outline"
-							onPress={() => onOpenChange(false)}
-						>
-							Close
-						</Button>
-					</ModalFooter>
-				</ModalDialog>
-			</ModalContainer>
-		</ModalBackdrop>
+		<EntityDrawer
+			description={`Status: ${statusProps.label}`}
+			footer={
+				<Button variant="outline" onPress={() => onOpenChange(false)}>
+					Close
+				</Button>
+			}
+			isOpen={isOpen}
+			onOpenChange={onOpenChange}
+			title="Subscription inspector"
+		>
+			<div className="flex flex-col gap-4">
+				<SubscriptionDetailOverview subscription={subscription} />
+				<Separator />
+				<SubscriptionDetailOverviewRaw subscription={subscription} />
+			</div>
+		</EntityDrawer>
 	);
 };
 
-SubscriptionDetailModal.displayName = "SubscriptionDetailModal";
+SubscriptionInspectDrawer.displayName = "SubscriptionInspectDrawer";
