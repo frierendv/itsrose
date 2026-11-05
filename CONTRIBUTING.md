@@ -175,7 +175,7 @@ We enforce the [Conventional Commits specification](https://www.conventionalcomm
 
 ```bash
 git commit -m "feat(api): add streaming support for elevenlabs audio synthesis"
-git commit -m "fix(fastify-utils): resolve CORS header override bug"
+git commit -m "fix(http-client): honor retry-after header on 429 responses"
 git commit -m "docs: update CONTRIBUTING guide with commit conventions"
 ```
 

@@ -61,7 +61,6 @@ flowchart TD
     end
 
     subgraph Shared ["Shared Utilities (packages/shared/*)"]
-        FASTIFY_UTILS["@itsrose/fastify-utils (Plugins & HyperID)"]
         SHARED_SCHEMA["@itsrose/shared-schema (Common Zod Schemas)"]
     end
 
@@ -131,7 +130,7 @@ flowchart TD
     API_CLIENT --> HTTP_CLIENT
 ```
 
-> Some feature packages additionally depend on `@itsrose/shared-schema` (`elevenlabs`, `instagram`, `mtxx`, `remini`); those edges are omitted from the diagram for readability.
+> Some feature packages additionally depend on `@itsrose/shared-schema` (`elevenlabs`, `mtxx`, `remini`); those edges are omitted from the diagram for readability.
 
 ### 2.1. Applications (`apps/*`)
 | Directory           | Name           | Framework             | Responsibility                                                                                                                       |
@@ -167,7 +166,6 @@ Feature packages provide isolated, typed client wrappers around upstream AI and 
 ### 2.5. Core, Shared, Auxiliary & Tooling Packages
 - `packages/core/logger` (`@itsrose/logger`): Pino structured logging with a custom pretty transport.
 - `packages/core/system` (`@itsrose/system`): Shared platform constants, environment access helpers, and typed error classes.
-- `packages/shared/fastify-utils` (`@itsrose/fastify-utils`): Fastify plugins and HyperID (`hyperid`) helpers.
 - `packages/shared/shared-schema` (`@itsrose/shared-schema`): Common Zod schemas shared across feature packages.
 - `packages/others/api-client` (`@itsrose/api-client`): Typed API client generated from the ItsRose OpenAPI surface; wraps `@itsrose/http-client`.
 - `packages/others/lowdb` (`@itsrose/lowdb`): File-backed, document-style local database (lowdb-inspired) with SuperJSON serialization, atomic writes, and an encrypted adapter.
