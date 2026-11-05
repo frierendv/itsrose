@@ -425,12 +425,12 @@ export function createPostgresUsageRateStore(
 					INSERT INTO ${USAGE_UNIT_RATES_TABLE}
 						(id, unit, plan_tier, amount, currency, rates_version,
 						 effective_from, effective_to, created_at, created_by)
-					VALUES ($5, $2, $1, $3, 'IDR', $7, $4, NULL, $8, $9)
+					VALUES ($5, $2, $1, $3, 'IDR', $6, $4, NULL, $7, $8)
 					RETURNING *
 				 ), audited AS (
 					INSERT INTO ${USAGE_RATE_AUDIT_TABLE}
 						(id, rate_id, actor_user_id, old_amount, new_amount, changed_at, note)
-					SELECT $10, inserted.id, $9, closed.amount, inserted.amount, $8, $11
+					SELECT $9, inserted.id, $8, closed.amount, inserted.amount, $7, $10
 					FROM inserted LEFT JOIN closed ON TRUE
 					RETURNING id
 				 )
