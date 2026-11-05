@@ -31,6 +31,8 @@
 		".": "./src/index.ts",
 		"./plugin/plugin-client": "./src/plugin/plugin-client.ts",
 		"./plugin/plugin-server": "./src/plugin/plugin-server.ts",
+		"./schema": "./src/schema/index.ts",
+		"./server": "./src/server.ts",
 		"./types": "./src/types.ts",
 		"./package.json": "./package.json",
 		"./plugin": "./src/plugin/plugin-server.ts",
@@ -46,7 +48,8 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"better-auth": "^1.7.7"
+		"better-auth": "^1.7.7",
+		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*",
@@ -57,6 +60,8 @@
 			".": "./dist/index.mjs",
 			"./plugin/plugin-client": "./dist/plugin/plugin-client.mjs",
 			"./plugin/plugin-server": "./dist/plugin/plugin-server.mjs",
+			"./schema": "./dist/schema/index.mjs",
+			"./server": "./dist/server.mjs",
 			"./types": "./dist/types.mjs",
 			"./package.json": "./package.json",
 			"./plugin": "./dist/plugin/plugin-server.mjs",

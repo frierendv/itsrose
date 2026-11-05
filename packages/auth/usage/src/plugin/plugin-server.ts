@@ -1,35 +1,27 @@
 import type { BetterAuthPlugin } from "better-auth";
-import { createAuthEndpoint, sessionMiddleware } from "better-auth/api";
-import { createRoute } from "../route";
-import type { UsageStatsPort } from "../types";
+import { USAGE_PLUGIN_ID } from "../constants";
+import { resolveUsageOptions, type UsagePluginOptions } from "./options";
+import { usageAdminEndpoints } from "./routes/admin";
+import { usageReadEndpoints } from "./routes/usage";
 
-export type UsagePluginOptions = {
-	/** Reads usage counters from the host application's storage. */
-	stats: UsageStatsPort;
-};
+export type { UsagePluginOptions } from "./options";
 
 /**
- * Better Auth usage plugin exposing per-user API usage statistics.
+ * Better Auth usage plugin: transport only.
  *
- * The plugin id is `usage`, so the endpoint is reachable at
- * `/usage/stats` and typed as `authClient.usage.stats()` on the client.
+ * The plugin id is `usage`, so the endpoints are reachable at
+ * `/auth/usage/*` and typed as `authClient.usage.*` on the client. The database
+ * schema lives in the schema-only plugin registered by `@itsrose/auth`
+ * instead, so the generated SQL stays the single source of truth for DDL.
  */
 export const usagePlugin = (options: UsagePluginOptions) => {
+	const resolved = resolveUsageOptions(options);
+
 	return {
-		id: "usage" as const,
+		id: USAGE_PLUGIN_ID,
 		endpoints: {
-			getStats: createAuthEndpoint(
-				createRoute("/stats"),
-				{
-					method: "GET",
-					use: [sessionMiddleware],
-				},
-				async (ctx) => {
-					const { user } = ctx.context.session;
-					const stats = await options.stats.getStats(user.id);
-					return ctx.json(stats);
-				}
-			),
+			...usageReadEndpoints(resolved),
+			...usageAdminEndpoints(resolved),
 		},
 	} satisfies BetterAuthPlugin;
 };
