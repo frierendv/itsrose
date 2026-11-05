@@ -1,48 +1,85 @@
 "use client";
 
-import { Typography } from "@heroui/react";
+import { useMemo } from "react";
 import { AdminMetricsCards } from "../components/overview/admin-metrics-cards";
-import { PlanTable } from "../components/plans/plan-table";
-import { SubscriptionTable } from "../components/subscriptions/subscription-table";
+import { AttentionList } from "../components/overview/attention-list";
+import { QuickLinks } from "../components/overview/quick-links";
+import { RecentActivity } from "../components/overview/recent-activity";
+import { AdminPage } from "../components/shell";
+import {
+	useAdminEvents,
+	useAdminInvoices,
+	useAdminPlans,
+	useAdminSubscriptions,
+} from "../hooks";
+import { buildOverviewMetrics } from "../models";
+
+const SAMPLE_CAP = 100;
 
 export const AdminOverviewPage: React.FC = () => {
+	const subscriptions = useAdminSubscriptions({
+		status: "all",
+		limit: SAMPLE_CAP,
+	});
+	const invoices = useAdminInvoices({ status: "all", limit: SAMPLE_CAP });
+	const plans = useAdminPlans();
+	const events = useAdminEvents({ limit: 10 });
+
+	const isPending =
+		subscriptions.isLoading || invoices.isLoading || plans.isLoading;
+
+	const metrics = useMemo(
+		() =>
+			buildOverviewMetrics({
+				subscriptions: subscriptions.subscriptions,
+				invoices: invoices.invoices,
+				plans: plans.plans,
+				events: events.events,
+				cap: SAMPLE_CAP,
+			}),
+		[
+			events.events,
+			invoices.invoices,
+			plans.plans,
+			subscriptions.subscriptions,
+		]
+	);
+
 	return (
-		<div className="flex flex-col gap-6">
-			{/* Page Header */}
-			<div className="flex flex-col gap-1">
-				<Typography type="h2">Admin Command Center</Typography>
-				<Typography type="body-sm" color="muted">
-					Overview of platform subscription health, monthly recurring
-					revenue, and pending billing actions.
-				</Typography>
-			</div>
-
-			{/* Core Metric Cards */}
-			<AdminMetricsCards />
-
-			{/* Active Subscriptions Overview */}
-			<div className="flex flex-col gap-3 pt-2">
-				<div className="flex flex-col gap-1">
-					<Typography type="h3">Subscription Health</Typography>
-					<Typography type="body-xs" color="muted">
-						Recent subscriptions, renewal states, and downgrade
-						schedules.
-					</Typography>
+		<AdminPage
+			description="Platform health at a glance: revenue, pending collections, subscriptions that need action and the latest gateway activity."
+			title="Command center"
+		>
+			<div className="flex flex-col gap-6">
+				<div className="flex flex-col gap-2">
+					<AdminMetricsCards
+						isPending={isPending}
+						metrics={metrics}
+					/>
+					<p className="text-xs text-muted">
+						Computed from the latest {SAMPLE_CAP} subscriptions and
+						invoices
+						{metrics.sampled.truncated
+							? " (the window is full, so totals may exclude older records)"
+							: ""}
+						.
+					</p>
 				</div>
-				<SubscriptionTable />
-			</div>
 
-			{/* Plan Catalog Overview */}
-			<div className="flex flex-col gap-3 pt-4">
-				<div className="flex flex-col gap-1">
-					<Typography type="h3">Plan Catalog</Typography>
-					<Typography type="body-xs" color="muted">
-						Tier pricing, request rate limits, and configuration.
-					</Typography>
+				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+					<RecentActivity
+						events={metrics.recent_events}
+						isPending={events.isLoading}
+					/>
+					<AttentionList
+						isPending={subscriptions.isLoading}
+						items={metrics.attention}
+					/>
 				</div>
-				<PlanTable />
+
+				<QuickLinks />
 			</div>
-		</div>
+		</AdminPage>
 	);
 };
 
