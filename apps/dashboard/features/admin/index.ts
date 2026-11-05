@@ -1,4 +1,4 @@
-export * from "./api";
+export * from "./hooks";
 export * from "./components";
 export * from "./pages/admin-events-page";
 export * from "./pages/admin-invoices-page";

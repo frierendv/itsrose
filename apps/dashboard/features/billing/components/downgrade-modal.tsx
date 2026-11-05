@@ -1,5 +1,6 @@
 "use client";
 
+import { getErrorMessage } from "@/lib/errors";
 import {
 	Button,
 	ModalBackdrop,
@@ -51,10 +52,12 @@ export const DowngradeModal: React.FC<DowngradeModalProps> = ({
 					`Downgrade to ${targetPlan.name} scheduled for cycle end.`
 			);
 			onOpenChange(false);
-		} catch (err: any) {
+		} catch (err) {
 			toast.danger(
-				err?.message ||
+				getErrorMessage(
+					err,
 					"Failed to schedule downgrade. Please try again or contact support."
+				)
 			);
 		}
 	};

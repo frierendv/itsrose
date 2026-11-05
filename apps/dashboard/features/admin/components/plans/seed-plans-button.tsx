@@ -14,7 +14,7 @@ import {
 	Typography,
 } from "@heroui/react";
 import { useState } from "react";
-import { useSeedPlansMutation } from "../../api";
+import { useSeedPlansMutation } from "../../hooks";
 
 export const SeedPlansButton: React.FC = () => {
 	const [isOpen, setIsOpen] = useState(false);

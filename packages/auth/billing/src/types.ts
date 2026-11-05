@@ -106,13 +106,9 @@ export type TransactionInvoice = {
 };
 
 /**
- * Readable alias of {@link TransactionInvoice} with the legacy payment fields
- * that older dashboard widgets still read.
+ * Readable alias of {@link TransactionInvoice}.
  */
-export interface Invoice extends TransactionInvoice {
-	amount_idr?: number;
-	payment_url?: string | null;
-}
+export type Invoice = TransactionInvoice;
 
 export type TransactionInvoiceEvent = {
 	id?: string;

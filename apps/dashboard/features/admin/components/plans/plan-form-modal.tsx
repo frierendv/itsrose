@@ -17,7 +17,7 @@ import {
 } from "@heroui/react";
 import type { ApiPlan } from "@itsrose/auth-billing";
 import { useState } from "react";
-import { useCreatePlanMutation, useUpdatePlanMutation } from "../../api";
+import { useCreatePlanMutation, useUpdatePlanMutation } from "../../hooks";
 
 export interface PlanFormModalProps {
 	plan?: ApiPlan | null;

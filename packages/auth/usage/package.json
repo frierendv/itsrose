@@ -1,0 +1,67 @@
+{
+	"name": "@itsrose/auth-usage",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"private": true,
+	"type": "module",
+	"license": "MIT",
+	"description": "API usage analytics (request counters, latency stats) and Better Auth plugin for ItsRose.",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/frierendv/itsrose.git",
+		"directory": "packages/auth/usage"
+	},
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "./dist/index.mjs",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"files": [
+		"dist",
+		"src"
+	],
+	"keywords": [
+		"itsrose",
+		"auth",
+		"usage",
+		"analytics",
+		"better-auth"
+	],
+	"exports": {
+		".": "./src/index.ts",
+		"./plugin/plugin-client": "./src/plugin/plugin-client.ts",
+		"./plugin/plugin-server": "./src/plugin/plugin-server.ts",
+		"./types": "./src/types.ts",
+		"./package.json": "./package.json",
+		"./plugin": "./src/plugin/plugin-server.ts",
+		"./plugin-server": "./src/plugin/plugin-server.ts",
+		"./plugin-client": "./src/plugin/plugin-client.ts"
+	},
+	"scripts": {
+		"build": "tsdown",
+		"build:fast": "tsdown src",
+		"clean": "rimraf dist .sonda",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"better-auth": "^1.7.7"
+	},
+	"devDependencies": {
+		"@itsrose/standard": "workspace:*",
+		"@types/node": "catalog:"
+	},
+	"publishConfig": {
+		"exports": {
+			".": "./dist/index.mjs",
+			"./plugin/plugin-client": "./dist/plugin/plugin-client.mjs",
+			"./plugin/plugin-server": "./dist/plugin/plugin-server.mjs",
+			"./types": "./dist/types.mjs",
+			"./package.json": "./package.json",
+			"./plugin": "./dist/plugin/plugin-server.mjs",
+			"./plugin-server": "./dist/plugin/plugin-server.mjs",
+			"./plugin-client": "./dist/plugin/plugin-client.mjs"
+		}
+	}
+}

@@ -2,6 +2,7 @@ import { apiKeyClient } from "@better-auth/api-key/client";
 import { dashClient } from "@better-auth/infra/client";
 import { passkeyClient } from "@better-auth/passkey/client";
 import { itsRosePluginClient } from "@itsrose/auth-billing/plugin-client";
+import { usagePluginClient } from "@itsrose/auth-usage/plugin-client";
 import type { BetterAuthClientPlugin } from "better-auth";
 import {
 	adminClient,
@@ -19,5 +20,6 @@ export default function () {
 		lastLoginMethodClient(),
 		dashClient(),
 		itsRosePluginClient(),
+		usagePluginClient(),
 	] satisfies BetterAuthClientPlugin[];
 }

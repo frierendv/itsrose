@@ -1,5 +1,4 @@
 import type { DeepRequired } from "@/types";
-import { ThemeAnimationType } from "react-theme-switch-animation";
 import type { WebSettingStore } from "./types";
 
 export const DEFAULT_WEB_SETTING: DeepRequired<WebSettingStore> = {
@@ -16,12 +15,5 @@ export const DEFAULT_WEB_SETTING: DeepRequired<WebSettingStore> = {
 		enableColorScheme: true,
 		defaultTheme: "system",
 		enableSystem: true,
-	},
-	themeSwitch: {
-		animationType: ThemeAnimationType.CIRCLE,
-		duration: 750,
-		blurAmount: 2,
-		direction: "ltr",
-		gifUrl: "/assets/itsrose-text.gif",
 	},
 };

@@ -16,15 +16,7 @@ export type SidebarItem = {
 	items?: SidebarItem[];
 };
 
-export type SidebarNavGroup = {
-	title?: string;
-	items: SidebarItem[];
-};
-
 export type SidebarItemProps = {
 	items: SidebarItem[];
 	label?: string;
 };
-
-// Backwards compatibility alias for recursive items
-export type SidebarSubItem = SidebarItem;

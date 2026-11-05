@@ -1,7 +1,9 @@
 import { getSubscription } from "@/lib/auth";
 import { CACHE_KEYS } from "@/lib/cache";
+import { createRedisUsageStats } from "@/plugins/tracking/usage-stats";
 import { redisStorage } from "@better-auth/redis-storage";
 import type { UserSubscription } from "@itsrose/auth-billing";
+import { usagePlugin } from "@itsrose/auth-usage/plugin";
 import { createBetterAuthServer, type AuthServer } from "@itsrose/auth/server";
 import fp from "fastify-plugin";
 
@@ -34,6 +36,11 @@ export default fp(
 				client: fastify.redis,
 				keyPrefix: "auth:",
 			}),
+			plugins: [
+				usagePlugin({
+					stats: createRedisUsageStats(fastify.redis),
+				}),
+			],
 		});
 
 		void fastify.decorate("auth", auth);

@@ -4,8 +4,6 @@ import {
 	ADMIN_SIDEBAR_ITEMS,
 	DEFAULT_SIDEBAR_ITEMS,
 	EXTERNAL_RESOURCE,
-	// USER_FEATURES_IMAGE,
-	// USER_FEATURES_NEURAL_VOICE,
 	USER_LOGS_SIDEBAR_ITEMS,
 	USER_SETTINGS_SIDEBAR_ITEMS,
 } from "@/constants/sidebar";
@@ -21,11 +19,7 @@ export function useDashboardRoute() {
 	}
 	const { user } = session;
 
-	const sidebarMainItems: SidebarItem[] = [
-		DEFAULT_SIDEBAR_ITEMS,
-		// USER_FEATURES_IMAGE,
-		// USER_FEATURES_NEURAL_VOICE,
-	];
+	const sidebarMainItems: SidebarItem[] = [DEFAULT_SIDEBAR_ITEMS];
 	const sidebarSecondaryItems: SidebarItem[] = [
 		USER_LOGS_SIDEBAR_ITEMS,
 		EXTERNAL_RESOURCE,

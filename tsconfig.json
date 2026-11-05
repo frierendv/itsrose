@@ -3,16 +3,19 @@
 	"include": [],
 	"references": [
 		{
-			"path": "packages/auth/core"
+			"path": "packages/auth/billing"
 		},
 		{
-			"path": "packages/auth/billing"
+			"path": "packages/auth/core"
 		},
 		{
 			"path": "packages/auth/mailer"
 		},
 		{
 			"path": "packages/auth/storage"
+		},
+		{
+			"path": "packages/auth/usage"
 		},
 		{
 			"path": "packages/core/logger"
@@ -63,13 +66,13 @@
 			"path": "packages/react"
 		},
 		{
-			"path": "packages/types"
-		},
-		{
 			"path": "packages/shared/fastify-utils"
 		},
 		{
 			"path": "packages/shared/shared-schema"
+		},
+		{
+			"path": "packages/types"
 		}
 	]
 }

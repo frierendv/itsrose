@@ -19,7 +19,7 @@ import {
 } from "@heroui/react";
 import type { ApiPlan } from "@itsrose/auth-billing";
 import { useState } from "react";
-import { useAdminPlans, useDeletePlanMutation } from "../../api";
+import { useAdminPlans, useDeletePlanMutation } from "../../hooks";
 import { formatIDR } from "../../utils";
 import { PlanFormModal } from "./plan-form-modal";
 import { SeedPlansButton } from "./seed-plans-button";
