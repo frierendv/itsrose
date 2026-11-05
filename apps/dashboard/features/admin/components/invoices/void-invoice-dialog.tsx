@@ -2,7 +2,9 @@
 
 import {
 	Button,
+	Form,
 	Input,
+	Label,
 	ModalBackdrop,
 	ModalBody,
 	ModalCloseTrigger,
@@ -11,6 +13,7 @@ import {
 	ModalFooter,
 	ModalHeader,
 	ModalHeading,
+	TextField,
 	Typography,
 } from "@heroui/react";
 import type { Invoice } from "@itsrose/auth-billing";
@@ -35,7 +38,7 @@ export const VoidInvoiceDialog: React.FC<VoidInvoiceDialogProps> = ({
 		return null;
 	}
 
-	const handleVoid = async (e: React.FormEvent) => {
+	const handleVoid = async (e: React.SyntheticEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		try {
 			await voidMutation.mutateAsync({
@@ -58,7 +61,7 @@ export const VoidInvoiceDialog: React.FC<VoidInvoiceDialogProps> = ({
 						<ModalHeading>Void Pending Invoice</ModalHeading>
 					</ModalHeader>
 
-					<form onSubmit={handleVoid}>
+					<Form onSubmit={handleVoid}>
 						<ModalBody className="flex flex-col gap-3">
 							<Typography type="body-sm">
 								Are you sure you want to void invoice{" "}
@@ -71,17 +74,18 @@ export const VoidInvoiceDialog: React.FC<VoidInvoiceDialogProps> = ({
 								Midtrans gateway, and record an audit event.
 							</Typography>
 
-							<div className="flex flex-col gap-1.5 pt-2">
-								<label className="text-xs font-medium text-muted">
-									Void Reason (Optional)
-								</label>
+							<TextField
+								className="pt-2"
+								name="reason"
+								onChange={setReason}
+								value={reason}
+							>
+								<Label>Void Reason (Optional)</Label>
 								<Input
 									variant="secondary"
 									placeholder="e.g. Duplicate order, user requested cancellation"
-									value={reason}
-									onChange={(e) => setReason(e.target.value)}
 								/>
-							</div>
+							</TextField>
 						</ModalBody>
 
 						<ModalFooter className="flex justify-end gap-2 pt-3">
@@ -100,7 +104,7 @@ export const VoidInvoiceDialog: React.FC<VoidInvoiceDialogProps> = ({
 								Void Invoice
 							</Button>
 						</ModalFooter>
-					</form>
+					</Form>
 				</ModalDialog>
 			</ModalContainer>
 		</ModalBackdrop>
