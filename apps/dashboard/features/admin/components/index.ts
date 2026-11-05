@@ -14,7 +14,6 @@ export * from "./plans/seed-plans-button";
 export * from "./subscriptions/subscription-inspect-drawer";
 export * from "./subscriptions/subscription-override-modal";
 export * from "./subscriptions/subscription-table";
-export * from "./subscriptions/trigger-cron-button";
 export * from "./usage/operations-panel";
 export * from "./usage/rate-form-modal";
 export * from "./usage/rate-table";
