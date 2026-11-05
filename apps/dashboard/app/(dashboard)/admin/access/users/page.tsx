@@ -7,5 +7,9 @@ export const metadata: Metadata = {
 };
 
 export default function AdminUsersPage() {
-	return <AdminUsers />;
+	return (
+		<div className="flex flex-col gap-6">
+			<AdminUsers />
+		</div>
+	);
 }
