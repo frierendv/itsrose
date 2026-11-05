@@ -124,6 +124,176 @@ export function quotaCardModel(quota: {
 	};
 }
 
+/* -------------------------------------------------------------------------- */
+/*                              Trend model                                   */
+/* -------------------------------------------------------------------------- */
+
+const dayLabelFormatter = new Intl.DateTimeFormat("id-ID", {
+	weekday: "short",
+	day: "numeric",
+	timeZone: "UTC",
+});
+
+export type TrendBar = {
+	date: string;
+	/** Short weekday + day, e.g. `Kam 5`. */
+	label: string;
+	total_count: number;
+	billable_count: number;
+	/** Height of the total bar, 0–100. */
+	total_pct: number;
+	/** Height of the billable bar, 0–100. */
+	billable_pct: number;
+	tooltip: string;
+};
+
+export type TrendCardModel = {
+	bars: TrendBar[];
+	total_requests: number;
+	billable_requests: number;
+	total_label: string;
+	billable_label: string;
+	peak_label: string | null;
+	is_empty: boolean;
+};
+
+/**
+ * Normalizes the daily points into bar heights.
+ *
+ * Heights are relative to the busiest day so a quiet week still reads as a
+ * shape instead of seven invisible slivers.
+ */
+export function trendCardModel(
+	points:
+		| readonly {
+				date: string;
+				requests_total: number;
+				requests_ok: number;
+		  }[]
+		| null
+		| undefined
+): TrendCardModel {
+	const safePoints = points ?? [];
+	const totals = safePoints.map((point) =>
+		Math.max(0, Math.trunc(point.requests_total || 0))
+	);
+	const billable = safePoints.map((point) =>
+		Math.max(0, Math.trunc(point.requests_ok || 0))
+	);
+	const peak = totals.reduce((max, value) => Math.max(max, value), 0);
+
+	const bars: TrendBar[] = safePoints.map((point, index) => {
+		const total = totals[index] ?? 0;
+		const ok = Math.min(billable[index] ?? 0, total);
+		const label = formatTrendLabel(point.date);
+		return {
+			date: point.date,
+			label,
+			total_count: total,
+			billable_count: ok,
+			total_pct: peak > 0 ? (total / peak) * 100 : 0,
+			billable_pct: peak > 0 ? (ok / peak) * 100 : 0,
+			tooltip: `${formatUsageCount(total)} requests · ${formatUsageCount(ok)} billable`,
+		};
+	});
+
+	const totalRequests = totals.reduce((sum, value) => sum + value, 0);
+	const billableRequests = billable.reduce((sum, value) => sum + value, 0);
+
+	return {
+		bars,
+		total_requests: totalRequests,
+		billable_requests: billableRequests,
+		total_label: `${formatUsageCount(totalRequests)} requests`,
+		billable_label: `${formatUsageCount(billableRequests)} billable`,
+		peak_label:
+			totalRequests > 0
+				? (bars.find((bar) => bar.total_count === peak)?.label ?? null)
+				: null,
+		is_empty: totalRequests === 0,
+	};
+}
+
+function formatTrendLabel(date: string): string {
+	const parsed = new Date(`${date}T00:00:00.000Z`);
+	if (Number.isNaN(parsed.getTime())) {
+		return date;
+	}
+	return dayLabelFormatter.format(parsed);
+}
+
+/* -------------------------------------------------------------------------- */
+/*                            Breakdown model                                 */
+/* -------------------------------------------------------------------------- */
+
+export type EndpointSliceModel = {
+	key: string;
+	requests_ok: number;
+	total_requests: number;
+	share_pct: number;
+	count_label: string;
+	share_label: string;
+	/** Bar width relative to the busiest endpoint, 0–100. */
+	width_pct: number;
+};
+
+export type BreakdownCardModel = {
+	slices: EndpointSliceModel[];
+	total_requests: number;
+	total_label: string;
+	hidden_count: number;
+	is_empty: boolean;
+};
+
+/**
+ * Builds the top-N endpoint leaderboard from the breakdown endpoint.
+ *
+ * Shares are computed against every returned slice, not just the visible ones,
+ * so the percentages still add up to the tenant total.
+ */
+export function endpointBreakdownModel(
+	input: readonly { key: string; requests_ok: number }[] | null | undefined,
+	limit = 5
+): BreakdownCardModel {
+	const safeLimit = Math.max(1, Math.trunc(limit));
+	const sorted = [...(input ?? [])]
+		.map((slice) => ({
+			key: slice.key || "(unknown)",
+			requests_ok: Math.max(0, Math.trunc(slice.requests_ok || 0)),
+		}))
+		.sort((left, right) => {
+			if (right.requests_ok !== left.requests_ok) {
+				return right.requests_ok - left.requests_ok;
+			}
+			return left.key.localeCompare(right.key);
+		});
+
+	const total = sorted.reduce((sum, slice) => sum + slice.requests_ok, 0);
+	const peak = sorted[0]?.requests_ok ?? 0;
+	const visible = sorted.slice(0, safeLimit);
+
+	const slices: EndpointSliceModel[] = visible.map((slice) => {
+		const share = total > 0 ? (slice.requests_ok / total) * 100 : 0;
+		return {
+			key: slice.key,
+			requests_ok: slice.requests_ok,
+			total_requests: total,
+			share_pct: share,
+			count_label: formatUsageCount(slice.requests_ok),
+			share_label: `${Math.round(share)}%`,
+			width_pct: peak > 0 ? (slice.requests_ok / peak) * 100 : 0,
+		};
+	});
+
+	return {
+		slices,
+		total_requests: total,
+		total_label: `${formatUsageCount(total)} requests`,
+		hidden_count: Math.max(0, sorted.length - slices.length),
+		is_empty: total === 0,
+	};
+}
+
 /**
  * `YYYY-MM` -> `MMMM YYYY` in the dashboard locale.
  */
