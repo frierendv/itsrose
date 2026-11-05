@@ -1,8 +1,15 @@
+import { createUsageCounter } from "@/lib/usage";
+import {
+	normalizeEndpoint,
+	statusClassOf,
+	tenantIdForUser,
+} from "@itsrose/auth-usage/server";
 import fp from "fastify-plugin";
-import { recordUsage } from "./usage-stats";
 
-const fastifyRequestTracker = fp(
+export default fp(
 	async (fastify) => {
+		const counter = createUsageCounter(fastify);
+
 		// Hook: runs before route handler
 		void fastify.addHook("onRequest", async (request) => {
 			void request.log.info({
@@ -25,19 +32,32 @@ const fastifyRequestTracker = fp(
 				userId: request.userId,
 			});
 
-			// Aggregate per-user daily usage counters for the dashboard.
-			if (request.userId) {
-				void recordUsage(
-					fastify.redis,
-					request.userId,
-					reply.elapsedTime
-				).catch((err: unknown) => {
+			const userId = request.userId;
+			if (!userId) {
+				return;
+			}
+
+			// Fire-and-forget: metering must never affect the response.
+			void counter
+				.record({
+					tenant_id: tenantIdForUser(userId),
+					user_id: userId,
+					api_key_id: request.apikey?.id ?? null,
+					// Route template only: raw URLs carry ids and secrets and
+					// would shatter the dimension.
+					endpoint: normalizeEndpoint({
+						route_url: request.routeOptions?.url,
+						url: request.url,
+					}),
+					status_class: statusClassOf(reply.statusCode),
+					latency_ms: reply.elapsedTime,
+				})
+				.catch((err: unknown) => {
 					fastify.log.warn(
-						{ err, userId: request.userId },
+						{ err, userId },
 						"Failed to record usage counters"
 					);
 				});
-			}
 		});
 
 		// Always return the request ID in response
@@ -49,5 +69,3 @@ const fastifyRequestTracker = fp(
 	},
 	{ dependencies: ["redis-storage", "auth"] }
 );
-
-export default fastifyRequestTracker;
