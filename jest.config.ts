@@ -92,6 +92,19 @@ const config: Config = {
 			}),
 		},
 		{
+			displayName: "apps/api",
+			roots: ["<rootDir>/apps/api/"],
+			testMatch: ["<rootDir>/apps/api/**/__tests__/**/*.test.[jt]s?(x)"],
+			moduleNameMapper: {
+				...moduleNameMapper,
+				"^@/(.*)$": "<rootDir>/apps/api/src/$1",
+			},
+			transformIgnorePatterns,
+			...createDefaultEsmPreset({
+				tsconfig: "<rootDir>/packages/standard/typescript/node.json",
+			}),
+		},
+		{
 			displayName: "apps/dashboard",
 			testEnvironment: "jsdom",
 			roots: ["<rootDir>/apps/dashboard/"],

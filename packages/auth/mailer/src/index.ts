@@ -5,6 +5,7 @@
  * service entry never imports the transport adapter.
  */
 export * from "./client";
+export * from "./env";
 export * from "./renderer";
 export * from "./service";
 export * from "./types";

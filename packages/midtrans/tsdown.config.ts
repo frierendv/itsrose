@@ -7,6 +7,7 @@ export default defineConfig(
 			index: "./src/index.ts",
 			api: "./src/api/index.ts",
 			client: "./src/client/index.ts",
+			env: "./src/env.ts",
 			helper: "./src/helper/index.ts",
 			schema: "./src/schema/index.ts",
 			typings: "./src/typings/index.ts",

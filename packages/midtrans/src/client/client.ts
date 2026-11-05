@@ -6,13 +6,10 @@ import {
 	API_BASE_URL_SANDBOX,
 	DEFAULT_TIMEOUT,
 	MAX_REQUEST_SIZE,
-	MIDTRANS_CLIENT_KEY,
-	MIDTRANS_ENVIRONMENT,
-	MIDTRANS_MERCHANT_ID,
-	MIDTRANS_SERVER_KEY,
 	SNAP_BASE_URL_PRODUCTION,
 	SNAP_BASE_URL_SANDBOX,
 } from "../constants";
+import { MIDTRANS_ENV } from "../env";
 import { HttpStatus } from "../schema/error/status";
 import type { ClientOptions, Environment } from "../typings";
 import { errorHandler } from "./error";
@@ -76,7 +73,7 @@ export class MidtransClient {
 					? "production"
 					: "sandbox";
 		} else {
-			const envVal = getEnv(MIDTRANS_ENVIRONMENT, {
+			const envVal = getEnv(MIDTRANS_ENV.environment, {
 				defaultValue: "sandbox",
 			});
 			environment = envVal === "production" ? "production" : "sandbox";
@@ -86,10 +83,11 @@ export class MidtransClient {
 		this.merchant = new MidtransMerchant({
 			merchantId:
 				merchantId ??
-				getEnv(MIDTRANS_MERCHANT_ID, { preprocess: String }),
+				getEnv(MIDTRANS_ENV.merchantId, { preprocess: String }),
 			serverKey:
-				serverKey ?? getEnv(MIDTRANS_SERVER_KEY, { isRequired: true }),
-			clientKey: clientKey ?? getEnv(MIDTRANS_CLIENT_KEY),
+				serverKey ??
+				getEnv(MIDTRANS_ENV.serverKey, { isRequired: true }),
+			clientKey: clientKey ?? getEnv(MIDTRANS_ENV.clientKey),
 			baseUrl:
 				baseUrl ??
 				(environment === "production"

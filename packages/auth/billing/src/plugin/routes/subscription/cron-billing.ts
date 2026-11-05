@@ -6,6 +6,7 @@ import {
 } from "better-auth/api";
 import { runAllBillingCronTasks } from "../../../application";
 import { isAdmin } from "../../../domain/permissions";
+import { BILLING_ENV } from "../../../env";
 import { billingCronSchema } from "../../../schema";
 import type { BillingPluginOptions } from "../../../types";
 import { createBillingContext } from "../../bindings";
@@ -25,8 +26,7 @@ export const runBillingCronEndpoint = (
 		},
 		async (ctx) => {
 			const authHeader = ctx.request?.headers?.get("Authorization");
-			// eslint-disable-next-line turbo/no-undeclared-env-vars
-			const cronSecret = process.env.BILLING_CRON_SECRET;
+			const cronSecret = process.env[BILLING_ENV.cronSecret];
 
 			const hasValidSecret = Boolean(
 				cronSecret &&
