@@ -37,6 +37,7 @@ const snapshot: UsageDayTenantSnapshot = {
 function build() {
 	return buildRollupRows({
 		snapshot,
+		day: "2026-01-15",
 		unit: "request",
 		source: "flush",
 		weights: [weight, heavyWeight],
@@ -53,6 +54,12 @@ describe("buildRollupRows", () => {
 			"/status|",
 			"*|key-1",
 		]);
+	});
+
+	it("stamps the day on every row", () => {
+		for (const row of build()) {
+			expect(row.day).toBe("2026-01-15");
+		}
 	});
 
 	it("keeps totals and latency on the tenant row", () => {

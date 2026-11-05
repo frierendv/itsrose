@@ -102,17 +102,20 @@ export function unitsMicroFor(requestsOk: number, weightMicro: number): number {
  * invoice line.
  */
 export function amountFor(unitsMicro: number, rateAmount: number): number {
-	const units = Math.max(0, Math.trunc(unitsMicro));
-	const rate = Math.max(0, Math.trunc(rateAmount));
-	if (units === 0 || rate === 0) {
+	// Exact integer math: `units_micro * amount` can exceed 2^53 long before
+	// the invoice total does, so the product must not go through a float.
+	const units = BigInt(Math.max(0, Math.trunc(unitsMicro)));
+	const rate = BigInt(Math.max(0, Math.trunc(rateAmount)));
+	if (units === 0n || rate === 0n) {
 		return 0;
 	}
 
 	const numerator = units * rate;
-	const denominator = USAGE_UNIT_MICRO_SCALE;
-	const quotient = Math.floor(numerator / denominator);
+	const denominator = BigInt(USAGE_UNIT_MICRO_SCALE);
+	const quotient = numerator / denominator;
 	const remainder = numerator % denominator;
-	return remainder * 2 >= denominator ? quotient + 1 : quotient;
+	const rounded = remainder * 2n >= denominator ? quotient + 1n : quotient;
+	return Number(rounded);
 }
 
 /* -------------------------------------------------------------------------- */
