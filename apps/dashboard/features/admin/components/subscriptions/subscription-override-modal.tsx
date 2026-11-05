@@ -2,7 +2,9 @@
 
 import {
 	Button,
+	Description,
 	Input,
+	Label,
 	ModalBackdrop,
 	ModalBody,
 	ModalCloseTrigger,
@@ -200,19 +202,24 @@ const SubscriptionOverrideForm: React.FC<SubscriptionOverrideFormProps> = ({
 				</div>
 
 				{/* Cancel At Period End Toggle */}
-				<div className="flex items-center justify-between p-3 border border-separator">
-					<div className="flex flex-col">
-						<Typography type="body-sm" className="font-medium">
-							Cancel At Period End
-						</Typography>
-						<Typography type="body-xs" color="muted">
-							Do not automatically renew next cycle
-						</Typography>
-					</div>
+				<div className="flex items-center rounded-medium border border-separator p-3">
 					<Switch
+						className="w-full"
 						isSelected={cancelAtPeriodEnd}
 						onChange={setCancelAtPeriodEnd}
-					/>
+					>
+						<Switch.Content className="w-full justify-between">
+							<div className="flex flex-col gap-0.5">
+								<Label>Cancel At Period End</Label>
+								<Description>
+									Do not automatically renew next cycle
+								</Description>
+							</div>
+							<Switch.Control>
+								<Switch.Thumb />
+							</Switch.Control>
+						</Switch.Content>
+					</Switch>
 				</div>
 			</ModalBody>
 
