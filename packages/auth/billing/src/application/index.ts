@@ -3,3 +3,4 @@ export * from "./subscription.service";
 export * from "./invoice.service";
 export * from "./cron.service";
 export * from "./webhook.service";
+export * from "./tenancy.service";

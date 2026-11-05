@@ -12,6 +12,8 @@ export const INVOICE_SEQUENCE_TABLE_NAME = "invoice_sequence" as const;
 export const INVOICE_TABLE_NAME = "transaction_invoices" as const;
 export const INVOICE_EVENT_TABLE_NAME = "transaction_events" as const;
 export const API_PLAN_TABLE_NAME = "api_plans" as const;
+export const TENANT_TABLE_NAME = "tenants" as const;
+export const TENANT_MEMBER_TABLE_NAME = "tenant_members" as const;
 
 export const DEFAULT_INVOICE_DUE_DAYS = 3 as const;
 export const DEFAULT_INVOICE_PREFIX = "INV" as const;
@@ -63,6 +65,23 @@ export const INVOICE_TYPE = {
 	NEW: "NEW",
 	UPGRADE: "UPGRADE",
 	RENEWAL: "RENEWAL",
+	/** Metered usage settlement invoice. */
+	USAGE: "USAGE",
+} as const;
+
+/**
+ * Tenant kinds. Personal tenants are provisioned 1:1 with a user and are
+ * derived deterministically from the user id; organization tenants arrive with
+ * the Better Auth `organization` plugin.
+ */
+export const TENANT_KIND = {
+	PERSONAL: "personal",
+	ORGANIZATION: "organization",
+} as const;
+
+export const TENANT_ROLE = {
+	OWNER: "owner",
+	MEMBER: "member",
 } as const;
 
 /* Hardcoded price */
@@ -82,6 +101,7 @@ export const FREE_PLAN = {
 		"Community Support",
 	],
 	limits: { max: 10, timeWindow: 60_000 },
+	quota_requests: 10_000,
 	highlighted: false,
 } satisfies ApiPlan<true>;
 
@@ -102,6 +122,7 @@ export const HOBBY_PLAN = {
 		"Email Support",
 	],
 	limits: { max: 60, timeWindow: 60_000 },
+	quota_requests: 500_000,
 	highlighted: false,
 } satisfies ApiPlan<true>;
 
@@ -122,6 +143,7 @@ export const PRO_PLAN = {
 		"Priority Support",
 	],
 	limits: { max: 300, timeWindow: 60_000 },
+	quota_requests: 2_000_000,
 	highlighted: true,
 } satisfies ApiPlan<true>;
 
@@ -142,6 +164,8 @@ export const BUSINESS_PLAN = {
 		"Priority Support",
 	],
 	limits: { max: 1000, timeWindow: 60_000 },
+	/** `null` = unlimited monthly requests (enterprise contract). */
+	quota_requests: null,
 	highlighted: false,
 } satisfies ApiPlan<true>;
 
@@ -180,6 +204,19 @@ export const STANDARD_TIER_RPM: Record<string, number> = {
 	[HOBBY_PLAN.plan_id]: HOBBY_PLAN.limits.max,
 	[PRO_PLAN.plan_id]: PRO_PLAN.limits.max,
 	[BUSINESS_PLAN.plan_id]: BUSINESS_PLAN.limits.max,
+};
+
+/**
+ * Monthly billable request allowance per tier. `null` means unlimited and is
+ * the deliberate shape for enterprise contracts.
+ *
+ * These are seeded product defaults; per-tenant overrides are a later phase.
+ */
+export const STANDARD_TIER_QUOTA: Record<string, number | null> = {
+	[FREE_PLAN.plan_id]: FREE_PLAN.quota_requests,
+	[HOBBY_PLAN.plan_id]: HOBBY_PLAN.quota_requests,
+	[PRO_PLAN.plan_id]: PRO_PLAN.quota_requests,
+	[BUSINESS_PLAN.plan_id]: BUSINESS_PLAN.quota_requests,
 };
 
 /**

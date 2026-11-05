@@ -1,5 +1,10 @@
 import type { ApiPlan, BillingInterval, PlanLimits, PlanPrice } from "../types";
-import { BILLING_PLANS, FREE_PLAN, RATE_LIMIT } from "./constants";
+import {
+	BILLING_PLANS,
+	FREE_PLAN,
+	RATE_LIMIT,
+	STANDARD_TIER_QUOTA,
+} from "./constants";
 
 const DEFAULT_PLAN_PRICE: PlanPrice = {
 	amount: 0,
@@ -22,6 +27,7 @@ export type PlanWriteInput = {
 	prices?: PlanPriceInput[];
 	price?: PlanPriceInput;
 	features?: string[];
+	quota_requests?: number | null;
 	highlighted?: boolean;
 };
 
@@ -60,8 +66,29 @@ export function normalizePlan(plan: Record<string, unknown>): ApiPlan {
 		price: normalizePrice(rawPrice),
 		features,
 		limits,
+		quota_requests: normalizeQuota(plan.quota_requests, planId),
 		highlighted,
 	};
+}
+
+/**
+ * Normalizes the monthly request allowance. `null` is a real value (unlimited),
+ * so it is preserved; missing values fall back to the seeded tier defaults.
+ */
+function normalizeQuota(raw: unknown, planId: string): number | null {
+	if (raw === null) {
+		return null;
+	}
+	if (typeof raw === "number" && Number.isFinite(raw)) {
+		return Math.max(0, Math.trunc(raw));
+	}
+	if (typeof raw === "string" && raw.trim().length > 0) {
+		const numeric = Number(raw);
+		if (Number.isFinite(numeric)) {
+			return Math.max(0, Math.trunc(numeric));
+		}
+	}
+	return STANDARD_TIER_QUOTA[planId.toLowerCase()] ?? null;
 }
 
 function normalizePrice(
@@ -121,6 +148,7 @@ export function buildCreatePlanData(
 		description: input.description ?? "",
 		price: normalizePrice(input.price ?? input.prices),
 		features: input.features ?? [],
+		quota_requests: input.quota_requests ?? null,
 		highlighted: String(Boolean(input.highlighted)),
 	};
 }
@@ -145,6 +173,9 @@ export function buildPlanUpdateData(
 	if (input.features !== undefined) {
 		update.features = input.features;
 	}
+	if (input.quota_requests !== undefined) {
+		update.quota_requests = input.quota_requests;
+	}
 	if (input.highlighted !== undefined) {
 		update.highlighted = String(input.highlighted);
 	}
@@ -164,6 +195,7 @@ export function buildSeedPlanData(
 		description: plan.description ?? "",
 		price: normalizePrice(plan.price),
 		features: plan.features ?? [],
+		quota_requests: plan.quota_requests,
 		highlighted: String(Boolean(plan.highlighted)),
 	};
 }

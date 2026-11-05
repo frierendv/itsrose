@@ -1,6 +1,8 @@
 import type {
 	ApiPlan,
 	Subscription,
+	Tenant,
+	TenantKind,
 	TransactionInvoice,
 	TransactionInvoiceEvent,
 } from "../types";
@@ -102,6 +104,29 @@ export interface InvoiceSequenceRepository {
 export interface UserRepository {
 	/** Reads the minimal user profile needed for Midtrans customer details. */
 	findContact(userId: string): Promise<UserContact | null>;
+	/** Ids of every user, used by the tenant backfill. */
+	findAllIds(limit?: number): Promise<string[]>;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 Tenancy                                    */
+/* -------------------------------------------------------------------------- */
+
+export interface TenantRepository {
+	findById(tenantId: string): Promise<Tenant | null>;
+	findPersonalByUser(userId: string): Promise<Tenant | null>;
+	/** Idempotent create by id, used by the personal-tenant bootstrap. */
+	ensure(data: {
+		id: string;
+		kind: TenantKind;
+		name: string;
+		owner_user_id: string;
+	}): Promise<{ tenant: Tenant; created: boolean }>;
+	ensureMember(input: {
+		tenant_id: string;
+		user_id: string;
+		role: string;
+	}): Promise<void>;
 }
 
 /**
@@ -114,6 +139,7 @@ export interface BillingRepositories {
 	events: WebhookEventStore;
 	sequences: InvoiceSequenceRepository;
 	users: UserRepository;
+	tenants: TenantRepository;
 }
 
 /* -------------------------------------------------------------------------- */
