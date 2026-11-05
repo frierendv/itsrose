@@ -24,8 +24,8 @@ export interface CreatePlanInput {
 	description?: string;
 	price_amount: number;
 	interval?: "month" | "year";
-	rate_limit_max?: number;
-	rate_limit_window?: number;
+	/** Monthly billable request allowance; `null` means unlimited. */
+	quota_requests?: number | null;
 	features?: string[];
 	highlighted?: boolean;
 }
@@ -36,11 +36,10 @@ export interface UpdatePlanInput {
 	description?: string;
 	price_amount?: number;
 	interval?: "month" | "year";
-	rate_limit_max?: number;
-	rate_limit_window?: number;
+	/** Monthly billable request allowance; `null` means unlimited. */
+	quota_requests?: number | null;
 	features?: string[];
 	highlighted?: boolean;
-	seatBased?: boolean;
 }
 
 export interface UpdateSubscriptionInput {

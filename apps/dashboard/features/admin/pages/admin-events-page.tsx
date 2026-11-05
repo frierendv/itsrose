@@ -1,22 +1,29 @@
 "use client";
 
-import { Typography } from "@heroui/react";
+import { ArrowLeft } from "@gravity-ui/icons";
+import { buttonVariants } from "@heroui/react";
+import NextLink from "next/link";
 import { TransactionEventsTable } from "../components/events/transaction-events-table";
+import { AdminPage } from "../components/shell";
+import { ADMIN_ROUTES } from "../routes";
 
-export const AdminEventsPage: React.FC = () => {
-	return (
-		<div className="flex flex-col gap-6">
-			<div className="flex flex-col gap-1">
-				<Typography type="h2">Transaction Event Flow</Typography>
-				<Typography type="body-sm" color="muted">
-					Real-time audit log of payment gateway webhooks, settlement
-					confirmations, invoice voids, and lifecycle events.
-				</Typography>
-			</div>
-
-			<TransactionEventsTable />
-		</div>
-	);
-};
+export const AdminEventsPage: React.FC = () => (
+	<AdminPage
+		actions={
+			<NextLink
+				className={buttonVariants({ size: "sm", variant: "outline" })}
+				href={ADMIN_ROUTES.billingInvoices}
+				prefetch={false}
+			>
+				<ArrowLeft aria-hidden />
+				<span>Invoices</span>
+			</NextLink>
+		}
+		description="Payment gateway callbacks, settlement confirmations, invoice voids and lifecycle events."
+		title="Transaction events"
+	>
+		<TransactionEventsTable />
+	</AdminPage>
+);
 
 AdminEventsPage.displayName = "AdminEventsPage";
