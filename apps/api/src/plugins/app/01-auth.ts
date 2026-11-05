@@ -11,7 +11,10 @@ import {
 	usageQuotaMode,
 } from "@/lib/usage";
 import { redisStorage } from "@better-auth/redis-storage";
-import type { UserSubscription } from "@itsrose/auth-billing";
+import {
+	STANDARD_TIER_RATES,
+	type UserSubscription,
+} from "@itsrose/auth-billing";
 import { usagePlugin } from "@itsrose/auth-usage/plugin";
 import { createBetterAuthServer, type AuthServer } from "@itsrose/auth/server";
 import fp from "fastify-plugin";
@@ -55,6 +58,7 @@ export default fp(
 					invoices: createUsageInvoicePort(fastify),
 					tenantSync: createUsageTenantSync(fastify),
 					quota_mode: usageQuotaMode(fastify),
+					plan_tiers: Object.keys(STANDARD_TIER_RATES),
 				}),
 			],
 		});
