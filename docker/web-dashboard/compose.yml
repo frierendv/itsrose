@@ -5,6 +5,17 @@ services:
             context: ../../
             dockerfile: apps/dashboard/Dockerfile
             network: host
+            # NEXT_PUBLIC_* are inlined at build time. Values come from the
+            # compose project environment (or a local .env); empty values fall
+            # back to the defaults in apps/dashboard/config/site.ts.
+            args:
+                NEXT_PUBLIC_APP_BASE_URL: ${NEXT_PUBLIC_APP_BASE_URL:-}
+                NEXT_PUBLIC_AUTH_BASE_URL: ${NEXT_PUBLIC_AUTH_BASE_URL:-}
+                NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-}
+                NEXT_PUBLIC_APP_TITLE: ${NEXT_PUBLIC_APP_TITLE:-}
+                NEXT_PUBLIC_APP_DESCRIPTION: ${NEXT_PUBLIC_APP_DESCRIPTION:-}
+                NEXT_PUBLIC_AUTHOR_GITHUB_TITLE: ${NEXT_PUBLIC_AUTHOR_GITHUB_TITLE:-}
+                NEXT_PUBLIC_AUTHOR_GITHUB_URL: ${NEXT_PUBLIC_AUTHOR_GITHUB_URL:-}
         restart: unless-stopped
         env_file:
             - .env.dashboard

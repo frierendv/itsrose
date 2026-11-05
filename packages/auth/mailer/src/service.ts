@@ -56,7 +56,7 @@ export class MailerService {
 	}): Promise<void> {
 		try {
 			const { html, text } = await renderEmail(params.component);
-			this.client.send({
+			await this.client.send({
 				to: params.to,
 				subject: params.subject,
 				html,

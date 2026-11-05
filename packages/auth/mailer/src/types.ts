@@ -88,6 +88,11 @@ export interface MailerPluginOptions
 	 */
 	subjects?: MailerSubjectOverrides;
 	/**
+	 * Observes delivery failures. Background sends never throw into the auth
+	 * flow; unreported failures are emitted as a process warning.
+	 */
+	onError?: (error: unknown) => void;
+	/**
 	 * Default expiration overrides.
 	 */
 	expiration?: {

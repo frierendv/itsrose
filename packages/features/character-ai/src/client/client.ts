@@ -1,6 +1,7 @@
 import { createHttpClient, type HttpClient } from "@itsrose/http-client";
 import { getEnv } from "@itsrose/system";
 import { Chat } from "../chat";
+import { CHARACTER_AI_ENV } from "../env";
 import { Character } from "./character";
 import { User } from "./user";
 
@@ -108,8 +109,10 @@ export class Client {
 	 * @throws {Error} If `CAI_USER_TOKEN` or `CAI_NEO_BASE_URL` are missing in environment.
 	 */
 	constructor() {
-		this.#token = getEnv("CAI_USER_TOKEN", { isRequired: true });
-		this.neoBaseUrl = getEnv("CAI_NEO_BASE_URL", { isRequired: true });
+		this.#token = getEnv(CHARACTER_AI_ENV.userToken, { isRequired: true });
+		this.neoBaseUrl = getEnv(CHARACTER_AI_ENV.neoBaseUrl, {
+			isRequired: true,
+		});
 		this.neoWssUrl = this.neoBaseUrl + "/ws/";
 
 		this.http = createHttpClient({

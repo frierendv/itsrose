@@ -3,6 +3,7 @@ import {
 	type SendEmailOptions,
 	type SendEmailResponse,
 } from "@eusend_dev/sdk";
+import { MAILER_ENV } from "./env";
 import type { MailerClientOptions } from "./types";
 
 /**
@@ -29,7 +30,7 @@ export class MailerClient {
 			this.options.apiKey ??
 			(typeof process !== "undefined"
 				? (process.env as Record<string, string | undefined>)[
-						"EUSEND_API_KEY"
+						MAILER_ENV.apiKey
 					]
 				: undefined);
 

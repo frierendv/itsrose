@@ -31,6 +31,7 @@
 	"exports": {
 		".": "./src/index.ts",
 		"./client": "./src/client.ts",
+		"./env": "./src/env.ts",
 		"./plugin-server": "./src/plugin-server.ts",
 		"./renderer": "./src/renderer.ts",
 		"./service": "./src/service.ts",
@@ -63,6 +64,7 @@
 		"exports": {
 			".": "./dist/index.mjs",
 			"./client": "./dist/client.mjs",
+			"./env": "./dist/env.mjs",
 			"./plugin-server": "./dist/plugin-server.mjs",
 			"./renderer": "./dist/renderer.mjs",
 			"./service": "./dist/service.mjs",
