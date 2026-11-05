@@ -45,16 +45,18 @@ export type FlushUsageResult = {
  */
 export function buildRollupRows(input: {
 	snapshot: UsageDayTenantSnapshot;
+	/** UTC day string the snapshot belongs to. */
+	day: string;
 	unit: string;
 	source: string;
 	weights: readonly UsageEndpointWeight[];
 }): UsageRollupRow[] {
-	const { snapshot, unit, source, weights } = input;
+	const { snapshot, day, unit, source, weights } = input;
 	const rows: UsageRollupRow[] = [];
 	const tenantWeight = resolveWeight(USAGE_DEFAULT_ENDPOINT, weights);
 	const base = {
 		tenant_id: snapshot.tenant_id,
-		day: "",
+		day,
 		api_key_id: USAGE_EMPTY_API_KEY,
 		unit,
 		source,
@@ -62,7 +64,6 @@ export function buildRollupRows(input: {
 
 	rows.push({
 		...base,
-		day: "",
 		endpoint: USAGE_DEFAULT_ENDPOINT,
 		requests_total: snapshot.requests_total,
 		requests_ok: snapshot.requests_ok,
@@ -78,7 +79,6 @@ export function buildRollupRows(input: {
 		const weight = resolveWeight(endpoint.endpoint, weights);
 		rows.push({
 			...base,
-			day: "",
 			endpoint: endpoint.endpoint,
 			requests_total: endpoint.requests_total,
 			requests_ok: endpoint.requests_ok,
@@ -94,7 +94,6 @@ export function buildRollupRows(input: {
 	for (const apiKey of snapshot.api_keys) {
 		rows.push({
 			...base,
-			day: "",
 			api_key_id: apiKey.api_key_id,
 			endpoint: USAGE_DEFAULT_ENDPOINT,
 			requests_total: apiKey.requests_ok,
@@ -141,9 +140,7 @@ export async function flushUsageRollups(
 			tenants.add(tenantId);
 			const snapshot = await input.dayReader.readTenantDay(tenantId, day);
 			dayRows.push(
-				...buildRollupRows({ snapshot, unit, source, weights }).map(
-					(row) => ({ ...row, day })
-				)
+				...buildRollupRows({ snapshot, day, unit, source, weights })
 			);
 		}
 

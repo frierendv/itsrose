@@ -136,6 +136,11 @@ describe("money", () => {
 	it("stays exact for large unit volumes", () => {
 		expect(amountFor(1_500_000_000_000, 1)).toBe(1_500_000);
 	});
+
+	it("keeps the product exact beyond the safe integer range", () => {
+		expect(amountFor(1_000_000_000_000_000, 1_000)).toBe(1_000_000_000_000);
+		expect(amountFor(1_000_000_000_000_001, 1)).toBe(1_000_000_000);
+	});
 });
 
 describe("quota evaluation", () => {
