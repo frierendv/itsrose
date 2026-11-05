@@ -1,4 +1,6 @@
+import type { CronExecutionResult } from "@itsrose/auth-billing";
 import type {
+	FlushUsageResult,
 	SettlementResult,
 	SettlementTenantResult,
 	UsageUnitRate,
@@ -129,4 +131,63 @@ export function buildMonthOptions(
 		const id = `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}`;
 		return { id, label: monthFormatter.format(date) };
 	});
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              Operations                                    */
+/* -------------------------------------------------------------------------- */
+
+export type OperationOutcome = {
+	fields: Array<{ label: string; value: string }>;
+	errors: string[];
+};
+
+export function buildFlushOutcome(result: FlushUsageResult): OperationOutcome {
+	return {
+		fields: [
+			{ label: "Days", value: result.days.join(", ") || "—" },
+			{ label: "Tenants", value: String(result.tenants) },
+			{ label: "Rows read", value: String(result.rows) },
+			{ label: "Rows written", value: String(result.written) },
+		],
+		errors: [],
+	};
+}
+
+export function buildTenantSyncOutcome(result: {
+	scanned: number;
+	created: number;
+}): OperationOutcome {
+	return {
+		fields: [
+			{ label: "Users scanned", value: String(result.scanned) },
+			{ label: "Tenants created", value: String(result.created) },
+		],
+		errors: [],
+	};
+}
+
+export function buildCronOutcome(
+	result: CronExecutionResult
+): OperationOutcome {
+	return {
+		fields: [
+			{
+				label: "Renewals dispatched",
+				value: String(result.dispatched_renewals ?? 0),
+			},
+			{
+				label: "Grace periods tracked",
+				value: String(result.tracked_grace_periods ?? 0),
+			},
+			{
+				label: "Expired swept",
+				value: String(result.swept_expired ?? 0),
+			},
+		],
+		errors: (result.errors ?? []).map(
+			(error) =>
+				`${error.task}${error.id ? ` (${error.id})` : ""}: ${error.error}`
+		),
+	};
 }

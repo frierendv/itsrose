@@ -2,6 +2,7 @@ export * from "./hooks";
 export * from "./components";
 export * from "./pages/admin-events-page";
 export * from "./pages/admin-invoices-page";
+export * from "./pages/admin-operations-page";
 export * from "./pages/admin-overview-page";
 export * from "./pages/admin-plans-page";
 export * from "./pages/admin-rates-page";

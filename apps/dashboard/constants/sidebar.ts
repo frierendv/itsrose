@@ -2,6 +2,7 @@ import { ADMIN_ROUTES } from "@/features/admin/routes";
 import type { SidebarItem } from "@/types/sidebar";
 import {
 	Archive,
+	ArrowRotateRight,
 	CreditCard,
 	FileDollar,
 	FolderTree,
@@ -115,6 +116,11 @@ export const ADMIN_SIDEBAR_ITEMS = {
 					title: "Settlements",
 					url: ADMIN_ROUTES.usageSettlements,
 					icon: Vault,
+				},
+				{
+					title: "Operations",
+					url: ADMIN_ROUTES.usageOperations,
+					icon: ArrowRotateRight,
 				},
 			],
 		},
