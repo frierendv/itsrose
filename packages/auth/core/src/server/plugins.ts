@@ -4,6 +4,7 @@ import { passkey } from "@better-auth/passkey";
 import { itsRosePlugin } from "@itsrose/auth-billing/plugin-server";
 import { mailerPlugin } from "@itsrose/auth-mailer/plugin";
 import { storagePlugin } from "@itsrose/auth-storage/plugin";
+import { usageSchemaPlugin } from "@itsrose/auth-usage/schema";
 import {
 	admin,
 	bearer,
@@ -125,5 +126,8 @@ export default function (env = process.env as SharedEnv) {
 		}),
 		itsRosePlugin(),
 		storagePlugin(),
+		// Schema only: the transport plugin is registered by the host app, so
+		// this registration is what makes the usage tables part of db:generate.
+		usageSchemaPlugin,
 	];
 }
