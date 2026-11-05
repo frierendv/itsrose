@@ -5,9 +5,11 @@ node_modules
 .pnp
 .pnp.js
 
-# Local env files
+# Local env files (committed examples are allowed)
 .env
 .env.*
+!.env.example
+!**/.env.example
 
 # Testing
 coverage
