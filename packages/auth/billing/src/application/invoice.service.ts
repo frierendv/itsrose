@@ -1,6 +1,7 @@
 import { INVOICE_TYPE } from "../domain/constants";
 import {
 	buildInvoiceRecord,
+	calculateInvoiceDates,
 	isVoidableStatus,
 	planInvoiceChange,
 	planUpgradeInvoice,
@@ -17,6 +18,7 @@ import type {
 	ApiPlan,
 	TransactionInvoice,
 	TransactionInvoiceEvent,
+	TransactionInvoiceItemDetails,
 } from "../types";
 import { getPlanById } from "./plan.service";
 import { getUserSubscription } from "./subscription.service";
@@ -427,4 +429,112 @@ export async function voidInvoiceForUser(
 	await options?.hooks?.onInvoiceVoided?.(result);
 
 	return { status: "voided", invoiceId: input.invoiceId };
+}
+
+/* -------------------------------------------------------------------------- */
+/*                            Usage settlement                                */
+/* -------------------------------------------------------------------------- */
+
+export interface CreateUsageInvoiceInput {
+	userId: string;
+	user: { id: string; name?: string | null; email?: string | null };
+	tenantId: string;
+	/** `YYYY-MM` settled period. */
+	period: string;
+	unit: string;
+	lines: TransactionInvoiceItemDetails[];
+	grossAmount: number;
+	/** Stable key so retries map to the same provider invoice. */
+	idempotencyKey: string;
+	notes?: string;
+	dueInDays?: number;
+}
+
+export type CreateUsageInvoiceResult =
+	| { status: "created"; invoice: TransactionInvoice }
+	| { status: "gateway_error"; message: string };
+
+/**
+ * Creates the provider invoice for a settled usage period.
+ *
+ * Distinct from `createInvoiceForUser`: there is no plan transition, no
+ * proration and no rejection table. The provider idempotency key is derived
+ * from the settlement identity (`tenant + period + unit`), so retrying a
+ * failed settlement cannot issue a second invoice.
+ */
+export async function createUsageInvoice(
+	dependencies: BillingDependencies,
+	input: CreateUsageInvoiceInput,
+	options?: BillingServiceOptions
+): Promise<CreateUsageInvoiceResult> {
+	const orderId = buildUsageOrderId(input);
+	const invoiceNumber = await dependencies.repositories.sequences.next();
+	const { invoiceDate, dueDate } = calculateInvoiceDates(
+		input.dueInDays ?? options?.defaultDueDays
+	);
+	const customerDetails = buildCustomerPayload({
+		userId: input.userId,
+		user: input.user,
+	});
+
+	const itemDetails = input.lines.map((line) => ({
+		item_id: line.item_id,
+		description: line.description ?? "",
+		price: line.price,
+		quantity: line.quantity,
+	}));
+
+	const gatewayResult = await dependencies.gateway.createInvoice(
+		{
+			order_id: orderId,
+			invoice_number: invoiceNumber,
+			payment_type: "payment_link",
+			invoice_date: invoiceDate,
+			due_date: dueDate,
+			customer_details: customerDetails,
+			notes:
+				input.notes ??
+				`API usage settlement for ${input.period} (${input.unit})`,
+			item_details: itemDetails,
+		},
+		{ idempotencyKey: input.idempotencyKey }
+	);
+
+	if (!gatewayResult.ok) {
+		return { status: "gateway_error", message: gatewayResult.message };
+	}
+
+	const invoice = buildInvoiceRecord({
+		midtrans: gatewayResult.data,
+		userId: input.userId,
+		orderId,
+		invoiceType: INVOICE_TYPE.USAGE,
+		targetTier: "usage",
+		invoiceNumber,
+		invoiceDate,
+		dueDate,
+		grossAmount: input.grossAmount,
+		customerDetails,
+		itemDetails,
+		prorationDetails: null,
+	});
+
+	const stored = await createInvoiceRecord(dependencies, invoice);
+	await options?.hooks?.onInvoiceCreated?.(stored);
+
+	return { status: "created", invoice: stored };
+}
+
+/**
+ * Deterministic order id for a usage settlement, safe for payment providers
+ * that restrict order ids to alphanumerics and dashes.
+ */
+export function buildUsageOrderId(input: {
+	tenantId: string;
+	period: string;
+	unit: string;
+}): string {
+	const tenantPart = input.tenantId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8);
+	const unitPart = input.unit.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8);
+	return `usage-${input.period}-${tenantPart}-${unitPart}`;
 }

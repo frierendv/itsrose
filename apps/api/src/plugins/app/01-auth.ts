@@ -1,6 +1,15 @@
 import { getSubscription } from "@/lib/auth";
 import { CACHE_KEYS } from "@/lib/cache";
-import { createRedisUsageStats } from "@/plugins/tracking/usage-stats";
+import {
+	createUsageCounter,
+	createUsageDayReader,
+	createUsageInvoicePort,
+	createUsageLedger,
+	createUsagePlanPort,
+	createUsageRateStore,
+	createUsageTenantSync,
+	usageQuotaMode,
+} from "@/lib/usage";
 import { redisStorage } from "@better-auth/redis-storage";
 import type { UserSubscription } from "@itsrose/auth-billing";
 import { usagePlugin } from "@itsrose/auth-usage/plugin";
@@ -38,7 +47,14 @@ export default fp(
 			}),
 			plugins: [
 				usagePlugin({
-					stats: createRedisUsageStats(fastify.redis),
+					counter: createUsageCounter(fastify),
+					dayReader: createUsageDayReader(fastify),
+					ledger: createUsageLedger(fastify),
+					rates: createUsageRateStore(fastify),
+					plans: createUsagePlanPort(fastify),
+					invoices: createUsageInvoicePort(fastify),
+					tenantSync: createUsageTenantSync(fastify),
+					quota_mode: usageQuotaMode(fastify),
 				}),
 			],
 		});

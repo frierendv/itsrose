@@ -26,9 +26,3 @@ export function useUsageStats() {
 		stats: query.data ?? null,
 	};
 }
-
-const numberFormatter = new Intl.NumberFormat("id-ID");
-
-export function formatUsageCount(value: number): string {
-	return numberFormatter.format(value || 0);
-}

@@ -8,6 +8,8 @@ import {
 	INVOICE_TABLE_NAME,
 	INVOICE_TYPE,
 	SUBSCRIPTION_TABLE_NAME,
+	TENANT_MEMBER_TABLE_NAME,
+	TENANT_TABLE_NAME,
 } from "../domain/constants";
 import { formatInvoiceNumber } from "../domain/invoice.service";
 import {
@@ -23,6 +25,7 @@ import type {
 	InvoiceSequenceRepository,
 	PlanRepository,
 	SubscriptionRepository,
+	TenantRepository,
 	UserRepository,
 	WebhookEventStore,
 } from "../domain/ports";
@@ -31,6 +34,8 @@ import type {
 	ApiPlan,
 	InvoiceSequence,
 	Subscription,
+	Tenant,
+	TenantMember,
 	TransactionInvoice,
 	TransactionInvoiceEvent,
 } from "../types";
@@ -463,6 +468,98 @@ function createInvoiceSequenceRepository(
 	};
 }
 
+function createTenantRepository(adapter: DatabaseAdapter): TenantRepository {
+	async function findById(tenantId: string): Promise<Tenant | null> {
+		return adapter.findOne<Tenant>({
+			model: TENANT_TABLE_NAME,
+			where: [{ field: "id", value: tenantId }],
+		});
+	}
+
+	return {
+		findById,
+
+		async findPersonalByUser(userId) {
+			return adapter.findOne<Tenant>({
+				model: TENANT_TABLE_NAME,
+				where: [
+					{ field: "owner_user_id", value: userId },
+					{ field: "kind", value: "personal" },
+				],
+			});
+		},
+
+		async ensure(data) {
+			const existing = await findById(data.id);
+			if (existing) {
+				return { tenant: existing, created: false };
+			}
+
+			try {
+				// The adapter type omits `id`, but the driver accepts an
+				// explicit one; the derived tenant id must be persisted as-is.
+				const row = {
+					id: data.id,
+					kind: data.kind,
+					name: data.name,
+					owner_user_id: data.owner_user_id,
+					created_at: new Date(),
+				};
+				const created = await adapter.create<Tenant>({
+					model: TENANT_TABLE_NAME,
+					data: row as unknown as Omit<Tenant, "id">,
+				});
+				return { tenant: created, created: true };
+			} catch (error) {
+				// Concurrent bootstrap: the other writer won, read it back.
+				const raced = await findById(data.id);
+				if (raced) {
+					return { tenant: raced, created: false };
+				}
+				throw error;
+			}
+		},
+
+		async ensureMember(input) {
+			const existing = await adapter.findOne<TenantMember>({
+				model: TENANT_MEMBER_TABLE_NAME,
+				where: [
+					{ field: "tenant_id", value: input.tenant_id },
+					{ field: "user_id", value: input.user_id },
+				],
+			});
+			if (existing) {
+				return;
+			}
+
+			try {
+				const row = {
+					tenant_id: input.tenant_id,
+					user_id: input.user_id,
+					role: input.role,
+					created_at: new Date(),
+				};
+				await adapter.create<TenantMember>({
+					model: TENANT_MEMBER_TABLE_NAME,
+					data: row as unknown as Omit<TenantMember, "id">,
+				});
+			} catch (error) {
+				// Unique (tenant_id, user_id) means a concurrent insert won.
+				const raced = await adapter.findOne<TenantMember>({
+					model: TENANT_MEMBER_TABLE_NAME,
+					where: [
+						{ field: "tenant_id", value: input.tenant_id },
+						{ field: "user_id", value: input.user_id },
+					],
+				});
+				if (!raced) {
+					throw error;
+				}
+			}
+		},
+	};
+}
+
 function createUserRepository(adapter: DatabaseAdapter): UserRepository {
 	return {
 		async findContact(userId) {
@@ -474,6 +571,14 @@ function createUserRepository(adapter: DatabaseAdapter): UserRepository {
 				model: "user",
 				where: [{ field: "id", value: userId }],
 			});
+		},
+
+		async findAllIds(limit = 10_000) {
+			const users = await adapter.findMany<{ id: string }>({
+				model: "user",
+				limit: Math.max(1, Math.min(limit, 100_000)),
+			});
+			return (users ?? []).map((user) => user.id);
 		},
 	};
 }
@@ -496,5 +601,6 @@ export function createBillingRepositories(
 		events: createInvoiceEventRepository(adapter),
 		sequences: createInvoiceSequenceRepository(adapter),
 		users: createUserRepository(adapter),
+		tenants: createTenantRepository(adapter),
 	};
 }
