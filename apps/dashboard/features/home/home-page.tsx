@@ -7,7 +7,12 @@ import {
 	usePlans,
 	useSubscription,
 } from "@/features/billing";
-import { UsageQuotaCard, UsageSummaryCards } from "@/features/usage";
+import {
+	UsageQuotaCard,
+	UsageSummaryCards,
+	UsageTopEndpointsCard,
+	UsageTrendCard,
+} from "@/features/usage";
 import { authClient } from "@/lib/auth";
 import { useSession } from "@better-auth-ui/react";
 import {
@@ -83,6 +88,15 @@ export const HomePage: React.FC = () => {
 			<section className="flex flex-col gap-3">
 				<Typography type="h3">Monthly Quota</Typography>
 				<UsageQuotaCard />
+			</section>
+
+			{/* Usage Insights */}
+			<section className="flex flex-col gap-3">
+				<Typography type="h3">Usage Insights</Typography>
+				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+					<UsageTrendCard />
+					<UsageTopEndpointsCard />
+				</div>
 			</section>
 
 			{/* Current Subscription Snapshot */}

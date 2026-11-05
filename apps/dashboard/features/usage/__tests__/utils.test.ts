@@ -1,4 +1,5 @@
 import {
+	endpointBreakdownModel,
 	formatQuotaLimit,
 	formatQuotaRemaining,
 	formatQuotaReset,
@@ -6,6 +7,7 @@ import {
 	formatUsagePeriod,
 	quotaCardModel,
 	quotaTone,
+	trendCardModel,
 	usageRatio,
 } from "../utils";
 
@@ -134,5 +136,95 @@ describe("quotaCardModel", () => {
 			tone: "success",
 			remaining_label: "No monthly cap on your plan",
 		});
+	});
+});
+
+describe("trendCardModel", () => {
+	const points = [
+		{ date: "2026-11-01", requests_total: 10, requests_ok: 8 },
+		{ date: "2026-11-02", requests_total: 40, requests_ok: 30 },
+		{ date: "2026-11-03", requests_total: 20, requests_ok: 20 },
+	];
+
+	it("normalizes bar heights against the busiest day", () => {
+		const model = trendCardModel(points);
+
+		expect(model.bars).toHaveLength(3);
+		expect(model.bars[1]).toMatchObject({
+			total_count: 40,
+			billable_count: 30,
+			total_pct: 100,
+			billable_pct: 75,
+		});
+		expect(model.bars[0]?.total_pct).toBe(25);
+		expect(model.total_requests).toBe(70);
+		expect(model.billable_requests).toBe(58);
+		expect(model.total_label).toBe("70 requests");
+		expect(model.billable_label).toBe("58 billable");
+		expect(model.is_empty).toBe(false);
+	});
+
+	it("labels bars with a weekday and day number", () => {
+		const model = trendCardModel(points);
+		expect(model.bars[0]?.label).toMatch(/\d/);
+		expect(model.bars[0]?.label).not.toContain("2026");
+	});
+
+	it("clamps billable counts above total and handles empty windows", () => {
+		const clamped = trendCardModel([
+			{ date: "2026-11-01", requests_total: 5, requests_ok: 9 },
+		]);
+		expect(clamped.bars[0]?.billable_count).toBe(5);
+
+		const empty = trendCardModel([
+			{ date: "2026-11-01", requests_total: 0, requests_ok: 0 },
+		]);
+		expect(empty.is_empty).toBe(true);
+		expect(empty.bars[0]?.total_pct).toBe(0);
+		expect(empty.peak_label).toBeNull();
+
+		expect(trendCardModel(undefined).is_empty).toBe(true);
+	});
+});
+
+describe("endpointBreakdownModel", () => {
+	const slices = [
+		{ key: "/audio/text-to-speech", requests_ok: 300 },
+		{ key: "/status", requests_ok: 500 },
+		{ key: "/mtxx/remove-bg", requests_ok: 200 },
+	];
+
+	it("sorts by volume and computes shares against the full total", () => {
+		const model = endpointBreakdownModel(slices, 2);
+
+		expect(model.total_requests).toBe(1000);
+		expect(model.slices).toHaveLength(2);
+		expect(model.slices[0]).toMatchObject({
+			key: "/status",
+			requests_ok: 500,
+			count_label: "500",
+			share_label: "50%",
+			width_pct: 100,
+		});
+		expect(model.slices[1]?.share_label).toBe("30%");
+		expect(model.hidden_count).toBe(1);
+		expect(model.total_label).toBe("1.000 requests");
+	});
+
+	it("is empty for zero traffic and missing data", () => {
+		expect(endpointBreakdownModel([], 5).is_empty).toBe(true);
+		expect(endpointBreakdownModel(undefined).is_empty).toBe(true);
+
+		const zeroed = endpointBreakdownModel(
+			[{ key: "/status", requests_ok: 0 }],
+			5
+		);
+		expect(zeroed.is_empty).toBe(true);
+		expect(zeroed.slices[0]?.width_pct).toBe(0);
+	});
+
+	it("falls back for a blank endpoint key", () => {
+		const model = endpointBreakdownModel([{ key: "", requests_ok: 1 }], 5);
+		expect(model.slices[0]?.key).toBe("(unknown)");
 	});
 });
