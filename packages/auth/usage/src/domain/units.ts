@@ -106,7 +106,8 @@ export function amountFor(unitsMicro: number, rateAmount: number): number {
 	// the invoice total does, so the product must not go through a float.
 	const units = BigInt(Math.max(0, Math.trunc(unitsMicro)));
 	const rate = BigInt(Math.max(0, Math.trunc(rateAmount)));
-	if (units === 0n || rate === 0n) {
+	const zero = BigInt(0);
+	if (units === zero || rate === zero) {
 		return 0;
 	}
 
@@ -114,7 +115,8 @@ export function amountFor(unitsMicro: number, rateAmount: number): number {
 	const denominator = BigInt(USAGE_UNIT_MICRO_SCALE);
 	const quotient = numerator / denominator;
 	const remainder = numerator % denominator;
-	const rounded = remainder * 2n >= denominator ? quotient + 1n : quotient;
+	const rounded =
+		remainder * BigInt(2) >= denominator ? quotient + BigInt(1) : quotient;
 	return Number(rounded);
 }
 
