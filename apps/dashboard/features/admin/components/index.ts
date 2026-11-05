@@ -1,3 +1,4 @@
+export * from "./shell";
 export * from "./events/event-detail-modal";
 export * from "./events/transaction-events-table";
 export * from "./invoices/invoice-detail-modal";
