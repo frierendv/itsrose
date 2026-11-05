@@ -16,7 +16,7 @@ import {
 } from "@heroui/react";
 import type { Subscription, SubscriptionStatus } from "@itsrose/auth-billing";
 import { useState } from "react";
-import { useAdminPlans, useUpdateSubscriptionMutation } from "../../api";
+import { useAdminPlans, useUpdateSubscriptionMutation } from "../../hooks";
 
 export interface SubscriptionOverrideModalProps {
 	subscription: Subscription | null;

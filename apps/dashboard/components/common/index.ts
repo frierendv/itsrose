@@ -1,3 +1,2 @@
-export * from "./content";
-export * from "./path-breadcrumb";
 export * from "./animated-text";
+export * from "./path-breadcrumb";

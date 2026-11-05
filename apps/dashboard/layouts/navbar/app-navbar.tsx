@@ -2,11 +2,11 @@
 
 import { PathBreadcrumbs } from "@/components/common";
 import { ThemeSwitch } from "@/components/theme-switch";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { config } from "@/config";
 import { UserButton } from "@better-auth-ui/heroui";
 import { BrandIcon } from "@itsrose/react/itsrose";
 import { Navbar } from "@itsrose/react/navbar";
+import { SidebarTrigger } from "@itsrose/react/sidebar";
 
 export type AppNavbarProps = {
 	/** Additional CSS class names for navbar */

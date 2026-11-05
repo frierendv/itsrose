@@ -1,5 +1,6 @@
 "use client";
 
+import { Skeleton } from "@heroui/react";
 import {
 	SidebarGroup,
 	SidebarGroupLabel,
@@ -7,8 +8,7 @@ import {
 	SidebarMenuItem,
 	SidebarMenuSkeleton,
 	SidebarMenuSub,
-} from "@/components/ui/sidebar";
-import { Skeleton } from "@heroui/react";
+} from "@itsrose/react/sidebar";
 
 export type SidebarSkeletonProps = {
 	/** Number of main skeleton items to show (default: 3) */

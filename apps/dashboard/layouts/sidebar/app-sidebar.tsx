@@ -1,5 +1,7 @@
 "use client";
 
+import { useDashboardRoute } from "@/hooks/use-dashboard-route";
+import LayoutSideContentLeft from "@gravity-ui/icons/LayoutSideContentLeft";
 import {
 	Sidebar,
 	SidebarContent,
@@ -8,15 +10,13 @@ import {
 	SidebarRail,
 	SidebarTrigger,
 	type SidebarProps,
-} from "@/components/ui/sidebar";
-import { useDashboardRoute } from "@/hooks/use-dashboard-route";
-import LayoutSideContentLeft from "@gravity-ui/icons/LayoutSideContentLeft";
+} from "@itsrose/react/sidebar";
 import { memo } from "react";
 import { SidebarBrand } from "./sidebar-brand";
 import { SidebarNav } from "./sidebar-nav";
 import { SidebarSkeleton } from "./sidebar-skeleton";
 
-export type AppSidebarProps = SidebarProps & {};
+export type AppSidebarProps = SidebarProps;
 
 export const AppSidebar = memo<AppSidebarProps>((props) => {
 	const { isPending, data } = useDashboardRoute();

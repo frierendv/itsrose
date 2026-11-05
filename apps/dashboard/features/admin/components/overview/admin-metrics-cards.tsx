@@ -11,7 +11,7 @@ import {
 	useAdminInvoices,
 	useAdminPlans,
 	useAdminSubscriptions,
-} from "../../api";
+} from "../../hooks";
 import { formatIDR } from "../../utils";
 
 export const AdminMetricsCards: React.FC = () => {
@@ -70,7 +70,7 @@ export const AdminMetricsCards: React.FC = () => {
 		return st === "pending" || st === "unpaid";
 	});
 	const pendingAmount = pendingInvoices.reduce(
-		(acc, inv) => acc + (inv.gross_amount || inv.amount_idr || 0),
+		(acc, inv) => acc + inv.gross_amount,
 		0
 	);
 
@@ -80,7 +80,7 @@ export const AdminMetricsCards: React.FC = () => {
 		return st === "paid" || st === "settlement";
 	});
 	const totalPaidRevenue = paidInvoices.reduce(
-		(acc, inv) => acc + (inv.gross_amount || inv.amount_idr || 0),
+		(acc, inv) => acc + inv.gross_amount,
 		0
 	);
 

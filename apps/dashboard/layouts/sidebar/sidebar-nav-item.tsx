@@ -1,14 +1,5 @@
 "use client";
 
-import {
-	SidebarMenuButton,
-	SidebarMenuChip,
-	SidebarMenuIcon,
-	SidebarMenuItem,
-	SidebarMenuLabel,
-	SidebarMenuSub,
-	useSidebar,
-} from "@/components/ui/sidebar";
 import type { SidebarItem } from "@/types/sidebar";
 import { useRouter } from "@bprogress/next";
 import { ArrowUpRightFromSquare } from "@gravity-ui/icons";
@@ -22,6 +13,15 @@ import {
 	Link,
 } from "@heroui/react";
 import { cn } from "@itsrose/react/core";
+import {
+	SidebarMenuButton,
+	SidebarMenuChip,
+	SidebarMenuIcon,
+	SidebarMenuItem,
+	SidebarMenuLabel,
+	SidebarMenuSub,
+	useSidebar,
+} from "@itsrose/react/sidebar";
 import { useCallback } from "react";
 import { useSidebarItemState, useSidebarNavigation } from "./sidebar-nav-utils";
 
