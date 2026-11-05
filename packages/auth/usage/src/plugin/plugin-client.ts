@@ -16,6 +16,16 @@ export const usagePluginClient = () => {
 		$InferServerPlugin: {} as ReturnType<typeof usagePlugin>,
 		pathMethods: {
 			[createRoute("/stats")]: "GET",
+			[createRoute("/summary")]: "GET",
+			[createRoute("/timeseries")]: "GET",
+			[createRoute("/breakdown")]: "GET",
+			[createRoute("/quota")]: "GET",
+			[createRoute("/admin/rates")]: "GET",
+			[createRoute("/admin/rates/set")]: "POST",
+			[createRoute("/admin/flush")]: "POST",
+			[createRoute("/admin/settle")]: "POST",
+			[createRoute("/admin/settlements")]: "GET",
+			[createRoute("/admin/tenants/sync")]: "POST",
 		},
 	} satisfies BetterAuthClientPlugin;
 };
