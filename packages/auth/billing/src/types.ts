@@ -30,6 +30,8 @@ export type ApiPlan<OmitId extends boolean = false> = {
 	description: string | null;
 	features: string[];
 	limits: PlanLimits;
+	/** Monthly billable request allowance; `null` means unlimited. */
+	quota_requests: number | null;
 	highlighted: boolean;
 } & (OmitId extends false ? { id: string } : {});
 
@@ -61,7 +63,7 @@ export type TransactionInvoiceItemDetails = {
 	discount_amount?: number | string | null;
 };
 
-export type InvoiceType = "NEW" | "UPGRADE" | "RENEWAL";
+export type InvoiceType = "NEW" | "UPGRADE" | "RENEWAL" | "USAGE";
 
 export type ProrationCycleResetReason =
 	"under_24_hours" | "trivial_payable" | "new_subscription";
@@ -126,6 +128,24 @@ export type InvoiceSequence = {
 /* -------------------------------------------------------------------------- */
 /*                            Subscriptions                                   */
 /* -------------------------------------------------------------------------- */
+
+export type TenantKind = "personal" | "organization";
+
+export type Tenant = {
+	id: string;
+	kind: TenantKind | (string & {});
+	name: string;
+	owner_user_id: string;
+	created_at?: Date | string;
+};
+
+export type TenantMember = {
+	id: string;
+	tenant_id: string;
+	user_id: string;
+	role: string;
+	created_at?: Date | string;
+};
 
 export type SubscriptionStatus =
 	"active" | "pending_payment" | "past_due" | "expired" | "canceled";

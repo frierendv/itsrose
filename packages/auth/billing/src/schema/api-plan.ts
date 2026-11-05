@@ -19,6 +19,8 @@ export const createPlanSchema = z.object({
 	prices: z.array(planPriceInputSchema).default([]),
 	price: planPriceInputSchema.optional(),
 	features: z.array(z.string()).default([]),
+	/** Monthly billable request allowance; `null` means unlimited. */
+	quota_requests: z.number().int().min(0).nullable().optional(),
 	highlighted: z.boolean().default(false),
 });
 
@@ -29,6 +31,7 @@ export const updatePlanSchema = z.object({
 	prices: z.array(planPriceInputSchema).optional(),
 	price: planPriceInputSchema.optional(),
 	features: z.array(z.string()).optional(),
+	quota_requests: z.number().int().min(0).nullable().optional(),
 	highlighted: z.boolean().optional(),
 	/** Accepted for dashboard compatibility; not persisted by the catalog schema. */
 	seatBased: z.boolean().optional(),
@@ -90,6 +93,11 @@ export const apiPlanSchema = {
 							: (value as string[]);
 					},
 				},
+			},
+			/** Monthly billable request allowance; `null` means unlimited. */
+			quota_requests: {
+				type: "number",
+				required: false,
 			},
 			highlighted: {
 				type: "boolean",
