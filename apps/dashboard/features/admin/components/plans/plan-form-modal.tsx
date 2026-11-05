@@ -2,7 +2,10 @@
 
 import {
 	Button,
+	Description,
+	Form,
 	Input,
+	Label,
 	ModalBackdrop,
 	ModalBody,
 	ModalCloseTrigger,
@@ -13,6 +16,7 @@ import {
 	ModalHeading,
 	Switch,
 	TextArea,
+	TextField,
 	Typography,
 } from "@heroui/react";
 import type { ApiPlan } from "@itsrose/auth-billing";
@@ -58,7 +62,7 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 	);
 	const [highlighted, setHighlighted] = useState(Boolean(plan?.highlighted));
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		if (!planId.trim() || !name.trim()) {
 			return;
@@ -106,7 +110,7 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 	const isPending = createMutation.isPending || updateMutation.isPending;
 
 	return (
-		<form onSubmit={handleSubmit}>
+		<Form onSubmit={handleSubmit}>
 			<ModalBody className="flex flex-col gap-4">
 				<Typography type="body-sm" color="muted">
 					Configure tier specifications, pricing in IDR, and the
@@ -114,112 +118,122 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 				</Typography>
 
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-					<div className="flex flex-col gap-1.5">
-						<label className="text-xs font-medium text-muted">
-							Plan Identifier (Slug)
-						</label>
+					<TextField
+						isDisabled={isEdit}
+						isRequired
+						name="plan_id"
+						onChange={setPlanId}
+						value={planId}
+					>
+						<Label>Plan Identifier (Slug)</Label>
 						<Input
 							variant="secondary"
 							placeholder="e.g. enterprise"
-							value={planId}
-							onChange={(e) => setPlanId(e.target.value)}
-							disabled={isEdit}
-							required
 						/>
-					</div>
+					</TextField>
 
-					<div className="flex flex-col gap-1.5">
-						<label className="text-xs font-medium text-muted">
-							Display Name
-						</label>
+					<TextField
+						isRequired
+						name="name"
+						onChange={setName}
+						value={name}
+					>
+						<Label>Display Name</Label>
 						<Input
 							variant="secondary"
 							placeholder="e.g. Enterprise Tier"
-							value={name}
-							onChange={(e) => setName(e.target.value)}
-							required
 						/>
-					</div>
+					</TextField>
 				</div>
 
-				<div className="flex flex-col gap-1.5">
-					<label className="text-xs font-medium text-muted">
-						Description
-					</label>
+				<TextField
+					name="description"
+					onChange={setDescription}
+					value={description}
+				>
+					<Label>Description</Label>
 					<Input
 						variant="secondary"
 						placeholder="e.g. High-throughput dedicated platform quota"
-						value={description}
-						onChange={(e) => setDescription(e.target.value)}
 					/>
-				</div>
+				</TextField>
 
 				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-					<div className="flex flex-col gap-1.5">
-						<label className="text-xs font-medium text-muted">
-							Monthly Price (IDR)
-						</label>
+					<TextField
+						isRequired
+						name="price_amount"
+						onChange={(value) =>
+							setAmount(value === "" ? 0 : Number(value))
+						}
+						type="number"
+						value={String(amount)}
+					>
+						<Label>Monthly Price (IDR)</Label>
 						<Input
 							variant="secondary"
-							type="number"
 							min={0}
 							step={1000}
 							placeholder="160000"
-							value={String(amount)}
-							onChange={(e) => setAmount(Number(e.target.value))}
-							required
 						/>
-					</div>
+					</TextField>
 
-					<div className="flex flex-col gap-1.5">
-						<label className="text-xs font-medium text-muted">
-							Billing Interval
-						</label>
-						<Input variant="secondary" value={interval} disabled />
-					</div>
+					<TextField
+						defaultValue={interval}
+						isDisabled
+						name="interval"
+					>
+						<Label>Billing Interval</Label>
+						<Input variant="secondary" />
+					</TextField>
 
-					<div className="flex flex-col gap-1.5">
-						<label className="text-xs font-medium text-muted">
-							Monthly Request Quota
-						</label>
+					<TextField
+						name="quota_requests"
+						onChange={setQuotaRequests}
+						type="number"
+						value={quotaRequests}
+					>
+						<Label>Monthly Request Quota</Label>
 						<Input
 							variant="secondary"
-							type="number"
 							min={0}
 							placeholder="Blank = unlimited"
-							value={quotaRequests}
-							onChange={(e) => setQuotaRequests(e.target.value)}
 						/>
-					</div>
+						<Description>Leave blank for unlimited</Description>
+					</TextField>
 				</div>
 
-				<div className="flex flex-col gap-1.5">
-					<label className="text-xs font-medium text-muted">
-						Features List (One feature per line)
-					</label>
+				<TextField
+					name="features"
+					onChange={setFeaturesText}
+					value={featuresText}
+				>
+					<Label>Features List (One feature per line)</Label>
 					<TextArea
 						variant="secondary"
 						rows={4}
 						placeholder="120 Requests per minute&#10;Unlimited generation history&#10;Priority customer support"
-						value={featuresText}
-						onChange={(e) => setFeaturesText(e.target.value)}
 					/>
-				</div>
+				</TextField>
 
-				<div className="flex items-center justify-between p-3 border border-separator">
-					<div className="flex flex-col">
-						<Typography type="body-sm" className="font-medium">
-							Highlight on Pricing Table
-						</Typography>
-						<Typography type="body-xs" color="muted">
-							Show prominent &ldquo;Popular&rdquo; badge on
-							workspace upgrade screens
-						</Typography>
-					</div>
+				<div className="flex items-center justify-between gap-4 rounded-medium border border-separator p-3">
 					<Switch
 						isSelected={highlighted}
+						name="highlighted"
 						onChange={setHighlighted}
-					/>
+					>
+						<Switch.Content>
+							<Switch.Control>
+								<Switch.Thumb />
+							</Switch.Control>
+							<div className="flex flex-col gap-0.5">
+								<Label>Highlight on Pricing Table</Label>
+								<Description>
+									Show prominent &ldquo;Popular&rdquo; badge
+									on workspace upgrade screens
+								</Description>
+							</div>
+						</Switch.Content>
+					</Switch>
 				</div>
 			</ModalBody>
 
@@ -235,7 +249,7 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 					{isEdit ? "Save Changes" : "Create Plan"}
 				</Button>
 			</ModalFooter>
-		</form>
+		</Form>
 	);
 };
 
