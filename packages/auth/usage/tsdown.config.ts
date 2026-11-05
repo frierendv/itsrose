@@ -14,6 +14,8 @@ export default defineConfig({
 	entry: [
 		"src/index.ts",
 		"src/types.ts",
+		"src/server.ts",
+		"src/schema/index.ts",
 		"src/plugin/plugin-server.ts",
 		"src/plugin/plugin-client.ts",
 	],
@@ -21,6 +23,10 @@ export default defineConfig({
 		...(typeof config.exports === "object" ? config.exports : {}),
 		customExports: (exports, { isPublish }) => ({
 			...exports,
+			"./server": isPublish ? "./dist/server.mjs" : "./src/server.ts",
+			"./schema": isPublish
+				? "./dist/schema/index.mjs"
+				: "./src/schema/index.ts",
 			"./plugin": isPublish
 				? "./dist/plugin/plugin-server.mjs"
 				: "./src/plugin/plugin-server.ts",

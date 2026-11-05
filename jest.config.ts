@@ -16,6 +16,18 @@ const moduleNameMapper = {
 		"<rootDir>/packages/auth/billing/src/schema/index.ts",
 	"^@itsrose/auth-billing$": "<rootDir>/packages/auth/billing/src/index.ts",
 	"^@itsrose/auth-billing/(.*)$": "<rootDir>/packages/auth/billing/src/$1",
+	"^@itsrose/auth-usage/plugin-server$":
+		"<rootDir>/packages/auth/usage/src/plugin/plugin-server.ts",
+	"^@itsrose/auth-usage/plugin-client$":
+		"<rootDir>/packages/auth/usage/src/plugin/plugin-client.ts",
+	"^@itsrose/auth-usage/plugin$":
+		"<rootDir>/packages/auth/usage/src/plugin/plugin-server.ts",
+	"^@itsrose/auth-usage/schema$":
+		"<rootDir>/packages/auth/usage/src/schema/index.ts",
+	"^@itsrose/auth-usage/server$":
+		"<rootDir>/packages/auth/usage/src/server.ts",
+	"^@itsrose/auth-usage$": "<rootDir>/packages/auth/usage/src/index.ts",
+	"^@itsrose/auth-usage/(.*)$": "<rootDir>/packages/auth/usage/src/$1",
 	"^@itsrose/auth-mailer/plugin$":
 		"<rootDir>/packages/auth/mailer/src/plugin-server.ts",
 	"^@itsrose/auth-mailer$": "<rootDir>/packages/auth/mailer/src/index.ts",
