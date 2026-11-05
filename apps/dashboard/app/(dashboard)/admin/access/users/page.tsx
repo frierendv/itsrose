@@ -1,4 +1,4 @@
-import { AdminUsers } from "@better-auth-ui/heroui";
+import { AdminUsersPage } from "@/features/admin";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -6,6 +6,6 @@ export const metadata: Metadata = {
 	description: "Manage platform users and role permissions.",
 };
 
-export default function AdminUsersPage() {
-	return <AdminUsers />;
+export default function AdminUsersRoute() {
+	return <AdminUsersPage />;
 }

@@ -70,10 +70,36 @@ const nextConfig: NextConfig = {
 			permanent: true,
 			source: "/manifest.json",
 		},
+		// Admin console routes were regrouped by scope; keep old links working.
 		{
-			destination: "/admin/transaction",
-			permanent: true,
+			destination: "/admin/billing/invoices",
+			permanent: false,
 			source: "/admin/invoices",
+		},
+		{
+			destination: "/admin/billing/plans",
+			permanent: false,
+			source: "/admin/plans",
+		},
+		{
+			destination: "/admin/billing/subscriptions",
+			permanent: false,
+			source: "/admin/subscriptions",
+		},
+		{
+			destination: "/admin/billing/events",
+			permanent: false,
+			source: "/admin/transaction/events",
+		},
+		{
+			destination: "/admin/billing/invoices",
+			permanent: false,
+			source: "/admin/transaction",
+		},
+		{
+			destination: "/admin/access/users",
+			permanent: false,
+			source: "/admin/users",
 		},
 	],
 	devIndicators: false,

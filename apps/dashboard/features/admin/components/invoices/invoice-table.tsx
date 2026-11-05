@@ -1,22 +1,13 @@
 "use client";
 
-import { TableEmptyState, TableLoadingState } from "@/components/table";
+import { CopyButton } from "@/components/copy-button";
+import type { DataTableFeatures } from "@/components/table";
+import { useAdminTableState } from "@/hooks/use-admin-table-state";
 import { Eye, TrashBin } from "@gravity-ui/icons";
-import {
-	Button,
-	Chip,
-	Label,
-	ListBox,
-	ListBoxItem,
-	SearchField,
-	Select,
-	Table,
-	Tooltip,
-	Typography,
-} from "@heroui/react";
+import { Button, Chip, Typography } from "@heroui/react";
 import type { Invoice } from "@itsrose/auth-billing";
-import { useCallback, useMemo, useState } from "react";
-import { useDebounce } from "use-debounce";
+import { createColumnHelper } from "@tanstack/react-table";
+import { useMemo, useState } from "react";
 import { useAdminInvoices } from "../../hooks";
 import {
 	formatDate,
@@ -24,269 +15,260 @@ import {
 	getInvoiceStatusProps,
 	getInvoiceTypeProps,
 } from "../../utils";
+import { INVOICE_FILTER_BY_STATUS, INVOICE_FILTER_BY_TYPE } from "../constants";
+import { AdminDataTable, AdminSelect, TableToolbar } from "../shell";
 import { ViewUserPopover } from "../view-popover";
-import { InvoiceDetailModal } from "./invoice-detail-modal";
+import { InvoiceInspectDrawer } from "./invoice-inspect-drawer";
 import { VoidInvoiceDialog } from "./void-invoice-dialog";
 
-export const InvoiceTable: React.FC = () => {
-	const [statusFilter, setStatusFilter] = useState<string>("all");
-	const [typeFilter, setTypeFilter] = useState<string>("ALL");
-	const [searchQuery, setSearchQuery] = useState<string>("");
-	const [debouncedSetSearch] = useDebounce(setSearchQuery, 500);
+const columnHelper = createColumnHelper<DataTableFeatures, Invoice>();
+const FILTER_DEFAULTS = { filters: { status: "all", type: "ALL" } };
 
-	const { invoices, isLoading } = useAdminInvoices({
-		status: statusFilter,
-		invoice_type: typeFilter,
+function isPendingInvoice(status: string | null | undefined): boolean {
+	const normalized = (status || "").toLowerCase();
+	return normalized === "pending" || normalized === "unpaid";
+}
+
+export const InvoiceTable: React.FC = () => {
+	const {
+		q,
+		filters,
+		inspect,
+		setQuery,
+		setFilter,
+		setInspect,
+		resetFilters,
+	} = useAdminTableState(FILTER_DEFAULTS);
+	const status = filters.status ?? "all";
+	const type = filters.type ?? "ALL";
+
+	const { invoices, isLoading, isError, error, refetch } = useAdminInvoices({
+		status,
+		invoice_type: type,
+		limit: 100,
 	});
 
-	const [inspectingInvoice, setInspectingInvoice] = useState<Invoice | null>(
-		null
-	);
 	const [voidingInvoice, setVoidingInvoice] = useState<Invoice | null>(null);
 
-	const hasFilter = useMemo(
-		() =>
-			statusFilter.toLowerCase() !== "all" ||
-			typeFilter.toLowerCase() !== "all" ||
-			searchQuery.trim().length > 0,
-		[statusFilter, typeFilter, searchQuery]
-	);
-
 	const filteredInvoices = useMemo(() => {
-		const q = searchQuery.toLowerCase().trim();
-		if (!q) {
+		const needle = q.trim().toLowerCase();
+		if (!needle) {
 			return invoices;
 		}
 		return invoices.filter(
-			(inv) =>
-				inv.order_id.toLowerCase().includes(q) ||
-				inv.invoice_id.toLowerCase().includes(q) ||
-				inv.user_id.toLowerCase().includes(q)
+			(invoice) =>
+				invoice.order_id.toLowerCase().includes(needle) ||
+				invoice.invoice_id.toLowerCase().includes(needle) ||
+				invoice.user_id.toLowerCase().includes(needle) ||
+				(invoice.invoice_number || "").toLowerCase().includes(needle) ||
+				(invoice.target_tier || "").toLowerCase().includes(needle)
 		);
-	}, [invoices, searchQuery]);
+	}, [invoices, q]);
 
-	const renderTableRow = useCallback((invoice: Invoice) => {
-		const statusProps = getInvoiceStatusProps(invoice.status);
-		const typeProps = getInvoiceTypeProps(invoice.invoice_type);
-		const isPending =
-			invoice.status?.toLowerCase() === "pending" ||
-			invoice.status?.toLowerCase() === "unpaid";
+	const inspectedInvoice =
+		invoices.find(
+			(invoice) =>
+				invoice.invoice_id === inspect || invoice.order_id === inspect
+		) ?? null;
 
-		return (
-			<Table.Row key={invoice.invoice_id} id={invoice.invoice_id}>
-				<Table.Cell>
-					<Typography
-						type="body-sm"
-						className="font-mono text-xs font-semibold select-all"
-					>
-						{invoice.order_id}
-					</Typography>
-				</Table.Cell>
-				<Table.Cell>
-					<ViewUserPopover userId={invoice.user_id}>
-						<Typography
-							type="body-xs"
-							className="font-mono select-all text-muted hover:underline"
+	const columns = useMemo(
+		() =>
+			columnHelper.columns([
+				columnHelper.accessor("order_id", {
+					header: "Order / Invoice",
+					cell: (info) => (
+						<div className="flex flex-col gap-1">
+							<div className="flex items-center gap-2">
+								<Typography
+									type="body-sm"
+									className="max-w-32 truncate font-mono text-xs font-semibold"
+								>
+									{info.getValue()}
+								</Typography>
+								<CopyButton
+									aria-label={`Copy order id ${info.getValue()}`}
+									isIconOnly
+									size="sm"
+									textValue={info.getValue()}
+									variant="ghost"
+								/>
+							</div>
+							<Typography
+								type="body-xs"
+								color="muted"
+								className="font-mono"
+							>
+								{info.row.original.invoice_number}
+							</Typography>
+						</div>
+					),
+				}),
+				columnHelper.accessor("user_id", {
+					header: "User",
+					cell: (info) => (
+						<ViewUserPopover
+							showSubscription={false}
+							userId={info.getValue()}
 						>
-							{invoice.user_id}
+							<Typography
+								type="body-xs"
+								className="font-mono select-all hover:underline"
+							>
+								{info.getValue()}
+							</Typography>
+						</ViewUserPopover>
+					),
+				}),
+				columnHelper.accessor("target_tier", {
+					header: "Tier",
+					cell: (info) => (
+						<Typography
+							type="body-sm"
+							className="font-medium uppercase"
+						>
+							{info.getValue() || "free"}
 						</Typography>
-					</ViewUserPopover>
-				</Table.Cell>
-				<Table.Cell>
-					<Typography
-						type="body-sm"
-						className="font-medium uppercase"
-					>
-						{invoice.target_tier}
-					</Typography>
-				</Table.Cell>
-				<Table.Cell>
-					<Chip size="sm" variant="soft" color={typeProps.color}>
-						{typeProps.label}
-					</Chip>
-				</Table.Cell>
-				<Table.Cell>{formatIDR(invoice.gross_amount)}</Table.Cell>
-				<Table.Cell>
-					<Chip size="sm" variant="soft" color={statusProps.color}>
-						{statusProps.label}
-					</Chip>
-				</Table.Cell>
-				<Table.Cell>{formatDate(invoice.invoice_date)}</Table.Cell>
-				<Table.Cell>
-					<div className="flex items-center justify-end gap-1.5">
-						<Tooltip delay={0}>
-							<Button
-								variant="outline"
-								size="sm"
-								onPress={() => setInspectingInvoice(invoice)}
-								aria-label="Inspect Invoice"
-								isIconOnly
-							>
-								<Eye className="size-3.5" />
-							</Button>
-							<Tooltip.Content>
-								<Tooltip.Arrow />
-								<p>View invoice details</p>
-							</Tooltip.Content>
-						</Tooltip>
+					),
+				}),
+				columnHelper.accessor("invoice_type", {
+					header: "Type",
+					cell: (info) => {
+						const props = getInvoiceTypeProps(info.getValue());
+						return (
+							<Chip color={props.color} size="sm" variant="soft">
+								{props.label}
+							</Chip>
+						);
+					},
+				}),
+				columnHelper.accessor("gross_amount", {
+					header: "Amount",
+					cell: (info) => (
+						<Typography type="body-sm">
+							{formatIDR(info.getValue())}
+						</Typography>
+					),
+				}),
+				columnHelper.accessor("status", {
+					header: "Status",
+					cell: (info) => {
+						const props = getInvoiceStatusProps(info.getValue());
+						return (
+							<Chip color={props.color} size="sm" variant="soft">
+								{props.label}
+							</Chip>
+						);
+					},
+				}),
+				columnHelper.accessor("invoice_date", {
+					header: "Date",
+					cell: (info) => (
+						<Typography type="body-xs">
+							{formatDate(info.getValue())}
+						</Typography>
+					),
+				}),
+				columnHelper.display({
+					id: "actions",
+					header: () => <span className="sr-only">Actions</span>,
+					cell: (info) => {
+						const invoice = info.row.original;
+						return (
+							<div className="flex items-center justify-end gap-1.5">
+								<Button
+									aria-label="Inspect invoice"
+									isIconOnly
+									onPress={() =>
+										setInspect(invoice.invoice_id)
+									}
+									size="sm"
+									variant="outline"
+								>
+									<Eye aria-hidden />
+								</Button>
+								{isPendingInvoice(invoice.status) ? (
+									<Button
+										aria-label="Void invoice"
+										isIconOnly
+										onPress={() =>
+											setVoidingInvoice(invoice)
+										}
+										size="sm"
+										variant="outline"
+									>
+										<TrashBin aria-hidden />
+									</Button>
+								) : null}
+							</div>
+						);
+					},
+				}),
+			]),
+		[setInspect]
+	);
 
-						<Tooltip delay={0}>
-							<Button
-								aria-label="Void Invoice"
-								variant="outline"
-								size="sm"
-								onPress={() => setVoidingInvoice(invoice)}
-								isDisabled={!isPending}
-								isIconOnly
-							>
-								<TrashBin className="text-danger" />
-							</Button>
-							<Tooltip.Content>
-								<Tooltip.Arrow />
-								<p>Void invoice</p>
-							</Tooltip.Content>
-						</Tooltip>
-					</div>
-				</Table.Cell>
-			</Table.Row>
-		);
-	}, []);
+	const isFiltered = q.length > 0 || status !== "all" || type !== "ALL";
 
 	return (
-		<div className="flex flex-col gap-4">
-			{/* Top Bar with Filters and Search */}
-			<div className="flex flex-col md:flex-row sm:items-center justify-between gap-3">
-				<SearchField
-					name="search"
-					value={searchQuery}
-					onChange={debouncedSetSearch}
-					className="max-w-sm"
-					fullWidth
-				>
-					<Label>Search order</Label>
-					<SearchField.Group>
-						<SearchField.SearchIcon />
-						<SearchField.Input placeholder="Search order ID or user..." />
-						<SearchField.ClearButton />
-					</SearchField.Group>
-				</SearchField>
-
-				<div className="flex sm:flex-wrap items-center gap-2">
-					<Select
-						aria-label="Filter by status"
-						className="w-full sm:w-44"
-						value={statusFilter}
-						onChange={(key) => setStatusFilter(String(key))}
-					>
-						<Label>Filter by status</Label>
-						<Select.Trigger>
-							<Select.Value />
-							<Select.Indicator />
-						</Select.Trigger>
-						<Select.Popover>
-							<ListBox>
-								<ListBoxItem id="all" textValue="All Statuses">
-									All
-								</ListBoxItem>
-								<ListBoxItem id="paid" textValue="Paid">
-									Paid
-								</ListBoxItem>
-								<ListBoxItem id="pending" textValue="Pending">
-									Pending
-								</ListBoxItem>
-								<ListBoxItem id="voided" textValue="Voided">
-									Voided
-								</ListBoxItem>
-							</ListBox>
-						</Select.Popover>
-					</Select>
-
-					<Select
-						aria-label="Filter by type"
-						className="w-full sm:w-40"
-						value={typeFilter}
-						onChange={(key) => setTypeFilter(String(key))}
-					>
-						<Label>Filter by status</Label>
-						<Select.Trigger>
-							<Select.Value />
-							<Select.Indicator />
-						</Select.Trigger>
-						<Select.Popover>
-							<ListBox>
-								<ListBoxItem id="ALL" textValue="All">
-									All
-								</ListBoxItem>
-								<ListBoxItem id="NEW" textValue="New">
-									New
-								</ListBoxItem>
-								<ListBoxItem id="UPGRADE" textValue="Upgrade">
-									Upgrade
-								</ListBoxItem>
-								<ListBoxItem id="RENEWAL" textValue="Renewal">
-									Renewal
-								</ListBoxItem>
-							</ListBox>
-						</Select.Popover>
-					</Select>
-				</div>
-			</div>
-
-			<Table>
-				<Table.ScrollContainer>
-					<Table.Content aria-label="Platform Financial Ledger">
-						<Table.Header>
-							<Table.Column id="order_id" isRowHeader>
-								Order ID
-							</Table.Column>
-							<Table.Column id="user">User ID</Table.Column>
-							<Table.Column id="tier">Tier</Table.Column>
-							<Table.Column id="type">Type</Table.Column>
-							<Table.Column id="amount">
-								Amount (IDR)
-							</Table.Column>
-							<Table.Column id="status">Status</Table.Column>
-							<Table.Column id="date">Date</Table.Column>
-							<Table.Column id="actions">
-								<span className="sr-only">Actions</span>
-							</Table.Column>
-						</Table.Header>
-						<Table.Body
-							items={filteredInvoices || []}
-							renderEmptyState={() =>
-								isLoading ? (
-									<TableLoadingState />
-								) : (
-									<TableEmptyState
-										label={
-											(hasFilter &&
-												"Empty, try different filter.") ||
-											"No invoices found."
-										}
-									/>
-								)
-							}
-						>
-							{(invoice) => renderTableRow(invoice)}
-						</Table.Body>
-					</Table.Content>
-				</Table.ScrollContainer>
-			</Table>
-
-			{/* Detail Inspector Modal */}
-			<InvoiceDetailModal
-				invoice={inspectingInvoice}
-				isOpen={Boolean(inspectingInvoice)}
-				onOpenChange={(open) => !open && setInspectingInvoice(null)}
+		<>
+			<AdminDataTable
+				aria-label="Invoices"
+				columns={columns}
+				data={filteredInvoices}
+				error={error}
+				emptyLabel="No invoices match the current filters."
+				isError={isError}
+				isLoading={isLoading}
+				onRetry={() => void refetch()}
+				pageSize={25}
+				paginationLabel="invoices"
+				rowHeaderId="order_id"
+				toolbar={
+					<TableToolbar
+						filters={
+							<>
+								<AdminSelect
+									aria-label="Filter by status"
+									label="Filter by status"
+									onChange={(value) =>
+										setFilter("status", value)
+									}
+									options={INVOICE_FILTER_BY_STATUS}
+									value={status}
+								/>
+								<AdminSelect
+									aria-label="Filter by type"
+									className="w-full sm:w-40"
+									label="Filter by type"
+									onChange={(value) =>
+										setFilter("type", value)
+									}
+									options={INVOICE_FILTER_BY_TYPE}
+									value={type}
+								/>
+							</>
+						}
+						isFiltered={isFiltered}
+						onClear={resetFilters}
+						onQueryChange={setQuery}
+						query={q}
+						searchPlaceholder="Search by order, invoice, user or tier…"
+					/>
+				}
 			/>
 
-			{/* Void Invoice Dialog */}
+			<InvoiceInspectDrawer
+				invoice={inspectedInvoice}
+				isOpen={Boolean(inspectedInvoice)}
+				onOpenChange={(open) => !open && setInspect(null)}
+			/>
+
 			<VoidInvoiceDialog
 				invoice={voidingInvoice}
 				isOpen={Boolean(voidingInvoice)}
 				onOpenChange={(open) => !open && setVoidingInvoice(null)}
 			/>
-		</div>
+		</>
 	);
 };
 

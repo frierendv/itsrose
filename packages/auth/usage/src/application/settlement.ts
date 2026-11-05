@@ -2,6 +2,8 @@ import { USAGE_UNIT_REQUEST } from "../constants";
 import { amountFor, settlementChecksum } from "../domain/units";
 import { periodStartDate, previousPeriodString } from "../keys";
 import type {
+	SettlementResult,
+	SettlementTenantResult,
 	UsageInvoicePort,
 	UsageLedgerPort,
 	UsagePlanPort,
@@ -21,36 +23,6 @@ export type SettleUsageInput = {
 	/** Dry run by default: pass `true` to create provider invoices. */
 	create_invoices?: boolean;
 	now?: () => Date;
-};
-
-export type SettlementTenantStatus = "settled" | "skipped" | "failed";
-
-export type SettlementTenantResult = {
-	tenant_id: string;
-	plan_tier: string | null;
-	requests: number;
-	units_micro: number;
-	amount: number;
-	unit_rate_id: string | null;
-	rates_version: number | null;
-	status: SettlementTenantStatus;
-	reason?: string;
-	created: boolean;
-	invoice_id: string | null;
-};
-
-export type SettlementResult = {
-	period: string;
-	unit: string;
-	tenants: SettlementTenantResult[];
-	totals: {
-		tenants: number;
-		units_micro: number;
-		amount: number;
-		invoices_created: number;
-		skipped: number;
-		failed: number;
-	};
 };
 
 function usageLineDescription(input: {

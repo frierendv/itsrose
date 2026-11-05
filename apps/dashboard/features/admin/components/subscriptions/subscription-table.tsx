@@ -1,23 +1,13 @@
 "use client";
 
 import { CopyButton } from "@/components/copy-button";
-import { TableEmptyState, TableLoadingState } from "@/components/table";
+import type { DataTableFeatures } from "@/components/table";
+import { useAdminTableState } from "@/hooks/use-admin-table-state";
 import { Eye, Gear } from "@gravity-ui/icons";
-import {
-	AlertDialog,
-	Button,
-	Chip,
-	Label,
-	ListBox,
-	SearchField,
-	Select,
-	Table,
-	Tooltip,
-	Typography,
-} from "@heroui/react";
+import { Button, Chip, Typography } from "@heroui/react";
 import type { Subscription } from "@itsrose/auth-billing";
-import { useCallback, useMemo, useState } from "react";
-import { useDebounce } from "use-debounce";
+import { createColumnHelper } from "@tanstack/react-table";
+import { useMemo, useState } from "react";
 import {
 	useAdminSubscriptions,
 	useCancelSubscriptionMutation,
@@ -25,368 +15,301 @@ import {
 } from "../../hooks";
 import { formatDate, getSubscriptionStatusProps } from "../../utils";
 import { SUBSCRIPTION_FILTER_BY_STATUS } from "../constants";
+import {
+	AdminDataTable,
+	AdminSelect,
+	ConfirmActionDialog,
+	TableToolbar,
+} from "../shell";
 import { ViewUserPopover } from "../view-popover";
-import { SubscriptionDetailModal } from "./subscription-detail-modal";
+import { SubscriptionInspectDrawer } from "./subscription-inspect-drawer";
 import { SubscriptionOverrideModal } from "./subscription-override-modal";
 
-export const SubscriptionTable: React.FC = () => {
-	const [statusFilter, setStatusFilter] = useState<string>("all");
-	const [searchQuery, setSearchQuery] = useState<string>("");
-	const [debouncedSetSearch] = useDebounce(setSearchQuery, 500);
+const columnHelper = createColumnHelper<DataTableFeatures, Subscription>();
+const FILTER_DEFAULTS = { filters: { status: "all" } };
 
-	const { subscriptions, isLoading } = useAdminSubscriptions({
-		status: statusFilter,
-	});
+export const SubscriptionTable: React.FC = () => {
+	const {
+		q,
+		filters,
+		inspect,
+		setQuery,
+		setFilter,
+		setInspect,
+		resetFilters,
+	} = useAdminTableState(FILTER_DEFAULTS);
+	const status = filters.status ?? "all";
+
+	const { subscriptions, isLoading, isError, error, refetch } =
+		useAdminSubscriptions({ status, limit: 100 });
 
 	const cancelMutation = useCancelSubscriptionMutation();
 	const restoreMutation = useRestoreSubscriptionMutation();
 
-	const [inspectingSub, setInspectingSub] = useState<Subscription | null>(
-		null
-	);
 	const [overridingSub, setOverridingSub] = useState<Subscription | null>(
 		null
 	);
 	const [togglingSub, setTogglingSub] = useState<Subscription | null>(null);
 
 	const filteredSubs = useMemo(() => {
-		const q = searchQuery.toLowerCase().trim();
-		if (!q) {
+		const needle = q.trim().toLowerCase();
+		if (!needle) {
 			return subscriptions;
 		}
 		return subscriptions.filter(
-			(s) =>
-				s.id.toLowerCase().includes(q) ||
-				s.user_id.toLowerCase().includes(q) ||
-				(s.plan_id || "").toLowerCase().includes(q)
+			(sub) =>
+				sub.id.toLowerCase().includes(needle) ||
+				sub.user_id.toLowerCase().includes(needle) ||
+				(sub.plan_id || "").toLowerCase().includes(needle)
 		);
-	}, [subscriptions, searchQuery]);
+	}, [q, subscriptions]);
 
-	const handleCancelOrRestore = async () => {
-		if (!togglingSub) {
-			return;
-		}
-		try {
-			if (togglingSub.cancel_at_period_end) {
-				await restoreMutation.mutateAsync({
-					subscriptionId: togglingSub.id,
-				});
-			} else {
-				await cancelMutation.mutateAsync({
-					subscriptionId: togglingSub.id,
-					cancelAtPeriodEnd: true,
-				});
-			}
-			setTogglingSub(null);
-		} catch {
-			// Handled by hook
-		}
-	};
+	const inspectedSub =
+		subscriptions.find((sub) => sub.id === inspect) ?? null;
 
-	const renderTableRow = useCallback((sub: Subscription) => {
-		const statusProps = getSubscriptionStatusProps(sub.status);
-		return (
-			<Table.Row key={sub.id} id={sub.id}>
-				<Table.Cell>
-					<div className="flex items-center gap-2">
-						<Typography
-							type="body-sm"
-							className="font-mono text-xs font-semibold max-w-24 truncate"
+	const columns = useMemo(
+		() =>
+			columnHelper.columns([
+				columnHelper.accessor("id", {
+					header: "Subscription",
+					cell: (info) => (
+						<div className="flex items-center gap-2">
+							<Typography
+								type="body-sm"
+								className="max-w-28 truncate font-mono text-xs font-semibold"
+							>
+								{info.getValue()}
+							</Typography>
+							<CopyButton
+								aria-label={`Copy subscription id ${info.getValue()}`}
+								isIconOnly
+								size="sm"
+								textValue={info.getValue()}
+								variant="ghost"
+							/>
+						</div>
+					),
+				}),
+				columnHelper.accessor("user_id", {
+					header: "User",
+					cell: (info) => (
+						<ViewUserPopover
+							showSubscription={false}
+							userId={info.getValue()}
 						>
-							{sub.id}
-						</Typography>
-						<CopyButton
-							textValue={sub.id}
-							aria-label={`Copy ID ${sub.id}`}
-							variant="ghost"
-							size="sm"
-							isIconOnly
-						/>
-					</div>
-				</Table.Cell>
-				<Table.Cell>
-					<ViewUserPopover
-						showSubscription={false}
-						userId={sub.user_id}
-					>
-						<Typography
-							type="body-xs"
-							className="font-mono select-all hover:underline"
-						>
-							{sub.user_id}
-						</Typography>
-					</ViewUserPopover>
-				</Table.Cell>
-				<Table.Cell>
-					<Chip
-						size="sm"
-						variant="soft"
-						color="accent"
-						className="capitalize"
-					>
-						{sub.plan_id}
-					</Chip>
-				</Table.Cell>
-				<Table.Cell>
-					{sub.scheduled_tier ? (
+							<Typography
+								type="body-xs"
+								className="font-mono select-all hover:underline"
+							>
+								{info.getValue()}
+							</Typography>
+						</ViewUserPopover>
+					),
+				}),
+				columnHelper.accessor("plan_id", {
+					header: "Tier",
+					cell: (info) => (
 						<Chip
+							className="capitalize"
+							color="accent"
 							size="sm"
 							variant="soft"
-							color="warning"
-							className="capitalize"
 						>
-							&rarr; {sub.scheduled_tier}
+							{info.getValue()}
 						</Chip>
-					) : (
-						<span className="text-muted text-xs">&mdash;</span>
-					)}
-				</Table.Cell>
-				<Table.Cell>
-					<Chip size="sm" variant="soft" color={statusProps.color}>
-						{statusProps.label}
-					</Chip>
-				</Table.Cell>
-				<Table.Cell>
-					<div className="flex flex-col text-xs">
-						<span>{formatDate(sub.period_start)}</span>
-						<span className="text-muted">
-							to {formatDate(sub.period_end)}
-						</span>
-					</div>
-				</Table.Cell>
-				<Table.Cell>
-					<div className="flex items-center justify-end gap-1.5">
-						<Tooltip delay={0}>
-							<Button
-								variant="outline"
+					),
+				}),
+				columnHelper.accessor("scheduled_tier", {
+					header: "Scheduled",
+					cell: (info) =>
+						info.getValue() ? (
+							<Chip
+								className="capitalize"
+								color="warning"
 								size="sm"
-								onPress={() => setInspectingSub(sub)}
-								aria-label="Inspect Subscription"
-								isIconOnly
+								variant="soft"
 							>
-								<Eye aria-hidden />
-							</Button>
-							<Tooltip.Content>
-								<p>View subscription</p>
-							</Tooltip.Content>
-						</Tooltip>
-						<Tooltip delay={0}>
-							<Button
-								variant="outline"
-								size="sm"
-								onPress={() => setOverridingSub(sub)}
-								aria-label="Override Subscription"
-								isIconOnly
-							>
-								<Gear aria-hidden />
-							</Button>
-							<Tooltip.Content>
-								<p>Override subscription</p>
-							</Tooltip.Content>
-						</Tooltip>
-						<Tooltip delay={0}>
-							<Button
-								variant={
-									sub.cancel_at_period_end
-										? "outline"
-										: "danger-soft"
-								}
-								size="sm"
-								onPress={() => setTogglingSub(sub)}
-							>
-								{sub.cancel_at_period_end
-									? "Restore"
-									: "Cancel"}
-							</Button>
-							<Tooltip.Content>
-								<p>
+								&rarr; {info.getValue()}
+							</Chip>
+						) : (
+							<span className="text-muted text-xs">&mdash;</span>
+						),
+				}),
+				columnHelper.accessor("status", {
+					header: "Status",
+					cell: (info) => {
+						const props = getSubscriptionStatusProps(
+							info.getValue()
+						);
+						return (
+							<Chip color={props.color} size="sm" variant="soft">
+								{props.label}
+							</Chip>
+						);
+					},
+				}),
+				columnHelper.accessor("period_end", {
+					header: "Period",
+					cell: (info) => (
+						<div className="flex flex-col text-xs">
+							<span>
+								{formatDate(info.row.original.period_start)}
+							</span>
+							<span className="text-muted">
+								to {formatDate(info.getValue())}
+							</span>
+						</div>
+					),
+				}),
+				columnHelper.display({
+					id: "actions",
+					header: () => <span className="sr-only">Actions</span>,
+					cell: (info) => {
+						const sub = info.row.original;
+						return (
+							<div className="flex items-center justify-end gap-1.5">
+								<Button
+									aria-label="Inspect subscription"
+									isIconOnly
+									onPress={() => setInspect(sub.id)}
+									size="sm"
+									variant="outline"
+								>
+									<Eye aria-hidden />
+								</Button>
+								<Button
+									aria-label="Override subscription"
+									isIconOnly
+									onPress={() => setOverridingSub(sub)}
+									size="sm"
+									variant="outline"
+								>
+									<Gear aria-hidden />
+								</Button>
+								<Button
+									onPress={() => setTogglingSub(sub)}
+									size="sm"
+									variant={
+										sub.cancel_at_period_end
+											? "outline"
+											: "danger-soft"
+									}
+								>
 									{sub.cancel_at_period_end
-										? "Restore user subscription"
-										: "Cancel user subscription"}
-								</p>
-							</Tooltip.Content>
-						</Tooltip>
-					</div>
-				</Table.Cell>
-			</Table.Row>
-		);
-	}, []);
+										? "Restore"
+										: "Cancel"}
+								</Button>
+							</div>
+						);
+					},
+				}),
+			]),
+		[setInspect]
+	);
+
+	const isFiltered = q.length > 0 || status !== "all";
 
 	return (
-		<div className="flex flex-col gap-4">
-			{/* Top Bar with Filter Select, Search, and Cron Trigger */}
-			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-				<SearchField
-					name="search"
-					value={searchQuery}
-					onChange={debouncedSetSearch}
-					className="max-w-sm"
-					fullWidth
-				>
-					<Label>Search</Label>
-					<SearchField.Group>
-						<SearchField.SearchIcon />
-						<SearchField.Input placeholder="Search by User ID or Sub ID..." />
-						<SearchField.ClearButton />
-					</SearchField.Group>
-				</SearchField>
-				<Select
-					aria-label="Filter by status"
-					className="w-full sm:w-48"
-					value={statusFilter}
-					onChange={(key) => setStatusFilter(String(key))}
-					selectionMode="single"
-				>
-					<Label>Filter by status</Label>
-					<Select.Trigger>
-						<Select.Value />
-						<Select.Indicator />
-					</Select.Trigger>
-					<Select.Popover>
-						<ListBox items={SUBSCRIPTION_FILTER_BY_STATUS}>
-							{(item) => (
-								<ListBox.Item
-									id={item.id}
-									textValue={item.label}
-								>
-									{item.label}
-									<ListBox.ItemIndicator />
-								</ListBox.Item>
-							)}
-						</ListBox>
-					</Select.Popover>
-				</Select>
-			</div>
-
-			{/* Main Table / Skeletons / Empty */}
-			<Table>
-				<Table.ScrollContainer>
-					<Table.Content aria-label="Subscriptions List">
-						<Table.Header>
-							<Table.Column id="sub_id" isRowHeader>
-								Subscription ID
-							</Table.Column>
-							<Table.Column id="user">User ID</Table.Column>
-							<Table.Column id="tier">Active Tier</Table.Column>
-							<Table.Column id="scheduled">
-								Scheduled
-							</Table.Column>
-							<Table.Column id="status">Status</Table.Column>
-							<Table.Column id="period">
-								Period Dates
-							</Table.Column>
-							<Table.Column id="actions">
-								<span className="sr-only">Actions</span>
-							</Table.Column>
-						</Table.Header>
-						<Table.Body
-							items={filteredSubs || []}
-							renderEmptyState={() =>
-								isLoading ? (
-									<TableLoadingState />
-								) : (
-									<TableEmptyState />
-								)
-							}
-						>
-							{(subscription) => renderTableRow(subscription)}
-						</Table.Body>
-					</Table.Content>
-				</Table.ScrollContainer>
-			</Table>
-
-			{/* Detail Inspector Modal */}
-			<SubscriptionDetailModal
-				subscription={inspectingSub}
-				isOpen={Boolean(inspectingSub)}
-				onOpenChange={(open) => !open && setInspectingSub(null)}
+		<>
+			<AdminDataTable
+				aria-label="Subscriptions"
+				columns={columns}
+				data={filteredSubs}
+				error={error}
+				emptyLabel="No subscriptions match the current filters."
+				isError={isError}
+				isLoading={isLoading}
+				onRetry={() => void refetch()}
+				pageSize={25}
+				paginationLabel="subscriptions"
+				rowHeaderId="id"
+				toolbar={
+					<TableToolbar
+						filters={
+							<AdminSelect
+								aria-label="Filter by status"
+								label="Filter by status"
+								onChange={(value) => setFilter("status", value)}
+								options={SUBSCRIPTION_FILTER_BY_STATUS}
+								value={status}
+							/>
+						}
+						isFiltered={isFiltered}
+						onClear={resetFilters}
+						onQueryChange={setQuery}
+						query={q}
+						searchPlaceholder="Search by subscription, user or tier…"
+					/>
+				}
 			/>
 
-			{/* Override Modal */}
+			<SubscriptionInspectDrawer
+				isOpen={Boolean(inspectedSub)}
+				onOpenChange={(open) => !open && setInspect(null)}
+				subscription={inspectedSub}
+			/>
+
 			<SubscriptionOverrideModal
-				subscription={overridingSub}
 				isOpen={Boolean(overridingSub)}
 				onOpenChange={(open) => !open && setOverridingSub(null)}
+				subscription={overridingSub}
 			/>
 
-			{/* Cancel / Restore Toggle Confirmation Dialog */}
-			<AlertDialog
+			<ConfirmActionDialog
+				confirmLabel={
+					togglingSub?.cancel_at_period_end
+						? "Restore subscription"
+						: "Cancel at period end"
+				}
+				description={
+					togglingSub?.cancel_at_period_end ? (
+						<>
+							Restore automatic renewal for{" "}
+							<strong>{togglingSub.user_id}</strong>? Renewal
+							resumes at the current cycle end.
+						</>
+					) : (
+						<>
+							Set the subscription for{" "}
+							<strong>{togglingSub?.user_id}</strong> to cancel at
+							the current period end? Access continues until the
+							period ends.
+						</>
+					)
+				}
 				isOpen={Boolean(togglingSub)}
+				isPending={
+					cancelMutation.isPending || restoreMutation.isPending
+				}
+				onConfirm={async () => {
+					if (!togglingSub) {
+						return;
+					}
+					try {
+						if (togglingSub.cancel_at_period_end) {
+							await restoreMutation.mutateAsync({
+								subscriptionId: togglingSub.id,
+							});
+						} else {
+							await cancelMutation.mutateAsync({
+								subscriptionId: togglingSub.id,
+								cancelAtPeriodEnd: true,
+							});
+						}
+						setTogglingSub(null);
+					} catch {
+						// Handled by the hooks.
+					}
+				}}
 				onOpenChange={(open) => !open && setTogglingSub(null)}
-			>
-				<AlertDialog.Backdrop isDismissable={false}>
-					<AlertDialog.Container>
-						<AlertDialog.Dialog>
-							<AlertDialog.CloseTrigger />
-							{/* Optional: Close button */}
-							<AlertDialog.Header>
-								<AlertDialog.Icon />
-								{/* Optional: Status icon */}
-								<AlertDialog.Heading>
-									{togglingSub?.cancel_at_period_end
-										? "Restore Subscription"
-										: "Cancel Subscription"}
-								</AlertDialog.Heading>
-							</AlertDialog.Header>
-							<AlertDialog.Body>
-								{togglingSub?.cancel_at_period_end ? (
-									<div>
-										Restore subscription for user{" "}
-										<ViewUserPopover
-											showSubscription={false}
-											userId={togglingSub?.user_id}
-										>
-											<span className="font-bold hover:underline">
-												{togglingSub?.user_id}
-											</span>
-										</ViewUserPopover>
-										? Automated renewal will resume at cycle
-										end.
-									</div>
-								) : (
-									<div>
-										Set subscription for user
-										<ViewUserPopover
-											showSubscription={false}
-											userId={togglingSub?.user_id}
-										>
-											<span className="font-bold hover:underline">
-												{togglingSub?.user_id}
-											</span>
-										</ViewUserPopover>{" "}
-										to cancel at current period end?
-									</div>
-								)}
-							</AlertDialog.Body>
-							<AlertDialog.Footer className="flex justify-end gap-2">
-								<Button
-									variant="outline"
-									onPress={() => setTogglingSub(null)}
-								>
-									Close
-								</Button>
-								<Button
-									variant={
-										togglingSub?.cancel_at_period_end
-											? "primary"
-											: "danger"
-									}
-									onPress={handleCancelOrRestore}
-									isPending={
-										cancelMutation.isPending ||
-										restoreMutation.isPending
-									}
-								>
-									{togglingSub?.cancel_at_period_end
-										? "Confirm Restore"
-										: "Confirm Cancellation"}
-								</Button>
-							</AlertDialog.Footer>
-						</AlertDialog.Dialog>
-					</AlertDialog.Container>
-				</AlertDialog.Backdrop>
-			</AlertDialog>
-		</div>
+				title={
+					togglingSub?.cancel_at_period_end
+						? "Restore subscription"
+						: "Cancel subscription"
+				}
+				tone={togglingSub?.cancel_at_period_end ? "primary" : "danger"}
+			/>
+		</>
 	);
 };
 

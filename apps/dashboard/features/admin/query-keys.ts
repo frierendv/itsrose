@@ -30,4 +30,14 @@ export const adminQueryKeys = {
 			[...adminQueryKeys.events.all, "list", filters ?? {}] as const,
 	},
 	metrics: () => [...adminQueryKeys.all, "metrics"] as const,
+	usage: {
+		all: ["admin", "usage"] as const,
+		rates: () => [...adminQueryKeys.usage.all, "rates"] as const,
+		settlements: (filters?: Record<string, unknown>) =>
+			[
+				...adminQueryKeys.usage.all,
+				"settlements",
+				filters ?? {},
+			] as const,
+	},
 };

@@ -71,6 +71,7 @@ export function useCreatePlanMutation() {
 						},
 					],
 					features: data.features ?? [],
+					quota_requests: data.quota_requests ?? null,
 					highlighted: Boolean(data.highlighted),
 				})
 			);
@@ -127,11 +128,11 @@ export function useUpdatePlanMutation() {
 			if (data.features !== undefined) {
 				payload.features = data.features;
 			}
+			if (data.quota_requests !== undefined) {
+				payload.quota_requests = data.quota_requests;
+			}
 			if (data.highlighted !== undefined) {
 				payload.highlighted = data.highlighted;
-			}
-			if (data.seatBased !== undefined) {
-				payload.seatBased = data.seatBased;
 			}
 
 			const res = await withAuthQuery(

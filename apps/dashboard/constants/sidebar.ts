@@ -1,6 +1,8 @@
+import { ADMIN_ROUTES } from "@/features/admin/routes";
 import type { SidebarItem } from "@/types/sidebar";
 import {
 	Archive,
+	ArrowRotateRight,
 	CreditCard,
 	FileDollar,
 	FolderTree,
@@ -12,6 +14,7 @@ import {
 	Sack,
 	Shield,
 	ShieldExclamation,
+	Speedometer,
 	Vault,
 	Wallet,
 } from "@gravity-ui/icons";
@@ -95,41 +98,70 @@ export const ADMIN_SIDEBAR_ITEMS = {
 	icon: Shield,
 	items: [
 		{
-			title: "Overview",
-			url: "/admin",
+			title: "Command Center",
+			url: ADMIN_ROUTES.commandCenter,
 			icon: Shield,
 		},
 		{
-			title: "Plans",
-			url: "/admin/plans",
-			icon: LayersVertical,
-		},
-		{
-			title: "Subscriptions",
-			url: "/admin/subscriptions",
-			icon: CreditCard,
-		},
-		{
-			title: "Transaction",
-			url: "/admin/transaction",
-			icon: Sack,
+			title: "Usage",
+			url: "/admin/usage",
+			icon: Speedometer,
 			items: [
 				{
-					title: "Ledger & Invoices",
-					url: "/admin/transaction",
+					title: "Rates",
+					url: ADMIN_ROUTES.usageRates,
 					icon: FileDollar,
 				},
 				{
-					title: "Event Flow",
-					url: "/admin/transaction/events",
+					title: "Settlements",
+					url: ADMIN_ROUTES.usageSettlements,
+					icon: Vault,
+				},
+				{
+					title: "Operations",
+					url: ADMIN_ROUTES.usageOperations,
+					icon: ArrowRotateRight,
+				},
+			],
+		},
+		{
+			title: "Billing",
+			url: "/admin/billing",
+			icon: CreditCard,
+			items: [
+				{
+					title: "Plans",
+					url: ADMIN_ROUTES.billingPlans,
+					icon: LayersVertical,
+				},
+				{
+					title: "Subscriptions",
+					url: ADMIN_ROUTES.billingSubscriptions,
+					icon: CreditCard,
+				},
+				{
+					title: "Invoices",
+					url: ADMIN_ROUTES.billingInvoices,
+					icon: Sack,
+				},
+				{
+					title: "Events",
+					url: ADMIN_ROUTES.billingEvents,
 					icon: Vault,
 				},
 			],
 		},
 		{
-			title: "Users",
-			url: "/admin/users",
+			title: "Access",
+			url: "/admin/access",
 			icon: Persons,
+			items: [
+				{
+					title: "Users",
+					url: ADMIN_ROUTES.accessUsers,
+					icon: PersonGear,
+				},
+			],
 		},
 	],
 } satisfies SidebarItem;

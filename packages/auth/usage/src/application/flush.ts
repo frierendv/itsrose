@@ -6,6 +6,7 @@ import {
 } from "../constants";
 import { resolveWeight, unitsMicroFor } from "../domain/units";
 import type {
+	FlushUsageResult,
 	UsageDayReaderPort,
 	UsageDayTenantSnapshot,
 	UsageEndpointWeight,
@@ -22,13 +23,6 @@ export type FlushUsageInput = {
 	days?: readonly string[];
 	unit?: string;
 	source?: string;
-};
-
-export type FlushUsageResult = {
-	days: string[];
-	tenants: number;
-	rows: number;
-	written: number;
 };
 
 /**
