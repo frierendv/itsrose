@@ -1,6 +1,8 @@
+import type { Subscription } from "@itsrose/auth-billing";
 import type { SettlementResult, UsageUnitRate } from "@itsrose/auth-usage";
 import {
 	buildMonthOptions,
+	buildOverviewMetrics,
 	buildRateGroups,
 	buildSettlementSummary,
 } from "../models";
@@ -141,5 +143,139 @@ describe("buildMonthOptions", () => {
 			"2025-11",
 		]);
 		expect(options[0]?.label).toMatch(/2026/);
+	});
+});
+
+describe("buildOverviewMetrics", () => {
+	const plan = {
+		id: "plan-pro",
+		plan_id: "pro",
+		name: "Pro",
+		description: null,
+		price: {
+			amount: 120_000,
+			currency: "IDR" as const,
+			interval: "month" as const,
+		},
+		features: [],
+		limits: { max: 300, timeWindow: 60_000 },
+		quota_requests: 2_000_000,
+		highlighted: false,
+	};
+	const yearlyPlan = {
+		...plan,
+		id: "plan-year",
+		plan_id: "yearly",
+		price: {
+			amount: 1_200_000,
+			currency: "IDR" as const,
+			interval: "year" as const,
+		},
+	};
+
+	function subscription(
+		partial: Partial<{
+			id: string;
+			status: Subscription["status"];
+			plan_id: string;
+			period_end: string;
+		}>
+	): Subscription {
+		return {
+			id: partial.id ?? "sub-1",
+			user_id: "user-1",
+			plan_id: partial.plan_id ?? "pro",
+			status: partial.status ?? "active",
+			period_start: "2026-11-01T00:00:00.000Z",
+			period_end: partial.period_end ?? "2026-12-01T00:00:00.000Z",
+			interval: "month",
+		};
+	}
+
+	it("computes active counts, monthly-normalised MRR and pending totals", () => {
+		const metrics = buildOverviewMetrics({
+			subscriptions: [
+				subscription({ id: "sub-1", status: "active", plan_id: "pro" }),
+				subscription({
+					id: "sub-2",
+					status: "active",
+					plan_id: "yearly",
+				}),
+				subscription({
+					id: "sub-3",
+					status: "past_due",
+					plan_id: "pro",
+				}),
+			],
+			invoices: [
+				{
+					invoice_id: "inv-1",
+					order_id: "order-1",
+					user_id: "user-1",
+					invoice_number: "INV-1",
+					invoice_type: "NEW",
+					target_tier: "pro",
+					status: "pending",
+					invoice_date: "2026-11-01",
+					due_date: "2026-11-04",
+					gross_amount: 120_000,
+					payment_type: "payment_link",
+					item_details: [],
+					customer_details: null,
+				},
+				{
+					invoice_id: "inv-2",
+					order_id: "order-2",
+					user_id: "user-1",
+					invoice_number: "INV-2",
+					invoice_type: "RENEWAL",
+					target_tier: "pro",
+					status: "paid",
+					invoice_date: "2026-10-01",
+					due_date: "2026-10-04",
+					gross_amount: 80_000,
+					payment_type: "payment_link",
+					item_details: [],
+					customer_details: null,
+				},
+			],
+			plans: [plan, yearlyPlan],
+			events: [],
+		});
+
+		expect(metrics.active_subscriptions).toBe(2);
+		expect(metrics.total_subscriptions).toBe(3);
+		// 120k monthly + 1.2M yearly / 12 = 220k
+		expect(metrics.mrr).toBe(220_000);
+		expect(metrics.pending_invoices).toBe(1);
+		expect(metrics.pending_amount).toBe(120_000);
+		expect(metrics.lifetime_revenue).toBe(80_000);
+		expect(metrics.attention_count).toBe(1);
+		expect(metrics.attention[0]?.status).toBe("past_due");
+	});
+
+	it("flags sampled data at the cap", () => {
+		const metrics = buildOverviewMetrics({
+			subscriptions: [subscription({})],
+			invoices: [],
+			plans: [plan],
+			events: [],
+			cap: 1,
+		});
+		expect(metrics.sampled.truncated).toBe(true);
+		expect(metrics.sampled.cap).toBe(1);
+	});
+
+	it("handles an empty platform", () => {
+		const metrics = buildOverviewMetrics({
+			subscriptions: [],
+			invoices: [],
+			plans: [],
+			events: [],
+		});
+		expect(metrics.active_subscriptions).toBe(0);
+		expect(metrics.mrr).toBe(0);
+		expect(metrics.attention).toEqual([]);
+		expect(metrics.sampled.truncated).toBe(false);
 	});
 });

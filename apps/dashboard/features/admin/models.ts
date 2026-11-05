@@ -1,4 +1,10 @@
-import type { CronExecutionResult } from "@itsrose/auth-billing";
+import type {
+	ApiPlan,
+	CronExecutionResult,
+	Invoice,
+	Subscription,
+	TransactionInvoiceEvent,
+} from "@itsrose/auth-billing";
 import type {
 	FlushUsageResult,
 	SettlementResult,
@@ -189,5 +195,144 @@ export function buildCronOutcome(
 			(error) =>
 				`${error.task}${error.id ? ` (${error.id})` : ""}: ${error.error}`
 		),
+	};
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 Overview                                   */
+/* -------------------------------------------------------------------------- */
+
+export type OverviewAttentionItem = {
+	id: string;
+	user_id: string;
+	plan_id: string;
+	status: string;
+	period_end: Date | string | null;
+};
+
+export type OverviewMetrics = {
+	active_subscriptions: number;
+	total_subscriptions: number;
+	/** Monthly-normalised MRR in IDR. */
+	mrr: number;
+	mrr_label: string;
+	pending_invoices: number;
+	pending_amount: number;
+	pending_amount_label: string;
+	lifetime_revenue: number;
+	lifetime_revenue_label: string;
+	attention_count: number;
+	attention: OverviewAttentionItem[];
+	recent_events: TransactionInvoiceEvent[];
+	sampled: {
+		subscriptions: number;
+		invoices: number;
+		cap: number;
+		truncated: boolean;
+	};
+};
+
+export type OverviewMetricsInput = {
+	subscriptions: readonly Subscription[];
+	invoices: readonly Invoice[];
+	plans: readonly ApiPlan[];
+	events: readonly TransactionInvoiceEvent[];
+	/** Server-side list cap used for the fetch; shown to avoid implying totals. */
+	cap?: number;
+};
+
+function monthlyPrice(plan: ApiPlan | undefined): number {
+	if (!plan) {
+		return 0;
+	}
+	const amount = plan.price?.amount ?? 0;
+	return plan.price?.interval === "year" ? amount / 12 : amount;
+}
+
+/**
+ * KPI, attention and activity model for the command center.
+ *
+ * Totals are computed from the latest fetched page of records, so the caller
+ * renders the sampling caption; the shape is what an accurate aggregate
+ * endpoint will return later.
+ */
+export function buildOverviewMetrics(
+	input: OverviewMetricsInput
+): OverviewMetrics {
+	const cap = input.cap ?? 100;
+	const planById = new Map(
+		input.plans.map((plan) => [plan.plan_id.toLowerCase(), plan])
+	);
+
+	const active = input.subscriptions.filter(
+		(subscription) => (subscription.status || "").toLowerCase() === "active"
+	);
+	const attentionStatuses = new Set(["past_due", "expired"]);
+	const attention = input.subscriptions
+		.filter((subscription) =>
+			attentionStatuses.has((subscription.status || "").toLowerCase())
+		)
+		.map((subscription) => ({
+			id: subscription.id,
+			user_id: subscription.user_id,
+			plan_id: subscription.plan_id,
+			status: subscription.status,
+			period_end: subscription.period_end ?? null,
+		}))
+		.sort(
+			(left, right) =>
+				new Date(left.period_end ?? 0).getTime() -
+				new Date(right.period_end ?? 0).getTime()
+		);
+
+	const pendingInvoices = input.invoices.filter((invoice) => {
+		const status = (invoice.status || "").toLowerCase();
+		return status === "pending" || status === "unpaid";
+	});
+	const paidInvoices = input.invoices.filter((invoice) => {
+		const status = (invoice.status || "").toLowerCase();
+		return status === "paid" || status === "settlement";
+	});
+
+	const mrr = Math.round(
+		active.reduce(
+			(total, subscription) =>
+				total +
+				monthlyPrice(
+					planById.get((subscription.plan_id || "").toLowerCase())
+				),
+			0
+		)
+	);
+	const pendingAmount = pendingInvoices.reduce(
+		(total, invoice) => total + (invoice.gross_amount ?? 0),
+		0
+	);
+	const lifetimeRevenue = paidInvoices.reduce(
+		(total, invoice) => total + (invoice.gross_amount ?? 0),
+		0
+	);
+
+	return {
+		active_subscriptions: active.length,
+		total_subscriptions: input.subscriptions.length,
+		mrr,
+		mrr_label: formatIDR(mrr),
+		pending_invoices: pendingInvoices.length,
+		pending_amount: pendingAmount,
+		pending_amount_label: formatIDR(pendingAmount),
+		lifetime_revenue: lifetimeRevenue,
+		lifetime_revenue_label: formatIDR(lifetimeRevenue),
+		attention_count: attention.length,
+		attention: attention.slice(0, 5),
+		recent_events: [...input.events].slice(0, 8),
+		sampled: {
+			subscriptions: input.subscriptions.length,
+			invoices: input.invoices.length,
+			cap,
+			truncated:
+				input.subscriptions.length >= cap ||
+				input.invoices.length >= cap,
+		},
 	};
 }
