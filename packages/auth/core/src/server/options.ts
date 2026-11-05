@@ -1,3 +1,8 @@
+import {
+	createBillingRepositories,
+	ensurePersonalTenant,
+} from "@itsrose/auth-billing/server";
+import { tenantIdForUser } from "@itsrose/auth-usage/server";
 import type { BetterAuthOptions } from "better-auth";
 import type { SharedEnv } from "../shared";
 import { COOKIE_PREFIX } from "../shared/constants";
@@ -94,6 +99,31 @@ export function getAuthOptions(
 				expiresAt: "expires_at",
 				createdAt: "created_at",
 				updatedAt: "updated_at",
+			},
+		},
+		databaseHooks: {
+			user: {
+				create: {
+					/**
+					 * Bootstraps the 1:1 personal tenant. Best effort: if it
+					 * fails, metering still attributes traffic because the
+					 * tenant id is derived from the user id.
+					 */
+					after: async (user, ctx) => {
+						if (!ctx) {
+							return;
+						}
+						try {
+							const repositories = createBillingRepositories(ctx);
+							await ensurePersonalTenant(repositories, {
+								user_id: user.id,
+								tenant_id: tenantIdForUser(user.id),
+							});
+						} catch {
+							// Soft failure: never block signup.
+						}
+					},
+				},
 			},
 		},
 		advanced: {
