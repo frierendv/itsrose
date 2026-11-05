@@ -114,3 +114,23 @@ export function extractEventIdentifiers(
 
 	return { orderId, invoiceId };
 }
+
+export type SettlementStatusProps = {
+	label: string;
+	color: "default" | "success" | "warning" | "danger";
+};
+
+export function getSettlementStatusProps(
+	status: "settled" | "skipped" | "failed" | string
+): SettlementStatusProps {
+	switch (status) {
+		case "settled":
+			return { label: "Settled", color: "success" };
+		case "skipped":
+			return { label: "Skipped", color: "warning" };
+		case "failed":
+			return { label: "Failed", color: "danger" };
+		default:
+			return { label: status || "Unknown", color: "default" };
+	}
+}
