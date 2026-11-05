@@ -6,10 +6,12 @@ import { tenantIdForUser } from "@itsrose/auth-usage/server";
 import type { BetterAuthOptions } from "better-auth";
 import type { SharedEnv } from "../shared";
 import { COOKIE_PREFIX } from "../shared/constants";
+import { resolveGoogleOAuthCredentials } from "../shared/env";
 
 export function getAuthOptions(
 	env: SharedEnv & Record<string, unknown> = process.env as any
 ) {
+	const google = resolveGoogleOAuthCredentials(env);
 	return {
 		appName: env.APP_NAME ?? "ItsRose",
 		emailAndPassword: {
@@ -30,12 +32,9 @@ export function getAuthOptions(
 				clientSecret: (env.BETTER_AUTH_GITHUB_SECRET as string) ?? "",
 			},
 			google: {
-				enabled: !!(
-					env.BETTER_GOOGLE_CLIENT_ID &&
-					env.BETTER_GOOGLE_CLIENT_SECRET
-				),
-				clientId: (env.BETTER_GOOGLE_CLIENT_ID as string) ?? "",
-				clientSecret: (env.BETTER_GOOGLE_CLIENT_SECRET as string) ?? "",
+				enabled: Boolean(google.clientId && google.clientSecret),
+				clientId: google.clientId ?? "",
+				clientSecret: google.clientSecret ?? "",
 				accessType: "offline",
 				prompt: "select_account consent",
 				display: "popup",

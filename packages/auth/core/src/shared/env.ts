@@ -27,6 +27,9 @@ export const SHARED_ENV_KEYS = [
 	// OAuth Providers
 	"BETTER_AUTH_GOOGLE_ID",
 	"BETTER_AUTH_GOOGLE_SECRET",
+	/** Legacy aliases for the same Google OAuth client. */
+	"BETTER_GOOGLE_CLIENT_ID",
+	"BETTER_GOOGLE_CLIENT_SECRET",
 	"BETTER_AUTH_GITHUB_ID",
 	"BETTER_AUTH_GITHUB_SECRET",
 
@@ -53,4 +56,33 @@ export function readEnvs<T extends readonly string[]>(keys: T): SharedEnv<T> {
 		Object.assign(env, { [envKey]: getEnv(envKey, { allowEmpty: true }) });
 	}
 	return env;
+}
+
+/** Canonical and legacy names for the Google OAuth client. */
+export const GOOGLE_OAUTH_ENV_KEYS = [
+	"BETTER_AUTH_GOOGLE_ID",
+	"BETTER_AUTH_GOOGLE_SECRET",
+	"BETTER_GOOGLE_CLIENT_ID",
+	"BETTER_GOOGLE_CLIENT_SECRET",
+] as const;
+
+export type GoogleOAuthCredentials = {
+	clientId?: string;
+	clientSecret?: string;
+};
+
+/**
+ * Resolves the Google OAuth client from the canonical names, falling back to
+ * the legacy `BETTER_GOOGLE_*` aliases so existing deployments keep working.
+ */
+export function resolveGoogleOAuthCredentials(
+	env: Record<string, string | undefined>
+): GoogleOAuthCredentials {
+	const clientId = env.BETTER_AUTH_GOOGLE_ID || env.BETTER_GOOGLE_CLIENT_ID;
+	const clientSecret =
+		env.BETTER_AUTH_GOOGLE_SECRET || env.BETTER_GOOGLE_CLIENT_SECRET;
+	return {
+		clientId: clientId || undefined,
+		clientSecret: clientSecret || undefined,
+	};
 }
