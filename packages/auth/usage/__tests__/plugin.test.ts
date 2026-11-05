@@ -109,3 +109,74 @@ describe("getQuota endpoint", () => {
 		expect(setHeader).toHaveBeenCalledWith("x-quota-remaining", "5");
 	});
 });
+
+describe("seeded rate defaults", () => {
+	function createRates() {
+		const ensureDefaults = jest.fn(async () => {});
+		const rates = {
+			ensureDefaults,
+			listOpen: jest.fn(async () => []),
+			resolveAt: jest.fn(async () => null),
+			setRate: jest.fn(async () => {
+				throw new Error("not used");
+			}),
+			listWeights: jest.fn(async () => []),
+		};
+		return { rates, ensureDefaults };
+	}
+
+	it("seeds defaults from the plugin init", async () => {
+		const { rates, ensureDefaults } = createRates();
+		const plugin = usagePlugin({
+			counter: createCounter(0),
+			rates,
+			plan_tiers: ["free", "pro"],
+		});
+
+		await (plugin.init as () => Promise<void>)();
+
+		expect(ensureDefaults).toHaveBeenCalledWith({
+			plan_tiers: ["free", "pro"],
+			unit: "request",
+		});
+	});
+
+	it("can disable boot seeding", async () => {
+		const { rates, ensureDefaults } = createRates();
+		const plugin = usagePlugin({
+			counter: createCounter(0),
+			rates,
+			plan_tiers: ["free"],
+			seed_default_rates: false,
+		});
+
+		await (plugin.init as () => Promise<void>)();
+		expect(ensureDefaults).not.toHaveBeenCalled();
+	});
+
+	it("seeds again when the admin rate list is requested", async () => {
+		const { rates, ensureDefaults } = createRates();
+		const plugin = usagePlugin({
+			counter: createCounter(0),
+			rates,
+			plan_tiers: ["free"],
+			seed_default_rates: false,
+		});
+		const endpoints = plugin.endpoints as Record<
+			string,
+			((context: unknown) => Promise<unknown>) | undefined
+		>;
+		const context = {
+			context: { session: { user: { id: "usr_admin", role: "admin" } } },
+			json: (payload: unknown) => payload,
+		};
+
+		const result = await endpoints.listUsageRates?.(context);
+
+		expect(ensureDefaults).toHaveBeenCalledWith({
+			plan_tiers: ["free"],
+			unit: "request",
+		});
+		expect(result).toEqual({ rates: [] });
+	});
+});

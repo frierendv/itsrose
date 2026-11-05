@@ -54,6 +54,18 @@ export function usageAdminEndpoints(options: ResolvedUsageOptions) {
 				if (!options.rates) {
 					missingPort("rate store");
 				}
+				// Keep the seeded defaults available even when the schema was
+				// migrated after boot; the insert is idempotent.
+				if (options.plan_tiers && options.plan_tiers.length > 0) {
+					try {
+						await options.rates.ensureDefaults({
+							plan_tiers: options.plan_tiers,
+							unit: options.unit,
+						});
+					} catch {
+						// The ledger tables may not be migrated yet.
+					}
+				}
 				const rates = await options.rates.listOpen();
 				return ctx.json({ rates });
 			}
