@@ -7,21 +7,18 @@ import {
 	usePlans,
 	useSubscription,
 } from "@/features/billing";
-import { formatUsageCount, useUsageStats } from "@/features/usage";
+import { UsageQuotaCard, UsageSummaryCards } from "@/features/usage";
 import { authClient } from "@/lib/auth";
 import { useSession } from "@better-auth-ui/react";
 import {
 	Archive,
-	Clock,
 	FileDollar,
 	PersonGear,
 	Shield,
 	ShieldExclamation,
-	Speedometer,
-	Thunderbolt,
 	Wallet,
 } from "@gravity-ui/icons";
-import { Card, Skeleton, Typography } from "@heroui/react";
+import { Card, Typography } from "@heroui/react";
 import NextLink from "next/link";
 
 const QUICK_LINKS = [
@@ -61,13 +58,9 @@ export const HomePage: React.FC = () => {
 	const { subscription, isPending: isSubPending } = useSubscription();
 	const { plans } = usePlans();
 	const { invoices, isPending: isInvoicesPending } = useInvoices();
-	const { stats, isPending: isUsagePending } = useUsageStats();
 	const { data: session } = useSession(authClient);
 
 	const isAdmin = session?.user?.role === "admin";
-
-	const requestsToday =
-		stats?.requests_by_day[stats.requests_by_day.length - 1]?.count ?? 0;
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -83,40 +76,13 @@ export const HomePage: React.FC = () => {
 			{/* API Usage Metrics */}
 			<section className="flex flex-col gap-3">
 				<Typography type="h3">API Usage</Typography>
-				<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-					<UsageMetricCard
-						icon={<Thunderbolt className="size-4" />}
-						label="Total Requests"
-						value={
-							isUsagePending
-								? null
-								: formatUsageCount(stats?.total_requests ?? 0)
-						}
-						hint="Last 30 days across all endpoints"
-					/>
-					<UsageMetricCard
-						icon={<Speedometer className="size-4" />}
-						label="Average Latency"
-						value={
-							isUsagePending
-								? null
-								: `${formatUsageCount(
-										stats?.avg_latency_ms ?? 0
-									)} ms`
-						}
-						hint="Mean response time"
-					/>
-					<UsageMetricCard
-						icon={<Clock className="size-4" />}
-						label="Requests Today"
-						value={
-							isUsagePending
-								? null
-								: formatUsageCount(requestsToday)
-						}
-						hint="Since midnight UTC"
-					/>
-				</div>
+				<UsageSummaryCards />
+			</section>
+
+			{/* Monthly Quota */}
+			<section className="flex flex-col gap-3">
+				<Typography type="h3">Monthly Quota</Typography>
+				<UsageQuotaCard />
 			</section>
 
 			{/* Current Subscription Snapshot */}
@@ -210,39 +176,3 @@ export const HomePage: React.FC = () => {
 };
 
 HomePage.displayName = "HomePage";
-
-export type UsageMetricCardProps = {
-	icon: React.ReactNode;
-	label: string;
-	/** `null` renders a skeleton while loading. */
-	value: string | null;
-	hint: string;
-};
-
-const UsageMetricCard: React.FC<UsageMetricCardProps> = ({
-	icon,
-	label,
-	value,
-	hint,
-}) => (
-	<Card variant="default">
-		<Card.Header className="flex flex-row items-center justify-between pb-2">
-			<Card.Title className="text-sm font-medium text-muted">
-				{label}
-			</Card.Title>
-			<span className="text-muted shrink-0">{icon}</span>
-		</Card.Header>
-		<Card.Content className="flex flex-col gap-1">
-			{value === null ? (
-				<Skeleton className="h-8 w-28" />
-			) : (
-				<Typography type="h2">{value}</Typography>
-			)}
-			<Typography type="body-xs" color="muted">
-				{hint}
-			</Typography>
-		</Card.Content>
-	</Card>
-);
-
-UsageMetricCard.displayName = "UsageMetricCard";
