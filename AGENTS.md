@@ -131,7 +131,7 @@ flowchart TD
     API_CLIENT --> HTTP_CLIENT
 ```
 
-> Some feature packages additionally depend on `@itsrose/shared-schema` (`elevenlabs`, `instagram`, `mtxx`, `remini`); those edges are omitted from the diagram for readability.
+> Some feature packages additionally depend on `@itsrose/shared-schema` (`elevenlabs`, `mtxx`, `remini`); those edges are omitted from the diagram for readability.
 
 ### 2.1. Applications (`apps/*`)
 | Directory           | Name           | Framework             | Responsibility                                                                                                                       |
