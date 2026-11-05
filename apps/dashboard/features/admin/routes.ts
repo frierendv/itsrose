@@ -6,6 +6,8 @@
  */
 export const ADMIN_ROUTES = {
 	commandCenter: "/admin",
+	usageRates: "/admin/usage/rates",
+	usageSettlements: "/admin/usage/settlements",
 	billingPlans: "/admin/billing/plans",
 	billingSubscriptions: "/admin/billing/subscriptions",
 	billingInvoices: "/admin/billing/invoices",

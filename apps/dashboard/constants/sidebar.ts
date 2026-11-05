@@ -13,6 +13,7 @@ import {
 	Sack,
 	Shield,
 	ShieldExclamation,
+	Speedometer,
 	Vault,
 	Wallet,
 } from "@gravity-ui/icons";
@@ -99,6 +100,23 @@ export const ADMIN_SIDEBAR_ITEMS = {
 			title: "Command Center",
 			url: ADMIN_ROUTES.commandCenter,
 			icon: Shield,
+		},
+		{
+			title: "Usage",
+			url: "/admin/usage",
+			icon: Speedometer,
+			items: [
+				{
+					title: "Rates",
+					url: ADMIN_ROUTES.usageRates,
+					icon: FileDollar,
+				},
+				{
+					title: "Settlements",
+					url: ADMIN_ROUTES.usageSettlements,
+					icon: Vault,
+				},
+			],
 		},
 		{
 			title: "Billing",
