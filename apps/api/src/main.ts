@@ -1,9 +1,13 @@
 import "dotenv/config";
+import { assertApiEnv } from "@/lib/env-check";
 import { getEnv } from "@itsrose/system";
 import closeWithGrace from "close-with-grace";
 import Fastify from "fastify";
 import fp from "fastify-plugin";
 import app from "./app";
+
+// Fail fast with every missing or malformed variable in one message.
+assertApiEnv();
 
 const fastify = Fastify({
 	logger: { level: "info" },
