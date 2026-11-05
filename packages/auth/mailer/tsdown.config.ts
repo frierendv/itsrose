@@ -20,6 +20,7 @@ export default defineConfig({
 	entry: [
 		"src/index.ts",
 		"src/client.ts",
+		"src/env.ts",
 		"src/renderer.ts",
 		"src/service.ts",
 		"src/plugin-server.ts",

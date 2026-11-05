@@ -3,5 +3,6 @@ import { defineConfig } from "tsdown";
 
 export default defineConfig({
 	...config,
+	entry: ["src/index.ts", "src/env.ts"],
 	failOnWarn: false,
 });
