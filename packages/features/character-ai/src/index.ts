@@ -7,5 +7,6 @@
 export * from "./character-ai";
 // #endif
 export * from "./client";
+export * from "./env";
 export * from "./chat";
 export * from "./zod-schema";

@@ -1,5 +1,6 @@
 import { HttpClient, type HttpRequestConfig } from "@itsrose/http-client";
 import { getEnv, ThirdPartyApiError } from "@itsrose/system";
+import { MTXX_ENV } from "../env";
 import type { IInferenceResponse, MtlabInferenceData } from "../types";
 import type { ISDKParameter } from "../utils";
 import { DEFAULT_ERROR, ERROR_MAP } from "./error";
@@ -12,14 +13,16 @@ class BaseHttpClient extends HttpClient {
 	#key: string;
 	#signer: Signer;
 
-	public appVersion = getEnv("MTXX_APP_VERSION", { defaultValue: "12.11.5" });
+	public appVersion = getEnv(MTXX_ENV.appVersion, {
+		defaultValue: "12.11.5",
+	});
 
 	constructor() {
 		const sdkUrl = new URL(
-			getEnv("MTXX_SDK_BASE_URL", { isRequired: true })
+			getEnv(MTXX_ENV.sdkBaseUrl, { isRequired: true })
 		);
 		const openApiUrl = new URL(
-			getEnv("MTXX_OPENAPI_BASE_URL", { isRequired: true })
+			getEnv(MTXX_ENV.openapiBaseUrl, { isRequired: true })
 		);
 		super({
 			baseURL: sdkUrl.origin,
@@ -33,8 +36,8 @@ class BaseHttpClient extends HttpClient {
 		this._sdkBaseUrl = sdkUrl.origin;
 		this._openApiBaseUrl = openApiUrl.origin;
 
-		this.#key = getEnv("MTXX_KEY", { isRequired: true });
-		this.#secret = getEnv("MTXX_SECRET", { isRequired: true });
+		this.#key = getEnv(MTXX_ENV.key, { isRequired: true });
+		this.#secret = getEnv(MTXX_ENV.secret, { isRequired: true });
 		this.#signer = new Signer({ key: this.#key, secret: this.#secret });
 
 		this.interceptors.request.use((config) => {
