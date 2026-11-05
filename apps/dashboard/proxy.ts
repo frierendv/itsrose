@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_ROUTES } from "./constants/route";
+import { canAccessAdmin, isAdminPath } from "./lib/auth/admin-access";
 import { authClient } from "./lib/auth/auth-client";
 
 const matchesRoute = (pathname: string, routes: string[]) =>
@@ -54,6 +55,15 @@ export async function proxy(request: NextRequest) {
 			redirectUrl.searchParams.set("redirectTo", pathname);
 		}
 		return NextResponse.redirect(redirectUrl);
+	}
+
+	// Admin paths are a privileged surface: redirect instead of rendering a
+	// shell whose requests would all fail with 403.
+	if (
+		isAdminPath(pathname) &&
+		!canAccessAdmin(pathname, (session.user as { role?: string })?.role)
+	) {
+		return NextResponse.redirect(new URL("/", request.url));
 	}
 
 	return NextResponse.next();
