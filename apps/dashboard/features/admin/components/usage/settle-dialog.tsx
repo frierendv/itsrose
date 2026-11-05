@@ -2,6 +2,7 @@
 
 import {
 	Button,
+	Description,
 	Label,
 	ListBox,
 	ModalBackdrop,
@@ -90,24 +91,27 @@ export const SettleDialog: React.FC<SettleDialogProps> = ({
 							</Select.Popover>
 						</Select>
 
-						<div className="flex items-center justify-between gap-4 rounded-medium border border-separator p-3">
-							<div className="flex flex-col gap-0.5">
-								<Typography
-									type="body-sm"
-									className="font-medium"
-								>
-									Issue invoices
-								</Typography>
-								<Typography type="body-xs" color="muted">
-									Creates real payable invoices through the
-									payment provider. Leave off to inspect the
-									computed amounts first.
-								</Typography>
-							</div>
+						<div className="flex items-center rounded-medium border border-separator p-3">
 							<Switch
+								className="w-full"
 								isSelected={createInvoices}
 								onChange={setCreateInvoices}
-							/>
+							>
+								<Switch.Content className="w-full justify-between">
+									<div className="flex flex-col gap-0.5">
+										<Label>Issue invoices</Label>
+										<Description>
+											Creates real payable invoices
+											through the payment provider. Leave
+											off to inspect the computed amounts
+											first.
+										</Description>
+									</div>
+									<Switch.Control>
+										<Switch.Thumb />
+									</Switch.Control>
+								</Switch.Content>
+							</Switch>
 						</div>
 					</ModalBody>
 					<ModalFooter className="flex justify-end gap-2 pt-4">
