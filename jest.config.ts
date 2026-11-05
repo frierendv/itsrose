@@ -114,6 +114,9 @@ const config: Config = {
 			moduleNameMapper: {
 				...moduleNameMapper,
 				"^@/(.*)$": "<rootDir>/apps/dashboard/$1",
+				// The package ships ESM only; tests only need the route table.
+				"^@better-auth-ui/core$":
+					"<rootDir>/apps/dashboard/__mocks__/better-auth-ui-core.ts",
 			},
 			transformIgnorePatterns,
 			...createDefaultEsmPreset({
