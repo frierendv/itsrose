@@ -17,8 +17,6 @@ export const config = {
 	APP_NAME: process.env[asNextPublic("APP_NAME")] || "ItsRose",
 	/** `NEXT_PUBLIC_APP_TITLE` */
 	APP_TITLE: process.env[asNextPublic("APP_TITLE")] || "ItsRose Platform",
-	/** `NEXT_PUBLIC_APP_DOMAIN` */
-	APP_DOMAIN: process.env[asNextPublic("APP_DOMAIN")] || "dash.itsrose.my.id",
 	/** `NEXT_PUBLIC_APP_BASE_URL` */
 	APP_BASE_URL,
 	/** `NEXT_PUBLIC_APP_DESCRIPTION` */
