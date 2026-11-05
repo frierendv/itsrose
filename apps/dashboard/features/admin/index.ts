@@ -5,5 +5,6 @@ export * from "./pages/admin-invoices-page";
 export * from "./pages/admin-overview-page";
 export * from "./pages/admin-plans-page";
 export * from "./pages/admin-subscriptions-page";
+export * from "./pages/admin-users-page";
 export * from "./types";
 export * from "./utils";
