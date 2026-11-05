@@ -45,7 +45,10 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 	const [planId, setPlanId] = useState(plan?.plan_id ?? "");
 	const [name, setName] = useState(plan?.name ?? "");
 	const [description, setDescription] = useState(plan?.description ?? "");
-	const [amount, setAmount] = useState<number>(plan?.price?.amount ?? 60000);
+	// Kept as a string so clearing the field does not snap back to "0".
+	const [amount, setAmount] = useState<string>(
+		plan?.price?.amount === undefined ? "60000" : String(plan.price.amount)
+	);
 	const [interval] = useState<"month" | "year">(
 		plan?.price?.interval ?? "month"
 	);
@@ -83,7 +86,7 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 					plan_id: planId,
 					name,
 					description,
-					price_amount: amount,
+					price_amount: Math.max(0, Math.trunc(Number(amount))),
 					interval,
 					quota_requests: quotaRequestsValue,
 					features,
@@ -94,7 +97,7 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 					plan_id: planId,
 					name,
 					description,
-					price_amount: amount,
+					price_amount: Math.max(0, Math.trunc(Number(amount))),
 					interval,
 					quota_requests: quotaRequestsValue,
 					features,
@@ -162,11 +165,9 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 					<TextField
 						isRequired
 						name="price_amount"
-						onChange={(value) =>
-							setAmount(value === "" ? 0 : Number(value))
-						}
+						onChange={setAmount}
 						type="number"
-						value={String(amount)}
+						value={amount}
 					>
 						<Label>Monthly Price (IDR)</Label>
 						<Input
@@ -215,16 +216,14 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 					/>
 				</TextField>
 
-				<div className="flex items-center justify-between gap-4 rounded-medium border border-separator p-3">
+				<div className="flex items-center rounded-medium border border-separator p-3">
 					<Switch
+						className="w-full"
 						isSelected={highlighted}
 						name="highlighted"
 						onChange={setHighlighted}
 					>
-						<Switch.Content>
-							<Switch.Control>
-								<Switch.Thumb />
-							</Switch.Control>
+						<Switch.Content className="w-full justify-between">
 							<div className="flex flex-col gap-0.5">
 								<Label>Highlight on Pricing Table</Label>
 								<Description>
@@ -232,6 +231,9 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 									on workspace upgrade screens
 								</Description>
 							</div>
+							<Switch.Control>
+								<Switch.Thumb />
+							</Switch.Control>
 						</Switch.Content>
 					</Switch>
 				</div>
