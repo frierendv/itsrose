@@ -1,13 +1,12 @@
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { AUTH_ROUTES } from "./constants/route";
+import {
+	AUTH_ROUTES,
+	matchesRoute,
+	shouldLeaveAuthRoute,
+} from "./constants/route";
 import { canAccessAdmin, isAdminPath } from "./lib/auth/admin-access";
 import { authClient } from "./lib/auth/auth-client";
-
-const matchesRoute = (pathname: string, routes: string[]) =>
-	routes.some(
-		(route) => pathname === route || pathname.startsWith(`${route}/`)
-	);
 
 /**
  * Deduplicates the session RPC for a given request instance so the proxy path
@@ -43,7 +42,7 @@ export async function proxy(request: NextRequest) {
 	const { data: session } = await getSessionForRequest(request);
 
 	if (isAuthRoute) {
-		if (session) {
+		if (shouldLeaveAuthRoute(pathname, Boolean(session))) {
 			return NextResponse.redirect(new URL("/", request.url));
 		}
 		return NextResponse.next();
