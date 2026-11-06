@@ -496,8 +496,9 @@ function createTenantRepository(adapter: DatabaseAdapter): TenantRepository {
 			}
 
 			try {
-				// The adapter type omits `id`, but the driver accepts an
-				// explicit one; the derived tenant id must be persisted as-is.
+				// `forceAllowId` keeps the derived tenant id: without it the
+				// adapter generates a random id and the id used by the metering
+				// hot path would never match the stored tenant row.
 				const row = {
 					id: data.id,
 					kind: data.kind,
@@ -508,6 +509,7 @@ function createTenantRepository(adapter: DatabaseAdapter): TenantRepository {
 				const created = await adapter.create<Tenant>({
 					model: TENANT_TABLE_NAME,
 					data: row as unknown as Omit<Tenant, "id">,
+					forceAllowId: true,
 				});
 				return { tenant: created, created: true };
 			} catch (error) {

@@ -3,6 +3,7 @@
  * public types. Never import server-only modules from this entry.
  */
 export * from "./client";
+export * from "./env";
 export {
 	BILLING_PLANS,
 	BILLING_PLUGIN_ID,

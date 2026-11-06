@@ -36,6 +36,7 @@
 		"@itsrose/api-response": "workspace:*",
 		"@itsrose/auth": "workspace:*",
 		"@itsrose/auth-billing": "workspace:*",
+		"@itsrose/auth-mailer": "workspace:*",
 		"@itsrose/auth-usage": "workspace:*",
 		"@itsrose/character-ai": "workspace:*",
 		"@itsrose/elevenlabs": "workspace:*",

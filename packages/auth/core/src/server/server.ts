@@ -12,9 +12,16 @@ export default function (
 		...getBetterAuthPlugins(env),
 		...(overrides?.plugins ?? []),
 	];
+	// Pass the secret explicitly instead of relying on the dependency's env
+	// fallback, so the contract is visible where the server is composed.
+	const secret =
+		(overrides as { secret?: string }).secret ??
+		(env.BETTER_AUTH_SECRET as string | undefined);
+
 	return betterAuth({
 		...baseOptions,
 		...overrides,
+		...(secret ? { secret } : {}),
 		emailAndPassword: {
 			...baseOptions.emailAndPassword,
 			...overrides.emailAndPassword,
