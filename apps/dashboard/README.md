@@ -38,15 +38,15 @@ types/                    Shared TypeScript types
 
 All public configuration is read through `NEXT_PUBLIC_*`:
 
-| Variable                        | Description                          |
-| :------------------------------ | :----------------------------------- |
-| `NEXT_PUBLIC_APP_NAME`          | Short product name (sidebar)         |
-| `NEXT_PUBLIC_APP_TITLE`         | Full product title (metadata)        |
-| `NEXT_PUBLIC_APP_DOMAIN`        | Deployment domain                    |
-| `NEXT_PUBLIC_APP_BASE_URL`      | App origin (metadata, auth fallback) |
-| `NEXT_PUBLIC_APP_DESCRIPTION`   | Product description                  |
-| `NEXT_PUBLIC_AUTH_BASE_URL`     | Better Auth server origin            |
-| `NEXT_PUBLIC_AUTHOR_GITHUB_*`   | Optional author metadata             |
+| Variable                      | Description                          |
+| :---------------------------- | :----------------------------------- |
+| `NEXT_PUBLIC_APP_NAME`        | Short product name (sidebar)         |
+| `NEXT_PUBLIC_APP_TITLE`       | Full product title (metadata)        |
+| `NEXT_PUBLIC_APP_DOMAIN`      | Deployment domain                    |
+| `NEXT_PUBLIC_APP_BASE_URL`    | App origin (metadata, auth fallback) |
+| `NEXT_PUBLIC_APP_DESCRIPTION` | Product description                  |
+| `NEXT_PUBLIC_AUTH_BASE_URL`   | Better Auth server origin            |
+| `NEXT_PUBLIC_AUTHOR_GITHUB_*` | Optional author metadata             |
 
 ## Development
 

@@ -2,5 +2,14 @@ plop-templates
 dist
 .sonda
 package-lock.json
-repository/**/*.jsonc
-repository/**/*.yml
+
+# Git submodules (standalone repositories)
+/repository/
+/scripts/
+
+# Generated output
+.next/
+.astro/
+.turbo/
+coverage/
+node_modules/

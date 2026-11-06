@@ -41,13 +41,13 @@ its projects only cover `packages/*`. Add an `apps/dashboard` project:
 - Dev deps: add `jest`, `ts-jest`, `@testing-library/jest-dom` to `apps/dashboard`
   (or reuse the root catalog versions used by `packages/react`).
 - First test targets (pure functions, cheap and high-value):
-  - `shared/status-props.test.ts` — all three status mappers incl. fallbacks.
-  - `lib/errors.test.ts` — `Error` instances, plain `{ message }` objects, non-objects.
-  - `layouts/sidebar/sidebar-nav-utils.test.ts` — `isRouteActive`,
-    `hasActiveDescendant`, `getAllDescendantUrls`.
-  - `features/billing/utils.test.ts` — re-export sanity of `@itsrose/auth-billing/client`
-    formatters (`formatIDR`, `formatDateID`).
-  - Later: `features/home` quick-link filtering and a `DataTable` smoke test (Phase 1).
+    - `shared/status-props.test.ts` — all three status mappers incl. fallbacks.
+    - `lib/errors.test.ts` — `Error` instances, plain `{ message }` objects, non-objects.
+    - `layouts/sidebar/sidebar-nav-utils.test.ts` — `isRouteActive`,
+      `hasActiveDescendant`, `getAllDescendantUrls`.
+    - `features/billing/utils.test.ts` — re-export sanity of `@itsrose/auth-billing/client`
+      formatters (`formatIDR`, `formatDateID`).
+    - Later: `features/home` quick-link filtering and a `DataTable` smoke test (Phase 1).
 - Verify: `pnpm test` — CI `coverage` job picks the new project up automatically.
 - **Effort:** S–M · **Risk:** Low.
 
@@ -80,12 +80,12 @@ HeroUI tables (different pattern) and only share the empty/loading states alread
 extracted in `components/table`.
 
 - Extract `components/table/data-table.tsx`:
-  - `createTableFeatures()` factory (or export the preassembled `features`) so the
-    v9 generic types stay sound.
-  - `DataTable<T>` presentational component: HeroUI `Table` + header/body
-    rendering, sortable-column bridging, pagination footer, filter bar slot,
-    `TableEmptyState`/`TableLoadingState` integration, skeleton variant.
-  - `useDataTableState<T>` hook for sorting/pagination state.
+    - `createTableFeatures()` factory (or export the preassembled `features`) so the
+      v9 generic types stay sound.
+    - `DataTable<T>` presentational component: HeroUI `Table` + header/body
+      rendering, sortable-column bridging, pagination footer, filter bar slot,
+      `TableEmptyState`/`TableLoadingState` integration, skeleton variant.
+    - `useDataTableState<T>` hook for sorting/pagination state.
 - Refactor `features/billing/components/invoice-table.tsx` onto it (expect −250
   lines), keeping its public props (`invoices`, `pageSize`, `showFilters`, …)
   unchanged so `billing-page` and `home-page` call sites don't move.
@@ -147,25 +147,25 @@ and has Redis available (rate limiter is Redis-backed). The dashboard home curre
 shows only billing data. Add real request/latency metrics:
 
 - **API side (apps/api):**
-  - Extend `request-tracker` to increment Redis counters per authenticated user:
-    `usage:{user_id}:{YYYY-MM-DD}:count` (INCR), `:latency_ms` (INCRBY), and a
-    small TTL policy (e.g. keep 45–90 days for billing/quota context).
-  - Expose stats through the **session-guarded surface the dashboard already
-    uses** (the better-auth plugin pattern — see `packages/auth/billing`'s
-    `/itsrose/*` routes): a `GET /itsrose/usage/stats` endpoint returning
-    `{ total_requests, avg_latency_ms, requests_by_day, top_endpoints }` in
-    `snake_case`. Decide implementation home: a new small plugin
-    (e.g. `packages/auth/usage` following `@itsrose/auth-billing`'s structure with
-    `./plugin-server` + `./plugin-client` + `./client` subpaths) — do **not** put
-    usage inside the billing plugin (different domain).
-  - Keep counter increments out of the request hot path where possible
-    (fire-and-forget with error swallowing, or pipeline).
+    - Extend `request-tracker` to increment Redis counters per authenticated user:
+      `usage:{user_id}:{YYYY-MM-DD}:count` (INCR), `:latency_ms` (INCRBY), and a
+      small TTL policy (e.g. keep 45–90 days for billing/quota context).
+    - Expose stats through the **session-guarded surface the dashboard already
+      uses** (the better-auth plugin pattern — see `packages/auth/billing`'s
+      `/itsrose/*` routes): a `GET /itsrose/usage/stats` endpoint returning
+      `{ total_requests, avg_latency_ms, requests_by_day, top_endpoints }` in
+      `snake_case`. Decide implementation home: a new small plugin
+      (e.g. `packages/auth/usage` following `@itsrose/auth-billing`'s structure with
+      `./plugin-server` + `./plugin-client` + `./client` subpaths) — do **not** put
+      usage inside the billing plugin (different domain).
+    - Keep counter increments out of the request hot path where possible
+      (fire-and-forget with error swallowing, or pipeline).
 - **Dashboard side:**
-  - `features/usage/hooks/use-usage-stats.ts` + `features/usage/query-keys.ts`
-    following the feature template from the refactor.
-  - Replace the remaining placeholder content in `features/home/home-page.tsx`
-    with metric cards (Total Requests, Average Latency, per-day sparkline);
-    keep the billing snapshot + quick links.
+    - `features/usage/hooks/use-usage-stats.ts` + `features/usage/query-keys.ts`
+      following the feature template from the refactor.
+    - Replace the remaining placeholder content in `features/home/home-page.tsx`
+      with metric cards (Total Requests, Average Latency, per-day sparkline);
+      keep the billing snapshot + quick links.
 - **Effort:** L (two apps + new package) · **Risk:** Medium (new package needs
   tsdown entries, client/server isolation per AGENTS.md §3.2, and CI verification).
 - Split into two commits: API/package first, dashboard consumption second.
@@ -189,10 +189,10 @@ both `@itsrose/react` **and** `@heroui/react`, so reuse is real.
 - **Decision first:** the sidebar is deeply HeroUI-coupled (`Drawer`, `Disclosure`,
   `Dropdown`, `Chip`, `Surface`), while `@itsrose/react` is HeroUI-free
   (tailwind-variants + react-aria primitives). Options:
-  1. **Move as-is with `@heroui/react` as a peer dependency** and a `./sidebar`
-     subpath (recommended — lowest effort, immediate parity).
-  2. Rebuild on `@itsrose/react/core` primitives (large effort, only worth it if
-     apps/web will use the sidebar without HeroUI).
+    1. **Move as-is with `@heroui/react` as a peer dependency** and a `./sidebar`
+       subpath (recommended — lowest effort, immediate parity).
+    2. Rebuild on `@itsrose/react/core` primitives (large effort, only worth it if
+       apps/web will use the sidebar without HeroUI).
 - Package changes: add `entry` for `src/components/sidebar/index.ts` in
   `tsdown.config.ts` (never hand-edit `exports` — AGENTS.md §4.3), declare the
   `@heroui/react` peer dep, add `files` handling, and document `./sidebar` +
@@ -212,6 +212,7 @@ both `@itsrose/react` **and** `@heroui/react`, so reuse is real.
 ## Phase 5 — Backlog / smaller items
 
 > **Status: ✅ DONE (investigation outcomes)**
+>
 > - **Proxy hardening:** per-request `WeakMap` dedupe added to `proxy.ts`; a
 >   cross-request TTL cache was evaluated and deliberately rejected (would
 >   weaken session-revocation guarantees at the auth boundary). Measured cost
