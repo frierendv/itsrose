@@ -15,7 +15,13 @@ This package ships zero runtime JavaScript — every export is a TypeScript type
 ## Example
 
 ```ts
-import type { Brand, DeepPartial, Nullable, Prettify, ValueOf } from "@itsrose/types";
+import type {
+	Brand,
+	DeepPartial,
+	Nullable,
+	Prettify,
+	ValueOf,
+} from "@itsrose/types";
 
 type UserId = Brand<string, "UserId">;
 type PostId = Brand<string, "PostId">;
