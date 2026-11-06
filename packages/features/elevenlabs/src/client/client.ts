@@ -1,5 +1,6 @@
 import { createHttpClient } from "@itsrose/http-client";
 import { getEnv } from "@itsrose/system";
+import { ELEVENLABS_ENV } from "../env";
 import { parseElevenLabsError } from "./error";
 
 /**
@@ -8,7 +9,7 @@ import { parseElevenLabsError } from "./error";
 export const httpClient = createHttpClient({
 	baseURL: "https://api.elevenlabs.io",
 	headers: {
-		"xi-api-key": getEnv("ELEVENLABS_API_KEY", { isRequired: true }),
+		"xi-api-key": getEnv(ELEVENLABS_ENV.apiKey, { isRequired: true }),
 	},
 	onError: parseElevenLabsError,
 });

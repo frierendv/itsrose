@@ -23,6 +23,26 @@ export const usagePlugin = (options: UsagePluginOptions) => {
 			...usageReadEndpoints(resolved),
 			...usageAdminEndpoints(resolved),
 		},
+		init: async () => {
+			// Seed zero-rated defaults once the schema exists. Failures are
+			// expected on first boot before the migration runs.
+			if (
+				resolved.seed_default_rates === false ||
+				!resolved.rates ||
+				!resolved.plan_tiers ||
+				resolved.plan_tiers.length === 0
+			) {
+				return;
+			}
+			try {
+				await resolved.rates.ensureDefaults({
+					plan_tiers: resolved.plan_tiers,
+					unit: resolved.unit,
+				});
+			} catch {
+				// The ledger tables may not be migrated yet.
+			}
+		},
 	} satisfies BetterAuthPlugin;
 };
 

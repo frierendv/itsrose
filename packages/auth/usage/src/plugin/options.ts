@@ -40,6 +40,10 @@ export type UsagePluginOptions = {
 	tenantSync?: TenantSyncPort;
 	/** Metered unit id. Defaults to `request`. */
 	unit?: string;
+	/** Plan tiers seeded with a zero-rated default when the ledger is ready. */
+	plan_tiers?: readonly string[];
+	/** Disable the boot-time rate seeding. Defaults to enabled. */
+	seed_default_rates?: boolean;
 	/** Quota enforcement mode. Defaults to `soft`. */
 	quota_mode?: UsageQuotaMode;
 	/** Injectable clock, used by tests. */

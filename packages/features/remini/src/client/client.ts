@@ -1,5 +1,6 @@
 import { HttpClient } from "@itsrose/http-client";
 import { getEnv } from "@itsrose/system";
+import { REMINI_ENV } from "../env";
 import { Iris } from "./iris";
 import { Oracle } from "./oracle";
 import { Task } from "./task";
@@ -23,10 +24,10 @@ export class Client extends HttpClient {
 	private initPromise?: Promise<void>;
 
 	constructor() {
-		const baseUrl = getEnv("REMINI_API_BASE_URL", {
+		const baseUrl = getEnv(REMINI_ENV.apiBaseUrl, {
 			isRequired: true,
 		});
-		const wssBaseUrl = getEnv("REMINI_WSS_BASE_URL", {
+		const wssBaseUrl = getEnv(REMINI_ENV.wssBaseUrl, {
 			isRequired: true,
 		});
 		super({ baseURL: baseUrl });

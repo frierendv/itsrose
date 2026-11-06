@@ -12,16 +12,31 @@ COPY . .
 RUN turbo prune dashboard --docker
 
 FROM base AS builder
+# NEXT_PUBLIC_* values are inlined by `next build`, so they must be passed as
+# build args (or left empty to use the config/site.ts fallbacks).
+ARG NEXT_PUBLIC_APP_BASE_URL=
+ARG NEXT_PUBLIC_AUTH_BASE_URL=
+ARG NEXT_PUBLIC_APP_NAME=
+ARG NEXT_PUBLIC_APP_TITLE=
+ARG NEXT_PUBLIC_APP_DESCRIPTION=
+ARG NEXT_PUBLIC_AUTHOR_GITHUB_TITLE=
+ARG NEXT_PUBLIC_AUTHOR_GITHUB_URL=
+
 COPY --from=prepare /app/out/json/ ./
 
 RUN --mount=type=cache,target=/pnpm/store \
 	pnpm install --frozen-lockfile
 
 ENV NODE_ENV=production
-COPY --from=prepare /app/out/full/ ./
+ENV NEXT_PUBLIC_APP_BASE_URL=$NEXT_PUBLIC_APP_BASE_URL
+ENV NEXT_PUBLIC_AUTH_BASE_URL=$NEXT_PUBLIC_AUTH_BASE_URL
+ENV NEXT_PUBLIC_APP_NAME=$NEXT_PUBLIC_APP_NAME
+ENV NEXT_PUBLIC_APP_TITLE=$NEXT_PUBLIC_APP_TITLE
+ENV NEXT_PUBLIC_APP_DESCRIPTION=$NEXT_PUBLIC_APP_DESCRIPTION
+ENV NEXT_PUBLIC_AUTHOR_GITHUB_TITLE=$NEXT_PUBLIC_AUTHOR_GITHUB_TITLE
+ENV NEXT_PUBLIC_AUTHOR_GITHUB_URL=$NEXT_PUBLIC_AUTHOR_GITHUB_URL
 
-# Make sure env exist in the root project.
-COPY .env.dashboard ./apps/dashboard/.env.production
+COPY --from=prepare /app/out/full/ ./
 
 # next transpile
 RUN pnpm run build --filter=dashboard...
