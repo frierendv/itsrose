@@ -1,0 +1,50 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [development, main]
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+env:
+    CI: "true"
+    TURBO_TELEMETRY_DISABLED: "1"
+    TURBO_UI: "false"
+    NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+    ci:
+        name: CI
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        steps:
+            - name: Checkout branch
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 1
+
+            - name: Install
+              uses: ./.github/common-actions/install
+
+            - name: Lint
+              run: pnpm lint
+
+            - name: Check formatting
+              run: pnpm format:check
+
+            - name: Build packages
+              run: pnpm build
+
+            - name: Typecheck
+              run: pnpm typecheck
+
+            - name: Test with coverage
+              run: pnpm test --verbose=false --runInBand=false --coverage --ci --testLocationInResults

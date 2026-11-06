@@ -9,26 +9,26 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 ## Table of Contents
 
 - [Contributing to ItsRose](#contributing-to-itsrose)
-	- [Table of Contents](#table-of-contents)
-	- [Code of Conduct](#code-of-conduct)
-	- [Getting Started](#getting-started)
-		- [Prerequisites](#prerequisites)
-		- [Local Setup](#local-setup)
-	- [Development Workflow](#development-workflow)
-		- [Monorepo Architecture](#monorepo-architecture)
-		- [Creating New Packages](#creating-new-packages)
-		- [Managing Dependencies](#managing-dependencies)
-	- [Commit Guidelines](#commit-guidelines)
-		- [Commit Format](#commit-format)
-		- [Allowed Commit Types](#allowed-commit-types)
-		- [Commit Examples](#commit-examples)
-	- [Code Quality \& Style](#code-quality--style)
-		- [Style Enforcements](#style-enforcements)
-		- [Pre-commit Verification](#pre-commit-verification)
-	- [Submitting a Pull Request](#submitting-a-pull-request)
-	- [Reporting Bugs \& Feature Requests](#reporting-bugs--feature-requests)
-		- [Reporting Bugs](#reporting-bugs)
-		- [Feature Requests](#feature-requests)
+    - [Table of Contents](#table-of-contents)
+    - [Code of Conduct](#code-of-conduct)
+    - [Getting Started](#getting-started)
+        - [Prerequisites](#prerequisites)
+        - [Local Setup](#local-setup)
+    - [Development Workflow](#development-workflow)
+        - [Monorepo Architecture](#monorepo-architecture)
+        - [Creating New Packages](#creating-new-packages)
+        - [Managing Dependencies](#managing-dependencies)
+    - [Commit Guidelines](#commit-guidelines)
+        - [Commit Format](#commit-format)
+        - [Allowed Commit Types](#allowed-commit-types)
+        - [Commit Examples](#commit-examples)
+    - [Code Quality \& Style](#code-quality--style)
+        - [Style Enforcements](#style-enforcements)
+        - [Pre-commit Verification](#pre-commit-verification)
+    - [Submitting a Pull Request](#submitting-a-pull-request)
+    - [Reporting Bugs \& Feature Requests](#reporting-bugs--feature-requests)
+        - [Reporting Bugs](#reporting-bugs)
+        - [Feature Requests](#feature-requests)
 
 ---
 
@@ -66,14 +66,17 @@ Before you begin development, make sure you have the following installed:
 3. **Install workspace dependencies:**
 
     ```bash
-    npm install
+    pnpm install
     ```
 
 4. **Verify your setup:**
-   Run a full type check and build to confirm your local environment is ready:
+   Run the same checks as CI to confirm your local environment is ready:
     ```bash
-    npm run typecheck
-    npm run build
+    pnpm format:check
+    pnpm lint
+    pnpm build
+    pnpm typecheck
+    pnpm test --coverage
     ```
 
 ---
@@ -82,7 +85,7 @@ Before you begin development, make sure you have the following installed:
 
 ### Monorepo Architecture
 
-ItsRose is structured as a monorepo powered by **npm workspaces** and **Turborepo**:
+ItsRose is structured as a monorepo powered by **pnpm workspaces** and **Turborepo**:
 
 - **`apps/`**: Deployable applications.
 - **`packages/`**: Shared libraries and modular features.
@@ -91,24 +94,30 @@ Common development tasks:
 
 ```bash
 # Start all services in development mode
-npm run dev
+pnpm dev
 
 # Start development mode for a specific app or package
-npm run dev --filter=api
+pnpm dev --filter=api
 
 # Build all applications and packages
-npm run build
+pnpm build
 
 # Run unit tests
-npm test
+pnpm test
+
+# Format files and check formatting without writing
+pnpm format
+pnpm format:check
 ```
+
+The `CI` workflow runs one job in this order: lint, formatting, build, typecheck, and tests with coverage.
 
 ### Creating New Packages
 
 Always use the built-in Plop scaffolding tool to generate new modules in `packages/`. This ensures consistent directory structure, configuration inheritance, and proper package registration:
 
 ```bash
-npm run plop
+pnpm plop
 ```
 
 Follow the interactive prompts:
@@ -119,24 +128,24 @@ Follow the interactive prompts:
 
 ### Managing Dependencies
 
-Since this project uses npm workspaces with `syncpack`:
+Since this project uses pnpm workspaces with `syncpack`:
 
 - **Adding a dependency to a package:**
 
     ```bash
-    npm install <package-name> -w @itsrose/<package-name>
+    pnpm add <package-name> --filter @itsrose/<package-name>
     ```
 
 - **Adding a devDependency to the root:**
 
     ```bash
-    npm install -D <package-name>
+    pnpm add -D <package-name>
     ```
 
 - **Keeping dependency versions synchronized:**
   Run `syncpack` after adding or updating dependencies:
     ```bash
-    npm run format
+    pnpm format
     ```
 
 ---
@@ -196,17 +205,20 @@ We maintain strict quality rules across the entire codebase.
 Before committing, run the following commands to check your changes locally:
 
 ```bash
-# 1. Run ESLint checks
-npm run lint
+# 1. Check formatting
+pnpm format:check
 
-# 2. Run TypeScript typecheck
-npm run typecheck
+# 2. Run ESLint checks
+pnpm lint
 
-# 3. Run Jest test suite
-npm test
+# 3. Run TypeScript typecheck
+pnpm typecheck
 
-# 4. Format code automatically
-npm run format
+# 4. Run Jest test suite
+pnpm test --coverage
+
+# 5. Format code automatically
+pnpm format
 ```
 
 > **Note**: Pre-commit git hooks via Husky will automatically run `lint-staged` on staged files.
