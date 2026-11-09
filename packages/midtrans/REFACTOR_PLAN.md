@@ -30,6 +30,13 @@
 > Subscription request/response schemas. **29 of 30 fixtures are must-pass**; the
 > remaining one is an empty transport body covered by the transport tests.
 
+> **Phase 4 result (2026-11-09):** request schemas are wired into every service,
+> `invoice.create` accepts a plain `InvoiceRequest` (the `as never` workaround was removed
+> from `auth-billing`), `snap.create` accepts item arrays and every payment channel,
+> refund / B2B status use overloads, `RequestOptions.signal` is forwarded, client options are
+> validated, and every service exposes the normalized `MidtransApiError`. Subscription action
+> fixtures were added (35 fixtures total).
+
 ---
 
 ## 0. TL;DR

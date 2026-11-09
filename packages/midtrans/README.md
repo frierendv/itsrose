@@ -40,10 +40,10 @@ storage URLs never reach the repository.
 
 ### Baseline (Phase 0)
 
-| Check            | Result                                                                          |
-| :--------------- | :------------------------------------------------------------------------------ |
-| Sandbox fixtures | 30 captured                                                                     |
-| Fixture contract | 29 must-pass · 1 transport-only (empty body) · 0 unmodeled                      |
-| Architecture     | `client → api → context`; one `schema/shared`; charges narrow by `payment_type` |
-| Package coverage | 94.11% statements · 89.04% branches · 86.11% functions                          |
-| Refactor plan    | [`REFACTOR_PLAN.md`](REFACTOR_PLAN.md)                                          |
+| Check            | Result                                                                     |
+| :--------------- | :------------------------------------------------------------------------- |
+| Sandbox fixtures | 35 captured                                                                |
+| Fixture contract | 34 must-pass · 1 transport-only (empty body) · 0 unmodeled                 |
+| Architecture     | `client → api → context`; typed requests; charges narrow by `payment_type` |
+| Package coverage | 94.25% statements · 89.59% branches · 86.84% functions                     |
+| Refactor plan    | [`REFACTOR_PLAN.md`](REFACTOR_PLAN.md)                                     |
