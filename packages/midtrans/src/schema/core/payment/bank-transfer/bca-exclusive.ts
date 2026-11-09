@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { PaymentChannelBankSchema } from "../../../shared";
+import { BankCodeSchema } from "../../../shared";
 import { BankTransferBaseFieldsSchema } from "./bank-transfer-base";
 
 /**
@@ -32,7 +32,7 @@ export type BCAExclusiveFreeText = z.infer<typeof BCAExclusiveFreeTextSchema>;
  */
 export const BankTransferBCAExclusiveFieldsSchema =
 	BankTransferBaseFieldsSchema.extend({
-		bank: PaymentChannelBankSchema.extract(["bca"]),
+		bank: BankCodeSchema.extract(["bca"]),
 		free_text: BCAExclusiveFreeTextSchema.optional(),
 		bca: z
 			.object({

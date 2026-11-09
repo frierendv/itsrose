@@ -3,7 +3,7 @@ import { z } from "zod/v4";
 /**
  * Virtual account number entry returned by bank transfer payment methods.
  */
-export const VaNumber = z
+export const VaNumberSchema = z
 	.object({
 		bank: z
 			.string()
@@ -17,7 +17,7 @@ export const VaNumber = z
 /**
  * Deep-link, QR code, or action redirect returned by e-wallets or QRIS.
  */
-export const PaymentAction = z
+export const PaymentActionSchema = z
 	.object({
 		name: z
 			.string()
@@ -37,7 +37,7 @@ export const PaymentAction = z
 /**
  * Partial payment amount entry if transaction was split or paid incrementally.
  */
-export const PaymentAmount = z
+export const PaymentAmountSchema = z
 	.object({
 		paid_at: z.string().describe("Timestamp of the partial payment"),
 		amount: z.string().describe("Amount paid in this chunk"),
@@ -46,6 +46,6 @@ export const PaymentAmount = z
 		id: "MidtransPaymentAmount",
 	});
 
-export type VaNumber = z.infer<typeof VaNumber>;
-export type PaymentAction = z.infer<typeof PaymentAction>;
-export type PaymentAmount = z.infer<typeof PaymentAmount>;
+export type VaNumber = z.infer<typeof VaNumberSchema>;
+export type PaymentAction = z.infer<typeof PaymentActionSchema>;
+export type PaymentAmount = z.infer<typeof PaymentAmountSchema>;

@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { PaymentChannelBankSchema } from "../../../shared";
+import { BankCodeSchema } from "../../../shared";
 import { BankTransferBaseFieldsSchema } from "./bank-transfer-base";
 
 /**
@@ -7,7 +7,7 @@ import { BankTransferBaseFieldsSchema } from "./bank-transfer-base";
  */
 export const BankTransferPermataExclusiveFieldsSchema =
 	BankTransferBaseFieldsSchema.extend({
-		bank: PaymentChannelBankSchema.extract(["permata"]),
+		bank: BankCodeSchema.extract(["permata"]),
 		permata: z
 			.object({
 				/**
