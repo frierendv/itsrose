@@ -311,6 +311,29 @@ pnpm --filter @itsrose/midtrans lint
 pnpm test packages/midtrans
 ```
 
+### Sandbox simulator
+
+The package ships a helper for the Midtrans payment simulator
+([docs](https://docs.midtrans.com/docs/testing-payment-on-sandbox)), used to
+settle pending transactions while testing:
+
+```bash
+pnpm --filter @itsrose/midtrans sandbox:pay <order-id>
+```
+
+It supports BCA/BNI and OpenAPI virtual accounts (BRI, Permata, CIMB, …) plus
+Alfamart (and Indomaret when the merchant product code is configured). The
+implementation lives in [`tools/sandbox-simulator.ts`](tools/sandbox-simulator.ts).
+
+Opt-in integration tests settle real sandbox transactions against the simulator:
+
+```bash
+MIDTRANS_INTEGRATION=1 pnpm test packages/midtrans/__tests__/integration
+```
+
+They are skipped unless `MIDTRANS_INTEGRATION=1` and sandbox credentials are
+available.
+
 ### Sandbox fixtures
 
 Committed, sanitized sandbox responses are the schema regression net:
@@ -335,7 +358,7 @@ src/client  →  src/api  →  src/schema
 
 - `client` resolves options and builds the shared `ClientContext`.
 - `api` services receive the context (no `client → api` cycle).
-- `schema` is a single `shared` family (no duplicate `common` schemas).
+- `schema` is a single `primitives` family (no duplicate `common` schemas).
 - The public `MidtransClient` shape is enforced by
   [`__tests__/client-surface.test.ts`](__tests__/client-surface.test.ts).
 

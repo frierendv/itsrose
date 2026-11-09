@@ -42,6 +42,12 @@
 > 78.5 kB of ESM runtime (17.4 kB gzip) and 257 kB of declarations; the fixture corpus
 > is 35 captures (34 must-pass, 1 transport-only).
 
+> **Follow-up (2026-11-10):** the §5.2 tree is now implemented (`schema/primitives`,
+> `api/core/*`, `helper/{status,signature,order-id}.ts`, `__tests__/unit`), and
+> `tools/sandbox-simulator.ts` plus an opt-in integration suite settle
+> virtual-account/Alfamart payments. `core/status-settled` was added (36 fixtures,
+> 35 must-pass).
+
 ---
 
 ## 0. TL;DR

@@ -57,11 +57,19 @@ fail if a fixture contains a server key, a signed URL, or a non-redacted
 ## Known mismatches
 
 `tools/fixture-manifest.ts` marks each fixture as `mustPass`, `knownMismatch` or
-`unmodeled`. As of Phase 4 there are 35 fixtures: 34 are `mustPass` and the only
-remaining tracked case is `core/approve-empty-response` — approve/deny answer
-HTTP 404 with an empty body, which is covered by the transport tests instead of a
-JSON schema. A `knownMismatch` that starts passing is reported as `promoted` so
-the manifest can be updated.
+`unmodeled`. There are 36 fixtures: 35 are `mustPass` and the only remaining
+tracked case is `core/approve-empty-response` — approve/deny answer HTTP 404 with
+an empty body, which is covered by the transport tests instead of a JSON schema.
+A `knownMismatch` that starts passing is reported as `promoted` so the manifest
+can be updated.
+
+## Paid-path testing
+
+`tools/sandbox-simulator.ts` drives the Midtrans payment simulator to settle
+virtual-account and Alfamart transactions. `core/status-settled` is captured that
+way. Refunds, captures and FDS actions still need a paid/card transaction; on
+this sandbox merchant `refund` currently answers `412 Merchant cannot modify the
+status of the transaction`, so successful refund fixtures remain open.
 
 ## Not covered yet
 
