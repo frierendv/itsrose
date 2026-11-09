@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { PaymentChannels } from "../../shared/enums";
+import { PaymentChannels } from "../../primitives/enums";
 
 /**
  * Snap merchant fee configuration for a single payment channel.

@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { PaymentChannels } from "../../shared";
+import { PaymentChannels } from "../../primitives";
 import {
 	PaymentLinkBank,
 	PaymentLinkCallback,

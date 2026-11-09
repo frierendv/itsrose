@@ -1,4 +1,4 @@
-export * from "./shared";
+export * from "./primitives";
 export * from "./core";
 export * from "./invoice";
 export * from "./notification";

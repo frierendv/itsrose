@@ -3,7 +3,7 @@ import {
 	errorHandler,
 	isMidtransApiError,
 	normalizeMidtransError,
-} from "../src/client/error";
+} from "../../src/client/error";
 
 function transportError(status: number, message: string): HttpClientError {
 	return { status, message } as HttpClientError;

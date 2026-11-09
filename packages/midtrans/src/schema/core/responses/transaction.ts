@@ -1,15 +1,15 @@
 import { z } from "zod/v4";
-import { MetadataSchema } from "../../shared/metadata";
+import { MetadataSchema } from "../../primitives/metadata";
 import {
 	PaymentActionSchema,
 	PaymentAmountSchema,
 	VaNumberSchema,
-} from "../../shared/payment-actions";
-import { CstoreStoreSchema } from "../../shared/payment/over-the-counter";
+} from "../../primitives/payment-actions";
+import { CstoreStoreSchema } from "../../primitives/payment/over-the-counter";
 import {
 	TransactionFraudStatusSchema,
 	TransactionStatusSchema,
-} from "../../shared/transaction-status";
+} from "../../primitives/transaction-status";
 import { PaymentTypeSchema } from "../payment";
 import { QrisAcquirerSchema } from "../payment/ewallet/qris";
 
@@ -50,6 +50,8 @@ const transactionBaseFields = {
 	signature_key: z.string().optional(),
 	/** Expiry timestamp in `YYYY-MM-DD HH:mm:ss` format. */
 	expiry_time: z.string().optional(),
+	/** Settlement timestamp in `YYYY-MM-DD HH:mm:ss` format. */
+	settlement_time: z.string().optional(),
 	/** Partial payments recorded for this transaction. */
 	payment_amounts: z.array(PaymentAmountSchema).optional(),
 	/** Arbitrary transaction metadata. */

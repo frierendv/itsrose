@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { BankCodeSchema } from "../../../shared";
+import { BankCodeSchema } from "../../../primitives";
 
 /**
  * Bank transfer specific parameters for Virtual Accounts.

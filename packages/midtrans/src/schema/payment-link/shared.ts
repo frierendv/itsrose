@@ -8,7 +8,7 @@ import {
 	PaymentLinkSupportedBank,
 	TimestampFieldsSchema,
 	TransactionDetailsSchema,
-} from "../shared";
+} from "../primitives";
 
 export const PaymentLinkBankDetail = z.object({ number: z.string() });
 export const PaymentLinkBank = z

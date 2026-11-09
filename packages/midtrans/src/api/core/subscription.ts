@@ -1,13 +1,13 @@
 import type { HttpPromise } from "@itsrose/http-client";
-import type { MidtransApiError } from "../client/error";
+import type { MidtransApiError } from "../../client/error";
 import type {
 	SubscriptionActionResponse,
 	SubscriptionCreateRequest,
 	SubscriptionResponse,
 	SubscriptionUpdateRequest,
-} from "../schema";
-import type { RequestOptions } from "../typings";
-import { BaseService } from "./service";
+} from "../../schema";
+import type { RequestOptions } from "../../typings";
+import { BaseService } from "../service";
 
 export class Subscription extends BaseService {
 	/**

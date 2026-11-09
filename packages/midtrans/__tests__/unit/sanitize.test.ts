@@ -1,4 +1,4 @@
-import { sanitizeFixtureBody } from "../tools/sanitize";
+import { sanitizeFixtureBody } from "../../tools/sanitize";
 
 describe("sanitizeFixtureBody", () => {
 	it("redacts credentials, tokens and signed URLs", () => {

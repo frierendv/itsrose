@@ -1,19 +1,19 @@
 import { createHash } from "node:crypto";
-import { Core } from "../src/api/core";
-import { Payment } from "../src/api/core-payment";
-import { Subscription } from "../src/api/core-subscription";
-import { Invoice } from "../src/api/invoice";
-import { PaymentLink } from "../src/api/payment-link";
-import { Snap } from "../src/api/snap";
-import type { ClientContext } from "../src/client/context";
-import { MidtransMerchant } from "../src/client/merchant";
+import { Core } from "../../src/api/core";
+import { Payment } from "../../src/api/core/payment";
+import { Subscription } from "../../src/api/core/subscription";
+import { Invoice } from "../../src/api/invoice";
+import { PaymentLink } from "../../src/api/payment-link";
+import { Snap } from "../../src/api/snap";
+import type { ClientContext } from "../../src/client/context";
+import { MidtransMerchant } from "../../src/client/merchant";
 import {
 	isFailedStatus,
 	isFraudChallenge,
 	isPendingStatus,
 	isRefundedStatus,
 	isSuccessStatus,
-} from "../src/helper/status";
+} from "../../src/helper/status";
 
 function createContext() {
 	const http = {

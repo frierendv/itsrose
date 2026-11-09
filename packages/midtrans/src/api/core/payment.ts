@@ -1,5 +1,5 @@
 import type { HttpPromise } from "@itsrose/http-client";
-import type { MidtransApiError } from "../client/error";
+import type { MidtransApiError } from "../../client/error";
 import type {
 	CoreCaptureRequest,
 	CoreChargeResponse,
@@ -8,9 +8,9 @@ import type {
 	CorePaymentRefundRequest,
 	CoreStatusB2BResponse,
 	CoreTransactionResponse,
-} from "../schema";
-import type { RequestOptions } from "../typings";
-import { BaseService } from "./service";
+} from "../../schema";
+import type { RequestOptions } from "../../typings";
+import { BaseService } from "../service";
 
 export type CorePaymentChargeResponse = CoreChargeResponse;
 export type ChargeResponse = CoreChargeResponse;

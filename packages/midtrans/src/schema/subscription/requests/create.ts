@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { MetadataSchema } from "../../shared";
+import { MetadataSchema } from "../../primitives";
 import { SubscriptionScheduleSchema } from "../shared";
 
 /**

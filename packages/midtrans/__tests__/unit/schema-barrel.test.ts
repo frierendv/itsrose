@@ -1,15 +1,15 @@
-import * as core from "../src/schema/core/index";
-import * as error from "../src/schema/error/index";
-import * as root from "../src/schema/index";
-import * as invoice from "../src/schema/invoice/index";
-import * as notification from "../src/schema/notification/index";
-import * as paymentLink from "../src/schema/payment-link/index";
-import * as shared from "../src/schema/shared/index";
-import * as snap from "../src/schema/snap/index";
-import * as subscription from "../src/schema/subscription/index";
+import * as core from "../../src/schema/core/index";
+import * as error from "../../src/schema/error/index";
+import * as root from "../../src/schema/index";
+import * as invoice from "../../src/schema/invoice/index";
+import * as notification from "../../src/schema/notification/index";
+import * as paymentLink from "../../src/schema/payment-link/index";
+import * as primitives from "../../src/schema/primitives/index";
+import * as snap from "../../src/schema/snap/index";
+import * as subscription from "../../src/schema/subscription/index";
 
 const PARTS = {
-	shared,
+	primitives,
 	core,
 	invoice,
 	notification,

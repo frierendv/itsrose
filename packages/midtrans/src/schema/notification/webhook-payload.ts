@@ -3,7 +3,7 @@ import {
 	BaseTransactionResultSchema,
 	CustomFieldsSchema,
 	PaymentAmountSchema,
-} from "../shared";
+} from "../primitives";
 
 /**
  * Midtrans HTTP POST Notification (Webhook) payload.

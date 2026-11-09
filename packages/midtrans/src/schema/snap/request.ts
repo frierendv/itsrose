@@ -9,7 +9,7 @@ import {
 	ItemDetailsSchema,
 	PaymentChannels,
 	TransactionDetailsSchema,
-} from "../shared";
+} from "../primitives";
 import { SnapSendEmailSchema } from "./shared";
 import { SnapRecurringSchema } from "./shared/snap-recurring";
 

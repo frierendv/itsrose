@@ -4,11 +4,11 @@ import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import {
 	isSuccessfulResponse,
 	readBusinessStatusCode,
-} from "../src/client/business-status";
-import { MidtransMerchant } from "../src/client/merchant";
-import { createTransport } from "../src/client/transport";
+} from "../../src/client/business-status";
+import { MidtransMerchant } from "../../src/client/merchant";
+import { createTransport } from "../../src/client/transport";
 
-const FIXTURES_DIR = join(__dirname, "..", "fixtures");
+const FIXTURES_DIR = join(__dirname, "..", "..", "fixtures");
 
 interface FixtureFile {
 	_meta: {

@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { PaymentTypeSchema, QrisAcquirerSchema } from "../../core";
-import { BankCodeSchema } from "../../shared";
+import { BankCodeSchema } from "../../primitives";
 
 export const InvoiceWebhookBankTransferSchema = z.object({
 	payment_type: PaymentTypeSchema.extract(["bank_transfer"]),
