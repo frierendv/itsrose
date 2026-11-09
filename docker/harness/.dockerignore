@@ -1,0 +1,5 @@
+# The workspace is a bind mount, not image content: keep it out of the build
+# context (it would otherwise be sent to the daemon on every build).
+workspace/
+# Local credentials; never part of the image.
+.env

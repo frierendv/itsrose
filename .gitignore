@@ -48,3 +48,7 @@ data
 
 # Internal test
 internal-test
+
+# DeepSeek Harness stack (docker/harness)
+docker/harness/workspace/
+docker/harness/.env
