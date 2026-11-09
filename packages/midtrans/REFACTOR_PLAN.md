@@ -2,7 +2,7 @@
 
 |                 |                                                                                 |
 | :-------------- | :------------------------------------------------------------------------------ |
-| Status          | Phase 0 complete (guardrails, fixtures, surface test); Phases 1–5 pending       |
+| Status          | Phases 0–5 complete (v2.0.0 ready for review)                                   |
 | Scope           | `packages/midtrans`                                                             |
 | Date            | 2026-11-09                                                                      |
 | Evidence        | 5 sandbox probe rounds, 60+ real API calls against `packages/midtrans/.env.dev` |
@@ -36,6 +36,11 @@
 > refund / B2B status use overloads, `RequestOptions.signal` is forwarded, client options are
 > validated, and every service exposes the normalized `MidtransApiError`. Subscription action
 > fixtures were added (35 fixtures total).
+
+> **Phase 5 result (2026-11-09):** README and `MIGRATION.md` rewritten, package marked
+> `sideEffects: false` and bumped to `2.0.0` (Node `>=24`). The package builds to
+> 78.5 kB of ESM runtime (17.4 kB gzip) and 257 kB of declarations; the fixture corpus
+> is 35 captures (34 must-pass, 1 transport-only).
 
 ---
 
