@@ -40,10 +40,10 @@
 	},
 	"peerDependencies": {
 		"@heroui/react": "^3.2.7",
-		"motion": "^14.9.1",
+		"motion": "^14.10.1",
 		"react": "catalog:",
 		"react-dom": "catalog:",
-		"tailwindcss": "^4.3.4"
+		"tailwindcss": "^4.3.5"
 	},
 	"peerDependenciesMeta": {
 		"@heroui/react": {
@@ -59,10 +59,10 @@
 		"@itsrose/standard": "workspace:*",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
-		"motion": "^14.9.1",
+		"motion": "^14.10.1",
 		"react": "catalog:",
 		"react-dom": "catalog:",
-		"tailwindcss": "^4.3.4"
+		"tailwindcss": "^4.3.5"
 	},
 	"publishConfig": {
 		"exports": {

@@ -56,7 +56,7 @@
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*",
-		"@opentf/obj-diff": "^0.18.0"
+		"@opentf/obj-diff": "^0.19.1"
 	},
 	"publishConfig": {
 		"exports": {
