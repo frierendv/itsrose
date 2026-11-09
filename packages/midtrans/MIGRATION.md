@@ -56,7 +56,7 @@ if (result.error) {
 
 ## Schema names
 
-The `schema/common` family was merged into `schema/shared`. Schema values now
+The `schema/common` family was merged into `schema/primitives`. Schema values now
 end with `Schema`; their inferred types keep the short name.
 
 | v1 value                                       | v2 value                            |
