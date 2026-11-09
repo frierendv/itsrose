@@ -1,5 +1,10 @@
 import { z } from "zod/v4";
 
+/**
+ * @deprecated Business success is decided by the explicit whitelist in
+ * `client/business-status.ts`. This schema is kept for backwards compatibility.
+ */
+
 export const HttpStatus = z
 	.preprocess(
 		(value) => (typeof value === "string" ? Number(value) : value),

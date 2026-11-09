@@ -16,6 +16,9 @@ catalogs:
     '@types/react-dom':
       specifier: ^19.3.0
       version: 19.3.0
+    axios:
+      specifier: ^1.21.0
+      version: 1.21.0
     better-auth:
       specifier: ^1.7.18
       version: 1.7.18
@@ -922,6 +925,9 @@ importers:
       '@itsrose/standard':
         specifier: workspace:*
         version: link:../standard
+      axios:
+        specifier: 'catalog:'
+        version: 1.21.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
 
   packages/others/api-client:
     dependencies:
