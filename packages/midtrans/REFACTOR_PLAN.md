@@ -24,6 +24,12 @@
 > empty-body and subscription errors, and `expire()` / `status()` after expiry now return
 > `ok: true`. Fixture-driven transport tests lock the behaviour.
 
+> **Phase 3 result (2026-11-09):** Core transaction responses are discriminated by
+> `payment_type` (bank transfer, echannel, cstore, QRIS, ShopeePay, …), plus B2B status,
+> Snap preferences, Payment Link create/detail, Invoice void/`virtual_accounts` and
+> Subscription request/response schemas. **29 of 30 fixtures are must-pass**; the
+> remaining one is an empty transport body covered by the transport tests.
+
 ---
 
 ## 0. TL;DR
