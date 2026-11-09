@@ -1,8 +1,9 @@
 {
 	"name": "@itsrose/midtrans",
-	"version": "1.0.0",
+	"version": "2.0.0",
 	"author": "FrierenDv",
 	"type": "module",
+	"sideEffects": false,
 	"license": "MIT",
 	"description": "Midtrans Payment Gateway SDK with Zod validation schemas and TypeScript types.",
 	"repository": {
@@ -71,5 +72,8 @@
 			"./typings": "./dist/typings.mjs",
 			"./package.json": "./package.json"
 		}
+	},
+	"engines": {
+		"node": ">=24"
 	}
 }
