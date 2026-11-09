@@ -1,10 +1,11 @@
 import { z } from "zod/v4";
+import { PaymentChannels } from "../../shared";
 import {
 	PaymentLinkBank,
 	PaymentLinkCallback,
 	PaymentLinkCustomerDetail,
 	PaymentLinkCustomFields,
-	PaymentLinkExpiry,
+	PaymentLinkExpirySchema,
 	PaymentLinkItemDetail,
 	PaymentLinkTransactionDetail,
 } from "../shared";
@@ -28,12 +29,12 @@ export const PaymentLinkRequest = z
 		 * `null` or omitted for single/unlimited based on config.
 		 */
 		usage_limit: z.number().int().positive().nullable().optional(),
-		expiry: PaymentLinkExpiry.optional(),
+		expiry: PaymentLinkExpirySchema.optional(),
 		/**
 		 * List of allowed payment methods for this link.
 		 */
 		enabled_payments: z
-			.array(z.string())
+			.array(PaymentChannels)
 			.optional()
 			.describe("List of allowed payment methods for this link"),
 		callbacks: PaymentLinkCallback.optional(),

@@ -4,6 +4,7 @@ import type {
 	HttpRequestConfig,
 } from "@itsrose/http-client";
 import type { ClientContext } from "../client/context";
+import type { MidtransApiError } from "../client/error";
 import type { MidtransHeaders, RequestOptions } from "../typings";
 
 /**
@@ -16,7 +17,7 @@ import type { MidtransHeaders, RequestOptions } from "../typings";
  *
  * @internal
  */
-export abstract class BaseService<TError = unknown> {
+export abstract class BaseService<TError = MidtransApiError> {
 	protected readonly ctx!: ClientContext;
 
 	public constructor(ctx: ClientContext) {
@@ -70,7 +71,14 @@ export abstract class BaseService<TError = unknown> {
 			headers["X-Override-Notification"] = opts.overrideNotification;
 		}
 
-		return { headers, timeout: opts?.timeout };
+		const config: HttpRequestConfig = {
+			headers,
+			timeout: opts.timeout,
+		};
+		if (opts.signal) {
+			config.signal = opts.signal;
+		}
+		return config;
 	}
 }
 

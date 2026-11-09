@@ -359,12 +359,24 @@ async function main(): Promise<void> {
 			enabled_payments: ["bca_va", "gopay"],
 		},
 	});
-	await capture({
+	const snapPreferences = await capture({
 		name: "snap/preferences",
 		endpoint: "GET /snap/v3/merchant-preferences",
 		method: "GET",
 		base: "snap",
 		path: "/snap/v3/merchant-preferences",
+	});
+	await capture({
+		name: "snap/update-preferences",
+		endpoint: "PATCH /snap/v3/merchant-preferences",
+		method: "PATCH",
+		base: "snap",
+		path: "/snap/v3/merchant-preferences",
+		body: {
+			display_name:
+				readString(snapPreferences.body, "display_name") ??
+				"Redacted Merchant",
+		},
 	});
 	await capture({
 		name: "snap/error-validation",
@@ -493,6 +505,31 @@ async function main(): Promise<void> {
 		endpoint: "GET /v1/subscriptions/{subscription_id}",
 		method: "GET",
 		path: `/v1/subscriptions/${subscriptionId}`,
+	});
+	await capture({
+		name: "subscription/disable",
+		endpoint: "POST /v1/subscriptions/{subscription_id}/disable",
+		method: "POST",
+		path: `/v1/subscriptions/${subscriptionId}/disable`,
+	});
+	await capture({
+		name: "subscription/enable",
+		endpoint: "POST /v1/subscriptions/{subscription_id}/enable",
+		method: "POST",
+		path: `/v1/subscriptions/${subscriptionId}/enable`,
+	});
+	await capture({
+		name: "subscription/update",
+		endpoint: "PATCH /v1/subscriptions/{subscription_id}",
+		method: "PATCH",
+		path: `/v1/subscriptions/${subscriptionId}`,
+		body: { name: "fixture-updated" },
+	});
+	await capture({
+		name: "subscription/cancel",
+		endpoint: "POST /v1/subscriptions/{subscription_id}/cancel",
+		method: "POST",
+		path: `/v1/subscriptions/${subscriptionId}/cancel`,
 	});
 	await capture({
 		name: "subscription/error-not-found",

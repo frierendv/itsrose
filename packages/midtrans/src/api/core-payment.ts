@@ -1,6 +1,9 @@
+import type { HttpPromise } from "@itsrose/http-client";
+import type { MidtransApiError } from "../client/error";
 import type {
+	CoreCaptureRequest,
 	CoreChargeResponse,
-	CoreError,
+	CoreDirectRefundRequest,
 	CorePaymentChargeRequest,
 	CorePaymentRefundRequest,
 	CoreStatusB2BResponse,
@@ -11,17 +14,25 @@ import { BaseService } from "./service";
 
 export type CorePaymentChargeResponse = CoreChargeResponse;
 export type ChargeResponse = CoreChargeResponse;
+export type CaptureRequest = CoreCaptureRequest;
 export type CaptureResponse = CoreTransactionResponse;
 export type StatusResponse = CoreTransactionResponse;
 export type CancelResponse = CoreTransactionResponse;
 export type ExpireResponse = CoreTransactionResponse;
 export type RefundRequest = CorePaymentRefundRequest;
 export type RefundResponse = CoreTransactionResponse;
-export type DirectRefundRequest = CorePaymentRefundRequest &
-	Record<string, unknown>;
+export type DirectRefundRequest = CoreDirectRefundRequest;
 export type StatusB2BResponse = CoreStatusB2BResponse;
 
-export class Payment extends BaseService<CoreError> {
+/**
+ * Pagination accepted by the B2B status endpoint.
+ */
+export interface StatusB2BPagination {
+	page?: number;
+	per_page?: number;
+}
+
+export class Payment extends BaseService {
 	/**
 	 * Perform a transaction charge.
 	 *
@@ -40,7 +51,7 @@ export class Payment extends BaseService<CoreError> {
 	 *
 	 * `POST /v2/capture`
 	 */
-	public capture(body: Record<string, unknown>, opts?: RequestOptions) {
+	public capture(body: CaptureRequest, opts?: RequestOptions) {
 		return this.http.post<CaptureResponse>(
 			"/v2/capture",
 			body,
@@ -107,11 +118,21 @@ export class Payment extends BaseService<CoreError> {
 	 */
 	public refund(
 		orderId: string,
+		body: RefundRequest,
+		opts?: RequestOptions
+	): HttpPromise<RefundResponse, MidtransApiError>;
+	public refund(
+		orderId: string,
+		opts?: RequestOptions
+	): HttpPromise<RefundResponse, MidtransApiError>;
+	public refund(
+		orderId: string,
 		body?: RefundRequest | RequestOptions,
 		opts?: RequestOptions
-	) {
+	): HttpPromise<RefundResponse, MidtransApiError> {
 		let bodyPayload: RefundRequest | undefined;
 		let requestOpts = opts;
+
 		if (body) {
 			if ("reason" in body || "amount" in body || "refund_key" in body) {
 				bodyPayload = body as RefundRequest;
@@ -119,6 +140,7 @@ export class Payment extends BaseService<CoreError> {
 				requestOpts = body as RequestOptions;
 			}
 		}
+
 		return this.http.post<RefundResponse>(
 			`/v2/${orderId}/refund`,
 			bodyPayload,
@@ -148,11 +170,11 @@ export class Payment extends BaseService<CoreError> {
 	 *
 	 * `GET /v2/{orderId}/status`
 	 */
-	public status<T = CoreTransactionResponse>(
+	public status(
 		orderId: string,
 		opts?: RequestOptions
-	) {
-		return this.http.get<T>(
+	): HttpPromise<StatusResponse, MidtransApiError> {
+		return this.http.get<StatusResponse>(
 			`/v2/${orderId}/status`,
 			this.resolveRequestOptions(opts)
 		);
@@ -165,21 +187,29 @@ export class Payment extends BaseService<CoreError> {
 	 */
 	public statusB2B(
 		orderId: string,
-		pagination?: { page?: number; per_page?: number } | RequestOptions,
+		pagination?: StatusB2BPagination,
 		opts?: RequestOptions
-	) {
-		let paginationConfig: { page?: number; per_page?: number } = {};
+	): HttpPromise<StatusB2BResponse, MidtransApiError>;
+	public statusB2B(
+		orderId: string,
+		opts?: RequestOptions
+	): HttpPromise<StatusB2BResponse, MidtransApiError>;
+	public statusB2B(
+		orderId: string,
+		pagination?: StatusB2BPagination | RequestOptions,
+		opts?: RequestOptions
+	): HttpPromise<StatusB2BResponse, MidtransApiError> {
+		let paginationConfig: StatusB2BPagination = {};
 		let requestOpts = opts;
+
 		if (pagination) {
 			if ("page" in pagination || "per_page" in pagination) {
-				paginationConfig = pagination as {
-					page?: number;
-					per_page?: number;
-				};
+				paginationConfig = pagination as StatusB2BPagination;
 			} else {
 				requestOpts = pagination as RequestOptions;
 			}
 		}
+
 		const page = paginationConfig.page ?? 0;
 		const perPage = paginationConfig.per_page ?? 10;
 
