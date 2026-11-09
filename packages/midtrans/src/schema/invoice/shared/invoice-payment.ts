@@ -4,7 +4,7 @@ import {
 	ExpirySchema,
 	PaymentChannelBank,
 	PaymentChannels,
-} from "../../shared";
+} from "../../primitives";
 
 export const InvoicePaymentTypeSchema = z.enum([
 	"payment_link",

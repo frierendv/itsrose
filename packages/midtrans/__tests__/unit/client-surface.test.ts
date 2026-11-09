@@ -1,21 +1,21 @@
-import { Core } from "../src/api/core";
-import { Payment } from "../src/api/core-payment";
-import { Subscription } from "../src/api/core-subscription";
-import * as apiBarrel from "../src/api/index";
-import { Invoice } from "../src/api/invoice";
-import { PaymentLink } from "../src/api/payment-link";
-import { Snap } from "../src/api/snap";
-import { MidtransClient } from "../src/client/client";
-import * as clientBarrel from "../src/client/index";
-import { MidtransMerchant } from "../src/client/merchant";
+import { Core } from "../../src/api/core";
+import { Payment } from "../../src/api/core/payment";
+import { Subscription } from "../../src/api/core/subscription";
+import * as apiBarrel from "../../src/api/index";
+import { Invoice } from "../../src/api/invoice";
+import { PaymentLink } from "../../src/api/payment-link";
+import { Snap } from "../../src/api/snap";
+import { MidtransClient } from "../../src/client/client";
+import * as clientBarrel from "../../src/client/index";
+import { MidtransMerchant } from "../../src/client/merchant";
 import {
 	API_BASE_URL_PRODUCTION,
 	API_BASE_URL_SANDBOX,
 	SNAP_BASE_URL_PRODUCTION,
 	SNAP_BASE_URL_SANDBOX,
-} from "../src/constants";
-import * as rootBarrel from "../src/index";
-import type { ClientOptions } from "../src/typings";
+} from "../../src/constants";
+import * as rootBarrel from "../../src/index";
+import type { ClientOptions } from "../../src/typings";
 
 /**
  * The public client surface is frozen by the refactor plan. This suite fails

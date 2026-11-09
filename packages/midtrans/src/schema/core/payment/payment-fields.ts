@@ -5,7 +5,7 @@ import {
 	CustomFieldsSchema,
 	MetadataSchema,
 	TransactionDetailsSchema,
-} from "../../shared";
+} from "../../primitives";
 import { PaymentItemFieldsSchema } from "./payment-item-fields";
 import { PaymentTypeFieldsSchema } from "./payment-type-fields";
 

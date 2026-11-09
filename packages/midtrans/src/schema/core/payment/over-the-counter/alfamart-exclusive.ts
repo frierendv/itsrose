@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { CstoreStoreSchema } from "../../../shared";
+import { CstoreStoreSchema } from "../../../primitives";
 
 export const OverTheCounterAlfmartExclusiveFieldsSchema = z.object({
 	store: CstoreStoreSchema.extract(["alfamart"]),

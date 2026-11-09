@@ -1,7 +1,10 @@
-import type { ClientContext } from "../client/context";
-import { Payment } from "./core-payment";
-import { Subscription } from "./core-subscription";
-import { BaseService } from "./service";
+import type { ClientContext } from "../../client/context";
+import { BaseService } from "../service";
+import { Payment } from "./payment";
+import { Subscription } from "./subscription";
+
+export * from "./payment";
+export * from "./subscription";
 
 /**
  * Midtrans Core API service for direct server-to-server payments and transaction lifecycle management.

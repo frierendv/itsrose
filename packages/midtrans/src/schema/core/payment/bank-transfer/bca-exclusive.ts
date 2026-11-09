@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { BankCodeSchema } from "../../../shared";
+import { BankCodeSchema } from "../../../primitives";
 import { BankTransferBaseFieldsSchema } from "./bank-transfer-base";
 
 /**
