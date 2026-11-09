@@ -1,15 +1,19 @@
 import { z } from "zod/v4";
 import {
 	ApiErrorSchema,
+	CoreChargeResponseSchema,
 	CoreErrorSchema,
+	CoreStatusB2BResponseSchema,
+	CoreTransactionResponseSchema,
 	DefaultErrorSchema,
 	InvoiceResponseSchema,
+	InvoiceVoidResponseSchema,
 	PaymentLinkDeleteResponse,
-	PaymentLinkDetailResponse,
+	PaymentLinkDetailResponseSchema,
 	PaymentLinkResponse,
-	ResponseTransactionSchema,
 	SnapPreferenceResponseSchema,
 	SnapTransactionResponseSchema,
+	SubscriptionResponseSchema,
 } from "../src/schema/index";
 
 /**
@@ -31,8 +35,6 @@ export interface FixtureDefinition {
 	readonly note?: string;
 }
 
-const InvoiceVoidResponseSchema = z.object({ success: z.boolean() });
-
 /**
  * Registry of every committed sandbox fixture.
  *
@@ -42,53 +44,45 @@ const InvoiceVoidResponseSchema = z.object({ success: z.boolean() });
 export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 	// --- Core API: charges -------------------------------------------------
 	"core/charge-bank-transfer-bca": {
-		schema: ResponseTransactionSchema,
-		expectation: "knownMismatch",
-		note: "schema requires signature_key; charge responses do not include it",
+		schema: CoreChargeResponseSchema,
+		expectation: "mustPass",
 	},
 	"core/charge-bank-transfer-permata": {
-		schema: ResponseTransactionSchema,
-		expectation: "knownMismatch",
-		note: "schema requires va_numbers; Permata returns permata_va_number",
+		schema: CoreChargeResponseSchema,
+		expectation: "mustPass",
 	},
 	"core/charge-echannel": {
-		schema: ResponseTransactionSchema,
-		expectation: "knownMismatch",
-		note: "echannel payment_type branch is not modeled",
+		schema: CoreChargeResponseSchema,
+		expectation: "mustPass",
 	},
 	"core/charge-qris": {
-		schema: ResponseTransactionSchema,
-		expectation: "knownMismatch",
-		note: "qris payment_type branch is not modeled",
+		schema: CoreChargeResponseSchema,
+		expectation: "mustPass",
 	},
 	"core/charge-shopeepay": {
-		schema: ResponseTransactionSchema,
-		expectation: "knownMismatch",
-		note: "shopeepay payment_type branch is not modeled",
+		schema: CoreChargeResponseSchema,
+		expectation: "mustPass",
 	},
 	"core/charge-cstore-indomaret": {
-		schema: ResponseTransactionSchema,
-		expectation: "knownMismatch",
-		note: "cstore payment_type branch is not modeled",
+		schema: CoreChargeResponseSchema,
+		expectation: "mustPass",
 	},
 
 	// --- Core API: lifecycle ----------------------------------------------
 	"core/status-pending": {
-		schema: ResponseTransactionSchema,
+		schema: CoreTransactionResponseSchema,
 		expectation: "mustPass",
 	},
 	"core/status-b2b": {
-		schema: null,
-		expectation: "unmodeled",
-		note: "statusB2B returns an untyped wrapper; schema planned for Phase 3",
+		schema: CoreStatusB2BResponseSchema,
+		expectation: "mustPass",
 	},
 	"core/expire-success": {
-		schema: ResponseTransactionSchema,
-		expectation: "knownMismatch",
-		note: "signature_key and va_numbers are absent on the expire response",
+		schema: CoreTransactionResponseSchema,
+		expectation: "mustPass",
 	},
 	"core/status-after-expire": {
-		schema: ResponseTransactionSchema,
+		schema: CoreTransactionResponseSchema,
 		expectation: "mustPass",
 	},
 	"core/cancel-error": {
@@ -126,8 +120,7 @@ export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 	},
 	"snap/preferences": {
 		schema: SnapPreferenceResponseSchema,
-		expectation: "knownMismatch",
-		note: "allow_retry can be null; channels use `enabled`; fee configs are an array",
+		expectation: "mustPass",
 	},
 	"snap/error-validation": {
 		schema: DefaultErrorSchema,
@@ -137,13 +130,11 @@ export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 	// --- Payment Link ------------------------------------------------------
 	"payment-link/create": {
 		schema: PaymentLinkResponse,
-		expectation: "knownMismatch",
-		note: "real response is { order_id, payment_url, qr_url }",
+		expectation: "mustPass",
 	},
 	"payment-link/get": {
-		schema: PaymentLinkDetailResponse,
-		expectation: "knownMismatch",
-		note: "customer_details and metadata are nullish, item_details[].item_id can be null, expiry.unit can be `months`",
+		schema: PaymentLinkDetailResponseSchema,
+		expectation: "mustPass",
 	},
 	"payment-link/delete": {
 		schema: PaymentLinkDeleteResponse,
@@ -166,7 +157,6 @@ export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 	"invoice/void": {
 		schema: InvoiceVoidResponseSchema,
 		expectation: "mustPass",
-		note: "inline until an InvoiceVoidResponseSchema is added in Phase 3",
 	},
 	"invoice/error-not-found": {
 		schema: DefaultErrorSchema,
@@ -175,14 +165,12 @@ export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 
 	// --- Subscription ------------------------------------------------------
 	"subscription/create": {
-		schema: null,
-		expectation: "unmodeled",
-		note: "subscription endpoints have no schemas yet",
+		schema: SubscriptionResponseSchema,
+		expectation: "mustPass",
 	},
 	"subscription/get": {
-		schema: null,
-		expectation: "unmodeled",
-		note: "subscription endpoints have no schemas yet",
+		schema: SubscriptionResponseSchema,
+		expectation: "mustPass",
 	},
 	"subscription/error-not-found": {
 		schema: ApiErrorSchema,

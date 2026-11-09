@@ -57,3 +57,14 @@ export const InvoiceResponseSchema = z
 	.and(deepNullable(InvoiceRequestSchema));
 
 export type InvoiceResponse = z.infer<typeof InvoiceResponseSchema>;
+
+/**
+ * Response returned when voiding an invoice.
+ */
+export const InvoiceVoidResponseSchema = z
+	.object({
+		success: z.boolean(),
+	})
+	.meta({ id: "MidtransInvoiceVoidResponse" });
+
+export type InvoiceVoidResponse = z.infer<typeof InvoiceVoidResponseSchema>;

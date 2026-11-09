@@ -10,7 +10,7 @@ import {
  *
  * Sent by Midtrans to the merchant configured Payment Notification URL.
  */
-export const WebhookPayload = BaseTransactionResultSchema.extend(
+export const WebhookPayloadSchema = BaseTransactionResultSchema.extend(
 	CustomFieldsSchema.shape
 )
 	.extend({
@@ -26,4 +26,7 @@ export const WebhookPayload = BaseTransactionResultSchema.extend(
 		id: "MidtransWebhookNotification",
 	});
 
-export type WebhookPayload = z.infer<typeof WebhookPayload>;
+export type WebhookPayload = z.infer<typeof WebhookPayloadSchema>;
+
+/** @deprecated Use {@link WebhookPayloadSchema}. */
+export const WebhookPayload = WebhookPayloadSchema;

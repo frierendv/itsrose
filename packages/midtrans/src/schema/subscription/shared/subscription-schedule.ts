@@ -6,6 +6,9 @@ export type SubscriptionIntervalUnit = z.infer<
 	typeof SubscriptionIntervalUnitSchema
 >;
 
+/**
+ * Billing schedule sent when creating or updating a subscription.
+ */
 export const SubscriptionScheduleSchema = z.object({
 	/**
 	 * Subscription's interval given by merchant.
@@ -25,12 +28,12 @@ export const SubscriptionScheduleSchema = z.object({
 	 */
 	max_interval: z.number().min(0).nullish(),
 	/**
-	 * Timestamp of subscription in yyyy-MM-dd HH:mm:ss Z.
+	 * Timestamp of subscription in `yyyy-MM-dd HH:mm:ss Z`.
 	 *
 	 * @remarks
 	 * The value must be after the current time. If specified, first payment will happen on `start_time`.
 	 * If `start_time` is not specified, the default value for `start_time` will be the date after the first interval after current time.
 	 */
-	start_time: z.number().optional(),
+	start_time: z.string().optional(),
 });
 export type SubscriptionSchedule = z.infer<typeof SubscriptionScheduleSchema>;

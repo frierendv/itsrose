@@ -1,6 +1,10 @@
 import type { DefaultError } from "../schema/error";
 import type { MergeWithSchema, NarrowInput } from "../schema/helper";
-import type { InvoiceRequest, InvoiceResponse } from "../schema/invoice";
+import type {
+	InvoiceRequest,
+	InvoiceResponse,
+	InvoiceVoidResponse,
+} from "../schema/invoice";
 import type { RequestOptions } from "../typings";
 import { BaseService } from "./service";
 
@@ -45,7 +49,7 @@ export class Invoice extends BaseService<DefaultError> {
 	 * @see https://docs.midtrans.com/reference/void-invoice
 	 */
 	public void<T extends string>(invoiceId: T, opts?: RequestOptions) {
-		return this.http.patch<{ success: boolean }>(
+		return this.http.patch<InvoiceVoidResponse>(
 			`/v1/invoices/${invoiceId}/void`,
 			undefined,
 			this.resolveRequestOptions(opts)
