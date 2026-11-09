@@ -1,0 +1,15 @@
+{
+	"_meta": {
+		"name": "core/refund-error",
+		"endpoint": "POST /v2/{order_id}/refund",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:18:55.790Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_code": "412",
+		"status_message": "Merchant cannot modify the status of the transaction.",
+		"id": "000000000000000000000000"
+	}
+}

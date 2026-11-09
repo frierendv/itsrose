@@ -1,0 +1,13 @@
+{
+	"_meta": {
+		"name": "payment-link/delete",
+		"endpoint": "DELETE /v1/payment-links/{order_id}",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:19:02.288Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"message": "Payment Link with Order ID FIXTURE-PL-mw9gudy8-91ds deleted"
+	}
+}

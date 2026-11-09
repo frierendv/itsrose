@@ -1,0 +1,24 @@
+{
+	"_meta": {
+		"name": "core/expire-success",
+		"endpoint": "POST /v2/{order_id}/expire",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:18:54.764Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_code": "407",
+		"status_message": "Success, transaction is expired",
+		"transaction_id": "00000000-0000-4000-8000-000000000000",
+		"order_id": "ORDER-REDACTED",
+		"merchant_id": "G000000000",
+		"gross_amount": "15000.00",
+		"currency": "IDR",
+		"payment_type": "bank_transfer",
+		"transaction_time": "2026-11-09 23:18:52",
+		"transaction_status": "expire",
+		"fraud_status": "accept",
+		"acquirer": "BCA"
+	}
+}

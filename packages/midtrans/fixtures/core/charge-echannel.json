@@ -1,0 +1,26 @@
+{
+	"_meta": {
+		"name": "core/charge-echannel",
+		"endpoint": "POST /v2/charge",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:18:57.539Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_code": "201",
+		"status_message": "OK, Mandiri Bill transaction is successful",
+		"transaction_id": "00000000-0000-4000-8000-000000000000",
+		"order_id": "ORDER-REDACTED",
+		"merchant_id": "G000000000",
+		"gross_amount": "15000.00",
+		"currency": "IDR",
+		"payment_type": "echannel",
+		"transaction_time": "2026-11-09 23:18:57",
+		"transaction_status": "pending",
+		"fraud_status": "accept",
+		"bill_key": "123456789012",
+		"biller_code": "70012",
+		"expiry_time": "2026-11-10 23:18:57"
+	}
+}

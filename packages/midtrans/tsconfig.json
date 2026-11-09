@@ -1,5 +1,5 @@
 {
 	"extends": "@itsrose/standard/typescript/node.json",
-	"include": ["src", "__tests__"],
+	"include": ["src", "__tests__", "tools"],
 	"exclude": ["node_modules", "dist"]
 }
