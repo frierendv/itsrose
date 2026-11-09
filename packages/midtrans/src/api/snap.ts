@@ -1,3 +1,4 @@
+import type { ClientContext } from "../client/context";
 import type {
 	DefaultError,
 	SnapPreferenceResponse,
@@ -5,12 +6,20 @@ import type {
 	SnapTransactionResponse,
 } from "../schema";
 import type { DeepPartial, RequestOptions } from "../typings";
-import { SHARED_CLIENT, SharedClient } from "./shared";
+import type { Core } from "./core";
+import { BaseService } from "./service";
 
 /**
  * Midtrans Snap API service for hosted checkout token generation and merchant preference management.
  */
-export class Snap extends SharedClient<DefaultError> {
+export class Snap extends BaseService<DefaultError> {
+	readonly #core: Core;
+
+	constructor(ctx: ClientContext, core: Core) {
+		super(ctx);
+		this.#core = core;
+	}
+
 	/**
 	 * Retrieve your current Snap Merchant Preference settings.
 	 *
@@ -64,6 +73,6 @@ export class Snap extends SharedClient<DefaultError> {
 	 * Get transaction status; Short for `core.payment.status`
 	 */
 	status(orderId: string, opts?: RequestOptions) {
-		return this[SHARED_CLIENT].core.payment.status(orderId, opts);
+		return this.#core.payment.status(orderId, opts);
 	}
 }

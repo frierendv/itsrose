@@ -6,12 +6,12 @@ import type {
 	PaymentLinkResponse,
 } from "../schema";
 import type { RequestOptions } from "../typings";
-import { SharedClient } from "./shared";
+import { BaseService } from "./service";
 
 /**
  * Midtrans Payment Link API service for creating and managing shareable hosted payment links.
  */
-export class PaymentLink extends SharedClient<DefaultError> {
+export class PaymentLink extends BaseService<DefaultError> {
 	/**
 	 * Create a new payment link.
 	 *

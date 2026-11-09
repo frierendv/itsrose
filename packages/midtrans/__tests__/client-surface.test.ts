@@ -1,10 +1,12 @@
 import { Core } from "../src/api/core";
 import { Payment } from "../src/api/core-payment";
 import { Subscription } from "../src/api/core-subscription";
+import * as apiBarrel from "../src/api/index";
 import { Invoice } from "../src/api/invoice";
 import { PaymentLink } from "../src/api/payment-link";
 import { Snap } from "../src/api/snap";
 import { MidtransClient } from "../src/client/client";
+import * as clientBarrel from "../src/client/index";
 import { MidtransMerchant } from "../src/client/merchant";
 import {
 	API_BASE_URL_PRODUCTION,
@@ -12,6 +14,7 @@ import {
 	SNAP_BASE_URL_PRODUCTION,
 	SNAP_BASE_URL_SANDBOX,
 } from "../src/constants";
+import * as rootBarrel from "../src/index";
 import type { ClientOptions } from "../src/typings";
 
 /**
@@ -214,6 +217,20 @@ describe("MidtransClient public surface", () => {
 		expect(JSON.stringify(client.merchant)).not.toContain(
 			"SB-Mid-client-surface-test"
 		);
+	});
+
+	it("exports MidtransMerchant from the client barrel", () => {
+		expect(clientBarrel.MidtransMerchant).toBe(MidtransMerchant);
+	});
+
+	it("exports the service base class from the api barrel", () => {
+		expect(typeof apiBarrel.BaseService).toBe("function");
+		expect(apiBarrel.SharedClient).toBe(apiBarrel.BaseService);
+	});
+
+	it("does not leak internal transport symbols from the root barrel", () => {
+		expect("SHARED_CLIENT" in rootBarrel).toBe(false);
+		expect("SHARED_HTTP_CLIENT" in rootBarrel).toBe(false);
 	});
 
 	it("builds the basic auth key from the server key", () => {

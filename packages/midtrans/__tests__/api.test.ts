@@ -1,11 +1,11 @@
 import { createHash } from "node:crypto";
+import { Core } from "../src/api/core";
 import { Payment } from "../src/api/core-payment";
 import { Subscription } from "../src/api/core-subscription";
 import { Invoice } from "../src/api/invoice";
 import { PaymentLink } from "../src/api/payment-link";
-import { SHARED_HTTP_CLIENT } from "../src/api/shared";
 import { Snap } from "../src/api/snap";
-import type { MidtransClient } from "../src/client/client";
+import type { ClientContext } from "../src/client/context";
 import { MidtransMerchant } from "../src/client/merchant";
 import {
 	isFailedStatus,
@@ -15,7 +15,7 @@ import {
 	isSuccessStatus,
 } from "../src/helper/status";
 
-function createClient() {
+function createContext() {
 	const http = {
 		get: jest.fn(),
 		post: jest.fn(),
@@ -30,17 +30,18 @@ function createClient() {
 		baseUrl: "https://api.example.test",
 		snapBaseUrl: "https://snap.example.test",
 	});
-	const client = {
-		[SHARED_HTTP_CLIENT]: http,
+	const context: ClientContext = {
+		environment: "sandbox",
 		merchant,
-	} as unknown as MidtransClient;
-	return { client, http, merchant };
+		http: http as unknown as ClientContext["http"],
+	};
+	return { context, http, merchant };
 }
 
 describe("Payment", () => {
 	it("posts every charge-family request to its endpoint", () => {
-		const { client, http } = createClient();
-		const payment = new Payment(client);
+		const { context, http } = createContext();
+		const payment = new Payment(context);
 		const body = { payment_type: "bank_transfer" };
 
 		payment.charge(body as never);
@@ -63,8 +64,8 @@ describe("Payment", () => {
 	});
 
 	it("treats refund payloads and request options separately", () => {
-		const { client, http } = createClient();
-		const payment = new Payment(client);
+		const { context, http } = createContext();
+		const payment = new Payment(context);
 
 		payment.refund("order-1", { amount: 500, reason: "requested" });
 		payment.refund("order-2", { idempotencyKey: "refund-1" });
@@ -84,8 +85,8 @@ describe("Payment", () => {
 	});
 
 	it("queries status with optional pagination", () => {
-		const { client, http } = createClient();
-		const payment = new Payment(client);
+		const { context, http } = createContext();
+		const payment = new Payment(context);
 
 		payment.status("order-1");
 		payment.statusB2B("order-1", { page: 2, per_page: 5 });
@@ -105,8 +106,8 @@ describe("Payment", () => {
 	});
 
 	it("maps request options into headers", () => {
-		const { client, http } = createClient();
-		const payment = new Payment(client);
+		const { context, http } = createContext();
+		const payment = new Payment(context);
 
 		payment.status("order-1", {
 			idempotencyKey: "key-1",
@@ -130,8 +131,8 @@ describe("Payment", () => {
 
 describe("Subscription", () => {
 	it("calls the subscription endpoints", () => {
-		const { client, http } = createClient();
-		const subscription = new Subscription(client);
+		const { context, http } = createContext();
+		const subscription = new Subscription(context);
 
 		subscription.create({ name: "monthly" });
 		subscription.get("sub-1");
@@ -162,8 +163,8 @@ describe("Subscription", () => {
 
 describe("Snap", () => {
 	it("calls the snap endpoints with the snap base URL", () => {
-		const { client, http } = createClient();
-		const snap = new Snap(client);
+		const { context, http } = createContext();
+		const snap = new Snap(context, new Core(context));
 		const body = {
 			transaction_details: { order_id: "S-1", gross_amount: 15000 },
 		};
@@ -178,12 +179,24 @@ describe("Snap", () => {
 			baseURL: "https://snap.example.test",
 		});
 	});
+
+	it("delegates status to the core payment service", () => {
+		const { context, http } = createContext();
+		const snap = new Snap(context, new Core(context));
+
+		snap.status("order-1", { timeout: 1500 });
+
+		expect(http.get).toHaveBeenCalledWith("/v2/order-1/status", {
+			headers: {},
+			timeout: 1500,
+		});
+	});
 });
 
 describe("Invoice", () => {
 	it("calls the invoice endpoints", () => {
-		const { client, http } = createClient();
-		const invoice = new Invoice(client);
+		const { context, http } = createContext();
+		const invoice = new Invoice(context);
 		const body = { order_id: "INV-1" } as never;
 
 		invoice.create(body);
@@ -202,8 +215,8 @@ describe("Invoice", () => {
 
 describe("PaymentLink", () => {
 	it("calls the payment link endpoints", () => {
-		const { client, http } = createClient();
-		const paymentLink = new PaymentLink(client);
+		const { context, http } = createContext();
+		const paymentLink = new PaymentLink(context);
 		const body = {
 			transaction_details: { order_id: "PL-1", gross_amount: 15000 },
 		};
@@ -230,14 +243,14 @@ describe("PaymentLink", () => {
 
 describe("MidtransMerchant", () => {
 	it("builds the basic auth key", () => {
-		const { merchant } = createClient();
+		const { merchant } = createContext();
 		expect(merchant.createAuthKey()).toBe(
 			`Basic ${Buffer.from("server-secret:").toString("base64")}`
 		);
 	});
 
 	it("verifies notification signatures", () => {
-		const { merchant } = createClient();
+		const { merchant } = createContext();
 		const transaction = {
 			order_id: "ORD-1",
 			status_code: "200",
@@ -263,7 +276,7 @@ describe("MidtransMerchant", () => {
 	});
 
 	it("generates formatted order ids", () => {
-		const { merchant } = createClient();
+		const { merchant } = createContext();
 		const orderId = merchant.generateOrderId("user-1");
 		expect(orderId).toMatch(/^ORD-\d{6}-[0-9A-F]{4}-[0-9A-Z]{4}$/);
 		expect(merchant.generateOrderId("user-1", "INV")).toMatch(

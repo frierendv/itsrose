@@ -5,7 +5,7 @@ import type {
 	ResponseTransaction,
 } from "../schema";
 import type { RequestOptions } from "../typings";
-import { SharedClient } from "./shared";
+import { BaseService } from "./service";
 
 export type CorePaymentChargeResponse = ResponseTransaction;
 export type ChargeResponse = ResponseTransaction;
@@ -18,7 +18,7 @@ export type DirectRefundRequest = CorePaymentRefundRequest &
 	Record<string, unknown>;
 export type StatusB2BResponse = Record<string, unknown>;
 
-export class Payment extends SharedClient<CoreError> {
+export class Payment extends BaseService<CoreError> {
 	/**
 	 * Perform a transaction charge.
 	 *

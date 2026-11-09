@@ -1,8 +1,8 @@
 import type { CoreError } from "../schema/error";
 import type { RequestOptions } from "../typings/request-options";
-import { SharedClient } from "./shared";
+import { BaseService } from "./service";
 
-export class Subscription extends SharedClient<CoreError> {
+export class Subscription extends BaseService<CoreError> {
 	/**
 	 * Creates a subscription for recurring payments by submitting the required
 	 * subscription details, including the name, amount, currency, payment type,

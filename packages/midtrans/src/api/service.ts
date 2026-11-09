@@ -3,39 +3,43 @@ import type {
 	HttpConfig,
 	HttpRequestConfig,
 } from "@itsrose/http-client";
-import type { MidtransClient } from "../client/client";
+import type { ClientContext } from "../client/context";
 import type { MidtransHeaders, RequestOptions } from "../typings";
 
-/** @internal */
-export const SHARED_CLIENT: unique symbol = Symbol("__MIDTRANS_CLIENT__");
-/** @internal */
-export const SHARED_HTTP_CLIENT: unique symbol = Symbol("__HTTP_CLIENT__");
+/**
+ * Base class for every Midtrans API service.
+ *
+ * Services receive the shared {@link ClientContext} and never import
+ * `MidtransClient`, which keeps the dependency direction one-way:
+ *
+ * `client → api → context`.
+ *
+ * @internal
+ */
+export abstract class BaseService<TError = unknown> {
+	protected readonly ctx!: ClientContext;
 
-export abstract class SharedClient<TError = unknown> {
-	declare protected readonly [SHARED_CLIENT]: MidtransClient;
-	constructor(__this__: MidtransClient) {
-		Object.defineProperty(this, SHARED_CLIENT, {
-			value: __this__,
+	public constructor(ctx: ClientContext) {
+		Object.defineProperty(this, "ctx", {
+			value: ctx,
+			enumerable: false,
 			writable: false,
 			configurable: false,
-			enumerable: false,
 		});
 	}
+
 	/* ---------- Exposed api ---------- */
 
-	protected get http() {
-		return this[SHARED_CLIENT][SHARED_HTTP_CLIENT] as unknown as HttpClient<
-			HttpConfig,
-			TError
-		>;
+	protected get http(): HttpClient<HttpConfig, TError> {
+		return this.ctx.http as unknown as HttpClient<HttpConfig, TError>;
 	}
 
 	protected get baseUrl(): string {
-		return this[SHARED_CLIENT].merchant.baseUrl;
+		return this.ctx.merchant.baseUrl;
 	}
 
 	protected get snapBaseUrl(): string {
-		return this[SHARED_CLIENT].merchant.snapBaseUrl;
+		return this.ctx.merchant.snapBaseUrl;
 	}
 
 	/**
@@ -69,3 +73,8 @@ export abstract class SharedClient<TError = unknown> {
 		return { headers, timeout: opts?.timeout };
 	}
 }
+
+/**
+ * @deprecated Use {@link BaseService}. Kept as an alias for existing imports.
+ */
+export { BaseService as SharedClient };

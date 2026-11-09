@@ -2,12 +2,12 @@ import type { DefaultError } from "../schema/error";
 import type { MergeWithSchema, NarrowInput } from "../schema/helper";
 import type { InvoiceRequest, InvoiceResponse } from "../schema/invoice";
 import type { RequestOptions } from "../typings";
-import { SharedClient } from "./shared";
+import { BaseService } from "./service";
 
 /**
  * Midtrans Invoice API service for creating and managing hosted digital invoices.
  */
-export class Invoice extends SharedClient<DefaultError> {
+export class Invoice extends BaseService<DefaultError> {
 	/**
 	 * Create a digital invoice.
 	 *
