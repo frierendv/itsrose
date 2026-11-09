@@ -1,10 +1,5 @@
 import { z } from "zod/v4";
 
-export type NarrowInput<T, Schema> = T &
-	Schema & {
-		[K in keyof T]: K extends keyof Schema ? T[K] : never;
-	};
-
 export type DeepNullable<T> = T extends (...args: any[]) => any
 	? T
 	: T extends Date | RegExp | Error
@@ -18,16 +13,6 @@ export type DeepNullable<T> = T extends (...args: any[]) => any
 					: T extends object
 						? { [K in keyof T]: DeepNullable<T[K]> | null } | null
 						: T | null;
-
-export type Prettify<T> = {
-	[K in keyof T]: T[K];
-} & {};
-/**
- * Merge Input and Schema with Extra
- */
-export type MergeWithSchema<Schema, Input, Extra extends {} = {}> = Prettify<
-	(Omit<Schema, keyof Input> & Input) & (Extra & {})
->;
 
 // --- Recursive TypeScript Types ---
 export type ZodDeepNullable<T extends z.core.SomeType> =
@@ -62,43 +47,6 @@ export type ZodDeepNullable<T extends z.core.SomeType> =
 							: T extends z.ZodUnion<infer Options>
 								? z.ZodUnion<{
 										[K in keyof Options]: ZodDeepNullable<
-											Options[K]
-										>;
-									}>
-								: T;
-
-export type ZodDeepNullish<T extends z.core.SomeType> =
-	T extends z.ZodOptional<infer Inner>
-		? z.ZodOptional<z.ZodNullable<ZodDeepNullish<Inner>>>
-		: T extends z.ZodNullable<infer Inner>
-			? z.ZodOptional<z.ZodNullable<ZodDeepNullish<Inner>>>
-			: T extends z.ZodObject<infer Shape, infer Config>
-				? z.ZodObject<
-						{ [K in keyof Shape]: ZodDeepNullish<Shape[K]> },
-						Config
-					>
-				: T extends z.ZodArray<infer Element>
-					? z.ZodArray<ZodDeepNullish<Element>>
-					: T extends z.ZodIntersection<infer Left, infer Right>
-						? z.ZodIntersection<
-								ZodDeepNullish<Left>,
-								ZodDeepNullish<Right>
-							>
-						: T extends z.ZodDiscriminatedUnion<
-									infer Options,
-									infer Disc
-							  >
-							? z.ZodDiscriminatedUnion<
-									{
-										[K in keyof Options]: ZodDeepNullish<
-											Options[K]
-										>;
-									},
-									Disc
-								>
-							: T extends z.ZodUnion<infer Options>
-								? z.ZodUnion<{
-										[K in keyof Options]: ZodDeepNullish<
 											Options[K]
 										>;
 									}>
@@ -311,49 +259,6 @@ export function deepNullable<
 	} else if (schema instanceof z.ZodUnion) {
 		const def = (schema as any)._zod.def;
 		transformed = z.union(def.options.map((opt: any) => deepNullable(opt)));
-	}
-
-	return mergeWithExtra(transformed, extraFields) as any;
-}
-
-/** Converts all nested optional fields to .nullish(), preserving required fields */
-export function deepNullish<
-	T extends z.core.SomeType,
-	Extra extends z.ZodRawShape | z.core.SomeType | undefined = undefined,
->(
-	schema: T,
-	extraFields?: Extra
-): ZodSchemaWithExtra<ZodDeepNullish<T>, Extra> {
-	let transformed: any = schema;
-
-	if (schema instanceof z.ZodOptional) {
-		transformed = z.nullish(deepNullish(schema.unwrap() as any));
-	} else if (schema instanceof z.ZodNullable) {
-		transformed = z.nullish(deepNullish(schema.unwrap() as any));
-	} else if (schema instanceof z.ZodObject) {
-		const shape = schema.shape;
-		const newShape: any = {};
-		for (const key in shape) {
-			newShape[key] = deepNullish(shape[key]);
-		}
-		transformed = z.object(newShape);
-	} else if (schema instanceof z.ZodArray) {
-		transformed = z.array(deepNullish(schema.element));
-	} else if (schema instanceof z.ZodIntersection) {
-		const def = (schema as any)._zod.def;
-		transformed = z.intersection(
-			deepNullish(def.left),
-			deepNullish(def.right)
-		);
-	} else if (schema instanceof z.ZodDiscriminatedUnion) {
-		const def = (schema as any)._zod.def;
-		transformed = z.discriminatedUnion(
-			def.discriminator,
-			def.options.map((opt: any) => deepNullish(opt))
-		);
-	} else if (schema instanceof z.ZodUnion) {
-		const def = (schema as any)._zod.def;
-		transformed = z.union(def.options.map((opt: any) => deepNullish(opt)));
 	}
 
 	return mergeWithExtra(transformed, extraFields) as any;

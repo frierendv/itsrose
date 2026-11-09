@@ -21,6 +21,8 @@ export const PaymentTypeSchema = z.enum([
 	"ovo",
 	"shopeepay",
 	"qris",
+	"akulaku",
+	"kredivo",
 ]);
 export type PaymentType = z.infer<typeof PaymentTypeSchema>;
 

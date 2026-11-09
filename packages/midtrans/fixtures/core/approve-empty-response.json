@@ -1,0 +1,11 @@
+{
+	"_meta": {
+		"name": "core/approve-empty-response",
+		"endpoint": "POST /v2/{order_id}/approve",
+		"http_status": 404,
+		"captured_at": "2026-11-09T16:18:56.038Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": ""
+}

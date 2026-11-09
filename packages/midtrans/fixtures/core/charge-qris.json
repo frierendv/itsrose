@@ -1,0 +1,38 @@
+{
+	"_meta": {
+		"name": "core/charge-qris",
+		"endpoint": "POST /v2/charge",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:18:57.972Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_code": "201",
+		"status_message": "Qris transaction is created",
+		"transaction_id": "00000000-0000-4000-8000-000000000000",
+		"order_id": "ORDER-REDACTED",
+		"merchant_id": "G000000000",
+		"gross_amount": "15000.00",
+		"currency": "IDR",
+		"payment_type": "qris",
+		"transaction_time": "2026-11-09 23:18:57",
+		"transaction_status": "pending",
+		"fraud_status": "accept",
+		"actions": [
+			{
+				"name": "generate-qr-code",
+				"method": "GET",
+				"url": "https://example.test/redacted"
+			},
+			{
+				"name": "generate-qr-code-v2",
+				"method": "GET",
+				"url": "https://example.test/redacted"
+			}
+		],
+		"acquirer": "gopay",
+		"qr_string": "QRIS-REDACTED",
+		"expiry_time": "2026-11-09 23:33:57"
+	}
+}

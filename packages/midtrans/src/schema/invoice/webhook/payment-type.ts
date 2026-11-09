@@ -1,12 +1,12 @@
 import { z } from "zod/v4";
 import { PaymentTypeSchema, QrisAcquirerSchema } from "../../core";
-import { PaymentChannelBankSchema } from "../../shared";
+import { BankCodeSchema } from "../../primitives";
 
 export const InvoiceWebhookBankTransferSchema = z.object({
 	payment_type: PaymentTypeSchema.extract(["bank_transfer"]),
 	va_numbers: z
 		.object({
-			bank: PaymentChannelBankSchema,
+			bank: BankCodeSchema,
 			va_number: z.string(),
 		})
 		.array(),

@@ -1,0 +1,17 @@
+{
+	"_meta": {
+		"name": "snap/error-validation",
+		"endpoint": "POST /snap/v1/transactions",
+		"http_status": 400,
+		"captured_at": "2026-11-09T16:19:01.304Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"error_messages": [
+			"transaction_details.gross_amount is required",
+			"transaction_details.gross_amount is not a number",
+			"transaction_details.order_id is required"
+		]
+	}
+}

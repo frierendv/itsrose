@@ -1,24 +1,28 @@
-import type { DefaultError } from "../schema/error";
-import type { MergeWithSchema, NarrowInput } from "../schema/helper";
-import type { InvoiceRequest, InvoiceResponse } from "../schema/invoice";
+import type { HttpPromise } from "@itsrose/http-client";
+import type { MidtransApiError } from "../client/error";
+import type {
+	InvoiceRequest,
+	InvoiceResponse,
+	InvoiceVoidResponse,
+} from "../schema/invoice";
 import type { RequestOptions } from "../typings";
-import { SharedClient } from "./shared";
+import { BaseService } from "./service";
 
 /**
  * Midtrans Invoice API service for creating and managing hosted digital invoices.
  */
-export class Invoice extends SharedClient<DefaultError> {
+export class Invoice extends BaseService {
 	/**
 	 * Create a digital invoice.
 	 *
 	 * `POST /v1/invoices`
 	 * @see https://docs.midtrans.com/reference/create-invoice
 	 */
-	public create<const TBody>(
-		body: NarrowInput<TBody, InvoiceRequest>,
+	public create(
+		body: InvoiceRequest,
 		opts?: RequestOptions
-	) {
-		return this.http.post<MergeWithSchema<InvoiceResponse, TBody>>(
+	): HttpPromise<InvoiceResponse, MidtransApiError> {
+		return this.http.post<InvoiceResponse>(
 			"/v1/invoices",
 			body,
 			this.resolveRequestOptions(opts)
@@ -31,7 +35,10 @@ export class Invoice extends SharedClient<DefaultError> {
 	 * `GET /v1/invoices/{invoiceId}`
 	 * @see https://docs.midtrans.com/reference/get-invoice
 	 */
-	public get<T extends string>(invoiceId: T, opts?: RequestOptions) {
+	public get(
+		invoiceId: string,
+		opts?: RequestOptions
+	): HttpPromise<InvoiceResponse, MidtransApiError> {
 		return this.http.get<InvoiceResponse>(
 			`/v1/invoices/${invoiceId}`,
 			this.resolveRequestOptions(opts)
@@ -44,8 +51,11 @@ export class Invoice extends SharedClient<DefaultError> {
 	 * `PATCH /v1/invoices/{invoiceId}/void`
 	 * @see https://docs.midtrans.com/reference/void-invoice
 	 */
-	public void<T extends string>(invoiceId: T, opts?: RequestOptions) {
-		return this.http.patch<{ success: boolean }>(
+	public void(
+		invoiceId: string,
+		opts?: RequestOptions
+	): HttpPromise<InvoiceVoidResponse, MidtransApiError> {
+		return this.http.patch<InvoiceVoidResponse>(
 			`/v1/invoices/${invoiceId}/void`,
 			undefined,
 			this.resolveRequestOptions(opts)

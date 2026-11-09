@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { PaymentChannelBankSchema } from "../../../shared";
+import { BankCodeSchema } from "../../../primitives";
 import { CreditCardRouteChannelSchema } from "./route-channel";
 
 /**
@@ -12,7 +12,7 @@ export const CreditCardFieldsSchema = z.object({
 	 *
 	 * By default it only support "bca", "bni", "bri", "cimb", "maybank", "mandiri".
 	 */
-	bank: PaymentChannelBankSchema.optional(),
+	bank: BankCodeSchema.optional(),
 	/**
 	 * Installment tenure in terms of months.
 	 */

@@ -1,4 +1,8 @@
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { generateOrderId as buildOrderId } from "../helper/order-id";
+import {
+	createTransactionSignature,
+	verifyTransactionSignature,
+} from "../helper/signature";
 import type { MerchantOptions, PartialSignatureTransaction } from "../typings";
 
 export class MidtransMerchant {
@@ -62,14 +66,7 @@ export class MidtransMerchant {
 	protected createSignature(
 		transaction: Omit<PartialSignatureTransaction, "signature_key">
 	): string {
-		// order matter
-		const stringToHash = [
-			transaction.order_id,
-			transaction.status_code,
-			transaction.gross_amount,
-			this.#serverKey,
-		].join("");
-		return createHash("sha512").update(stringToHash).digest("hex");
+		return createTransactionSignature(this.#serverKey, transaction);
 	}
 
 	/**
@@ -79,22 +76,7 @@ export class MidtransMerchant {
 	 * This also can be used to verifies an {@link https://docs.midtrans.com/docs/https-notification-webhooks | incoming webhook notification}.
 	 */
 	public verifySignature(transaction: PartialSignatureTransaction): boolean {
-		const signatureKey = transaction.signature_key;
-
-		if (!signatureKey) {
-			return false;
-		}
-
-		const expected = this.createSignature(transaction);
-
-		const expectedBuffer = Buffer.from(expected, "utf8");
-		const actualBuffer = Buffer.from(signatureKey, "utf8");
-
-		if (expectedBuffer.length !== actualBuffer.length) {
-			return false;
-		}
-
-		return timingSafeEqual(expectedBuffer, actualBuffer);
+		return verifyTransactionSignature(this.#serverKey, transaction);
 	}
 
 	/**
@@ -109,24 +91,6 @@ export class MidtransMerchant {
 		userId: string,
 		prefix = "ORD" as Prefix
 	): `${Prefix}-${string}-${string}-${string}` {
-		const now = new Date();
-		const yearMonth = now.toISOString().slice(0, 7).replace("-", ""); // "202610"
-
-		// Derive a 4-character deterministic token from the userId
-		const userSegment = createHash("sha256")
-			.update(userId)
-			.digest("hex")
-			.slice(0, 4)
-			.toUpperCase();
-
-		// Crockford  base32-safe charset - 4 characters of unambiguous entropy
-		const charset = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
-		const bytes = randomBytes(4);
-		let randomSegment = "";
-		for (let i = 0; i < 4; i++) {
-			randomSegment += charset[bytes[i]! % charset.length];
-		}
-
-		return `${prefix}-${yearMonth}-${userSegment}-${randomSegment}`;
+		return buildOrderId(userId, prefix);
 	}
 }

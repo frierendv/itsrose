@@ -1,0 +1,16 @@
+{
+	"_meta": {
+		"name": "core/error-validation",
+		"endpoint": "POST /v2/charge",
+		"http_status": 400,
+		"captured_at": "2026-11-09T16:18:59.633Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_code": "400",
+		"status_message": "One or more parameters in the payload is invalid.",
+		"validation_messages": ["transaction_details is required"],
+		"id": "000000000000000000000000"
+	}
+}
