@@ -63,7 +63,7 @@ RUN set -eux; \
 	printf 'deb [arch=%s signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\n' \
 	"$(dpkg --print-architecture)" > /etc/apt/sources.list.d/github-cli.list; \
 	apt-get update; \
-	apt-get install -y --no-install-recommends bubblewrap rsync python3 gh tree; \
+	apt-get install -y --no-install-recommends bubblewrap rsync python3 gh tree libatomic1; \
 	rm -rf /var/lib/apt/lists/*
 
 # Workspace plus an unprivileged state dir. Both are chowned so the drop-privileges
