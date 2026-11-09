@@ -1,4 +1,4 @@
-export * from "./shared";
+export * from "./service";
 export * from "./core";
 export * from "./core-payment";
 export * from "./core-subscription";

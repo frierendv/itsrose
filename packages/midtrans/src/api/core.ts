@@ -1,13 +1,13 @@
-import type { MidtransClient } from "../client/client";
+import type { ClientContext } from "../client/context";
 import type { CoreError } from "../schema";
 import { Payment } from "./core-payment";
 import { Subscription } from "./core-subscription";
-import { SharedClient } from "./shared";
+import { BaseService } from "./service";
 
 /**
  * Midtrans Core API service for direct server-to-server payments and transaction lifecycle management.
  */
-export class Core extends SharedClient<CoreError> {
+export class Core extends BaseService<CoreError> {
 	/**
 	 * Payment API for performing charge transactions and lifecycle management.
 	 */
@@ -18,9 +18,9 @@ export class Core extends SharedClient<CoreError> {
 	 */
 	public readonly subscription: Subscription;
 
-	constructor(client: MidtransClient) {
-		super(client);
-		this.payment = new Payment(client);
-		this.subscription = new Subscription(client);
+	constructor(ctx: ClientContext) {
+		super(ctx);
+		this.payment = new Payment(ctx);
+		this.subscription = new Subscription(ctx);
 	}
 }
