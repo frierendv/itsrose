@@ -16,8 +16,7 @@
 			]
 		},
 		"lint": {
-			"dependsOn": ["^lint"],
-			"cache": false
+			"dependsOn": ["^lint"]
 		},
 		"lint:fix": {
 			"dependsOn": ["^lint:fix"],
@@ -27,13 +26,6 @@
 			"dependsOn": ["^typecheck"]
 		},
 		"clean": {
-			"cache": false
-		},
-		"prepack": {
-			"dependsOn": ["build"],
-			"cache": false
-		},
-		"postpack": {
 			"cache": false
 		},
 		"dev": {
