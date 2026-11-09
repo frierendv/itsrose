@@ -23,11 +23,11 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@better-auth/redis-storage": "^1.7.17",
+		"@better-auth/redis-storage": "^1.7.18",
 		"@fastify/autoload": "^6.5.1",
-		"@fastify/cors": "^11.4.0",
+		"@fastify/cors": "^11.4.1",
 		"@fastify/helmet": "^13.2.0",
-		"@fastify/multipart": "^10.1.7",
+		"@fastify/multipart": "^10.1.8",
 		"@fastify/rate-limit": "^11.2.2",
 		"@fastify/sensible": "^6.0.7",
 		"@fastify/swagger": "^9.9.3",
@@ -59,7 +59,7 @@
 	"devDependencies": {
 		"@itsrose/http-code": "workspace:*",
 		"@itsrose/standard": "workspace:*",
-		"@scalar/fastify-api-reference": "^1.76.4",
+		"@scalar/fastify-api-reference": "^1.77.0",
 		"@types/ws": "^8.18.2",
 		"openapi-types": "^12.1.3"
 	}

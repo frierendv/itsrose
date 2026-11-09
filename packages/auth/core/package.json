@@ -42,9 +42,9 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@better-auth/api-key": "^1.7.17",
+		"@better-auth/api-key": "^1.7.18",
 		"@better-auth/infra": "^0.4.27",
-		"@better-auth/passkey": "^1.7.17",
+		"@better-auth/passkey": "^1.7.18",
 		"@itsrose/auth-billing": "workspace:*",
 		"@itsrose/auth-mailer": "workspace:*",
 		"@itsrose/auth-storage": "workspace:*",
