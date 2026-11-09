@@ -1,8 +1,8 @@
 [submodule "scripts"]
 	path = scripts
-	url = https://git.itsrose.my.id/itsrose/itsrose-scripts
+	url = https://github.com/frierendv/itsrose-scripts
 	branch = main
 [submodule "repository/supabase"]
 	path = repository/supabase
-	url = https://git.itsrose.my.id/itsrose/supabase
+	url = https://github.com/frierendv/supabase
 	branch = main
