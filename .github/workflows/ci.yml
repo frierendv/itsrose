@@ -15,10 +15,13 @@ permissions:
     contents: read
 
 env:
-    CI: "true"
-    TURBO_TELEMETRY_DISABLED: "1"
-    TURBO_UI: "false"
-    NEXT_TELEMETRY_DISABLED: "1"
+    CI: 'true'
+    TURBO_TELEMETRY_DISABLED: '1'
+    TURBO_UI: 'false'
+    NEXT_TELEMETRY_DISABLED: '1'
+    TURBO_API: ${{ secrets.TURBO_API }}
+    TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+    TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
     ci:
