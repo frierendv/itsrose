@@ -1,0 +1,15 @@
+{
+	"_meta": {
+		"name": "payment-link/create",
+		"endpoint": "POST /v1/payment-links",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:19:01.657Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"order_id": "ORDER-REDACTED",
+		"payment_url": "https://example.test/redacted",
+		"qr_url": "https://example.test/redacted"
+	}
+}

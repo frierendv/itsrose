@@ -1,0 +1,13 @@
+{
+	"_meta": {
+		"name": "payment-link/error-not-found",
+		"endpoint": "GET /v1/payment-links/{order_id}",
+		"http_status": 404,
+		"captured_at": "2026-11-09T16:19:02.588Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"error_messages": ["Not found"]
+	}
+}

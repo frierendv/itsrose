@@ -1,0 +1,33 @@
+{
+	"_meta": {
+		"name": "core/charge-shopeepay",
+		"endpoint": "POST /v2/charge",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:18:58.516Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_code": "201",
+		"status_message": "Shopeepay transaction is created",
+		"transaction_id": "00000000-0000-4000-8000-000000000000",
+		"order_id": "ORDER-REDACTED",
+		"merchant_id": "G000000000",
+		"gross_amount": "15000.00",
+		"currency": "IDR",
+		"payment_type": "shopeepay",
+		"transaction_time": "2026-11-09 23:18:58",
+		"transaction_status": "pending",
+		"fraud_status": "accept",
+		"actions": [
+			{
+				"name": "deeplink-redirect",
+				"method": "GET",
+				"url": "https://example.test/redacted"
+			}
+		],
+		"channel_response_code": "0",
+		"channel_response_message": "success",
+		"expiry_time": "2026-11-09 23:33:58"
+	}
+}

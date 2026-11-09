@@ -1,0 +1,13 @@
+{
+	"_meta": {
+		"name": "invoice/void",
+		"endpoint": "PATCH /v1/invoices/{invoice_id}/void",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:19:03.912Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"success": true
+	}
+}

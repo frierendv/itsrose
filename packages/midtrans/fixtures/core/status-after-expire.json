@@ -1,0 +1,32 @@
+{
+	"_meta": {
+		"name": "core/status-after-expire",
+		"endpoint": "GET /v2/{order_id}/status",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:18:55.087Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_code": "407",
+		"transaction_id": "00000000-0000-4000-8000-000000000000",
+		"gross_amount": "15000.00",
+		"currency": "IDR",
+		"order_id": "ORDER-REDACTED",
+		"payment_type": "bank_transfer",
+		"signature_key": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+		"transaction_status": "expire",
+		"fraud_status": "accept",
+		"status_message": "Success, transaction is found",
+		"merchant_id": "G000000000",
+		"va_numbers": [
+			{
+				"bank": "bca",
+				"va_number": "8808123456789012"
+			}
+		],
+		"payment_amounts": [],
+		"transaction_time": "2026-11-09 23:18:52",
+		"expiry_time": "2026-11-10 23:18:52"
+	}
+}

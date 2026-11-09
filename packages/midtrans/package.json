@@ -45,6 +45,8 @@
 		"build": "tsdown",
 		"build:fast": "tsdown src",
 		"clean": "rimraf dist .sonda",
+		"fixtures:capture": "node --env-file=.env.dev --import tsx tools/capture-sandbox.ts",
+		"fixtures:verify": "node --import tsx tools/verify-fixtures.ts",
 		"lint": "eslint . --max-warnings 0",
 		"lint:fix": "eslint . --max-warnings 0 --fix",
 		"typecheck": "tsc --noEmit"
@@ -55,8 +57,7 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"@itsrose/standard": "workspace:*",
-		"@opentf/obj-diff": "^0.19.1"
+		"@itsrose/standard": "workspace:*"
 	},
 	"publishConfig": {
 		"exports": {
