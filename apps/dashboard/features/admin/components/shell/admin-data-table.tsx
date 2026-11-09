@@ -3,6 +3,7 @@
 import {
 	DataTable,
 	TableEmptyState,
+	TableLoadingState,
 	type DataTableColumn,
 } from "@/components/table";
 import type { RowData, SortingState } from "@tanstack/react-table";
@@ -17,7 +18,6 @@ export type AdminDataTableProps<TData extends RowData> = {
 	isError?: boolean;
 	error?: unknown;
 	onRetry?: () => void;
-	caption?: string;
 	toolbar?: React.ReactNode;
 	emptyLabel?: string;
 	initialSorting?: SortingState;
@@ -39,7 +39,6 @@ export function AdminDataTable<TData extends RowData>({
 	isError = false,
 	error,
 	onRetry,
-	caption,
 	toolbar,
 	emptyLabel = "No records found.",
 	initialSorting,
@@ -51,27 +50,26 @@ export function AdminDataTable<TData extends RowData>({
 		<div className="flex flex-col gap-4">
 			{toolbar}
 
-			{isError ? (
-				<QueryError error={error} onRetry={onRetry} />
-			) : (
-				<>
-					{caption ? (
-						<p className="text-xs text-muted">{caption}</p>
-					) : null}
-					<DataTable
-						aria-label={ariaLabel}
-						columns={columns}
-						data={data}
-						emptyState={<TableEmptyState label={emptyLabel} />}
-						initialSorting={initialSorting}
-						isLoading={isLoading}
-						pageSize={pageSize}
-						paginationLabel={paginationLabel}
-						rowHeaderId={rowHeaderId}
-						showPagination={showPagination}
-					/>
-				</>
-			)}
+			<DataTable
+				aria-label={ariaLabel}
+				columns={columns}
+				data={data}
+				emptyState={
+					isLoading ? (
+						<TableLoadingState />
+					) : isError ? (
+						<QueryError error={error} onRetry={onRetry} />
+					) : (
+						<TableEmptyState label={emptyLabel} />
+					)
+				}
+				initialSorting={initialSorting}
+				isLoading={isLoading}
+				pageSize={pageSize}
+				paginationLabel={paginationLabel}
+				rowHeaderId={rowHeaderId}
+				showPagination={showPagination}
+			/>
 		</div>
 	);
 }

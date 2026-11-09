@@ -1,21 +1,14 @@
 "use client";
 
+import { CopyButton } from "@/components/copy-button";
 import { DataTable, type DataTableFeatures } from "@/components/table";
+import { ArrowDownToLine, ArrowUpRightFromSquare } from "@gravity-ui/icons";
 import {
-	ArrowDownToLine,
-	ArrowUpRightFromSquare,
-	Magnifier,
-	Receipt,
-	Xmark,
-} from "@gravity-ui/icons";
-import {
-	Button,
 	buttonVariants,
-	Card,
 	Chip,
-	Input,
-	Skeleton,
-	Tabs,
+	ListBox,
+	SearchField,
+	Select,
 	Typography,
 } from "@heroui/react";
 import type { Invoice } from "@itsrose/auth-billing";
@@ -27,9 +20,27 @@ import {
 	formatIDR,
 	getInvoiceStatusProps,
 	getInvoiceTypeProps,
+	isPendingInvoice,
+	matchesInvoiceSearch,
+	matchesInvoiceStatus,
+	type InvoiceStatusFilter,
 } from "../utils";
 
 const columnHelper = createColumnHelper<DataTableFeatures, Invoice>();
+
+export const STATUS_OPTIONS: ReadonlyArray<{
+	id: InvoiceStatusFilter;
+	label: string;
+}> = [
+	{ id: "all", label: "All Statuses" },
+	{ id: "paid", label: "Paid" },
+	{ id: "pending", label: "Pending" },
+	{ id: "expired", label: "Expired" },
+	{ id: "void", label: "Void" },
+];
+
+/** @deprecated Use STATUS_OPTIONS instead */
+export const STATUS_TABS = STATUS_OPTIONS;
 
 export interface InvoiceTableProps {
 	invoices?: Invoice[];
@@ -46,9 +57,9 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 	pageSize = 8,
 	showFilters = true,
 	showPagination = true,
-	emptyMessage = "No billing invoices found.",
 }) => {
-	const [statusFilter, setStatusFilter] = useState<string>("all");
+	const [statusFilter, setStatusFilter] =
+		useState<InvoiceStatusFilter>("all");
 	const [searchQuery, setSearchQuery] = useState<string>("");
 
 	const queryInvoices = useInvoices();
@@ -63,55 +74,11 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 	);
 
 	const filteredData = useMemo(() => {
-		return rawInvoices.filter((inv) => {
-			if (statusFilter !== "all") {
-				const statusLower = (inv.status || "").toLowerCase();
-				if (
-					statusFilter === "paid" &&
-					statusLower !== "paid" &&
-					statusLower !== "settlement"
-				) {
-					return false;
-				}
-				if (
-					statusFilter === "pending" &&
-					statusLower !== "pending" &&
-					statusLower !== "unpaid"
-				) {
-					return false;
-				}
-				if (
-					statusFilter === "expired" &&
-					statusLower !== "expired" &&
-					statusLower !== "expire"
-				) {
-					return false;
-				}
-				if (
-					statusFilter === "void" &&
-					statusLower !== "void" &&
-					statusLower !== "canceled" &&
-					statusLower !== "cancelled"
-				) {
-					return false;
-				}
-			}
-
-			if (searchQuery.trim()) {
-				const q = searchQuery.toLowerCase().trim();
-				const matchOrder = inv.order_id?.toLowerCase().includes(q);
-				const matchNumber = inv.invoice_number
-					?.toLowerCase()
-					.includes(q);
-				const matchTier = inv.target_tier?.toLowerCase().includes(q);
-				const matchType = inv.invoice_type?.toLowerCase().includes(q);
-				if (!matchOrder && !matchNumber && !matchTier && !matchType) {
-					return false;
-				}
-			}
-
-			return true;
-		});
+		return rawInvoices.filter(
+			(inv) =>
+				matchesInvoiceStatus(inv, statusFilter) &&
+				matchesInvoiceSearch(inv, searchQuery)
+		);
 	}, [rawInvoices, statusFilter, searchQuery]);
 
 	const columns = useMemo(
@@ -127,12 +94,33 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 				}),
 				columnHelper.accessor("order_id", {
 					header: "Order ID",
-					cell: (info) => (
-						<Typography type="body-sm" className="font-mono">
-							{info.getValue() ||
-								info.row.original.invoice_number}
-						</Typography>
-					),
+					cell: (info) => {
+						const inv = info.row.original;
+						const orderId =
+							info.getValue() ||
+							inv.invoice_number ||
+							inv.invoice_id ||
+							"";
+						return (
+							<div className="flex items-center gap-1.5">
+								<Typography
+									type="body-sm"
+									className="font-mono text-xs font-semibold"
+								>
+									{orderId || "—"}
+								</Typography>
+								{orderId ? (
+									<CopyButton
+										aria-label={`Copy order ID ${orderId}`}
+										isIconOnly
+										size="sm"
+										textValue={orderId}
+										variant="ghost"
+									/>
+								) : null}
+							</div>
+						);
+					},
 				}),
 				columnHelper.accessor("invoice_type", {
 					header: "Type",
@@ -158,7 +146,10 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 				columnHelper.accessor("gross_amount", {
 					header: "Amount",
 					cell: (info) => (
-						<Typography type="body-sm">
+						<Typography
+							type="body-sm"
+							className="tabular-nums font-medium"
+						>
 							{formatIDR(info.getValue())}
 						</Typography>
 					),
@@ -181,15 +172,13 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 					header: () => <span className="sr-only">Actions</span>,
 					cell: (info) => {
 						const inv = info.row.original;
-						const isPendingStatus =
-							(inv.status || "").toLowerCase() === "pending" ||
-							(inv.status || "").toLowerCase() === "unpaid";
+						const isPending = isPendingInvoice(inv.status);
 						const payUrl = inv.payment_link_url;
 						const pdfUrl = inv.paid_pdf_url || inv.pdf_url;
 
 						return (
 							<div className="flex items-center justify-end gap-2">
-								{isPendingStatus && payUrl && (
+								{isPending && payUrl ? (
 									<a
 										href={payUrl}
 										target="_blank"
@@ -202,8 +191,8 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 										<span>Pay Now</span>
 										<ArrowUpRightFromSquare className="size-3" />
 									</a>
-								)}
-								{pdfUrl && (
+								) : null}
+								{pdfUrl ? (
 									<a
 										href={pdfUrl}
 										target="_blank"
@@ -219,7 +208,7 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 											PDF
 										</span>
 									</a>
-								)}
+								) : null}
 							</div>
 						);
 					},
@@ -227,10 +216,6 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 			]),
 		[]
 	);
-
-	if (isLoading) {
-		return <InvoiceTableSkeleton />;
-	}
 
 	return (
 		<DataTable
@@ -241,119 +226,64 @@ export const InvoiceTable: React.FC<InvoiceTableProps> = ({
 			initialSorting={[{ id: "invoice_date", desc: true }]}
 			pageSize={pageSize}
 			showPagination={showPagination}
+			isLoading={isLoading}
 			paginationLabel="invoices"
 			filterBar={
 				showFilters
 					? ({ resetPage }) => (
 							<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-								<Tabs
-									selectedKey={statusFilter}
-									onSelectionChange={(k) => {
-										setStatusFilter(String(k));
+								<Select
+									aria-label="Filter by status"
+									className="w-full sm:w-44"
+									selectionMode="single"
+									value={statusFilter}
+									onChange={(key) => {
+										setStatusFilter(
+											(String(key) ||
+												"all") as InvoiceStatusFilter
+										);
 										resetPage();
 									}}
 								>
-									<Tabs.ListContainer>
-										<Tabs.List aria-label="Filter invoices by status">
-											<Tabs.Tab id="all">
-												All
-												<Tabs.Indicator />
-											</Tabs.Tab>
-											<Tabs.Tab id="paid">
-												Paid
-												<Tabs.Indicator />
-											</Tabs.Tab>
-											<Tabs.Tab id="pending">
-												Pending
-												<Tabs.Indicator />
-											</Tabs.Tab>
-											<Tabs.Tab id="expired">
-												Expired
-												<Tabs.Indicator />
-											</Tabs.Tab>
-											<Tabs.Tab id="void">
-												Void
-												<Tabs.Indicator />
-											</Tabs.Tab>
-										</Tabs.List>
-									</Tabs.ListContainer>
-								</Tabs>
+									<Select.Trigger>
+										<Select.Value />
+										<Select.Indicator />
+									</Select.Trigger>
+									<Select.Popover>
+										<ListBox items={STATUS_OPTIONS}>
+											{(item) => (
+												<ListBox.Item
+													id={item.id}
+													textValue={item.label}
+												>
+													{item.label}
+													<ListBox.ItemIndicator />
+												</ListBox.Item>
+											)}
+										</ListBox>
+									</Select.Popover>
+								</Select>
 
-								<div className="flex items-center gap-2">
-									<div className="relative w-full sm:w-64">
-										<Input
-											variant="secondary"
-											placeholder="Search order ID..."
-											value={searchQuery}
-											onChange={(e) => {
-												setSearchQuery(e.target.value);
-												resetPage();
-											}}
-										/>
-										{searchQuery ? (
-											<button
-												type="button"
-												onClick={() =>
-													setSearchQuery("")
-												}
-												className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer text-muted hover:text-foreground"
-												aria-label="Clear search"
-											>
-												<Xmark className="size-3.5" />
-											</button>
-										) : (
-											<div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted">
-												<Magnifier className="size-3.5" />
-											</div>
-										)}
-									</div>
-								</div>
+								<SearchField
+									aria-label="Search invoices"
+									value={searchQuery}
+									onChange={(val) => {
+										setSearchQuery(val);
+										resetPage();
+									}}
+								>
+									<SearchField.Group>
+										<SearchField.SearchIcon />
+										<SearchField.Input placeholder="Search order ID, tier..." />
+										<SearchField.ClearButton />
+									</SearchField.Group>
+								</SearchField>
 							</div>
 						)
 					: undefined
-			}
-			emptyState={
-				<Card variant="transparent" className="py-12">
-					<div className="flex flex-col items-center justify-center text-center gap-3">
-						<div className="p-3 text-muted">
-							<Receipt className="size-8" />
-						</div>
-						<div className="flex flex-col gap-1">
-							<Typography type="h4">No Invoices</Typography>
-							<Typography type="body-sm" color="muted">
-								{searchQuery || statusFilter !== "all"
-									? "No invoices match your selected filter."
-									: emptyMessage}
-							</Typography>
-						</div>
-						{(searchQuery || statusFilter !== "all") && (
-							<Button
-								variant="secondary"
-								size="sm"
-								onPress={() => {
-									setSearchQuery("");
-									setStatusFilter("all");
-								}}
-							>
-								Reset Filters
-							</Button>
-						)}
-					</div>
-				</Card>
 			}
 		/>
 	);
 };
 
-export const InvoiceTableSkeleton: React.FC = () => (
-	<div className="flex flex-col gap-3">
-		<div className="flex justify-between items-center">
-			<Skeleton className="h-8 w-48" />
-			<Skeleton className="h-8 w-36" />
-		</div>
-		<Skeleton className="h-64 w-full" />
-	</div>
-);
-
 InvoiceTable.displayName = "InvoiceTable";
-InvoiceTableSkeleton.displayName = "InvoiceTableSkeleton";

@@ -3,6 +3,7 @@
 import {
 	Button,
 	Description,
+	Form,
 	Input,
 	Label,
 	ModalBackdrop,
@@ -14,6 +15,7 @@ import {
 	ModalHeader,
 	ModalHeading,
 	Switch,
+	TextField,
 	Typography,
 } from "@heroui/react";
 import type { Subscription, SubscriptionStatus } from "@itsrose/auth-billing";
@@ -54,7 +56,7 @@ const SubscriptionOverrideForm: React.FC<SubscriptionOverrideFormProps> = ({
 		Boolean(subscription.cancel_at_period_end)
 	);
 
-	const handleSave = async (e: React.FormEvent) => {
+	const handleSave = async (e: React.SyntheticEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		try {
 			let parsedEndDate: string | undefined = undefined;
@@ -83,7 +85,7 @@ const SubscriptionOverrideForm: React.FC<SubscriptionOverrideFormProps> = ({
 	};
 
 	return (
-		<form onSubmit={handleSave}>
+		<Form onSubmit={handleSave}>
 			<ModalBody className="flex flex-col gap-4">
 				<Typography type="body-sm" color="muted">
 					Override active tier, extend renewal dates, or revert
@@ -99,9 +101,7 @@ const SubscriptionOverrideForm: React.FC<SubscriptionOverrideFormProps> = ({
 
 				{/* Plan Tier Selection */}
 				<div className="flex flex-col gap-1.5">
-					<label className="text-xs font-medium text-muted">
-						Assign Tier
-					</label>
+					<Label>Assign Tier</Label>
 					<div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
 						{plans.map((p) => {
 							const isSelected =
@@ -127,9 +127,7 @@ const SubscriptionOverrideForm: React.FC<SubscriptionOverrideFormProps> = ({
 
 				{/* Status Override */}
 				<div className="flex flex-col gap-1.5">
-					<label className="text-xs font-medium text-muted">
-						Lifecycle Status
-					</label>
+					<Label>Lifecycle Status</Label>
 					<div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
 						{(
 							[
@@ -159,34 +157,32 @@ const SubscriptionOverrideForm: React.FC<SubscriptionOverrideFormProps> = ({
 				</div>
 
 				{/* Period End Extension */}
-				<div className="flex flex-col gap-1.5">
-					<label className="text-xs font-medium text-muted">
-						Period End (Expiration Date)
-					</label>
-					<Input
-						variant="secondary"
-						type="date"
-						value={periodEnd}
-						onChange={(e) => setPeriodEnd(e.target.value)}
-						required
-					/>
-					<span className="text-[11px] text-muted">
+				<TextField
+					isRequired
+					name="period_end"
+					type="date"
+					value={periodEnd}
+					onChange={setPeriodEnd}
+				>
+					<Label>Period End (Expiration Date)</Label>
+					<Input variant="secondary" />
+					<Description>
 						Extending this date allows the user to retain
 						uninterrupted access without immediate charge.
-					</span>
-				</div>
+					</Description>
+				</TextField>
 
 				{/* Scheduled Tier (Pending Downgrade) */}
-				<div className="flex flex-col gap-1.5">
-					<label className="text-xs font-medium text-muted">
-						Scheduled Tier (Downgrade Target)
-					</label>
+				<TextField
+					name="scheduled_tier"
+					value={scheduledTier}
+					onChange={setScheduledTier}
+				>
+					<Label>Scheduled Tier (Downgrade Target)</Label>
 					<div className="flex items-center gap-2">
 						<Input
 							variant="secondary"
 							placeholder="None (leaves unchanged)"
-							value={scheduledTier}
-							onChange={(e) => setScheduledTier(e.target.value)}
 						/>
 						{scheduledTier && (
 							<Button
@@ -199,7 +195,7 @@ const SubscriptionOverrideForm: React.FC<SubscriptionOverrideFormProps> = ({
 							</Button>
 						)}
 					</div>
-				</div>
+				</TextField>
 
 				{/* Cancel At Period End Toggle */}
 				<div className="flex items-center rounded-medium border border-separator p-3">
@@ -239,7 +235,7 @@ const SubscriptionOverrideForm: React.FC<SubscriptionOverrideFormProps> = ({
 					Apply Override
 				</Button>
 			</ModalFooter>
-		</form>
+		</Form>
 	);
 };
 

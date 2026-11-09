@@ -2,6 +2,8 @@
 
 import {
 	Button,
+	Description,
+	Form,
 	Input,
 	Label,
 	ListBox,
@@ -15,6 +17,7 @@ import {
 	ModalHeading,
 	Select,
 	TextArea,
+	TextField,
 	Typography,
 } from "@heroui/react";
 import type { UsageUnitRate } from "@itsrose/auth-usage";
@@ -56,6 +59,24 @@ export const RateFormModal: React.FC<RateFormModalProps> = ({
 		setNote("");
 	};
 
+	const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		if (!isValid) {
+			return;
+		}
+		try {
+			await mutation.mutateAsync({
+				plan_tier: tier,
+				amount: Math.trunc(parsedAmount),
+				note: note.trim().length > 0 ? note.trim() : undefined,
+			});
+			onOpenChange(false);
+			reset();
+		} catch {
+			// Handled by the hook.
+		}
+	};
+
 	return (
 		<ModalBackdrop
 			isOpen={isOpen}
@@ -72,112 +93,98 @@ export const RateFormModal: React.FC<RateFormModalProps> = ({
 					<ModalHeader>
 						<ModalHeading>New rate version</ModalHeading>
 					</ModalHeader>
-					<ModalBody className="flex flex-col gap-4">
-						<Typography type="body-sm" color="muted">
-							Publishing a rate closes the current version for the
-							tier and writes an audit entry. Settled periods keep
-							the version they were invoiced with.
-						</Typography>
+					<Form onSubmit={handleSubmit}>
+						<ModalBody className="flex flex-col gap-4">
+							<Typography type="body-sm" color="muted">
+								Publishing a rate closes the current version for
+								the tier and writes an audit entry. Settled
+								periods keep the version they were invoiced
+								with.
+							</Typography>
 
-						<Select
-							aria-label="Plan tier"
-							selectionMode="single"
-							value={tier}
-							onChange={(key) => setTier(String(key))}
-						>
-							<Label>Plan tier</Label>
-							<Select.Trigger>
-								<Select.Value />
-								<Select.Indicator />
-							</Select.Trigger>
-							<Select.Popover>
-								<ListBox
-									items={tiers.map((item) => ({
-										id: item,
-										label: item,
-									}))}
-								>
-									{(item) => (
-										<ListBox.Item
-											id={item.id}
-											textValue={item.label}
-										>
-											{item.label}
-											<ListBox.ItemIndicator />
-										</ListBox.Item>
-									)}
-								</ListBox>
-							</Select.Popover>
-						</Select>
+							<Select
+								aria-label="Plan tier"
+								selectionMode="single"
+								value={tier}
+								onChange={(key) => setTier(String(key))}
+							>
+								<Label>Plan tier</Label>
+								<Select.Trigger>
+									<Select.Value />
+									<Select.Indicator />
+								</Select.Trigger>
+								<Select.Popover>
+									<ListBox
+										items={tiers.map((item) => ({
+											id: item,
+											label: item,
+										}))}
+									>
+										{(item) => (
+											<ListBox.Item
+												id={item.id}
+												textValue={item.label}
+											>
+												{item.label}
+												<ListBox.ItemIndicator />
+											</ListBox.Item>
+										)}
+									</ListBox>
+								</Select.Popover>
+							</Select>
 
-						<div className="flex flex-col gap-1.5">
-							<label className="text-xs font-medium text-muted">
-								Price per request (IDR)
-							</label>
-							<Input
-								min={0}
-								placeholder="e.g. 150"
+							<TextField
+								isRequired
+								name="amount"
+								onChange={setAmount}
 								type="number"
 								value={amount}
-								variant="secondary"
-								onChange={(e) => setAmount(e.target.value)}
-							/>
-							<Typography type="body-xs" color="muted">
-								{currentAmount === undefined
-									? "No open rate for this tier yet."
-									: `Current open rate: ${formatIDR(currentAmount)} per request.`}
-							</Typography>
-						</div>
+							>
+								<Label>Price per request (IDR)</Label>
+								<Input
+									min={0}
+									placeholder="e.g. 150"
+									variant="secondary"
+								/>
+								<Description>
+									{currentAmount === undefined
+										? "No open rate for this tier yet."
+										: `Current open rate: ${formatIDR(currentAmount)} per request.`}
+								</Description>
+							</TextField>
 
-						<div className="flex flex-col gap-1.5">
-							<label className="text-xs font-medium text-muted">
-								Audit note (optional)
-							</label>
-							<TextArea
-								maxLength={500}
-								placeholder="Why is this rate changing?"
-								rows={2}
+							<TextField
+								name="note"
+								onChange={setNote}
 								value={note}
+							>
+								<Label>Audit note (optional)</Label>
+								<TextArea
+									maxLength={500}
+									placeholder="Why is this rate changing?"
+									rows={2}
+									variant="secondary"
+								/>
+							</TextField>
+						</ModalBody>
+						<ModalFooter className="flex justify-end gap-2 pt-4">
+							<Button
+								type="button"
 								variant="secondary"
-								onChange={(e) => setNote(e.target.value)}
-							/>
-						</div>
-					</ModalBody>
-					<ModalFooter className="flex justify-end gap-2 pt-4">
-						<Button
-							type="button"
-							variant="secondary"
-							onPress={() => onOpenChange(false)}
-						>
-							Cancel
-						</Button>
-						<Button
-							isDisabled={!isValid}
-							isPending={mutation.isPending}
-							type="button"
-							onPress={async () => {
-								if (!isValid) {
-									return;
-								}
-								try {
-									await mutation.mutateAsync({
-										plan_tier: tier,
-										amount: Math.trunc(parsedAmount),
-										note:
-											note.trim().length > 0
-												? note.trim()
-												: undefined,
-									});
-									onOpenChange(false);
-									reset();
-								} catch {
-									// Handled by the hook.
-								}
-							}}
-						>
-							Publish version
-						</Button>
-					</ModalFooter>
+								onPress={() => onOpenChange(false)}
+							>
+								Cancel
+							</Button>
+							<Button
+								isDisabled={!isValid}
+								isPending={mutation.isPending}
+								type="submit"
+								variant="primary"
+							>
+								Publish version
+							</Button>
+						</ModalFooter>
+					</Form>
 				</ModalDialog>
 			</ModalContainer>
 		</ModalBackdrop>

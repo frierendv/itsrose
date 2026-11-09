@@ -14,6 +14,7 @@ import {
 	ModalFooter,
 	ModalHeader,
 	ModalHeading,
+	NumberField,
 	Switch,
 	TextArea,
 	TextField,
@@ -45,18 +46,16 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 	const [planId, setPlanId] = useState(plan?.plan_id ?? "");
 	const [name, setName] = useState(plan?.name ?? "");
 	const [description, setDescription] = useState(plan?.description ?? "");
-	// Kept as a string so clearing the field does not snap back to "0".
-	const [amount, setAmount] = useState<string>(
-		plan?.price?.amount === undefined ? "60000" : String(plan.price.amount)
+
+	const [amount, setAmount] = useState<number>(
+		plan?.price?.amount === undefined ? 0 : plan.price.amount
 	);
 	const [interval] = useState<"month" | "year">(
 		plan?.price?.interval ?? "month"
 	);
 	// Blank means "unlimited"; the API accepts `null` for that case.
-	const [quotaRequests, setQuotaRequests] = useState<string>(
-		plan?.quota_requests === null || plan?.quota_requests === undefined
-			? ""
-			: String(plan.quota_requests)
+	const [quotaRequests, setQuotaRequests] = useState<number | undefined>(
+		plan?.quota_requests ?? undefined
 	);
 	const [featuresText, setFeaturesText] = useState(
 		plan?.features
@@ -76,9 +75,12 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 			.map((s) => s.trim())
 			.filter(Boolean);
 		const quotaRequestsValue =
-			quotaRequests.trim().length === 0
+			quotaRequests === undefined || isNaN(quotaRequests)
 				? null
-				: Math.max(0, Math.trunc(Number(quotaRequests)));
+				: Math.max(0, Math.trunc(quotaRequests));
+		const amountValue = isNaN(amount)
+			? undefined
+			: Math.max(0, Math.trunc(amount));
 
 		try {
 			if (isEdit) {
@@ -86,7 +88,7 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 					plan_id: planId,
 					name,
 					description,
-					price_amount: Math.max(0, Math.trunc(Number(amount))),
+					price_amount: amountValue,
 					interval,
 					quota_requests: quotaRequestsValue,
 					features,
@@ -97,7 +99,7 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 					plan_id: planId,
 					name,
 					description,
-					price_amount: Math.max(0, Math.trunc(Number(amount))),
+					price_amount: amountValue ?? 0,
 					interval,
 					quota_requests: quotaRequestsValue,
 					features,
@@ -113,132 +115,151 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 	const isPending = createMutation.isPending || updateMutation.isPending;
 
 	return (
-		<Form onSubmit={handleSubmit}>
-			<ModalBody className="flex flex-col gap-4">
-				<Typography type="body-sm" color="muted">
-					Configure tier specifications, pricing in IDR, and the
-					monthly request allowance.
-				</Typography>
-
-				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-					<TextField
-						isDisabled={isEdit}
-						isRequired
-						name="plan_id"
-						onChange={setPlanId}
-						value={planId}
-					>
-						<Label>Plan Identifier (Slug)</Label>
-						<Input
-							variant="secondary"
-							placeholder="e.g. enterprise"
-						/>
-					</TextField>
-
-					<TextField
-						isRequired
-						name="name"
-						onChange={setName}
-						value={name}
-					>
-						<Label>Display Name</Label>
-						<Input
-							variant="secondary"
-							placeholder="e.g. Enterprise Tier"
-						/>
-					</TextField>
-				</div>
-
-				<TextField
-					name="description"
-					onChange={setDescription}
-					value={description}
+		<>
+			<ModalBody className="pr-2">
+				<Form
+					id="plan-form"
+					onSubmit={handleSubmit}
+					className="flex flex-col gap-4"
 				>
-					<Label>Description</Label>
-					<Input
-						variant="secondary"
-						placeholder="e.g. High-throughput dedicated platform quota"
-					/>
-				</TextField>
+					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+						<TextField
+							isDisabled={isEdit}
+							isRequired
+							name="plan_id"
+							onChange={setPlanId}
+							value={planId}
+						>
+							<Label>Plan Identifier (Slug)</Label>
+							<Input
+								variant="secondary"
+								placeholder="e.g. enterprise"
+							/>
+						</TextField>
 
-				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+						<TextField
+							isRequired
+							name="name"
+							onChange={setName}
+							value={name}
+						>
+							<Label>Display Name</Label>
+							<Input
+								variant="secondary"
+								placeholder="e.g. Enterprise Tier"
+							/>
+						</TextField>
+					</div>
+
 					<TextField
-						isRequired
-						name="price_amount"
-						onChange={setAmount}
-						type="number"
-						value={amount}
+						name="description"
+						onChange={setDescription}
+						value={description}
 					>
-						<Label>Monthly Price (IDR)</Label>
+						<Label>Description</Label>
 						<Input
 							variant="secondary"
-							min={0}
-							step={1000}
-							placeholder="160000"
+							placeholder="e.g. High-throughput dedicated platform quota"
 						/>
 					</TextField>
 
-					<TextField
-						defaultValue={interval}
-						isDisabled
-						name="interval"
-					>
-						<Label>Billing Interval</Label>
-						<Input variant="secondary" />
-					</TextField>
+					{/* Pricing & Interval */}
+					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+						<NumberField
+							isRequired
+							minValue={0}
+							name="price_amount"
+							onChange={(val) =>
+								setAmount(
+									val === undefined || isNaN(val) ? 0 : val
+								)
+							}
+							step={1000}
+							value={amount}
+							variant="secondary"
+						>
+							<Label>Price (IDR)</Label>
+							<NumberField.Group>
+								<NumberField.DecrementButton />
+								<NumberField.Input placeholder="60000" />
+								<NumberField.IncrementButton />
+							</NumberField.Group>
+						</NumberField>
 
-					<TextField
+						<TextField
+							defaultValue={interval}
+							isDisabled
+							name="interval"
+						>
+							<Label>Billing Interval</Label>
+							<Input variant="secondary" />
+						</TextField>
+					</div>
+
+					{/* Request Allowance */}
+					<NumberField
+						minValue={0}
 						name="quota_requests"
-						onChange={setQuotaRequests}
-						type="number"
-						value={quotaRequests}
+						onChange={(val) =>
+							setQuotaRequests(
+								val === undefined || isNaN(val)
+									? undefined
+									: val
+							)
+						}
+						className="w-fit"
+						step={1_000}
+						value={quotaRequests ?? NaN}
+						variant="secondary"
 					>
 						<Label>Monthly Request Quota</Label>
-						<Input
-							variant="secondary"
-							min={0}
-							placeholder="Blank = unlimited"
-						/>
-						<Description>Leave blank for unlimited</Description>
-					</TextField>
-				</div>
+						<NumberField.Group>
+							<NumberField.DecrementButton />
+							<NumberField.Input />
+							<NumberField.IncrementButton />
+						</NumberField.Group>
+						<Description>
+							Leave blank for unlimited API requests per billing
+							cycle
+						</Description>
+					</NumberField>
 
-				<TextField
-					name="features"
-					onChange={setFeaturesText}
-					value={featuresText}
-				>
-					<Label>Features List (One feature per line)</Label>
-					<TextArea
-						variant="secondary"
-						rows={4}
-						placeholder="120 Requests per minute&#10;Unlimited generation history&#10;Priority customer support"
-					/>
-				</TextField>
-
-				<div className="flex items-center rounded-medium border border-separator p-3">
-					<Switch
-						className="w-full"
-						isSelected={highlighted}
-						name="highlighted"
-						onChange={setHighlighted}
+					<TextField
+						name="features"
+						onChange={setFeaturesText}
+						value={featuresText}
 					>
-						<Switch.Content className="w-full justify-between">
-							<div className="flex flex-col gap-0.5">
-								<Label>Highlight on Pricing Table</Label>
-								<Description>
-									Show prominent &ldquo;Popular&rdquo; badge
-									on workspace upgrade screens
-								</Description>
-							</div>
-							<Switch.Control>
-								<Switch.Thumb />
-							</Switch.Control>
-						</Switch.Content>
-					</Switch>
-				</div>
-			</ModalBody>
+						<Label>Features List (One feature per line)</Label>
+						<TextArea
+							variant="secondary"
+							rows={4}
+							placeholder="120 Requests per minute&#10;Unlimited generation history&#10;Priority customer support"
+						/>
+					</TextField>
 
+					<div className="flex items-center rounded-medium border border-separator p-3">
+						<Switch
+							className="w-full"
+							isSelected={highlighted}
+							name="highlighted"
+							onChange={setHighlighted}
+						>
+							<Switch.Content className="w-full justify-between">
+								<div className="flex flex-col gap-0.5">
+									<Label>Highlight on Pricing Table</Label>
+									<Description>
+										Show prominent &ldquo;Popular&rdquo;
+										badge on workspace upgrade screens
+									</Description>
+								</div>
+								<Switch.Control>
+									<Switch.Thumb />
+								</Switch.Control>
+							</Switch.Content>
+						</Switch>
+					</div>
+				</Form>
+			</ModalBody>
 			<ModalFooter className="flex justify-end gap-2 pt-4">
 				<Button
 					variant="secondary"
@@ -247,11 +268,16 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 				>
 					Cancel
 				</Button>
-				<Button variant="primary" type="submit" isPending={isPending}>
+				<Button
+					variant="primary"
+					form="plan-form"
+					type="submit"
+					isPending={isPending}
+				>
 					{isEdit ? "Save Changes" : "Create Plan"}
 				</Button>
 			</ModalFooter>
-		</Form>
+		</>
 	);
 };
 
@@ -274,15 +300,18 @@ export const PlanFormModal: React.FC<PlanFormModalProps> = ({
 								? `Edit Plan: ${plan?.name}`
 								: "Create Billing Plan"}
 						</ModalHeading>
+
+						<Typography type="body-sm" color="muted">
+							Configure tier specifications, pricing in IDR, and
+							the monthly request allowance.
+						</Typography>
 					</ModalHeader>
 
-					{isOpen && (
-						<PlanFormContent
-							key={contentKey}
-							plan={plan}
-							onOpenChange={onOpenChange}
-						/>
-					)}
+					<PlanFormContent
+						key={contentKey}
+						plan={plan}
+						onOpenChange={onOpenChange}
+					/>
 				</ModalDialog>
 			</ModalContainer>
 		</ModalBackdrop>

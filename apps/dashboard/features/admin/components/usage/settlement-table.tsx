@@ -142,7 +142,6 @@ export const SettlementTable: React.FC = () => {
 	return (
 		<AdminDataTable
 			aria-label="Usage settlements"
-			caption="Settlements are frozen rows: re-running a period returns the stored result instead of creating a new one."
 			columns={columns}
 			data={rows}
 			emptyLabel="No settlements frozen for this period yet."
