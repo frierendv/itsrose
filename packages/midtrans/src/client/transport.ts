@@ -1,8 +1,15 @@
-import { HttpClient, HttpClientError } from "@itsrose/http-client";
+import {
+	HttpClient,
+	HttpClientError,
+	type HttpConfig,
+} from "@itsrose/http-client";
 import { DEFAULT_TIMEOUT, MAX_REQUEST_SIZE } from "../constants";
-import { HttpStatus } from "../schema/error/status";
 import type { MidtransHeaders } from "../typings";
-import { errorHandler } from "./error";
+import {
+	isSuccessfulResponse,
+	readBusinessStatusCode,
+} from "./business-status";
+import { errorHandler, type MidtransApiError } from "./error";
 import type { MidtransMerchant } from "./merchant";
 
 /**
@@ -31,10 +38,12 @@ export interface TransportOptions {
  *
  * @internal
  */
-export function createTransport(options: TransportOptions): HttpClient {
+export function createTransport(
+	options: TransportOptions
+): HttpClient<HttpConfig, MidtransApiError> {
 	const { merchant, headers, timeout } = options;
 
-	const http = new HttpClient({
+	const http = new HttpClient<HttpConfig, MidtransApiError>({
 		onError: errorHandler,
 		throwOnError: true,
 		maxBodyLength: MAX_REQUEST_SIZE,
@@ -68,16 +77,8 @@ export function createTransport(options: TransportOptions): HttpClient {
 			return raw;
 		}
 
-		const rawData = raw?.data || {};
-		const rawHeaders = raw.headers;
-		const rawStatusCode =
-			"status_code" in rawData
-				? rawData.status_code
-				: "status-code" in rawHeaders
-					? rawHeaders["status-code"]
-					: raw.status;
-		const statusCode = HttpStatus.safeParse(rawStatusCode);
-		if (statusCode.data?.success) {
+		const businessStatus = readBusinessStatusCode(raw?.data, raw.headers);
+		if (isSuccessfulResponse(businessStatus, raw.status)) {
 			return raw;
 		}
 

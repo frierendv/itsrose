@@ -116,8 +116,7 @@ export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 	},
 	"core/error-unauthorized": {
 		schema: ApiErrorSchema,
-		expectation: "knownMismatch",
-		note: "HTTP 401 returns { error: 'Unauthorized' }, which is not part of ApiErrorSchema",
+		expectation: "mustPass",
 	},
 
 	// --- Snap --------------------------------------------------------------
@@ -187,7 +186,6 @@ export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 	},
 	"subscription/error-not-found": {
 		schema: ApiErrorSchema,
-		expectation: "knownMismatch",
-		note: "response is { status_message } without status_code or error_messages",
+		expectation: "mustPass",
 	},
 };

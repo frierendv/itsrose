@@ -57,7 +57,8 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"@itsrose/standard": "workspace:*"
+		"@itsrose/standard": "workspace:*",
+		"axios": "catalog:"
 	},
 	"publishConfig": {
 		"exports": {

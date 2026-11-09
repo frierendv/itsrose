@@ -1,4 +1,5 @@
-import type { HttpClient } from "@itsrose/http-client";
+import type { HttpClient, HttpConfig } from "@itsrose/http-client";
+import type { MidtransApiError } from "./error";
 import type { MidtransMerchant } from "./merchant";
 
 /**
@@ -16,5 +17,5 @@ export interface ClientContext {
 	/** Resolved merchant identity and endpoint configuration. */
 	readonly merchant: MidtransMerchant;
 	/** Shared HTTP transport used by every service. */
-	readonly http: HttpClient;
+	readonly http: HttpClient<HttpConfig, MidtransApiError>;
 }
