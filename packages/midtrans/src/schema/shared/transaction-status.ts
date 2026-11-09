@@ -27,7 +27,11 @@ export type TransactionStatus = z.infer<typeof TransactionStatusSchema>;
 /**
  * Fraud status used by Midtrans API.
  */
-export const TransactionFraudStatusSchema = z.enum(["accept", "deny"]);
+export const TransactionFraudStatusSchema = z.enum([
+	"accept",
+	"challenge",
+	"deny",
+]);
 
 export type TransactionFraudStatus = z.infer<
 	typeof TransactionFraudStatusSchema

@@ -3,7 +3,6 @@ import { BCAExclusiveFreeTextSchema } from "../core";
 import {
 	CallbacksSchema,
 	CustomFieldsSchema,
-	ExpirySchema,
 	ItemDetailsSchema,
 	PaymentChannels,
 	PaymentLinkSupportedBank,
@@ -72,8 +71,48 @@ export const PaymentLinkTransactionDetail = TransactionDetailsSchema.extend({
 		.optional(),
 });
 
+/**
+ * Payment Link expiry unit.
+ *
+ * The API returns plural forms (`months`) for the default expiry, while the
+ * request accepts both singular and plural units.
+ */
+export const PaymentLinkExpiryUnitSchema = z.enum([
+	"second",
+	"seconds",
+	"minute",
+	"minutes",
+	"hour",
+	"hours",
+	"day",
+	"days",
+	"week",
+	"weeks",
+	"month",
+	"months",
+]);
+
+export type PaymentLinkExpiryUnit = z.infer<typeof PaymentLinkExpiryUnitSchema>;
+
+/**
+ * Expiry configuration for a payment link.
+ */
+export const PaymentLinkExpirySchema = z
+	.object({
+		start_time: z.string().optional(),
+		duration: z.int(),
+		unit: PaymentLinkExpiryUnitSchema,
+	})
+	.meta({ id: "MidtransPaymentLinkExpiry" });
+
+export type PaymentLinkExpiry = z.infer<typeof PaymentLinkExpirySchema>;
+
+/**
+ * @deprecated Use {@link PaymentLinkExpirySchema}.
+ */
+export const PaymentLinkExpiry = PaymentLinkExpirySchema;
+
 export const PaymentLinkItemDetail = ItemDetailsSchema;
-export const PaymentLinkExpiry = ExpirySchema;
 export const PaymentLinkCallback = CallbacksSchema;
 export const PaymentLinkCustomFields = CustomFieldsSchema;
 export const PaymentLinkPaymentChannels = PaymentChannels;

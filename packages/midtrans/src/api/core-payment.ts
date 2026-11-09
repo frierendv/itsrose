@@ -1,22 +1,25 @@
 import type {
+	CoreChargeResponse,
 	CoreError,
 	CorePaymentChargeRequest,
 	CorePaymentRefundRequest,
-	ResponseTransaction,
+	CoreStatusB2BResponse,
+	CoreTransactionResponse,
 } from "../schema";
 import type { RequestOptions } from "../typings";
 import { BaseService } from "./service";
 
-export type CorePaymentChargeResponse = ResponseTransaction;
-export type ChargeResponse = ResponseTransaction;
-export type StatusResponse = ResponseTransaction;
-export type CancelResponse = ResponseTransaction;
-export type ExpireResponse = ResponseTransaction;
+export type CorePaymentChargeResponse = CoreChargeResponse;
+export type ChargeResponse = CoreChargeResponse;
+export type CaptureResponse = CoreTransactionResponse;
+export type StatusResponse = CoreTransactionResponse;
+export type CancelResponse = CoreTransactionResponse;
+export type ExpireResponse = CoreTransactionResponse;
 export type RefundRequest = CorePaymentRefundRequest;
-export type RefundResponse = ResponseTransaction;
+export type RefundResponse = CoreTransactionResponse;
 export type DirectRefundRequest = CorePaymentRefundRequest &
 	Record<string, unknown>;
-export type StatusB2BResponse = Record<string, unknown>;
+export type StatusB2BResponse = CoreStatusB2BResponse;
 
 export class Payment extends BaseService<CoreError> {
 	/**
@@ -38,7 +41,7 @@ export class Payment extends BaseService<CoreError> {
 	 * `POST /v2/capture`
 	 */
 	public capture(body: Record<string, unknown>, opts?: RequestOptions) {
-		return this.http.post<ChargeResponse>(
+		return this.http.post<CaptureResponse>(
 			"/v2/capture",
 			body,
 			this.resolveRequestOptions(opts)
@@ -145,7 +148,7 @@ export class Payment extends BaseService<CoreError> {
 	 *
 	 * `GET /v2/{orderId}/status`
 	 */
-	public status<T = ResponseTransaction>(
+	public status<T = CoreTransactionResponse>(
 		orderId: string,
 		opts?: RequestOptions
 	) {

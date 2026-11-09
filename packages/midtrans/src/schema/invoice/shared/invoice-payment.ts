@@ -60,7 +60,7 @@ export const InvoicePaymentVirtualAccountSchema = z.object({
 	/**
 	 * Only available for `payment_type` = `virtual_account`
 	 */
-	virtual_account: z.array(
+	virtual_accounts: z.array(
 		z.object({
 			/**
 			 * Bank provider name.
