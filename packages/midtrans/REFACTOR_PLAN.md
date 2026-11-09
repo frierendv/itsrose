@@ -2,11 +2,17 @@
 
 |                 |                                                                                 |
 | :-------------- | :------------------------------------------------------------------------------ |
-| Status          | Proposal (analysis complete, no code changed)                                   |
+| Status          | Phase 0 complete (guardrails, fixtures, surface test); Phases 1–5 pending       |
 | Scope           | `packages/midtrans`                                                             |
 | Date            | 2026-11-09                                                                      |
 | Evidence        | 5 sandbox probe rounds, 60+ real API calls against `packages/midtrans/.env.dev` |
 | Hard constraint | The public `MidtransClient` surface in `src/client/client.ts` must not change   |
+
+> **Phase 0 result (2026-11-09):** the frozen-surface test, 30 sanitized sandbox fixtures,
+> offline contract verification, `.env.example` and the dependency cleanup are on
+> `refactor/midtrans`. Package statement coverage moved from 15.37% to 88.03%
+> because contract tests now load the whole schema barrel; behaviour coverage remains
+> Phase 5 work.
 
 ---
 
@@ -25,7 +31,7 @@
 
 ---
 
-## 1. Baseline (measured on this checkout)
+## 1. Baseline (measured at analysis time)
 
 | Dimension                   | Result                                                                                |
 | :-------------------------- | :------------------------------------------------------------------------------------ |
