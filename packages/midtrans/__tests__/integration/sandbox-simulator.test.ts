@@ -43,9 +43,8 @@ async function waitForSettlement(
 }
 
 describeIntegration("sandbox simulator integration", () => {
-	const client = new MidtransClient();
-
 	it("settles a BCA virtual account payment", async () => {
+		const client = new MidtransClient();
 		const orderId = `SIM-INT-BCA-${Date.now()}`;
 		const charge = await client.core.payment.charge({
 			payment_type: "bank_transfer",
@@ -72,6 +71,7 @@ describeIntegration("sandbox simulator integration", () => {
 	}, 60_000);
 
 	it("settles an Alfamart payment code", async () => {
+		const client = new MidtransClient();
 		const orderId = `SIM-INT-ALFA-${Date.now()}`;
 		const charge = await client.core.payment.charge({
 			payment_type: "cstore",
