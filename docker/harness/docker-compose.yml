@@ -1,0 +1,48 @@
+services:
+  harness:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BASE_IMAGE: ${DSH_BASE_IMAGE:-smanx/deepseek-harness:devtools-min-latest}
+    image: ${DSH_IMAGE:-dsh-harness:nonroot}
+    container_name: harness
+    restart: unless-stopped
+    init: true
+
+    volumes:
+      - dsh-data:/home/node/.dsh
+      - ./workspace:/workspace
+    networks:
+      - itsrose_dev_center
+    environment:
+      - DSH_WORKSPACE_ROOT=/workspace
+      - DSH_PERMISSION_MODE=${DSH_PERMISSION_MODE:-}
+      - PROXY_PORT=3080
+      - TZ=${TZ:-Asia/Jakarta}
+    healthcheck:
+      # DSH on 3079 answers even when proxy auth is on (fetch resolves on 401).
+      test: [ "CMD", "node", "-e", "fetch('http://127.0.0.1:3079/').then(()=>process.exit(0)).catch(()=>process.exit(1))" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      # First start may install the DSH profile (~250 MB), so be generous.
+      start_period: 120s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.harness.rule=Host(`harness.itsrose.my.id`)
+      - traefik.http.services.harness.loadbalancer.server.port=3080
+
+volumes:
+  dsh-data:
+    name: dsh-data
+
+networks:
+  itsrose_dev_center:
+    external: true
