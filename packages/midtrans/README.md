@@ -43,7 +43,7 @@ storage URLs never reach the repository.
 | Check            | Result                                                          |
 | :--------------- | :-------------------------------------------------------------- |
 | Sandbox fixtures | 30 captured                                                     |
-| Fixture contract | 14 must-pass · 13 known mismatches · 3 unmodeled                |
+| Fixture contract | 16 must-pass · 11 known mismatches · 3 unmodeled                |
 | Architecture     | `client → api → context` (no cycle); one `schema/shared` family |
-| Package coverage | 92.79% statements · 85.29% branches · 82.25% functions          |
+| Package coverage | 93.78% statements · 89.20% branches · 86.11% functions          |
 | Refactor plan    | [`REFACTOR_PLAN.md`](REFACTOR_PLAN.md)                          |
