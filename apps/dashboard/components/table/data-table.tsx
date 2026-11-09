@@ -59,7 +59,7 @@ export type DataTableProps<TData extends RowData> = {
 	isLoading?: boolean;
 	/** Rendered above the table; receives `resetPage` to clear pagination on filter changes. */
 	filterBar?: (helpers: { resetPage: () => void }) => React.ReactNode;
-	/** Replaces the default empty state. */
+	/** Replaces the default empty state. @remark {@linkcode TableEmptyState} */
 	emptyState?: React.ReactNode;
 };
 
@@ -73,8 +73,8 @@ export function DataTable<TData extends RowData>({
 	showPagination = true,
 	paginationLabel = "items",
 	isLoading = false,
-	filterBar,
 	emptyState,
+	filterBar,
 }: DataTableProps<TData>) {
 	const [sorting, setSorting] = useState<SortingState>(initialSorting);
 
@@ -102,118 +102,116 @@ export function DataTable<TData extends RowData>({
 		<div className="flex flex-col gap-4">
 			{filterBar?.({ resetPage: () => table.setPageIndex(0) })}
 
-			{isLoading ? (
-				<TableLoadingState />
-			) : data.length === 0 ? (
-				(emptyState ?? <TableEmptyState />)
-			) : (
-				<Table variant="secondary">
-					<Table.ScrollContainer>
-						<Table.Content
-							aria-label={ariaLabel}
-							sortDescriptor={sortDescriptor}
-							onSortChange={(d) => setSorting(toSortingState(d))}
-						>
-							<Table.Header>
-								{table
-									.getHeaderGroups()[0]
-									?.headers.map((header) => (
-										<Table.Column
-											key={header.id}
-											allowsSorting={header.column.getCanSort()}
-											id={header.id}
-											isRowHeader={
-												header.id === rowHeaderId
-											}
-										>
-											{({ sortDirection }) =>
-												header.column.getCanSort() ? (
-													<Table.SortableColumnHeader
-														sortDirection={
-															sortDirection
-														}
-													>
-														{flexRender(
-															header.column
-																.columnDef
-																.header,
-															header.getContext()
-														)}
-													</Table.SortableColumnHeader>
-												) : (
-													flexRender(
+			<Table>
+				<Table.ScrollContainer>
+					<Table.Content
+						aria-label={ariaLabel}
+						sortDescriptor={sortDescriptor}
+						onSortChange={(d) => setSorting(toSortingState(d))}
+					>
+						<Table.Header>
+							{table
+								.getHeaderGroups()[0]
+								?.headers.map((header) => (
+									<Table.Column
+										key={header.id}
+										allowsSorting={header.column.getCanSort()}
+										id={header.id}
+										isRowHeader={header.id === rowHeaderId}
+									>
+										{({ sortDirection }) =>
+											header.column.getCanSort() ? (
+												<Table.SortableColumnHeader
+													sortDirection={
+														sortDirection
+													}
+												>
+													{flexRender(
 														header.column.columnDef
 															.header,
 														header.getContext()
-													)
+													)}
+												</Table.SortableColumnHeader>
+											) : (
+												flexRender(
+													header.column.columnDef
+														.header,
+													header.getContext()
 												)
-											}
-										</Table.Column>
-									))}
-							</Table.Header>
-							<Table.Body>
-								{table.getRowModel().rows.map((row) => (
-									<Table.Row key={row.id} id={row.id}>
-										{row.getAllCells().map((cell) => (
-											<Table.Cell key={cell.id}>
-												{flexRender(
-													cell.column.columnDef.cell,
-													cell.getContext()
-												)}
-											</Table.Cell>
-										))}
-									</Table.Row>
+											)
+										}
+									</Table.Column>
 								))}
-							</Table.Body>
-						</Table.Content>
-					</Table.ScrollContainer>
-
-					{showPagination && pageCount > 1 && (
-						<Table.Footer>
-							<Pagination size="sm">
-								<Pagination.Summary>
-									{start} to {end} of {data.length}{" "}
-									{paginationLabel}
-								</Pagination.Summary>
-								<Pagination.Content>
-									<Pagination.Item>
-										<Pagination.Previous
-											isDisabled={
-												!table.getCanPreviousPage()
-											}
-											onPress={() => table.previousPage()}
-										>
-											<Pagination.PreviousIcon />
-											Prev
-										</Pagination.Previous>
-									</Pagination.Item>
-									{pages.map((p) => (
-										<Pagination.Item key={p}>
-											<Pagination.Link
-												isActive={p === pageIndex + 1}
-												onPress={() =>
-													table.setPageIndex(p - 1)
-												}
-											>
-												{p}
-											</Pagination.Link>
-										</Pagination.Item>
+						</Table.Header>
+						<Table.Body
+							renderEmptyState={() =>
+								emptyState ??
+								(isLoading ? (
+									<TableLoadingState />
+								) : (
+									<TableEmptyState />
+								))
+							}
+						>
+							{table.getRowModel().rows.map((row) => (
+								<Table.Row key={row.id} id={row.id}>
+									{row.getAllCells().map((cell) => (
+										<Table.Cell key={cell.id}>
+											{flexRender(
+												cell.column.columnDef.cell,
+												cell.getContext()
+											)}
+										</Table.Cell>
 									))}
-									<Pagination.Item>
-										<Pagination.Next
-											isDisabled={!table.getCanNextPage()}
-											onPress={() => table.nextPage()}
+								</Table.Row>
+							))}
+						</Table.Body>
+					</Table.Content>
+				</Table.ScrollContainer>
+
+				{showPagination && pageCount > 1 && (
+					<Table.Footer>
+						<Pagination size="sm">
+							<Pagination.Summary>
+								{start} to {end} of {data.length}{" "}
+								{paginationLabel}
+							</Pagination.Summary>
+							<Pagination.Content>
+								<Pagination.Item>
+									<Pagination.Previous
+										isDisabled={!table.getCanPreviousPage()}
+										onPress={() => table.previousPage()}
+									>
+										<Pagination.PreviousIcon />
+										Prev
+									</Pagination.Previous>
+								</Pagination.Item>
+								{pages.map((p) => (
+									<Pagination.Item key={p}>
+										<Pagination.Link
+											isActive={p === pageIndex + 1}
+											onPress={() =>
+												table.setPageIndex(p - 1)
+											}
 										>
-											Next
-											<Pagination.NextIcon />
-										</Pagination.Next>
+											{p}
+										</Pagination.Link>
 									</Pagination.Item>
-								</Pagination.Content>
-							</Pagination>
-						</Table.Footer>
-					)}
-				</Table>
-			)}
+								))}
+								<Pagination.Item>
+									<Pagination.Next
+										isDisabled={!table.getCanNextPage()}
+										onPress={() => table.nextPage()}
+									>
+										Next
+										<Pagination.NextIcon />
+									</Pagination.Next>
+								</Pagination.Item>
+							</Pagination.Content>
+						</Pagination>
+					</Table.Footer>
+				)}
+			</Table>
 		</div>
 	);
 }

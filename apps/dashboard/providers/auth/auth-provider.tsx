@@ -61,9 +61,8 @@ export const AuthProvider: React.FC<PropsWithChildren> = ({
 				viewPaths={{
 					settings: {
 						// just ensure to be default
-						account: "account",
+						account: "", //
 						security: "security",
-						billing: "billing",
 					},
 				}}
 			>

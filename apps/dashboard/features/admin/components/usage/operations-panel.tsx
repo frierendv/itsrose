@@ -1,6 +1,13 @@
 "use client";
 
-import { Button, Card, Input, Typography } from "@heroui/react";
+import {
+	Button,
+	Card,
+	Input,
+	Label,
+	TextField,
+	Typography,
+} from "@heroui/react";
 import { useState } from "react";
 import {
 	useFlushUsageMutation,
@@ -121,18 +128,16 @@ export const OperationsPanel: React.FC = () => {
 				outcome={flush.data ? buildFlushOutcome(flush.data) : null}
 				title="Ledger flush"
 			>
-				<div className="flex flex-col gap-1.5">
-					<label className="text-xs font-medium text-muted">
-						Last N days
-					</label>
-					<Input
-						disabled={usesRange}
-						type="number"
-						value={flushDays}
-						variant="secondary"
-						onChange={(e) => setFlushDays(e.target.value)}
-					/>
-				</div>
+				<TextField
+					isDisabled={usesRange}
+					name="flush_days"
+					onChange={setFlushDays}
+					type="number"
+					value={flushDays}
+				>
+					<Label>Last N days</Label>
+					<Input variant="secondary" />
+				</TextField>
 				<div className="grid grid-cols-2 gap-2">
 					<Input
 						placeholder="From YYYY-MM-DD"
@@ -199,28 +204,24 @@ export const OperationsPanel: React.FC = () => {
 				title="Collection cron"
 			>
 				<div className="grid grid-cols-2 gap-2">
-					<div className="flex flex-col gap-1.5">
-						<label className="text-xs font-medium text-muted">
-							Lead days
-						</label>
-						<Input
-							type="number"
-							value={leadDays}
-							variant="secondary"
-							onChange={(e) => setLeadDays(e.target.value)}
-						/>
-					</div>
-					<div className="flex flex-col gap-1.5">
-						<label className="text-xs font-medium text-muted">
-							Grace days
-						</label>
-						<Input
-							type="number"
-							value={graceDays}
-							variant="secondary"
-							onChange={(e) => setGraceDays(e.target.value)}
-						/>
-					</div>
+					<TextField
+						name="lead_days"
+						onChange={setLeadDays}
+						type="number"
+						value={leadDays}
+					>
+						<Label>Lead days</Label>
+						<Input variant="secondary" />
+					</TextField>
+					<TextField
+						name="grace_days"
+						onChange={setGraceDays}
+						type="number"
+						value={graceDays}
+					>
+						<Label>Grace days</Label>
+						<Input variant="secondary" />
+					</TextField>
 				</div>
 			</OperationCard>
 		</div>
