@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
 import { Payment } from "../src/api/core-payment";
 import { Subscription } from "../src/api/core-subscription";
+import { Invoice } from "../src/api/invoice";
+import { PaymentLink } from "../src/api/payment-link";
 import { SHARED_HTTP_CLIENT } from "../src/api/shared";
+import { Snap } from "../src/api/snap";
 import type { MidtransClient } from "../src/client/client";
 import { MidtransMerchant } from "../src/client/merchant";
 import {
@@ -152,6 +155,74 @@ describe("Subscription", () => {
 			{
 				name: "yearly",
 			},
+			undefined
+		);
+	});
+});
+
+describe("Snap", () => {
+	it("calls the snap endpoints with the snap base URL", () => {
+		const { client, http } = createClient();
+		const snap = new Snap(client);
+		const body = {
+			transaction_details: { order_id: "S-1", gross_amount: 15000 },
+		};
+
+		snap.getPreferences();
+		snap.create(body);
+
+		expect(http.get).toHaveBeenCalledWith("/snap/v3/merchant-preferences", {
+			baseURL: "https://snap.example.test",
+		});
+		expect(http.post).toHaveBeenCalledWith("/snap/v1/transactions", body, {
+			baseURL: "https://snap.example.test",
+		});
+	});
+});
+
+describe("Invoice", () => {
+	it("calls the invoice endpoints", () => {
+		const { client, http } = createClient();
+		const invoice = new Invoice(client);
+		const body = { order_id: "INV-1" } as never;
+
+		invoice.create(body);
+		invoice.get("inv-1");
+		invoice.void("inv-1");
+
+		expect(http.post).toHaveBeenCalledWith("/v1/invoices", body, undefined);
+		expect(http.get).toHaveBeenCalledWith("/v1/invoices/inv-1", undefined);
+		expect(http.patch).toHaveBeenCalledWith(
+			"/v1/invoices/inv-1/void",
+			undefined,
+			undefined
+		);
+	});
+});
+
+describe("PaymentLink", () => {
+	it("calls the payment link endpoints", () => {
+		const { client, http } = createClient();
+		const paymentLink = new PaymentLink(client);
+		const body = {
+			transaction_details: { order_id: "PL-1", gross_amount: 15000 },
+		};
+
+		paymentLink.create(body);
+		paymentLink.get("PL-1");
+		paymentLink.delete("PL-1");
+
+		expect(http.post).toHaveBeenCalledWith(
+			"/v1/payment-links",
+			body,
+			undefined
+		);
+		expect(http.get).toHaveBeenCalledWith(
+			"/v1/payment-links/PL-1",
+			undefined
+		);
+		expect(http.delete).toHaveBeenCalledWith(
+			"/v1/payment-links/PL-1",
 			undefined
 		);
 	});
