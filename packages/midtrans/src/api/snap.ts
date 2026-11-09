@@ -1,18 +1,21 @@
+import type { HttpPromise } from "@itsrose/http-client";
 import type { ClientContext } from "../client/context";
+import type { MidtransApiError } from "../client/error";
 import type {
-	DefaultError,
+	CoreTransactionResponse,
+	SnapPreference,
 	SnapPreferenceResponse,
 	SnapTransactionRequest,
 	SnapTransactionResponse,
 } from "../schema";
-import type { DeepPartial, RequestOptions } from "../typings";
+import type { RequestOptions } from "../typings";
 import type { Core } from "./core";
 import { BaseService } from "./service";
 
 /**
  * Midtrans Snap API service for hosted checkout token generation and merchant preference management.
  */
-export class Snap extends BaseService<DefaultError> {
+export class Snap extends BaseService {
 	readonly #core: Core;
 
 	constructor(ctx: ClientContext, core: Core) {
@@ -25,7 +28,9 @@ export class Snap extends BaseService<DefaultError> {
 	 *
 	 * `GET /snap/v3/merchant-preferences`
 	 */
-	public getPreferences(opts?: RequestOptions) {
+	public getPreferences(
+		opts?: RequestOptions
+	): HttpPromise<SnapPreferenceResponse, MidtransApiError> {
 		return this.http.get<SnapPreferenceResponse>(
 			"/snap/v3/merchant-preferences",
 			{
@@ -34,15 +39,16 @@ export class Snap extends BaseService<DefaultError> {
 			}
 		);
 	}
+
+	/**
+	 * Update Snap Merchant Preference settings.
+	 *
+	 * `PATCH /snap/v3/merchant-preferences`
+	 */
 	public updatePreferences(
-		body: DeepPartial<
-			Omit<
-				SnapPreferenceResponse,
-				"merchant_id" | "customer_imposed_payment_fee" | "feature_types"
-			>
-		>,
+		body: SnapPreference,
 		opts?: RequestOptions
-	) {
+	): HttpPromise<SnapPreferenceResponse, MidtransApiError> {
 		return this.http.patch<SnapPreferenceResponse>(
 			"/snap/v3/merchant-preferences",
 			body,
@@ -58,7 +64,10 @@ export class Snap extends BaseService<DefaultError> {
 	 *
 	 * `POST /snap/v1/transactions`
 	 */
-	public create(body: SnapTransactionRequest, opts?: RequestOptions) {
+	public create(
+		body: SnapTransactionRequest,
+		opts?: RequestOptions
+	): HttpPromise<SnapTransactionResponse, MidtransApiError> {
 		return this.http.post<SnapTransactionResponse>(
 			"/snap/v1/transactions",
 			body,
@@ -72,7 +81,10 @@ export class Snap extends BaseService<DefaultError> {
 	/**
 	 * Get transaction status; Short for `core.payment.status`
 	 */
-	status(orderId: string, opts?: RequestOptions) {
+	public status(
+		orderId: string,
+		opts?: RequestOptions
+	): HttpPromise<CoreTransactionResponse, MidtransApiError> {
 		return this.#core.payment.status(orderId, opts);
 	}
 }

@@ -13,6 +13,7 @@ import {
 	PaymentLinkResponse,
 	SnapPreferenceResponseSchema,
 	SnapTransactionResponseSchema,
+	SubscriptionActionResponseSchema,
 	SubscriptionResponseSchema,
 } from "../src/schema/index";
 
@@ -122,6 +123,10 @@ export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 		schema: SnapPreferenceResponseSchema,
 		expectation: "mustPass",
 	},
+	"snap/update-preferences": {
+		schema: SnapPreferenceResponseSchema,
+		expectation: "mustPass",
+	},
 	"snap/error-validation": {
 		schema: DefaultErrorSchema,
 		expectation: "mustPass",
@@ -170,6 +175,22 @@ export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 	},
 	"subscription/get": {
 		schema: SubscriptionResponseSchema,
+		expectation: "mustPass",
+	},
+	"subscription/disable": {
+		schema: SubscriptionActionResponseSchema,
+		expectation: "mustPass",
+	},
+	"subscription/enable": {
+		schema: SubscriptionActionResponseSchema,
+		expectation: "mustPass",
+	},
+	"subscription/update": {
+		schema: SubscriptionActionResponseSchema,
+		expectation: "mustPass",
+	},
+	"subscription/cancel": {
+		schema: SubscriptionActionResponseSchema,
 		expectation: "mustPass",
 	},
 	"subscription/error-not-found": {

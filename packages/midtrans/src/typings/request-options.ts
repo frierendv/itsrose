@@ -28,4 +28,9 @@ export interface RequestOptions {
 	 * Timeout in milliseconds for this single request.
 	 */
 	timeout?: number;
+
+	/**
+	 * Abort signal used to cancel this single request.
+	 */
+	signal?: AbortSignal;
 }

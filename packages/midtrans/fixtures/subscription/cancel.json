@@ -1,0 +1,13 @@
+{
+	"_meta": {
+		"name": "subscription/cancel",
+		"endpoint": "POST /v1/subscriptions/{subscription_id}/cancel",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:49:10.258Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_message": "Subscription is updated."
+	}
+}

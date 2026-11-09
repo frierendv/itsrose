@@ -289,6 +289,20 @@ describe("MidtransClient environment resolution", () => {
 		expect(client.environment).toBe("production");
 	});
 
+	it("rejects conflicting environment options", () => {
+		expect(() =>
+			createClient({ isProduction: true, environment: "sandbox" })
+		).toThrow();
+
+		expect(() =>
+			createClient({ isProduction: false, environment: "production" })
+		).toThrow();
+	});
+
+	it("rejects invalid base URLs", () => {
+		expect(() => createClient({ baseUrl: "not-a-url" })).toThrow();
+	});
+
 	it("keeps custom base URLs", () => {
 		const client = createClient({
 			baseUrl: "https://core.example.test",

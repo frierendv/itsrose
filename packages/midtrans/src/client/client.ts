@@ -1,15 +1,8 @@
-import { getEnv } from "@itsrose/system";
 import * as API from "../api";
-import {
-	API_BASE_URL_PRODUCTION,
-	API_BASE_URL_SANDBOX,
-	SNAP_BASE_URL_PRODUCTION,
-	SNAP_BASE_URL_SANDBOX,
-} from "../constants";
-import { MIDTRANS_ENV } from "../env";
 import type { ClientOptions } from "../typings";
 import type { ClientContext } from "./context";
-import { MidtransMerchant } from "./merchant";
+import type { MidtransMerchant } from "./merchant";
+import { resolveClientOptions } from "./options";
 import { createTransport } from "./transport";
 
 /**
@@ -49,55 +42,20 @@ export class MidtransClient {
 	public readonly invoice: API.Invoice;
 
 	constructor(opts: ClientOptions = {}) {
-		const {
-			isProduction,
-			baseUrl,
-			snapBaseUrl,
-			merchantId,
-			serverKey,
-			clientKey,
-			environment: environmentOption,
-			headers,
-			timeout,
-		} = opts;
+		const resolved = resolveClientOptions(opts);
+		this.environment = resolved.environment;
+		this.merchant = resolved.merchant;
 
-		let environment: "production" | "sandbox";
-		if (isProduction) {
-			environment = "production";
-		} else if (environmentOption) {
-			environment =
-				environmentOption === "production" ? "production" : "sandbox";
-		} else {
-			const envValue = getEnv(MIDTRANS_ENV.environment, {
-				defaultValue: "sandbox",
-			});
-			environment = envValue === "production" ? "production" : "sandbox";
-		}
-		this.environment = environment;
-
-		const merchant = new MidtransMerchant({
-			merchantId:
-				merchantId ??
-				getEnv(MIDTRANS_ENV.merchantId, { preprocess: String }),
-			serverKey:
-				serverKey ??
-				getEnv(MIDTRANS_ENV.serverKey, { isRequired: true }),
-			clientKey: clientKey ?? getEnv(MIDTRANS_ENV.clientKey),
-			baseUrl:
-				baseUrl ??
-				(environment === "production"
-					? API_BASE_URL_PRODUCTION
-					: API_BASE_URL_SANDBOX),
-			snapBaseUrl:
-				snapBaseUrl ??
-				(environment === "production"
-					? SNAP_BASE_URL_PRODUCTION
-					: SNAP_BASE_URL_SANDBOX),
+		const http = createTransport({
+			merchant: resolved.merchant,
+			headers: resolved.headers,
+			timeout: resolved.timeout,
 		});
-		this.merchant = merchant;
-
-		const http = createTransport({ merchant, headers, timeout });
-		const context: ClientContext = { environment, merchant, http };
+		const context: ClientContext = {
+			environment: resolved.environment,
+			merchant: resolved.merchant,
+			http,
+		};
 
 		this.core = new API.Core(context);
 		this.snap = new API.Snap(context, this.core);

@@ -105,6 +105,20 @@ describe("Payment", () => {
 		});
 	});
 
+	it("forwards abort signals", () => {
+		const { context, http } = createContext();
+		const payment = new Payment(context);
+		const controller = new AbortController();
+
+		payment.status("order-1", { signal: controller.signal });
+
+		expect(http.get).toHaveBeenCalledWith("/v2/order-1/status", {
+			headers: {},
+			timeout: undefined,
+			signal: controller.signal,
+		});
+	});
+
 	it("maps request options into headers", () => {
 		const { context, http } = createContext();
 		const payment = new Payment(context);
@@ -134,7 +148,14 @@ describe("Subscription", () => {
 		const { context, http } = createContext();
 		const subscription = new Subscription(context);
 
-		subscription.create({ name: "monthly" });
+		subscription.create({
+			name: "monthly",
+			amount: "15000",
+			currency: "IDR",
+			payment_type: "credit_card",
+			token: "token-1",
+			schedule: { interval: 1, interval_unit: "month" },
+		});
 		subscription.get("sub-1");
 		subscription.disable("sub-1");
 		subscription.cancel("sub-1");

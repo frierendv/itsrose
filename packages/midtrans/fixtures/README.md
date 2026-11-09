@@ -57,8 +57,8 @@ fail if a fixture contains a server key, a signed URL, or a non-redacted
 ## Known mismatches
 
 `tools/fixture-manifest.ts` marks each fixture as `mustPass`, `knownMismatch` or
-`unmodeled`. As of Phase 3, every JSON-body fixture is `mustPass`. The only
-remaining tracked case is `core/approve-empty-response`: approve/deny answer
+`unmodeled`. As of Phase 4 there are 35 fixtures: 34 are `mustPass` and the only
+remaining tracked case is `core/approve-empty-response` — approve/deny answer
 HTTP 404 with an empty body, which is covered by the transport tests instead of a
 JSON schema. A `knownMismatch` that starts passing is reported as `promoted` so
 the manifest can be updated.

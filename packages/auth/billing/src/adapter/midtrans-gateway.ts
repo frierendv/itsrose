@@ -42,10 +42,9 @@ export function createMidtransPaymentGateway(
 			payload: InvoiceCreatePayload,
 			options
 		): Promise<PaymentGatewayResult<GatewayInvoice>> {
-			const { data, error } = await client.invoice.create(
-				payload as never,
-				{ idempotencyKey: options.idempotencyKey }
-			);
+			const { data, error } = await client.invoice.create(payload, {
+				idempotencyKey: options.idempotencyKey,
+			});
 
 			if (error || !data) {
 				return {

@@ -1,5 +1,4 @@
 import type { ClientContext } from "../client/context";
-import type { CoreError } from "../schema";
 import { Payment } from "./core-payment";
 import { Subscription } from "./core-subscription";
 import { BaseService } from "./service";
@@ -7,7 +6,7 @@ import { BaseService } from "./service";
 /**
  * Midtrans Core API service for direct server-to-server payments and transaction lifecycle management.
  */
-export class Core extends BaseService<CoreError> {
+export class Core extends BaseService {
 	/**
 	 * Payment API for performing charge transactions and lifecycle management.
 	 */

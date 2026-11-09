@@ -1,0 +1,13 @@
+{
+	"_meta": {
+		"name": "subscription/enable",
+		"endpoint": "POST /v1/subscriptions/{subscription_id}/enable",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:49:09.629Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_message": "Subscription is updated."
+	}
+}

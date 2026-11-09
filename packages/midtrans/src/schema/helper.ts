@@ -1,10 +1,5 @@
 import { z } from "zod/v4";
 
-export type NarrowInput<T, Schema> = T &
-	Schema & {
-		[K in keyof T]: K extends keyof Schema ? T[K] : never;
-	};
-
 export type DeepNullable<T> = T extends (...args: any[]) => any
 	? T
 	: T extends Date | RegExp | Error
@@ -18,16 +13,6 @@ export type DeepNullable<T> = T extends (...args: any[]) => any
 					: T extends object
 						? { [K in keyof T]: DeepNullable<T[K]> | null } | null
 						: T | null;
-
-export type Prettify<T> = {
-	[K in keyof T]: T[K];
-} & {};
-/**
- * Merge Input and Schema with Extra
- */
-export type MergeWithSchema<Schema, Input, Extra extends {} = {}> = Prettify<
-	(Omit<Schema, keyof Input> & Input) & (Extra & {})
->;
 
 // --- Recursive TypeScript Types ---
 export type ZodDeepNullable<T extends z.core.SomeType> =
