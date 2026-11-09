@@ -34,6 +34,10 @@ services:
         max-size: "10m"
         max-file: "3"
 
+    security_opt:
+      - seccomp=unconfined
+      - systempaths=unconfined
+
     labels:
       - traefik.enable=true
       - traefik.http.routers.harness.rule=Host(`harness.itsrose.my.id`)
