@@ -48,10 +48,10 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@better-auth-ui/heroui": "^1.7.30",
+		"@better-auth-ui/heroui": "^1.7.33",
 		"@eusend_dev/sdk": "^0.19.0",
-		"@react-email/render": "^2.1.1",
-		"better-auth": "^1.7.7",
+		"@react-email/render": "^2.2.0",
+		"better-auth": "catalog:",
 		"react": "catalog:"
 	},
 	"devDependencies": {
