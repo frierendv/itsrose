@@ -19,6 +19,11 @@
 > `schema/common` family was merged into `schema/shared`, and ~1.2k lines of dead code were
 > removed. Duplicate/missing schema exports are now enforced by tests.
 
+> **Phase 2 result (2026-11-09):** transport success is decided by an explicit business-code
+> whitelist (`200/201/202/407`), `normalizeMidtransError` never throws and models 401,
+> empty-body and subscription errors, and `expire()` / `status()` after expiry now return
+> `ok: true`. Fixture-driven transport tests lock the behaviour.
+
 ---
 
 ## 0. TL;DR
