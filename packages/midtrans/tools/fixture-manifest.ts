@@ -86,6 +86,10 @@ export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 		schema: CoreTransactionResponseSchema,
 		expectation: "mustPass",
 	},
+	"core/status-settled": {
+		schema: CoreTransactionResponseSchema,
+		expectation: "mustPass",
+	},
 	"core/cancel-error": {
 		schema: CoreErrorSchema,
 		expectation: "mustPass",
