@@ -50,6 +50,7 @@
 		"fixtures:verify": "node --import tsx tools/verify-fixtures.ts",
 		"lint": "eslint . --max-warnings 0",
 		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"sandbox:pay": "node --env-file=.env.dev --import tsx tools/pay-sandbox.ts",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {

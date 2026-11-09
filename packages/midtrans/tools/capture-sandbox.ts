@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { API_BASE_URL_SANDBOX, SNAP_BASE_URL_SANDBOX } from "../src/constants";
+import { payVirtualAccount } from "./sandbox-simulator";
 import { sanitizeFixtureBody } from "./sanitize";
 
 const FIXTURES_DIR = fileURLToPath(new URL("../fixtures", import.meta.url));
@@ -107,12 +108,14 @@ function writeFixture(
 	writeFileSync(fullPath, serialized);
 }
 
+type CaptureRequestSpec = Omit<CaptureSpec, "name">;
+
 function createCapture(serverKey: string) {
 	const authorization = `Basic ${Buffer.from(`${serverKey}:`).toString(
 		"base64"
 	)}`;
 
-	return async (spec: CaptureSpec): Promise<CaptureResult> => {
+	const send = async (spec: CaptureRequestSpec): Promise<CaptureResult> => {
 		const baseUrl =
 			spec.base === "snap" ? SNAP_BASE_URL_SANDBOX : API_BASE_URL_SANDBOX;
 		const expectedStatus = spec.expectedStatus ?? [200, 201];
@@ -120,7 +123,7 @@ function createCapture(serverKey: string) {
 
 		if (path.includes("{")) {
 			throw new Error(
-				`${spec.name}: dynamic endpoints require an explicit path`
+				`${spec.endpoint}: dynamic endpoints require an explicit path`
 			);
 		}
 
@@ -139,16 +142,39 @@ function createCapture(serverKey: string) {
 		const body = await parseResponseBody(response);
 		if (!expectedStatus.includes(response.status)) {
 			throw new Error(
-				`${spec.name}: expected HTTP ${expectedStatus.join("/")}, received ${
+				`${spec.endpoint}: expected HTTP ${expectedStatus.join("/")}, received ${
 					response.status
 				} — ${JSON.stringify(body)}`
 			);
 		}
 
-		writeFixture(spec, response.status, body, serverKey);
-		console.log(`${String(response.status).padEnd(3)} ${spec.name}`);
 		return { status: response.status, body };
 	};
+
+	const capture = async (spec: CaptureSpec): Promise<CaptureResult> => {
+		const result = await send(spec);
+		writeFixture(spec, result.status, result.body, serverKey);
+		console.log(`${String(result.status).padEnd(3)} ${spec.name}`);
+		return result;
+	};
+
+	return { capture, send };
+}
+
+function readVaNumber(body: unknown): string | undefined {
+	if (typeof body !== "object" || body === null || Array.isArray(body)) {
+		return undefined;
+	}
+	const vaNumbers = (body as Record<string, unknown>).va_numbers;
+	if (!Array.isArray(vaNumbers) || vaNumbers.length === 0) {
+		return undefined;
+	}
+	const first = vaNumbers[0];
+	if (typeof first !== "object" || first === null || Array.isArray(first)) {
+		return undefined;
+	}
+	const vaNumber = (first as Record<string, unknown>).va_number;
+	return typeof vaNumber === "string" ? vaNumber : undefined;
 }
 
 function readString(body: unknown, key: string): string | undefined {
@@ -167,7 +193,7 @@ function wibDate(daysFromNow: number): string {
 
 async function main(): Promise<void> {
 	const { serverKey } = resolveConfig();
-	const capture = createCapture(serverKey);
+	const { capture, send } = createCapture(serverKey);
 
 	const stamp = `${Date.now().toString(36)}-${Math.random()
 		.toString(36)
@@ -307,6 +333,39 @@ async function main(): Promise<void> {
 			body: charge.body,
 		});
 	}
+
+	// --- Core: a settled transaction (paid through the sandbox simulator) ---
+	const settledOrderId = orderId("CORE-SETTLED");
+	const settledCharge = await send({
+		endpoint: "POST /v2/charge",
+		method: "POST",
+		body: {
+			payment_type: "bank_transfer",
+			transaction_details: {
+				order_id: settledOrderId,
+				gross_amount: 15000,
+			},
+			bank_transfer: { bank: "bca" },
+		},
+	});
+	const settledVaNumber = readVaNumber(settledCharge.body);
+	if (!settledVaNumber) {
+		throw new Error("settled charge did not return a virtual account");
+	}
+	const simulated = await payVirtualAccount({
+		bank: "bca",
+		vaNumber: settledVaNumber,
+		amount: 15000,
+	});
+	if (!simulated.ok) {
+		throw new Error("sandbox simulator failed to settle the transaction");
+	}
+	await capture({
+		name: "core/status-settled",
+		endpoint: "GET /v2/{order_id}/status",
+		method: "GET",
+		path: `/v2/${settledOrderId}/status`,
+	});
 
 	// --- Core: errors ---------------------------------------------------
 	await capture({
