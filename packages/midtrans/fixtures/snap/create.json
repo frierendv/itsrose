@@ -1,0 +1,14 @@
+{
+	"_meta": {
+		"name": "snap/create",
+		"endpoint": "POST /snap/v1/transactions",
+		"http_status": 201,
+		"captured_at": "2026-11-09T16:19:00.695Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"token": "token-redacted",
+		"redirect_url": "https://example.test/redacted"
+	}
+}

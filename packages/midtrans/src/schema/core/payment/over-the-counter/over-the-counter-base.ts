@@ -1,11 +1,11 @@
 import { z } from "zod/v4";
-import { PaymentChannelOverTheCounterSchema } from "../../../shared";
+import { CstoreStoreSchema } from "../../../primitives";
 
 export const OverTheCounterBaseSchema = z.object({
 	/**
 	 * Convenience store retail partner.
 	 */
-	store: PaymentChannelOverTheCounterSchema,
+	store: CstoreStoreSchema,
 	/**
 	 * Message displayed on the payment slip or cashier POS.
 	 */

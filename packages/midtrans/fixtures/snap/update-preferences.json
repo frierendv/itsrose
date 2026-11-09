@@ -1,0 +1,164 @@
+{
+	"_meta": {
+		"name": "snap/update-preferences",
+		"endpoint": "PATCH /snap/v3/merchant-preferences",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:49:11.433Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"merchant_id": "G000000000",
+		"display_name": "Redacted Merchant",
+		"finish_payment_return_url": "https://example.test/redacted",
+		"error_payment_return_url": "https://example.test/redacted",
+		"locale": "en",
+		"other_va_processor": "permata_va",
+		"allow_retry": null,
+		"hide_order_id": false,
+		"brand": {
+			"typography": "Poppins",
+			"header_color": "#002855",
+			"button_color": "#383942",
+			"input_border_radius": 0,
+			"button_border_radius": 0,
+			"hide_header": true
+		},
+		"payment_channels": [
+			{
+				"name": "credit_card",
+				"enabled": true
+			},
+			{
+				"name": "bca_va",
+				"enabled": true
+			},
+			{
+				"name": "permata_va",
+				"enabled": true
+			},
+			{
+				"name": "other_va",
+				"enabled": true
+			},
+			{
+				"name": "echannel",
+				"enabled": true
+			},
+			{
+				"name": "bni_va",
+				"enabled": true
+			},
+			{
+				"name": "indomaret",
+				"enabled": true
+			},
+			{
+				"name": "gopay",
+				"enabled": true
+			},
+			{
+				"name": "akulaku",
+				"enabled": true
+			},
+			{
+				"name": "alfamart",
+				"enabled": true
+			},
+			{
+				"name": "bri_va",
+				"enabled": true
+			},
+			{
+				"name": "kredivo",
+				"enabled": true
+			},
+			{
+				"name": "shopeepay",
+				"enabled": true
+			},
+			{
+				"name": "other_qris",
+				"enabled": true
+			}
+		],
+		"customer_imposed_payment_fee": {
+			"enable": true,
+			"payment_fee_configs": [
+				{
+					"enable": false,
+					"payment_type": "gopay",
+					"customer_percentage": 100
+				},
+				{
+					"enable": false,
+					"payment_type": "bca_va",
+					"customer_percentage": 100
+				},
+				{
+					"enable": false,
+					"payment_type": "echannel",
+					"customer_percentage": 100
+				},
+				{
+					"enable": false,
+					"payment_type": "bni_va",
+					"customer_percentage": 100
+				},
+				{
+					"enable": false,
+					"payment_type": "bri_va",
+					"customer_percentage": 100
+				},
+				{
+					"enable": false,
+					"payment_type": "permata_va",
+					"customer_percentage": 100
+				},
+				{
+					"enable": false,
+					"payment_type": "shopeepay",
+					"customer_percentage": 100
+				},
+				{
+					"enable": false,
+					"payment_type": "alfamart",
+					"customer_percentage": 100
+				},
+				{
+					"enable": false,
+					"payment_type": "indomaret",
+					"customer_percentage": 100
+				},
+				{
+					"enable": false,
+					"payment_type": "akulaku",
+					"customer_percentage": 100
+				},
+				{
+					"enable": false,
+					"payment_type": "kredivo",
+					"customer_percentage": 100
+				},
+				{
+					"enable": false,
+					"payment_type": "credit_card",
+					"customer_percentage": 100
+				},
+				{
+					"enable": false,
+					"payment_type": "qris",
+					"customer_percentage": 100,
+					"acquirer": "gopay"
+				},
+				{
+					"enable": false,
+					"payment_type": "qris",
+					"customer_percentage": 100,
+					"acquirer": "shopeepay"
+				}
+			]
+		},
+		"feature_types": []
+	}
+}

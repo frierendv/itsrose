@@ -1,0 +1,15 @@
+{
+	"_meta": {
+		"name": "core/status-not-found",
+		"endpoint": "GET /v2/{order_id}/status",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:18:59.335Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_code": "404",
+		"status_message": "Transaction doesn't exist.",
+		"id": "000000000000000000000000"
+	}
+}

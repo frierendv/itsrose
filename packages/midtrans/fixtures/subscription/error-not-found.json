@@ -1,0 +1,13 @@
+{
+	"_meta": {
+		"name": "subscription/error-not-found",
+		"endpoint": "GET /v1/subscriptions/{subscription_id}",
+		"http_status": 404,
+		"captured_at": "2026-11-09T16:19:05.651Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_message": "Subscription doesn't exist."
+	}
+}

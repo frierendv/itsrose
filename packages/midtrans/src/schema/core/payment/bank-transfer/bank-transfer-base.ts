@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { PaymentChannelBankSchema } from "../../../shared";
+import { BankCodeSchema } from "../../../primitives";
 
 /**
  * Bank transfer specific parameters for Virtual Accounts.
@@ -12,7 +12,7 @@ export const BankTransferBaseFieldsSchema = z.object({
 	 *
 	 * By default it only support "bca", "bni", "bri", "cimb" and "permata".
 	 */
-	bank: PaymentChannelBankSchema.exclude(["bca", "permata"]),
+	bank: BankCodeSchema.exclude(["bca", "permata"]),
 	/**
 	 * Custom VA number (if supported by bank/account)
 	 */

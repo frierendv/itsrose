@@ -1,0 +1,26 @@
+{
+	"_meta": {
+		"name": "core/charge-cstore-indomaret",
+		"endpoint": "POST /v2/charge",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:18:59.041Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_code": "201",
+		"status_message": "Success, cstore transaction is successful",
+		"transaction_id": "00000000-0000-4000-8000-000000000000",
+		"order_id": "ORDER-REDACTED",
+		"merchant_id": "G000000000",
+		"gross_amount": "15000.00",
+		"currency": "IDR",
+		"payment_type": "cstore",
+		"transaction_time": "2026-11-09 23:18:58",
+		"transaction_status": "pending",
+		"fraud_status": "accept",
+		"expiry_time": "2026-11-10 23:18:58",
+		"payment_code": "1234567890",
+		"store": "indomaret"
+	}
+}

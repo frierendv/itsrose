@@ -21,3 +21,24 @@ export const CorePaymentRefundRequestSchema = z.object({
 export type CorePaymentRefundRequest = z.infer<
 	typeof CorePaymentRefundRequestSchema
 >;
+
+/**
+ * Payload for capturing an authorized card transaction.
+ *
+ * `POST /v2/capture`
+ */
+export const CoreCaptureRequestSchema = z.object({
+	/** Midtrans transaction identifier returned by the charge request. */
+	transaction_id: z.string(),
+});
+
+export type CoreCaptureRequest = z.infer<typeof CoreCaptureRequestSchema>;
+
+/**
+ * Body of `/v2/{order_id}/refund/online/direct`.
+ *
+ * The direct-refund endpoint accepts the same fields as a regular refund.
+ */
+export const CoreDirectRefundRequestSchema = CorePaymentRefundRequestSchema;
+
+export type CoreDirectRefundRequest = CorePaymentRefundRequest;

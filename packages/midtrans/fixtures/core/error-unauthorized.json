@@ -1,0 +1,13 @@
+{
+	"_meta": {
+		"name": "core/error-unauthorized",
+		"endpoint": "POST /v2/charge",
+		"http_status": 401,
+		"captured_at": "2026-11-09T16:18:59.882Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"error": "Unauthorized"
+	}
+}

@@ -1,0 +1,13 @@
+{
+	"_meta": {
+		"name": "subscription/disable",
+		"endpoint": "POST /v1/subscriptions/{subscription_id}/disable",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:49:09.329Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_message": "Subscription is updated."
+	}
+}

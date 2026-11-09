@@ -3,7 +3,7 @@ import { PaymentTypeSchema } from "../../core";
 import {
 	TransactionFraudStatusSchema,
 	TransactionStatusSchema,
-} from "../../shared";
+} from "../../primitives";
 import { InvoiceMetadataSchema } from "../shared";
 import { InvoiceWebhookCustomerDetailsSchema } from "../webhook";
 import { InvoiceWebhookPaymentTypeFieldsSchema } from "./payment-type";

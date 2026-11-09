@@ -1,8 +1,9 @@
 {
 	"name": "@itsrose/midtrans",
-	"version": "1.0.0",
+	"version": "2.0.0",
 	"author": "FrierenDv",
 	"type": "module",
+	"sideEffects": false,
 	"license": "MIT",
 	"description": "Midtrans Payment Gateway SDK with Zod validation schemas and TypeScript types.",
 	"repository": {
@@ -45,8 +46,11 @@
 		"build": "tsdown",
 		"build:fast": "tsdown src",
 		"clean": "rimraf dist .sonda",
+		"fixtures:capture": "node --env-file=.env.dev --import tsx tools/capture-sandbox.ts",
+		"fixtures:verify": "node --import tsx tools/verify-fixtures.ts",
 		"lint": "eslint . --max-warnings 0",
 		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"sandbox:pay": "node --env-file=.env.dev --import tsx tools/pay-sandbox.ts",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -56,7 +60,7 @@
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*",
-		"@opentf/obj-diff": "^0.19.1"
+		"axios": "catalog:"
 	},
 	"publishConfig": {
 		"exports": {
@@ -69,5 +73,8 @@
 			"./typings": "./dist/typings.mjs",
 			"./package.json": "./package.json"
 		}
+	},
+	"engines": {
+		"node": ">=24"
 	}
 }

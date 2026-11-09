@@ -8,8 +8,9 @@ import { z } from "zod/v4";
 export const PaymentLinkResponse = z
 	.object({
 		order_id: z.string(),
-		payment_link_url: z.string().url(),
-		payment_link_id: z.string(),
+		payment_url: z.url(),
+		/** QR code image URL for the payment link. */
+		qr_url: z.url().optional(),
 	})
 	.meta({
 		id: "MidtransPaymentLinkResponse",

@@ -40,7 +40,7 @@
 	},
 	"dependencies": {
 		"@itsrose/system": "workspace:*",
-		"axios": "^1.21.0",
+		"axios": "catalog:",
 		"axios-retry": "^4.5.0"
 	},
 	"devDependencies": {

@@ -1,0 +1,147 @@
+{
+	"_meta": {
+		"name": "payment-link/get",
+		"endpoint": "GET /v1/payment-links/{order_id}",
+		"http_status": 200,
+		"captured_at": "2026-11-09T16:19:01.980Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"payment_link_url": "https://example.test/redacted",
+		"qr_url": "https://example.test/redacted",
+		"enabled_payments": ["bca_va", "gopay"],
+		"locale_amount": "15,000",
+		"currency_sign": "Rp.",
+		"locale_amount_with_prefix": "Rp 15.000",
+		"credit_card": {
+			"bank": null,
+			"type": "authorize_capture",
+			"secure": false,
+			"whitelist_bins": null,
+			"installment": {
+				"required": false,
+				"disabled": false
+			}
+		},
+		"expiry": {
+			"unit": "months",
+			"duration": 1,
+			"start_time": "2026-11-09T16:19:01.000Z"
+		},
+		"expires_at": "2026-12-09T16:19:01.000Z",
+		"virtual_account": {
+			"bca_va": {
+				"number": null,
+				"free_text": {
+					"inquiry": null,
+					"payment": null
+				}
+			},
+			"bni_va": {
+				"number": null
+			},
+			"bri_va": {
+				"number": null
+			},
+			"bsi_va": {
+				"number": null
+			},
+			"cimb_va": {
+				"number": null
+			},
+			"danamon_va": {
+				"number": null
+			},
+			"permata_va": {
+				"number": null,
+				"recipient_name": null
+			},
+			"seabank_va": {
+				"number": null
+			}
+		},
+		"id": 1,
+		"order_id": "ORDER-REDACTED",
+		"merchant_id": "G000000000",
+		"bulk_upload_id": null,
+		"payment_link_id": "payment-link-redacted",
+		"enabled_payments_raw": "[\"bca_va\",\"gopay\"]",
+		"usage_limit": 1,
+		"gross_amount": 15000,
+		"currency": "IDR",
+		"credit_card_3d_secure": false,
+		"credit_card_type": "authorize_capture",
+		"credit_card_bank": null,
+		"credit_card_installment_required": false,
+		"credit_card_installment_disabled": false,
+		"priority_card_feature": null,
+		"credit_card_installment_terms_raw": null,
+		"whitelist_bins_raw": null,
+		"customer_required": true,
+		"customer_address_required": false,
+		"specific_customer": false,
+		"expiry_start": "2026-11-09T16:19:01.000Z",
+		"expiry_duration": 1,
+		"expiry_unit": "months",
+		"usage": 0,
+		"bca_va_number": null,
+		"bca_va_inquiry_text_raw": null,
+		"bca_va_payment_text_raw": null,
+		"bni_va_number": null,
+		"permata_va_number": null,
+		"permata_va_recipient": null,
+		"bri_va_number": null,
+		"cimb_va_number": null,
+		"danamon_va_number": null,
+		"bsi_va_number": null,
+		"seabank_va_number": null,
+		"custom_va_number": null,
+		"source": "nexus-api",
+		"service": "snap",
+		"source_version": "1.86.0",
+		"custom_field1": null,
+		"custom_field2": null,
+		"custom_field3": null,
+		"finish_callback_url": null,
+		"unfinish_callback_url": null,
+		"error_callback_url": null,
+		"close_callback_url": null,
+		"created_at": "2026-11-09T16:19:01.000Z",
+		"updated_at": "2026-11-09T16:19:01.000Z",
+		"deleted_at": null,
+		"canceled_at": null,
+		"epoch_deleted_at": 0,
+		"first_name_required": false,
+		"email_required": false,
+		"phone_required": false,
+		"payment_link_type": "FIXED_AMOUNT",
+		"title": null,
+		"require_customer_detail_settings": "required",
+		"last_snap_transaction_status": null,
+		"last_snap_token": null,
+		"createdAt": "2026-11-09T16:19:01.000Z",
+		"updatedAt": "2026-11-09T16:19:01.000Z",
+		"deletedAt": null,
+		"item_details": [
+			{
+				"id": 1,
+				"name": "Fixture item",
+				"price": 15000,
+				"quantity": 1,
+				"brand": null,
+				"category": null,
+				"merchant_name": null,
+				"item_id": null,
+				"payment_link_id": 0,
+				"createdAt": "2026-11-09T16:19:01.000Z",
+				"updatedAt": "2026-11-09T16:19:01.000Z",
+				"PaymentLinkId": 0
+			}
+		],
+		"customer_details": null,
+		"purchases": [],
+		"dynamic_amount": null,
+		"payment_settings": null
+	}
+}
