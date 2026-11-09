@@ -43,7 +43,7 @@
 		"@itsrose/shared-schema": "workspace:*",
 		"@itsrose/system": "workspace:*",
 		"image-size": "^2.0.4",
-		"ws": "^8.22.0",
+		"ws": "^8.22.1",
 		"zod": "catalog:"
 	},
 	"devDependencies": {

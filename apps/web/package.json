@@ -12,15 +12,15 @@
 	},
 	"dependencies": {
 		"@bprogress/next": "^3.2.12",
-		"@gravity-ui/icons": "^2.22.1",
-		"@heroui/react": "^3.2.6",
-		"@heroui/styles": "^3.2.6",
+		"@gravity-ui/icons": "^2.23.1",
+		"@heroui/react": "^3.2.7",
+		"@heroui/styles": "^3.2.7",
 		"@itsrose/react": "workspace:*",
 		"@mdx-js/loader": "^3.1.1",
 		"@mdx-js/react": "^3.1.1",
-		"@next/mdx": "^16.4.0",
+		"@next/mdx": "^16.4.5",
 		"clsx": "^2.1.1",
-		"motion": "^14.1.0",
+		"motion": "^14.9.1",
 		"next": "catalog:",
 		"next-themes": "^0.4.6",
 		"react": "catalog:",
@@ -33,14 +33,14 @@
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*",
-		"@tailwindcss/turbopack": "^4.3.3",
+		"@tailwindcss/turbopack": "^4.3.4",
 		"@types/mdx": "^2.0.14",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
 		"babel-plugin-react-compiler": "^1.0.0",
-		"eslint": "^10.12.0",
-		"tailwindcss": "^4.3.3",
+		"eslint": "^10.14.0",
+		"tailwindcss": "^4.3.4",
 		"typescript": "catalog:"
 	}
 }

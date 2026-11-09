@@ -39,11 +39,11 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"peerDependencies": {
-		"@heroui/react": "^3.2.6",
-		"motion": "^14.1.0",
+		"@heroui/react": "^3.2.7",
+		"motion": "^14.9.1",
 		"react": "catalog:",
 		"react-dom": "catalog:",
-		"tailwindcss": "^4.3.3"
+		"tailwindcss": "^4.3.4"
 	},
 	"peerDependenciesMeta": {
 		"@heroui/react": {
@@ -53,16 +53,16 @@
 	"dependencies": {
 		"@react-aria/overlays": "^3.32.1",
 		"@react-stately/utils": "^3.12.1",
-		"tailwind-variants": "^3.3.1"
+		"tailwind-variants": "^4.0.1"
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
-		"motion": "^14.1.0",
+		"motion": "^14.9.1",
 		"react": "catalog:",
 		"react-dom": "catalog:",
-		"tailwindcss": "^4.3.3"
+		"tailwindcss": "^4.3.4"
 	},
 	"publishConfig": {
 		"exports": {

@@ -17,6 +17,10 @@ const config: RcFile = {
 			label: "PNPM Catalog",
 			dependencies: [
 				"@types/node",
+				"@types/react",
+				"@types/react-dom",
+
+				"better-auth",
 				"typescript",
 				"chalk",
 				"zod",
