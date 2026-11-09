@@ -1,8 +1,8 @@
 import { z } from "zod/v4";
-import { PaymentChannelOverTheCounterSchema } from "../../../shared";
+import { CstoreStoreSchema } from "../../../shared";
 
 export const OverTheCounterAlfmartExclusiveFieldsSchema = z.object({
-	store: PaymentChannelOverTheCounterSchema.extract(["alfamart"]),
+	store: CstoreStoreSchema.extract(["alfamart"]),
 	/**
 	 * 1st row.
 	 *

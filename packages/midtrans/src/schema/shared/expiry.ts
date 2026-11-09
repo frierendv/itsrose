@@ -11,20 +11,24 @@ export type ExpiryUnit = z.infer<typeof ExpiryUnitSchema>;
 /**
  * Custom expiry configuration for Core API charge requests.
  */
-export const CustomExpirySchema = z.object({
-	/**
-	 * Timestamp in format YYYY-MM-DD HH:mm:ss Z.
-	 */
-	order_time: z.string().optional(),
-	/**
-	 * Duration of expiry based on unit.
-	 */
-	expiry_duration: z.number().int().positive(),
-	/**
-	 * Unit of time for duration.
-	 */
-	unit: ExpiryUnitSchema.extract(["second", "minute", "hour", "day"]),
-});
+export const CustomExpirySchema = z
+	.object({
+		/**
+		 * Timestamp in format `YYYY-MM-DD HH:mm:ss Z`.
+		 */
+		order_time: z.string().optional(),
+		/**
+		 * Duration of expiry based on unit.
+		 */
+		expiry_duration: z.number().int().positive(),
+		/**
+		 * Unit of time for duration.
+		 */
+		unit: ExpiryUnitSchema.extract(["second", "minute", "hour", "day"]),
+	})
+	.meta({
+		id: "MidtransCustomExpiry",
+	});
 
 export type CustomExpiry = z.infer<typeof CustomExpirySchema>;
 
@@ -49,4 +53,11 @@ export const ExpirySchema = z
 	.meta({
 		id: "MidtransSnapExpiry",
 	});
+
 export type Expiry = z.infer<typeof ExpirySchema>;
+
+/**
+ * Snap-specific alias of {@link ExpirySchema}.
+ */
+export const SnapExpirySchema = ExpirySchema;
+export type SnapExpiry = Expiry;

@@ -3,7 +3,7 @@ import { z } from "zod/v4";
 /**
  * Midtrans billing or shipping address details.
  */
-export const Address = z
+export const AddressSchema = z
 	.object({
 		/** Customer first name. */
 		first_name: z.string().max(50),
@@ -36,9 +36,12 @@ export const Address = z
 		id: "MidtransAddress",
 	});
 
-export const BillingAddress = Address;
-export const ShippingAddress = Address;
+export type Address = z.infer<typeof AddressSchema>;
 
-export type Address = z.infer<typeof Address>;
+/** @deprecated Use {@link AddressSchema}. */
+export const BillingAddressSchema = AddressSchema;
+/** @deprecated Use {@link AddressSchema}. */
+export const ShippingAddressSchema = AddressSchema;
+
 export type BillingAddress = Address;
 export type ShippingAddress = Address;

@@ -1,10 +1,10 @@
 import { z } from "zod/v4";
-import { PaymentAction, VaNumber } from "./payment-actions";
+import { PaymentActionSchema, VaNumberSchema } from "./payment-actions";
 
 /**
  * Canonical transaction result schema representing payment status across Core API, Snap, and Webhooks.
  */
-export const BaseTransactionResult = z
+export const BaseTransactionResultSchema = z
 	.object({
 		status_code: z
 			.string()
@@ -45,7 +45,7 @@ export const BaseTransactionResult = z
 			.describe("Fraud detection status ('accept', 'challenge', 'deny')"),
 
 		// Bank transfer specific fields
-		va_numbers: z.array(VaNumber).optional(),
+		va_numbers: z.array(VaNumberSchema).optional(),
 		permata_va_number: z.string().optional(),
 
 		// Mandiri Bill (echannel)
@@ -53,7 +53,7 @@ export const BaseTransactionResult = z
 		biller_code: z.string().optional(),
 
 		// QRIS & E-Wallets
-		actions: z.array(PaymentAction).optional(),
+		actions: z.array(PaymentActionSchema).optional(),
 		qr_string: z.string().optional(),
 		acquirer: z.string().optional(),
 
@@ -64,4 +64,4 @@ export const BaseTransactionResult = z
 		id: "MidtransBaseTransactionResult",
 	});
 
-export type BaseTransactionResult = z.infer<typeof BaseTransactionResult>;
+export type BaseTransactionResult = z.infer<typeof BaseTransactionResultSchema>;

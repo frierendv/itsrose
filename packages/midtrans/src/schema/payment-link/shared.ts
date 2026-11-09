@@ -1,16 +1,15 @@
 import { z } from "zod/v4";
+import { BCAExclusiveFreeTextSchema } from "../core";
 import {
-	Callbacks,
-	CustomerDetails,
-	CustomFields,
-	ItemDetails,
+	CallbacksSchema,
+	CustomFieldsSchema,
+	ExpirySchema,
+	ItemDetailsSchema,
 	PaymentChannels,
 	PaymentLinkSupportedBank,
-	SnapExpiry,
-	TimestampFields,
-	TransactionDetails,
-} from "../common";
-import { BCAExclusiveFreeTextSchema } from "../core";
+	TimestampFieldsSchema,
+	TransactionDetailsSchema,
+} from "../shared";
 
 export const PaymentLinkBankDetail = z.object({ number: z.string() });
 export const PaymentLinkBank = z
@@ -37,11 +36,13 @@ export const PaymentLinkBank = z
 		)
 	);
 
-export const PaymentLinkCustomerDetail = CustomerDetails.omit({
-	billing_address: true,
-	shipping_address: true,
-})
-	.extend({
+export const PaymentLinkCustomerDetail = z
+	.object({
+		first_name: z.string().max(50),
+		last_name: z.string().max(50),
+		email: z.email().max(255),
+		phone: z.string().max(15),
+		notes: z.string().max(255).optional(),
 		customer_details_required_fields: z
 			.array(z.enum(["first_name", "email", "phone"]))
 			.optional(),
@@ -53,7 +54,7 @@ export const PaymentLinkCustomerDetail = CustomerDetails.omit({
 		phone: true,
 	});
 
-export const PaymentLinkTransactionDetail = TransactionDetails.extend({
+export const PaymentLinkTransactionDetail = TransactionDetailsSchema.extend({
 	/**
 	 * Unique Link id that will be used as part of the resulting payment URL.
 	 *
@@ -71,12 +72,12 @@ export const PaymentLinkTransactionDetail = TransactionDetails.extend({
 		.optional(),
 });
 
-export const PaymentLinkItemDetail = ItemDetails;
-export const PaymentLinkExpiry = SnapExpiry;
-export const PaymentLinkCallback = Callbacks;
-export const PaymentLinkCustomFields = CustomFields;
+export const PaymentLinkItemDetail = ItemDetailsSchema;
+export const PaymentLinkExpiry = ExpirySchema;
+export const PaymentLinkCallback = CallbacksSchema;
+export const PaymentLinkCustomFields = CustomFieldsSchema;
 export const PaymentLinkPaymentChannels = PaymentChannels;
-export const PaymentLinkTimestampFields = TimestampFields;
+export const PaymentLinkTimestampFields = TimestampFieldsSchema;
 
 // ---- types f
 export type PaymentLinkBank = z.infer<typeof PaymentLinkBank>;
@@ -86,3 +87,4 @@ export type PaymentLinkCustomerDetail = z.infer<
 export type PaymentLinkTransactionDetail = z.infer<
 	typeof PaymentLinkTransactionDetail
 >;
+export type PaymentLinkItemDetail = z.infer<typeof PaymentLinkItemDetail>;

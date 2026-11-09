@@ -1,10 +1,10 @@
 import { z } from "zod/v4";
 import {
-	Callbacks,
+	CallbacksSchema,
 	ExpirySchema,
 	PaymentChannelBank,
 	PaymentChannels,
-} from "../../common";
+} from "../../shared";
 
 export const InvoicePaymentTypeSchema = z.enum([
 	"payment_link",
@@ -41,7 +41,7 @@ export const InvoicePaymentLinkSchema = z.object({
 			 * Required by Midtrans API when `payment_link` object omitted.
 			 */
 			enabled_payments: z.array(PaymentChannels),
-			callbacks: Callbacks.pick({ finish: true }),
+			callbacks: CallbacksSchema.pick({ finish: true }),
 		})
 		.partial()
 		.required({ enabled_payments: true }) // required when `payment_link` object passed.

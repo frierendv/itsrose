@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-export const PaymentChannelBankVaSchema = z.enum([
+export const VaBankSchema = z.enum([
 	"echannel", // Mandiri
 	"bni_va",
 	"bri_va",
@@ -17,9 +17,9 @@ export const PaymentChannelBankVaSchema = z.enum([
 	"saqu_va",
 ]);
 
-export type PaymentChannelBankVa = z.infer<typeof PaymentChannelBankVaSchema>;
+export type VaBank = z.infer<typeof VaBankSchema>;
 
-export const PaymentChannelBankSchema = z.enum([
+export const BankCodeSchema = z.enum([
 	"bni",
 	"bri",
 	"bca",
@@ -35,4 +35,5 @@ export const PaymentChannelBankSchema = z.enum([
 	"seabank",
 	"saqu",
 ]);
-export type PaymentChannelBank = z.infer<typeof PaymentChannelBankSchema>;
+
+export type BankCode = z.infer<typeof BankCodeSchema>;

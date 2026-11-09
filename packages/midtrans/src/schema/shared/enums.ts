@@ -1,18 +1,5 @@
 import { z } from "zod/v4";
 
-export const BankNames = z.enum([
-	"bni",
-	"bri",
-	"bca",
-	"cimb",
-	"mandiri",
-	"maybank",
-	"permata",
-]);
-
-/* ------ types ------ */
-export type BankNames = z.infer<typeof BankNames>;
-
 /* ------------------------- Reusable payment channel ------------------------- */
 /** Card */
 export const PaymentChannelCreditCard = z.literal("credit_card");
@@ -74,7 +61,3 @@ export const PaymentLinkSupportedBank = PaymentChannelBank.extract([
 	"cimb_va",
 ]);
 export type PaymentLinkSupportedBank = z.infer<typeof PaymentLinkSupportedBank>;
-
-/* ------------------------- Mostly used by invoice ------------------------- */
-
-/* ------ types ------ */
