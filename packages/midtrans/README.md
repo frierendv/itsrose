@@ -40,9 +40,10 @@ storage URLs never reach the repository.
 
 ### Baseline (Phase 0)
 
-| Check            | Result                                                 |
-| :--------------- | :----------------------------------------------------- |
-| Sandbox fixtures | 30 captured                                            |
-| Fixture contract | 14 must-pass · 13 known mismatches · 3 unmodeled       |
-| Package coverage | 88.03% statements · 78.84% branches · 67.14% functions |
-| Refactor plan    | [`REFACTOR_PLAN.md`](REFACTOR_PLAN.md)                 |
+| Check            | Result                                                          |
+| :--------------- | :-------------------------------------------------------------- |
+| Sandbox fixtures | 30 captured                                                     |
+| Fixture contract | 14 must-pass · 13 known mismatches · 3 unmodeled                |
+| Architecture     | `client → api → context` (no cycle); one `schema/shared` family |
+| Package coverage | 92.79% statements · 85.29% branches · 82.25% functions          |
+| Refactor plan    | [`REFACTOR_PLAN.md`](REFACTOR_PLAN.md)                          |

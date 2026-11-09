@@ -14,6 +14,11 @@
 > because contract tests now load the whole schema barrel; behaviour coverage remains
 > Phase 5 work.
 
+> **Phase 1 result (2026-11-09):** services receive a `ClientContext` (`client → api → context`,
+> no cycle), the transport lives in `client/transport.ts`, `MidtransMerchant` is exported, the
+> `schema/common` family was merged into `schema/shared`, and ~1.2k lines of dead code were
+> removed. Duplicate/missing schema exports are now enforced by tests.
+
 ---
 
 ## 0. TL;DR
