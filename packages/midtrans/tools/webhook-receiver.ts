@@ -19,6 +19,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type Server } from "node:http";
 import { join } from "node:path";
+import "./load-env";
 
 export interface ReceivedNotification {
 	/** Path the notification was delivered to. */
