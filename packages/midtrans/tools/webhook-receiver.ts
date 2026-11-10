@@ -1,58 +1,47 @@
+#!/usr/bin/env node
 /**
  * Local webhook receiver for capturing real Midtrans HTTP notifications.
  *
  * Midtrans posts notifications to a public URL, so the receiver has to be
- * exposed by a tunnel you control (`ngrok http 8787`, `cloudflared tunnel
- * --url http://localhost:8787`, …). This tool only runs the local half: it
- * listens, records every notification it receives, and writes them to disk so
- * they can be reviewed, sanitized and turned into fixtures.
- *
- * ```bash
- * pnpm --filter @itsrose/midtrans sandbox:webhook --port 8787 --out fixtures/inbox
- * # in another terminal, expose it:
- * ngrok http 8787
- * # then charge with an override notification URL:
- * #   X-Override-Notification: https://<tunnel>/midtrans
- * ```
+ * exposed by a tunnel you control (`cloudflared tunnel --url http://localhost:8787`,
+ * ngrok, …). This tool records every notification received and writes them to
+ * disk so they can be reviewed, sanitized and turned into fixtures.
  */
-
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type Server } from "node:http";
-import { join } from "node:path";
-import "./load-env";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __envDir = dirname(fileURLToPath(import.meta.url));
+const __envFile = join(__envDir, ".env.dev");
+if (existsSync(__envFile)) {
+	for (const line of readFileSync(__envFile, "utf8").split("\n")) {
+		const match = /^([A-Z0-9_]+)=(.*)$/.exec(line.trim());
+		if (match?.[1] && process.env[match[1]] === undefined) {
+			process.env[match[1]] = match[2];
+		}
+	}
+}
 
 export interface ReceivedNotification {
-	/** Path the notification was delivered to. */
 	readonly path: string;
-	/** Order id reported by Midtrans, when present. */
 	readonly orderId?: string;
-	/** Transaction status reported by Midtrans, when present. */
 	readonly transactionStatus?: string;
-	/** Parsed JSON body, or raw text when it was not JSON. */
 	readonly payload: unknown;
-	/** ISO timestamp of receipt. */
 	readonly receivedAt: string;
 }
 
 export interface WebhookReceiverOptions {
-	/** TCP port to listen on. Defaults to `8787`. */
 	readonly port?: number;
-	/** Directory used to persist notifications. Defaults to a temp folder. */
 	readonly outputDir?: string;
-	/** Only accept notifications whose path starts with this prefix. */
 	readonly pathPrefix?: string;
-	/** Called for every accepted notification. */
 	readonly onNotification?: (notification: ReceivedNotification) => void;
 }
 
 export interface WebhookReceiver {
-	/** Base URL to give Midtrans (behind your tunnel). */
 	readonly url: string;
-	/** Every notification received so far. */
 	readonly received: ReceivedNotification[];
-	/** Resolves once the server is listening. */
 	readonly listening: Promise<void>;
-	/** Stops the server. */
 	close(): Promise<void>;
 }
 
@@ -77,9 +66,6 @@ function readField(body: unknown, key: string): string | undefined {
 	return typeof value === "string" ? value : undefined;
 }
 
-/**
- * Starts a webhook receiver that records Midtrans notifications.
- */
 export function startWebhookReceiver(
 	options: WebhookReceiverOptions = {}
 ): WebhookReceiver {
@@ -109,7 +95,7 @@ export function startWebhookReceiver(
 			try {
 				payload = JSON.parse(raw) as unknown;
 			} catch {
-				// keep the raw text
+				// keep raw text
 			}
 
 			const notification: ReceivedNotification = {
@@ -134,10 +120,7 @@ export function startWebhookReceiver(
 				);
 			}
 
-			// Midtrans expects a 2xx to stop retrying.
-			response.writeHead(200, {
-				"Content-Type": "application/json",
-			});
+			response.writeHead(200, { "Content-Type": "application/json" });
 			response.end("{}");
 		})().catch(() => {
 			if (!response.headersSent) {
@@ -175,7 +158,6 @@ interface CliOptions {
 
 function parseArgs(argv: readonly string[]): CliOptions {
 	const options: CliOptions = { port: 8787 };
-
 	for (let index = 0; index < argv.length; index++) {
 		const argument = argv[index];
 		if (argument === "--port" || argument === "-p") {
@@ -186,7 +168,6 @@ function parseArgs(argv: readonly string[]): CliOptions {
 			options.prefix = argv[++index];
 		}
 	}
-
 	return options;
 }
 
@@ -213,7 +194,7 @@ async function main(): Promise<void> {
 	console.log("");
 	console.log("Expose it with a tunnel you control, then use the URL as");
 	console.log("`X-Override-Notification` (or `X-Append-Notification`):");
-	console.log(`  ngrok http ${port}`);
+	console.log(`  cloudflared tunnel --url http://localhost:${port}`);
 	console.log("");
 	console.log("Press Ctrl+C to stop.");
 
