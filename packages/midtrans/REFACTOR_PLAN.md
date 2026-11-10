@@ -62,6 +62,15 @@
 > this sandbox merchant (`412`, `402`, and straight `accept`/`deny` respectively);
 > see `fixtures/README.md` for the exact responses and how to re-enable them.
 
+> **Schema Reorganization (2026-11-11):** `packages/midtrans/src/schema/` refactored
+> from 79 fragmented files across 16 nested folders down to 26 cohesive modules
+> with nesting depth ≤ 2. `schema/helper.ts` (265 lines of fragile Zod runtime
+> type reflection and `any` types) was completely eliminated by explicitly modeling
+> `InvoiceResponseSchema`. Primitives consolidated payment enums and transaction
+> structures; `core`, `snap`, `payment-link`, `invoice`, `subscription`, and
+> `notification` now follow a consistent, symmetrical layout. All 138 exported
+> symbols and 40 fixtures remain 100% verified.
+
 ---
 
 ## 0. TL;DR

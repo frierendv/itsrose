@@ -1,5 +1,3 @@
+export * from "./channels";
 export * from "./request";
-
-export * from "./payment";
-
-export * from "./responses";
+export * from "./response";
