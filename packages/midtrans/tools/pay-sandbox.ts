@@ -6,6 +6,7 @@
  * ```
  */
 import { MidtransClient } from "../src/client/client";
+import "./load-env";
 import {
 	payCstore,
 	payVirtualAccount,

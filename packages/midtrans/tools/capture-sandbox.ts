@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { API_BASE_URL_SANDBOX, SNAP_BASE_URL_SANDBOX } from "../src/constants";
+import "./load-env";
 import { createTestCardToken } from "./card-sandbox";
 import { payVirtualAccount } from "./sandbox-simulator";
 import { sanitizeFixtureBody } from "./sanitize";
@@ -38,7 +39,7 @@ function resolveConfig(): { serverKey: string; clientKey: string } {
 	}
 	if (serverKey.length === 0) {
 		throw new Error(
-			"MIDTRANS_SERVER_KEY is required; run with --env-file=.env.dev."
+			"MIDTRANS_SERVER_KEY is required; set it in .env.dev or environment variables."
 		);
 	}
 	if (!serverKey.startsWith("SB-Mid-server-")) {
