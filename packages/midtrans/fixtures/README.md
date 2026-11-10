@@ -57,7 +57,7 @@ fail if a fixture contains a server key, a signed URL, or a non-redacted
 ## Known mismatches
 
 `tools/fixture-manifest.ts` marks each fixture as `mustPass`, `knownMismatch` or
-`unmodeled`. There are 36 fixtures: 35 are `mustPass` and the only remaining
+`unmodeled`. There are 39 fixtures: 38 are `mustPass` and the only remaining
 tracked case is `core/approve-empty-response` — approve/deny answer HTTP 404 with
 an empty body, which is covered by the transport tests instead of a JSON schema.
 A `knownMismatch` that starts passing is reported as `promoted` so the manifest
@@ -65,18 +65,63 @@ can be updated.
 
 ## Paid-path testing
 
-`tools/sandbox-simulator.ts` drives the Midtrans payment simulator to settle
-virtual-account and Alfamart transactions. `core/status-settled` is captured that
-way. Refunds, captures and FDS actions still need a paid/card transaction; on
-this sandbox merchant `refund` currently answers `412 Merchant cannot modify the
-status of the transaction`, so successful refund fixtures remain open.
+### Virtual accounts and convenience stores
 
-## Not covered yet
+`tools/sandbox-simulator.ts` drives the payment simulator to settle pending
+transactions. `core/status-settled` is captured that way.
 
-These require a settled card transaction or an inbound webhook, so they cannot be
-captured automatically yet:
+```bash
+pnpm --filter @itsrose/midtrans sandbox:pay <order-id>
+```
 
-- successful `refund` / `directRefund`;
-- `capture`;
-- FDS `approve` / `deny` after a challenge;
-- transaction and invoice webhooks.
+### Credit cards
+
+`tools/card-sandbox.ts` tokenizes test cards through `GET /v2/token` (client key
+only) so the capture tool can charge them.
+
+| Card                  | Observed outcome           |
+| :-------------------- | :------------------------- |
+| `4811 1111 1111 1114` | `200` `capture` + `accept` |
+| `5211 1111 1111 1117` | `200` `capture` + `accept` |
+| `4111 1111 1111 1111` | `202` `deny`               |
+| `4911 1111 1111 1113` | `202` `deny`               |
+
+Captured fixtures: `core/charge-credit-card`, `core/charge-credit-card-denied`,
+and `core/charge-credit-card-3ds` (a secure charge returns `pending` plus a
+`redirect_url` challenge).
+
+> The table contradicts the published "denied" test cards: on this sandbox
+> merchant `4411 1111 1111 1118` is **accepted**. Treat the table as observed
+> behaviour.
+
+### Webhooks
+
+`tools/webhook-receiver.ts` records real notifications so a genuine payload can
+be reviewed before it becomes a fixture.
+
+```bash
+pnpm --filter @itsrose/midtrans sandbox:webhook --port 8787 --out /tmp/inbox
+ngrok http 8787   # or cloudflared tunnel --url http://localhost:8787
+# then charge with X-Override-Notification: https://<tunnel>/midtrans
+```
+
+Capturing a real notification needs a public URL, so it stays a manual step.
+Until one is recorded, webhook parsing is validated by replaying status
+responses through `WebhookPayloadSchema` (`core/status-settled`,
+`core/charge-credit-card`).
+
+## Blocked on merchant configuration
+
+These paths cannot produce a success fixture while the sandbox merchant keeps its
+current configuration. Each was retried after settlement and still failed, so the
+cause is a merchant setting rather than transaction state:
+
+| Path                        | Response                                    |
+| :-------------------------- | :------------------------------------------ |
+| `refund` (any method)       | `412 Transaction status cannot be updated.` |
+| `refund/online/direct`      | `412 Transaction status cannot be updated.` |
+| pre-authorization `capture` | `402 No MID/TID for this transaction`       |
+| FDS `challenge`             | charges return `accept` or `deny` directly  |
+
+Re-run `fixtures:capture` after enabling refunds, pre-authorization or FDS in the
+sandbox dashboard; the capture tool already contains the card scenarios.
