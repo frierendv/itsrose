@@ -51,6 +51,7 @@
 		"lint": "eslint . --max-warnings 0",
 		"lint:fix": "eslint . --max-warnings 0 --fix",
 		"sandbox:pay": "node --env-file=.env.dev --import tsx tools/pay-sandbox.ts",
+		"sandbox:webhook": "node --env-file=.env.dev --import tsx tools/webhook-receiver.ts",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {

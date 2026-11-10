@@ -1,0 +1,32 @@
+{
+	"_meta": {
+		"name": "core/charge-credit-card",
+		"endpoint": "POST /v2/charge",
+		"http_status": 200,
+		"captured_at": "2026-11-10T13:56:21.670Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_code": "200",
+		"status_message": "Success, Credit Card transaction is successful",
+		"transaction_id": "00000000-0000-4000-8000-000000000000",
+		"order_id": "ORDER-REDACTED",
+		"merchant_id": "G000000000",
+		"gross_amount": "15000.00",
+		"currency": "IDR",
+		"payment_type": "credit_card",
+		"transaction_time": "2026-11-10 20:56:20",
+		"transaction_status": "capture",
+		"fraud_status": "accept",
+		"channel_response_code": "0",
+		"channel_response_message": "Approved",
+		"expiry_time": "2026-11-18 20:56:20",
+		"bank": "maybank",
+		"masked_card": "48111111-1114",
+		"card_type": "credit",
+		"channel": "migs",
+		"approval_code": "1794318981284",
+		"on_us": false
+	}
+}
