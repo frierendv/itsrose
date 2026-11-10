@@ -1,0 +1,31 @@
+{
+	"_meta": {
+		"name": "core/charge-credit-card-denied",
+		"endpoint": "POST /v2/charge",
+		"http_status": 200,
+		"captured_at": "2026-11-10T13:56:23.120Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"status_code": "202",
+		"status_message": "Deny by Bank [MAYBANK] with code [05] and message [Denied]",
+		"transaction_id": "00000000-0000-4000-8000-000000000000",
+		"order_id": "ORDER-REDACTED",
+		"merchant_id": "G000000000",
+		"gross_amount": "15000.00",
+		"currency": "IDR",
+		"payment_type": "credit_card",
+		"transaction_time": "2026-11-10 20:56:22",
+		"transaction_status": "deny",
+		"fraud_status": "accept",
+		"channel_response_code": "7",
+		"channel_response_message": "Denied",
+		"expiry_time": "2026-11-18 20:56:22",
+		"bank": "maybank",
+		"masked_card": "41111111-1111",
+		"card_type": "debit",
+		"channel": "migs",
+		"on_us": false
+	}
+}

@@ -83,6 +83,13 @@ const channelFields = {
 	challenge_completion: z.boolean().optional(),
 	on_us: z.boolean().optional(),
 	installment_term: z.number().int().optional(),
+	/**
+	 * 3D Secure challenge URL.
+	 *
+	 * Only returned when the card charge requires 3DS authentication; the
+	 * transaction stays `pending` until the challenge is completed.
+	 */
+	redirect_url: z.url().optional(),
 } satisfies z.ZodRawShape;
 
 /**

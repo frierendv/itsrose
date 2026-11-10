@@ -21,6 +21,13 @@ export const WebhookPayloadSchema = BaseTransactionResultSchema.extend(
 		expiry_time: z.string().optional(),
 		payment_amounts: z.array(PaymentAmountSchema).optional(),
 		metadata: z.record(z.string(), z.unknown()).optional(),
+		/**
+		 * Customer details attached to the transaction.
+		 *
+		 * Midtrans always sends the key; it is an empty object when the
+		 * transaction carries no customer data.
+		 */
+		customer_details: z.record(z.string(), z.unknown()).optional(),
 	})
 	.meta({
 		id: "MidtransWebhookNotification",

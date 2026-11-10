@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { API_BASE_URL_SANDBOX, SNAP_BASE_URL_SANDBOX } from "../src/constants";
+import { createTestCardToken } from "./card-sandbox";
 import { payVirtualAccount } from "./sandbox-simulator";
 import { sanitizeFixtureBody } from "./sanitize";
 
@@ -25,9 +26,10 @@ interface CaptureResult {
 	readonly body: unknown;
 }
 
-function resolveConfig(): { serverKey: string } {
+function resolveConfig(): { serverKey: string; clientKey: string } {
 	const environment = process.env.MIDTRANS_ENVIRONMENT ?? "";
 	const serverKey = process.env.MIDTRANS_SERVER_KEY ?? "";
+	const clientKey = process.env.MIDTRANS_CLIENT_KEY ?? "";
 
 	if (environment !== "sandbox") {
 		throw new Error(
@@ -44,6 +46,11 @@ function resolveConfig(): { serverKey: string } {
 			"MIDTRANS_SERVER_KEY does not look like a sandbox server key (SB-Mid-server-…)."
 		);
 	}
+	if (!clientKey.startsWith("SB-Mid-client-")) {
+		throw new Error(
+			"MIDTRANS_CLIENT_KEY is required for card tokenization (SB-Mid-client-…)."
+		);
+	}
 
 	const apiUrl = new URL(API_BASE_URL_SANDBOX);
 	const snapUrl = new URL(SNAP_BASE_URL_SANDBOX);
@@ -54,7 +61,7 @@ function resolveConfig(): { serverKey: string } {
 		throw new Error(`Unexpected Snap API base URL: ${snapUrl.hostname}`);
 	}
 
-	return { serverKey };
+	return { serverKey, clientKey };
 }
 
 async function parseResponseBody(response: Response): Promise<unknown> {
@@ -192,7 +199,7 @@ function wibDate(daysFromNow: number): string {
 }
 
 async function main(): Promise<void> {
-	const { serverKey } = resolveConfig();
+	const { serverKey, clientKey } = resolveConfig();
 	const { capture, send } = createCapture(serverKey);
 
 	const stamp = `${Date.now().toString(36)}-${Math.random()
@@ -333,6 +340,45 @@ async function main(): Promise<void> {
 			body: charge.body,
 		});
 	}
+
+	// --- Core: credit card (tokenized through the sandbox) ---------------
+	const cardCharge = async (
+		name: string,
+		label: string,
+		card: Parameters<typeof createTestCardToken>[0],
+		extra?: Record<string, unknown>
+	): Promise<CaptureResult> => {
+		const tokenId = await createTestCardToken(card, clientKey);
+		return capture({
+			name,
+			endpoint: "POST /v2/charge",
+			method: "POST",
+			body: {
+				payment_type: "credit_card",
+				transaction_details: {
+					order_id: orderId(label),
+					gross_amount: 15000,
+				},
+				credit_card: { token_id: tokenId, ...extra },
+			},
+		});
+	};
+
+	// Captured card transaction (`200`, `capture` + `accept`).
+	await cardCharge("core/charge-credit-card", "CORE-CC", "visa");
+
+	// Declined by the acquiring bank (`202`, `deny`).
+	await cardCharge(
+		"core/charge-credit-card-denied",
+		"CORE-CC-DENY",
+		"visaDenied"
+	);
+
+	// 3D Secure challenge: stays `pending` and returns `redirect_url`.
+	await cardCharge("core/charge-credit-card-3ds", "CORE-CC-3DS", "visa", {
+		secure: true,
+		authentication: true,
+	});
 
 	// --- Core: a settled transaction (paid through the sandbox simulator) ---
 	const settledOrderId = orderId("CORE-SETTLED");
