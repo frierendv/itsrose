@@ -1,0 +1,97 @@
+name: Midtrans Sandbox
+
+# Verifies the package against the real Midtrans sandbox:
+#
+#  1. `fixtures:capture` replays every scenario and rewrites `fixtures/`.
+#  2. `fixtures:verify` validates the committed fixtures offline.
+#  3. The opt-in integration suite settles real transactions.
+#  4. The job fails if the sandbox produced responses that differ from the
+#     committed fixtures, which is our early warning for API drift.
+#
+# Required repository secrets:
+#   MIDTRANS_SANDBOX_SERVER_KEY  sandbox server key (SB-Mid-server-…)
+#   MIDTRANS_SANDBOX_CLIENT_KEY  sandbox client key (SB-Mid-client-…)
+#   MIDTRANS_SANDBOX_MERCHANT_ID sandbox merchant id
+#
+# Runs weekly and on demand. Never runs on pull requests, because it writes to
+# a live sandbox and would leak credentials to forked workflows.
+
+on:
+    schedule:
+        - cron: "0 3 * * 1"
+    workflow_dispatch:
+
+concurrency:
+    group: midtrans-sandbox
+    cancel-in-progress: false
+
+permissions:
+    contents: read
+
+env:
+    CI: "true"
+    TURBO_TELEMETRY_DISABLED: "1"
+    TURBO_UI: "false"
+    NEXT_TELEMETRY_DISABLED: "1"
+    MIDTRANS_ENVIRONMENT: sandbox
+    MIDTRANS_SERVER_KEY: ${{ secrets.MIDTRANS_SANDBOX_SERVER_KEY }}
+    MIDTRANS_CLIENT_KEY: ${{ secrets.MIDTRANS_SANDBOX_CLIENT_KEY }}
+    MIDTRANS_MERCHANT_ID: ${{ secrets.MIDTRANS_SANDBOX_MERCHANT_ID }}
+    MIDTRANS_INTEGRATION: "1"
+
+jobs:
+    sandbox:
+        name: Sandbox drift check
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        defaults:
+            run:
+                working-directory: packages/midtrans
+        steps:
+            - name: Checkout branch
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 1
+
+            - name: Install
+              uses: ./.github/common-actions/install
+
+            - name: Guard credentials
+              run: |
+                  if [ -z "${MIDTRANS_SERVER_KEY}" ]; then
+                    echo "::error::MIDTRANS_SANDBOX_SERVER_KEY is not configured."
+                    exit 1
+                  fi
+                  case "${MIDTRANS_SERVER_KEY}" in
+                    SB-Mid-server-*) ;;
+                    *)
+                      echo "::error::The server key is not a sandbox key (SB-Mid-server-…)."
+                      exit 1
+                      ;;
+                  esac
+
+            - name: Verify committed fixtures (offline)
+              run: pnpm fixtures:verify
+
+            - name: Capture fixtures from the sandbox
+              run: pnpm fixtures:capture
+
+            # The capture rewrites `_meta.captured_at` and a handful of
+            # timestamps, so a byte diff always exists. Validate the *fresh*
+            # responses against the schemas instead: a contract change fails
+            # here, a clock change does not.
+            - name: Validate fresh captures against the schemas
+              run: pnpm fixtures:verify
+
+            - name: Report response drift
+              if: always()
+              run: |
+                  git --no-pager diff --stat -- fixtures || true
+
+            - name: Restore committed fixtures
+              if: always()
+              run: git checkout -- fixtures
+
+            - name: Run sandbox integration tests
+              working-directory: .
+              run: pnpm exec jest --runInBand packages/midtrans/__tests__/integration
