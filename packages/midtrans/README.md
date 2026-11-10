@@ -313,7 +313,7 @@ pnpm test packages/midtrans
 
 ### Sandbox simulator
 
-The package ships a helper for the Midtrans payment simulator
+The package ships helpers for the Midtrans payment simulator
 ([docs](https://docs.midtrans.com/docs/testing-payment-on-sandbox)), used to
 settle pending transactions while testing:
 
@@ -325,7 +325,74 @@ It supports BCA/BNI and OpenAPI virtual accounts (BRI, Permata, CIMB, …) plus
 Alfamart (and Indomaret when the merchant product code is configured). The
 implementation lives in [`tools/sandbox-simulator.ts`](tools/sandbox-simulator.ts).
 
-Opt-in integration tests settle real sandbox transactions against the simulator:
+### Card testing
+
+[`tools/card-sandbox.ts`](tools/card-sandbox.ts) tokenizes test cards through
+`GET /v2/token` so card charges, declines and 3DS challenges can be exercised:
+
+```ts
+import { createTestCardToken } from "./tools/card-sandbox";
+
+const tokenId = await createTestCardToken(
+	"visa",
+	process.env.MIDTRANS_CLIENT_KEY!
+);
+
+await client.core.payment.charge({
+	payment_type: "credit_card",
+	transaction_details: { order_id: "ORDER-1", gross_amount: 15000 },
+	credit_card: { token_id: tokenId },
+});
+```
+
+Secure charges return `pending` plus a `redirect_url` challenge:
+
+```ts
+const charge = await client.core.payment.charge({
+	payment_type: "credit_card",
+	transaction_details: { order_id: "ORDER-2", gross_amount: 15000 },
+	credit_card: { token_id: tokenId, secure: true, authentication: true },
+});
+
+if (charge.data.transaction_status === "pending") {
+	// send the customer to charge.data.redirect_url
+}
+```
+
+### Webhook capture
+
+[`tools/webhook-receiver.ts`](tools/webhook-receiver.ts) records real
+notifications, and `sandbox:webhook:promote` turns a recording into a fixture:
+
+```bash
+# 1. record
+pnpm --filter @itsrose/midtrans sandbox:webhook --port 8787 --prefix /midtrans \
+  --out .webhook-inbox
+
+# 2. expose (named tunnel, see .cloudflared/config.yml)
+cloudflared --config .cloudflared/config.yml tunnel run
+
+# 3. charge with: X-Override-Notification: https://<host>/midtrans
+
+# 4. promote the recording
+pnpm --filter @itsrose/midtrans sandbox:webhook:promote \
+  --from .webhook-inbox/000-<order>.json --name notification/transaction-card
+```
+
+Each notification is sanitized before it is written, exactly like every other
+fixture.
+
+### Sandbox CI
+
+[`.github/workflows/midtrans-sandbox.yml`](../../.github/workflows/midtrans-sandbox.yml)
+runs weekly and on demand. It replays `fixtures:capture` against the sandbox,
+fails when the responses drift from the committed fixtures, and runs the
+integration suite. Configure `MIDTRANS_SANDBOX_SERVER_KEY`,
+`MIDTRANS_SANDBOX_CLIENT_KEY` and `MIDTRANS_SANDBOX_MERCHANT_ID` as repository
+secrets.
+
+Opt-in integration tests settle real sandbox transactions (virtual account,
+Alfamart and card flows):
 
 ```bash
 MIDTRANS_INTEGRATION=1 pnpm test packages/midtrans/__tests__/integration
@@ -366,11 +433,11 @@ src/client  →  src/api  →  src/schema
 
 | Check              | Result                                                  |
 | :----------------- | :------------------------------------------------------ |
-| Sandbox fixtures   | 35 captured (34 must-pass, 1 transport-only empty body) |
-| Tests              | 8 suites / 69 tests for the package                     |
-| Coverage           | 94.25% statements · 89.59% branches · 86.84% functions  |
-| ESM runtime bundle | 78.5 kB (17.4 kB gzip)                                  |
-| Type declarations  | 257 kB                                                  |
+| Sandbox fixtures   | 40 captured (39 must-pass, 1 transport-only empty body) |
+| Tests              | 11 suites / 81 tests (5 opt-in integration skipped)     |
+| Coverage           | 94.27% statements · 89.68% branches · 86.07% functions  |
+| ESM runtime bundle | 80.3 kB (18.0 kB gzip)                                  |
+| Type declarations  | 264 kB                                                  |
 | Client surface     | frozen by tests                                         |
 
 See [`REFACTOR_PLAN.md`](REFACTOR_PLAN.md) for the refactor record and

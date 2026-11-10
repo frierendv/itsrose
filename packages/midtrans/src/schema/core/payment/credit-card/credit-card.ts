@@ -41,5 +41,20 @@ export const CreditCardFieldsSchema = z.object({
 	 * if merchant has multiple channels, this field will help to route the transaction to the specific channel.
 	 */
 	channel: CreditCardRouteChannelSchema.optional(),
+	/**
+	 * Enable 3D Secure authentication for this transaction.
+	 *
+	 * @remarks
+	 * When the card requires authentication the charge stays `pending` and the
+	 * response includes a `redirect_url` pointing at the 3DS challenge.
+	 */
+	secure: z.boolean().optional(),
+	/**
+	 * Force 3DS authentication even when the issuer would allow frictionless.
+	 *
+	 * @remarks
+	 * Only meaningful together with `secure: true`.
+	 */
+	authentication: z.boolean().optional(),
 });
 export type CreditCardFields = z.infer<typeof CreditCardFieldsSchema>;

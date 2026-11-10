@@ -14,6 +14,9 @@ node_modules
 # Testing
 coverage
 
+# Raw Midtrans webhook recordings (promote them via fixtures:verify instead)
+.webhook-inbox
+
 # Turbo
 .turbo
 

@@ -48,6 +48,20 @@
 > virtual-account/Alfamart payments. `core/status-settled` was added (36 fixtures,
 > 35 must-pass).
 
+> **Phase 6 (2026-11-10):** paid-path coverage. `tools/card-sandbox.ts` tokenizes
+> sandbox test cards (`GET /v2/token`, client key only), which unlocked three card
+> fixtures (`capture`, `deny`, and a `3ds` challenge returning `redirect_url`). Two
+> real schema gaps surfaced and were fixed: `redirect_url` on the card charge
+> response, and the card/`settlement_time` fields missing from
+> `BaseTransactionResultSchema`, which silently dropped `masked_card` from every
+> card webhook. `tools/webhook-receiver.ts` records genuine notifications, and
+> `.github/workflows/midtrans-sandbox.yml` runs the fixture drift check weekly.
+> Fixtures are now 39 (38 must-pass).
+>
+> Refund, pre-authorization `capture` and FDS `challenge` remain unreachable on
+> this sandbox merchant (`412`, `402`, and straight `accept`/`deny` respectively);
+> see `fixtures/README.md` for the exact responses and how to re-enable them.
+
 ---
 
 ## 0. TL;DR

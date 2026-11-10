@@ -59,6 +59,23 @@ export const BaseTransactionResultSchema = z
 
 		// Over the counter (cstorage: Indomaret / Alfamart)
 		payment_code: z.string().optional(),
+		store: z.string().optional(),
+
+		// Credit card
+		masked_card: z.string().optional(),
+		card_type: z.string().optional(),
+		bank: z.string().optional(),
+		approval_code: z.string().optional(),
+		eci: z.string().optional(),
+		three_ds_version: z.string().optional(),
+		on_us: z.boolean().optional(),
+		channel_response_code: z.string().optional(),
+		channel_response_message: z.string().optional(),
+		saved_token_id: z.string().optional(),
+
+		// Shared lifecycle metadata
+		expiry_time: z.string().optional(),
+		settlement_time: z.string().optional(),
 	})
 	.meta({
 		id: "MidtransBaseTransactionResult",
