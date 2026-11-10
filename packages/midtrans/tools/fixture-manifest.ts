@@ -69,6 +69,19 @@ export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 		expectation: "mustPass",
 	},
 
+	"core/charge-credit-card": {
+		schema: CoreChargeResponseSchema,
+		expectation: "mustPass",
+	},
+	"core/charge-credit-card-denied": {
+		schema: CoreChargeResponseSchema,
+		expectation: "mustPass",
+	},
+	"core/charge-credit-card-3ds": {
+		schema: CoreChargeResponseSchema,
+		expectation: "mustPass",
+	},
+
 	// --- Core API: lifecycle ----------------------------------------------
 	"core/status-pending": {
 		schema: CoreTransactionResponseSchema,
