@@ -362,13 +362,25 @@ if (charge.data.transaction_status === "pending") {
 ### Webhook capture
 
 [`tools/webhook-receiver.ts`](tools/webhook-receiver.ts) records real
-notifications so a genuine payload can be inspected before it becomes a fixture:
+notifications, and `sandbox:webhook:promote` turns a recording into a fixture:
 
 ```bash
-pnpm --filter @itsrose/midtrans sandbox:webhook --port 8787 --out /tmp/inbox
-ngrok http 8787
-# charge with X-Override-Notification: https://<tunnel>/midtrans
+# 1. record
+pnpm --filter @itsrose/midtrans sandbox:webhook --port 8787 --prefix /midtrans \
+  --out .webhook-inbox
+
+# 2. expose (named tunnel, see .cloudflared/config.yml)
+cloudflared --config .cloudflared/config.yml tunnel run
+
+# 3. charge with: X-Override-Notification: https://<host>/midtrans
+
+# 4. promote the recording
+pnpm --filter @itsrose/midtrans sandbox:webhook:promote \
+  --from .webhook-inbox/000-<order>.json --name notification/transaction-card
 ```
+
+Each notification is sanitized before it is written, exactly like every other
+fixture.
 
 ### Sandbox CI
 
@@ -421,8 +433,8 @@ src/client  →  src/api  →  src/schema
 
 | Check              | Result                                                  |
 | :----------------- | :------------------------------------------------------ |
-| Sandbox fixtures   | 39 captured (38 must-pass, 1 transport-only empty body) |
-| Tests              | 11 suites / 79 tests (5 opt-in integration skipped)     |
+| Sandbox fixtures   | 40 captured (39 must-pass, 1 transport-only empty body) |
+| Tests              | 11 suites / 81 tests (5 opt-in integration skipped)     |
 | Coverage           | 94.27% statements · 89.68% branches · 86.07% functions  |
 | ESM runtime bundle | 80.3 kB (18.0 kB gzip)                                  |
 | Type declarations  | 264 kB                                                  |

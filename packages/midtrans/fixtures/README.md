@@ -96,19 +96,46 @@ and `core/charge-credit-card-3ds` (a secure charge returns `pending` plus a
 
 ### Webhooks
 
-`tools/webhook-receiver.ts` records real notifications so a genuine payload can
-be reviewed before it becomes a fixture.
+Real notifications are captured through a Cloudflare tunnel. Three steps:
 
 ```bash
-pnpm --filter @itsrose/midtrans sandbox:webhook --port 8787 --out /tmp/inbox
-ngrok http 8787   # or cloudflared tunnel --url http://localhost:8787
-# then charge with X-Override-Notification: https://<tunnel>/midtrans
+# 1. record (writes one JSON file per notification)
+pnpm --filter @itsrose/midtrans sandbox:webhook --port 8787 --prefix /midtrans \
+  --out .webhook-inbox
+
+# 2. expose it
+cloudflared --config .cloudflared/config.yml tunnel run
+# or, without a named tunnel:
+cloudflared tunnel --url http://localhost:8787
+
+# 3. charge with the override header
+#    X-Override-Notification: https://<host>/midtrans
+#    (or X-Append-Notification to keep the dashboard URL too)
 ```
 
-Capturing a real notification needs a public URL, so it stays a manual step.
-Until one is recorded, webhook parsing is validated by replaying status
-responses through `WebhookPayloadSchema` (`core/status-settled`,
-`core/charge-credit-card`).
+Then promote the recording into a fixture and register it:
+
+```bash
+pnpm --filter @itsrose/midtrans sandbox:webhook:promote \
+  --from .webhook-inbox/000-<order>.json \
+  --name notification/transaction-card
+```
+
+`notification/transaction-card` was captured this way from a real card charge
+(`capture`/`accept`). The payload confirmed two fields that were missing from the
+schemas and are now modelled:
+
+- the credit-card fields (`masked_card`, `bank`, `card_type`, `approval_code`,
+  `channel_response_code`, `channel_response_message`), which `WebhookPayloadSchema`
+  previously stripped;
+- `customer_details`, which Midtrans always sends (an empty object when there is
+  no customer data).
+
+Notifications are also still validated indirectly by replaying status responses
+(`core/status-settled`, `core/charge-credit-card`).
+
+> The `.webhook-inbox/` directory is scratch space; sanitize-and-promote rather
+> than committing raw recordings.
 
 ## Blocked on merchant configuration
 
