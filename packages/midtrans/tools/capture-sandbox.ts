@@ -1,11 +1,34 @@
-import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import {
+	existsSync as __existsSync,
+	readFileSync as __readFileSync,
+	mkdirSync,
+	writeFileSync,
+} from "node:fs";
+import {
+	dirname as __dirnameFn,
+	join as __joinFn,
+	dirname,
+	join,
+} from "node:path";
+import { fileURLToPath as __fileURLToPathFn, fileURLToPath } from "node:url";
 import { API_BASE_URL_SANDBOX, SNAP_BASE_URL_SANDBOX } from "../src/constants";
-import "./load-env";
 import { createTestCardToken } from "./card-sandbox";
 import { payVirtualAccount } from "./sandbox-simulator";
 import { sanitizeFixtureBody } from "./sanitize";
+
+const __envFile = __joinFn(
+	__dirnameFn(__fileURLToPathFn(import.meta.url)),
+	"..",
+	".env.dev"
+);
+if (__existsSync(__envFile)) {
+	for (const line of __readFileSync(__envFile, "utf8").split("\n")) {
+		const match = /^([A-Z0-9_]+)=(.*)$/.exec(line.trim());
+		if (match?.[1] && process.env[match[1]] === undefined) {
+			process.env[match[1]] = match[2];
+		}
+	}
+}
 
 const FIXTURES_DIR = fileURLToPath(new URL("../fixtures", import.meta.url));
 

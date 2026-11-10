@@ -5,14 +5,33 @@
  * pnpm --filter @itsrose/midtrans sandbox:pay <order-id>
  * ```
  */
+import {
+	existsSync as __existsSync,
+	readFileSync as __readFileSync,
+} from "node:fs";
+import { dirname as __dirnameFn, join as __joinFn } from "node:path";
+import { fileURLToPath as __fileURLToPathFn } from "node:url";
 import { MidtransClient } from "../src/client/client";
-import "./load-env";
 import {
 	payCstore,
 	payVirtualAccount,
 	type SimulatorResult,
 	type SimulatorVaBank,
 } from "./sandbox-simulator";
+
+const __envFile = __joinFn(
+	__dirnameFn(__fileURLToPathFn(import.meta.url)),
+	"..",
+	".env.dev"
+);
+if (__existsSync(__envFile)) {
+	for (const line of __readFileSync(__envFile, "utf8").split("\n")) {
+		const match = /^([A-Z0-9_]+)=(.*)$/.exec(line.trim());
+		if (match?.[1] && process.env[match[1]] === undefined) {
+			process.env[match[1]] = match[2];
+		}
+	}
+}
 
 const OPENAPI_BANKS: ReadonlySet<SimulatorVaBank> = new Set([
 	"bri",
