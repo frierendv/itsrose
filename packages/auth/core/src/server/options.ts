@@ -12,6 +12,8 @@ export function getAuthOptions(
 	env: SharedEnv & Record<string, unknown> = process.env as any
 ) {
 	const google = resolveGoogleOAuthCredentials(env);
+	const isCrossDomainOrProd =
+		env.NODE_ENV === "production" || Boolean(env.ROOT_DOMAIN);
 	return {
 		appName: env.APP_NAME ?? "ItsRose",
 		emailAndPassword: {
@@ -133,16 +135,16 @@ export function getAuthOptions(
 				joins: true,
 				generateId: "uuid",
 			},
-			useSecureCookies: env.NODE_ENV === "production",
+			useSecureCookies: isCrossDomainOrProd,
 			cookiePrefix: COOKIE_PREFIX,
 			crossSubDomainCookies: {
-				enabled: env.NODE_ENV === "production",
+				enabled: isCrossDomainOrProd,
 				// ie. "itsrose.my.id"
 				domain: env.ROOT_DOMAIN,
 			},
 			defaultCookieAttributes: {
-				sameSite: env.NODE_ENV === "production" ? "none" : "lax",
-				secure: env.NODE_ENV === "production",
+				sameSite: isCrossDomainOrProd ? "none" : "lax",
+				secure: isCrossDomainOrProd,
 				httpOnly: true,
 			},
 			trustedProxyHeaders: true,
