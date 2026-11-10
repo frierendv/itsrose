@@ -7,21 +7,9 @@
  * ngrok, …). This tool records every notification received and writes them to
  * disk so they can be reviewed, sanitized and turned into fixtures.
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type Server } from "node:http";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-
-const envDir = dirname(fileURLToPath(import.meta.url));
-const envFile = join(envDir, ".env.dev");
-if (existsSync(envFile)) {
-	for (const line of readFileSync(envFile, "utf8").split("\n")) {
-		const match = /^([A-Z0-9_]+)=(.*)$/.exec(line.trim());
-		if (match?.[1] && process.env[match[1]] === undefined) {
-			process.env[match[1]] = match[2];
-		}
-	}
-}
+import { join } from "node:path";
 
 export interface ReceivedNotification {
 	readonly path: string;
