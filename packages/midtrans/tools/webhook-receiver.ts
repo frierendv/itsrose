@@ -40,6 +40,8 @@ export interface WebhookReceiverOptions {
 	readonly outputDir?: string;
 	/** Only accept notifications whose path starts with this prefix. */
 	readonly pathPrefix?: string;
+	/** Called for every accepted notification. */
+	readonly onNotification?: (notification: ReceivedNotification) => void;
 }
 
 export interface WebhookReceiver {
@@ -80,7 +82,7 @@ function readField(body: unknown, key: string): string | undefined {
 export function startWebhookReceiver(
 	options: WebhookReceiverOptions = {}
 ): WebhookReceiver {
-	const { port = 8787, outputDir, pathPrefix } = options;
+	const { port = 8787, outputDir, pathPrefix, onNotification } = options;
 	const received: ReceivedNotification[] = [];
 	let sequence = 0;
 
@@ -118,6 +120,7 @@ export function startWebhookReceiver(
 			};
 
 			received.push(notification);
+			onNotification?.(notification);
 
 			if (outputDir) {
 				mkdirSync(outputDir, { recursive: true });
@@ -192,6 +195,13 @@ async function main(): Promise<void> {
 		port,
 		outputDir: out,
 		pathPrefix: prefix,
+		onNotification: (notification) => {
+			console.log(
+				`[${notification.receivedAt}] ${notification.path} ` +
+					`order=${notification.orderId ?? "-"} ` +
+					`status=${notification.transactionStatus ?? "-"}`
+			);
+		},
 	});
 
 	await receiver.listening;

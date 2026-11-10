@@ -1,0 +1,33 @@
+{
+	"_meta": {
+		"name": "notification/transaction-card",
+		"endpoint": "POST /midtrans",
+		"http_status": 200,
+		"captured_at": "2026-11-10T14:52:02.149Z",
+		"source": "midtrans-sandbox",
+		"sanitized": true
+	},
+	"body": {
+		"transaction_time": "2026-11-10 21:51:59",
+		"transaction_status": "capture",
+		"transaction_id": "00000000-0000-4000-8000-000000000000",
+		"status_message": "midtrans payment notification",
+		"status_code": "200",
+		"signature_key": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+		"payment_type": "credit_card",
+		"order_id": "ORDER-REDACTED",
+		"metadata": {},
+		"merchant_id": "G000000000",
+		"masked_card": "48111111-1114",
+		"gross_amount": "15000.00",
+		"fraud_status": "accept",
+		"expiry_time": "2026-11-18 21:51:59",
+		"customer_details": {},
+		"currency": "IDR",
+		"channel_response_message": "Approved",
+		"channel_response_code": "0",
+		"card_type": "credit",
+		"bank": "maybank",
+		"approval_code": "000000"
+	}
+}

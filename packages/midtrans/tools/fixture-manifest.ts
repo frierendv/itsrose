@@ -15,6 +15,7 @@ import {
 	SnapTransactionResponseSchema,
 	SubscriptionActionResponseSchema,
 	SubscriptionResponseSchema,
+	WebhookPayloadSchema,
 } from "../src/schema/index";
 
 /**
@@ -183,6 +184,13 @@ export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 	"invoice/error-not-found": {
 		schema: DefaultErrorSchema,
 		expectation: "mustPass",
+	},
+
+	// --- Notifications -----------------------------------------------------
+	"notification/transaction-card": {
+		schema: WebhookPayloadSchema,
+		expectation: "mustPass",
+		note: "captured from a real sandbox notification via the cloudflared tunnel",
 	},
 
 	// --- Subscription ------------------------------------------------------

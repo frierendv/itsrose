@@ -44,6 +44,7 @@ const STRING_PLACEHOLDERS: Readonly<Record<string, string>> = {
 	permata_va_number: "8808123456789012",
 	custom_va_number: "8808123456789012",
 	payment_code: "1234567890",
+	approval_code: "000000",
 	bill_key: "123456789012",
 	qr_string: "QRIS-REDACTED",
 	payment_link_id: "payment-link-redacted",
