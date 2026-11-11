@@ -1,0 +1,32 @@
+title = "Gitleaks config for ItsRose"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Repository allowlist for demo tokens, test dummies, public upstream keys and historical test fixtures"
+paths = [
+  '''apps/web/components/landing/code-showcase\.tsx''',
+  '''packages/features/instagram/src/scraping/savefrom/request-signer\.ts''',
+  '''packages/midtrans/__tests__/.*'''
+]
+commits = [
+  "8f5d1d0ade0150737187a2c7e32ebcab157daceb"
+]
+regexes = [
+  '''SB-Mid-server-[a-z\-]+test''',
+  '''SB-Mid-client-[a-z\-]+test''',
+  '''SB-Mid-server-from-env'''
+]
+
+[[rules]]
+id = "midtrans-server-key"
+description = "Midtrans Server Key (Production or Sandbox)"
+regex = '''(?i)(SB-Mid-server-[a-zA-Z0-9_\-]{20,}|Mid-server-[a-zA-Z0-9_\-]{20,})'''
+keywords = ["mid-server-", "sb-mid-server-"]
+
+[[rules]]
+id = "midtrans-client-key"
+description = "Midtrans Client Key (Production or Sandbox)"
+regex = '''(?i)(SB-Mid-client-[a-zA-Z0-9_\-]{20,}|Mid-client-[a-zA-Z0-9_\-]{20,})'''
+keywords = ["mid-client-", "sb-mid-client-"]

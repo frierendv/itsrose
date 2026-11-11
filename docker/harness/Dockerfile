@@ -28,6 +28,17 @@ RUN set -eux; \
 	apt-get install -y --no-install-recommends \
 	bubblewrap cloudflared gh libatomic1 python3 rsync ripgrep build-essential procps \
 	tree; \
+	# Install Gitleaks
+	GITLEAKS_VERSION="8.30.1"; \
+	ARCH="$(dpkg --print-architecture)"; \
+	case "${ARCH}" in \
+		amd64) GITLEAKS_ARCH="x64" ;; \
+		arm64) GITLEAKS_ARCH="arm64" ;; \
+		*) echo "Unsupported architecture for gitleaks: ${ARCH}" >&2; exit 1 ;; \
+	esac; \
+	curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${GITLEAKS_ARCH}.tar.gz" \
+	| tar -xz -C /usr/local/bin gitleaks; \
+	chmod 0755 /usr/local/bin/gitleaks; \
 	rm -rf /var/lib/apt/lists/*
 
 # Workspace plus an unprivileged state dir. Both are chowned so the drop-privileges

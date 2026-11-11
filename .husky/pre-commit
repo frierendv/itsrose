@@ -1,1 +1,8 @@
+if command -v gitleaks >/dev/null 2>&1; then
+	gitleaks protect --staged --verbose
+else
+	echo "Warning: gitleaks is not installed on your system." >&2
+	echo "Install gitleaks (https://github.com/gitleaks/gitleaks) to scan for secrets before committing." >&2
+fi
+
 npm run lint-staged
