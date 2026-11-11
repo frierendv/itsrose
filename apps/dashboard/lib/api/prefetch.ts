@@ -1,8 +1,34 @@
 import { billingQueryKeys } from "@/features/billing/query-keys";
 import { authClient } from "@/lib/auth";
-import type { QueryClient } from "@tanstack/react-query";
+import {
+	noop,
+	type DefaultError,
+	type QueryClient,
+	type QueryExecuteOptions,
+	type QueryKey,
+} from "@tanstack/react-query";
 import { headers } from "next/headers";
 import { withAuthQuery } from "./with-auth-query";
+
+function createPrefetchQueryFn(queryClient: QueryClient) {
+	return <
+		TQueryFnData,
+		TError = DefaultError,
+		TData = TQueryFnData,
+		TQueryData = TQueryFnData,
+		TQueryKey extends QueryKey = QueryKey,
+		TPageParam = never,
+	>(
+		options: QueryExecuteOptions<
+			TQueryFnData,
+			TError,
+			TData,
+			TQueryData,
+			TQueryKey,
+			TPageParam
+		>
+	) => queryClient.query(options).then(noop).catch(noop);
+}
 
 /**
  * Prefetches the customer billing surface server-side so pages hydrate with
@@ -14,8 +40,10 @@ export async function prefetchBillingQueries(
 ): Promise<void> {
 	const fetchOptions = { headers: await headers() };
 
+	const prefetchQuery = createPrefetchQueryFn(queryClient);
+
 	const results = await Promise.allSettled([
-		queryClient.prefetchQuery({
+		prefetchQuery({
 			queryKey: billingQueryKeys.subscription(),
 			queryFn: () =>
 				withAuthQuery(
@@ -26,13 +54,13 @@ export async function prefetchBillingQueries(
 				),
 			staleTime: 30_000,
 		}),
-		queryClient.prefetchQuery({
+		prefetchQuery({
 			queryKey: billingQueryKeys.plans(),
 			queryFn: () =>
 				withAuthQuery(authClient.itsrose.plan.list({ fetchOptions })),
 			staleTime: 60 * 60_000,
 		}),
-		queryClient.prefetchQuery({
+		prefetchQuery({
 			queryKey: billingQueryKeys.invoices(),
 			queryFn: () =>
 				withAuthQuery(
