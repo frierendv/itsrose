@@ -42,9 +42,9 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@better-auth/api-key": "^1.7.18",
-		"@better-auth/infra": "^0.4.27",
-		"@better-auth/passkey": "^1.7.18",
+		"@better-auth/api-key": "^1.7.19",
+		"@better-auth/infra": "^0.4.28",
+		"@better-auth/passkey": "^1.7.19",
 		"@itsrose/auth-billing": "workspace:*",
 		"@itsrose/auth-mailer": "workspace:*",
 		"@itsrose/auth-storage": "workspace:*",
@@ -58,7 +58,7 @@
 		"@types/jest": "^30.0.0",
 		"@types/node": "catalog:",
 		"@types/pg": "^8.23.1",
-		"dotenv": "^18.0.9"
+		"dotenv": "^18.0.10"
 	},
 	"publishConfig": {
 		"exports": {

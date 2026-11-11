@@ -39,7 +39,7 @@
 		"@itsrose/tiktok": "workspace:*",
 		"@ngrok/ngrok": "^1.7.0",
 		"close-with-grace": "^2.5.0",
-		"dotenv": "^18.0.9",
+		"dotenv": "^18.0.10",
 		"fastify": "^5.12.8",
 		"fastify-plugin": "^6.0.1",
 		"fastify-zod-openapi": "^5.7.0",
@@ -47,7 +47,7 @@
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*",
-		"@scalar/fastify-api-reference": "^1.77.0",
+		"@scalar/fastify-api-reference": "^1.78.0",
 		"@types/ws": "^8.18.2",
 		"openapi-types": "^12.1.3"
 	}

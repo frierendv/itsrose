@@ -50,7 +50,7 @@
 	"dependencies": {
 		"@better-auth-ui/heroui": "^1.7.33",
 		"@eusend_dev/sdk": "^0.19.0",
-		"@react-email/render": "^2.2.0",
+		"@react-email/render": "^2.3.1",
 		"better-auth": "catalog:",
 		"react": "catalog:"
 	},

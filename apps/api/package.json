@@ -23,7 +23,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@better-auth/redis-storage": "^1.7.18",
+		"@better-auth/redis-storage": "^1.7.19",
 		"@fastify/autoload": "^6.5.1",
 		"@fastify/cors": "^11.4.1",
 		"@fastify/helmet": "^13.2.0",
@@ -48,7 +48,7 @@
 		"@itsrose/tiktok": "workspace:*",
 		"better-auth": "catalog:",
 		"close-with-grace": "^2.5.0",
-		"dotenv": "^18.0.9",
+		"dotenv": "^18.0.10",
 		"fastify": "^5.12.8",
 		"fastify-ip": "^2.0.0",
 		"fastify-plugin": "^6.0.1",
@@ -59,7 +59,7 @@
 	"devDependencies": {
 		"@itsrose/http-code": "workspace:*",
 		"@itsrose/standard": "workspace:*",
-		"@scalar/fastify-api-reference": "^1.77.0",
+		"@scalar/fastify-api-reference": "^1.78.0",
 		"@types/ws": "^8.18.2",
 		"openapi-types": "^12.1.3"
 	}
