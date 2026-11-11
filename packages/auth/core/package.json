@@ -51,17 +51,13 @@
 		"@itsrose/auth-usage": "workspace:*",
 		"@itsrose/system": "workspace:*",
 		"better-auth": "catalog:",
-		"pg": "^8.23.1",
-		"react": "catalog:",
-		"react-dom": "catalog:"
+		"pg": "^8.23.1"
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*",
 		"@types/jest": "^30.0.0",
 		"@types/node": "catalog:",
 		"@types/pg": "^8.23.1",
-		"@types/react": "catalog:",
-		"@types/react-dom": "catalog:",
 		"dotenv": "^18.0.9"
 	},
 	"publishConfig": {
