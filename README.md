@@ -1,9 +1,9 @@
 # ItsRose Platform
 
-[![CI](https://git.itsrose.my.id/itsrose/itsrose/actions/workflows/ci.yml/badge.svg)](https://git.itsrose.my.id/itsrose/itsrose/actions?workflow=ci.yml)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D24.0.0-brightgreen.svg)](https://nodejs.org/)
+[![CI](https://github.com/frierendv/itsrose/actions/workflows/ci.yml/badge.svg)](https://github.com/frierendv/itsrose/actions?workflow=ci.yml)
+[![Node.js Version](https://img.shields.io/badge/node-%E2%89%A524-brightgreen.svg?logo=node.js)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Turbo](https://img.shields.io/badge/powered%20by-Turborepo-ef4444.svg)](https://turbo.build/repo)
+[![Turbo](https://img.shields.io/badge/powered%20by-Turborepo-ef4444.svg)](https://turborepo.dev)
 
 **ItsRose** is a high-performance, modular platform and API gateway built for building, deploying, and managing AI-powered applications and services.
 
