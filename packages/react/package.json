@@ -40,7 +40,7 @@
 	},
 	"peerDependencies": {
 		"@heroui/react": "^3.2.7",
-		"motion": "^14.10.1",
+		"motion": "^14.12.0",
 		"react": "catalog:",
 		"react-dom": "catalog:",
 		"tailwindcss": "^4.3.5"
@@ -53,13 +53,13 @@
 	"dependencies": {
 		"@react-aria/overlays": "^3.32.1",
 		"@react-stately/utils": "^3.12.1",
-		"tailwind-variants": "^4.0.1"
+		"tailwind-variants": "^4.0.2"
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
-		"motion": "^14.10.1",
+		"motion": "^14.12.0",
 		"react": "catalog:",
 		"react-dom": "catalog:",
 		"tailwindcss": "^4.3.5"

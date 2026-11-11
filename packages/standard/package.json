@@ -26,7 +26,7 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
-		"@vitejs/plugin-react": "^6.2.1",
+		"@vitejs/plugin-react": "^6.3.0",
 		"babel-plugin-react-compiler": "^1.0.0",
 		"eslint": "^10.14.0",
 		"eslint-config-flat-gitignore": "^2.4.0",
@@ -37,7 +37,7 @@
 		"sonda": "^0.14.0",
 		"tsdown": "^0.23.7",
 		"typescript": "catalog:",
-		"typescript-eslint": "^8.72.1",
+		"typescript-eslint": "^8.72.2",
 		"unplugin-macros": "^0.23.4",
 		"unplugin-preprocessor-directives": "^1.2.0",
 		"unplugin-purge-polyfills": "^0.1.0",
