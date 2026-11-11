@@ -19,13 +19,13 @@ import {
 	type SimulatorVaBank,
 } from "./sandbox-simulator";
 
-const __envFile = __joinFn(
+const envFile = __joinFn(
 	__dirnameFn(__fileURLToPathFn(import.meta.url)),
 	"..",
 	".env.dev"
 );
-if (__existsSync(__envFile)) {
-	for (const line of __readFileSync(__envFile, "utf8").split("\n")) {
+if (__existsSync(envFile)) {
+	for (const line of __readFileSync(envFile, "utf8").split("\n")) {
 		const match = /^([A-Z0-9_]+)=(.*)$/.exec(line.trim());
 		if (match?.[1] && process.env[match[1]] === undefined) {
 			process.env[match[1]] = match[2];

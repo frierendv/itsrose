@@ -10,8 +10,7 @@ import {
 	PaymentChannels,
 	TransactionDetailsSchema,
 } from "../primitives";
-import { SnapSendEmailSchema } from "./shared";
-import { SnapRecurringSchema } from "./shared/snap-recurring";
+import { SnapRecurringSchema, SnapSendEmailSchema } from "./shared";
 
 const SnapVaSchema = z.object({
 	va_number: z.string().max(30).optional(),

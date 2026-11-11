@@ -37,11 +37,3 @@ export const AddressSchema = z
 	});
 
 export type Address = z.infer<typeof AddressSchema>;
-
-/** @deprecated Use {@link AddressSchema}. */
-export const BillingAddressSchema = AddressSchema;
-/** @deprecated Use {@link AddressSchema}. */
-export const ShippingAddressSchema = AddressSchema;
-
-export type BillingAddress = Address;
-export type ShippingAddress = Address;
