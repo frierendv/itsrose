@@ -2,9 +2,9 @@
 
 |                 |                                                                                 |
 | :-------------- | :------------------------------------------------------------------------------ |
-| Status          | Phases 0–5 complete (v2.0.0 ready for review)                                   |
+| Status          | Phases 0–6 & Schema Modernization complete (v2.0.0 ready for review)            |
 | Scope           | `packages/midtrans`                                                             |
-| Date            | 2026-11-09                                                                      |
+| Date            | 2026-11-11                                                                      |
 | Evidence        | 5 sandbox probe rounds, 60+ real API calls against `packages/midtrans/.env.dev` |
 | Hard constraint | The public `MidtransClient` surface in `src/client/client.ts` must not change   |
 
@@ -70,6 +70,20 @@
 > structures; `core`, `snap`, `payment-link`, `invoice`, `subscription`, and
 > `notification` now follow a consistent, symmetrical layout. All 138 exported
 > symbols and 40 fixtures remain 100% verified.
+>
+> **Tooling Test Coverage (2026-11-11):** Added comprehensive unit test suites
+> for sandbox automation tools: `__tests__/unit/card-sandbox.test.ts`
+> (card tokenization/charge flows), `__tests__/unit/sandbox-simulator.test.ts`
+> (VA and Alfamart payment simulation), and restored `__tests__/unit/webhook-receiver.test.ts`
+> with graceful server shutdown and timeout handling. Jest suite grew to 11 passing
+> suites and 89 tests.
+>
+> **Deprecated Aliases & Payment Refinement (2026-11-11):** Purged obsolete v1
+> aliases (`SharedClient`, `ResponseTransaction*`, `BillingAddress*`, `ShippingAddress*`,
+> `SnapExpiry*`, `PaymentLinkDetail`, `ItemDetailsBCAKlickPayExclusive`, and internal
+> `Payment` aliases). Made `PaymentLink.create<T>` generic to strongly type
+> `qr_url` when `other_qris` is selected. Added `GopayPaymentProviderMetadataSchema`
+> and made optional channel parameters explicit across GoPay, OVO, and QRIS.
 
 ---
 
@@ -381,19 +395,20 @@ packages/midtrans/
 │  │  └─ invoice.ts
 │  ├─ schema/
 │  │  ├─ index.ts
-│  │  ├─ primitives/                # amount, datetime, status, payment-channel, expiry,
-│  │  │                             # metadata, address, customer, item, callbacks, actions
-│  │  ├─ core/{charge-request,transaction-response,lifecycle,status-b2b,subscription}.ts
-│  │  ├─ snap/{transaction-request,transaction-response,preference-request,preference-response}.ts
-│  │  ├─ payment-link/{create-request,create-response,detail-response,delete-response}.ts
-│  │  ├─ invoice/{create-request,response,notification}.ts
-│  │  ├─ notification/{transaction}.ts
-│  │  └─ error/{api-error,core,default,unauthorized}.ts
+│  │  ├─ primitives/                # address, callbacks, channels, customer, custom-fields,
+│  │  │                             # expiry, item, metadata, transaction
+│  │  ├─ core/                      # request.ts, response.ts, channels/{bank-transfer,credit-card,cstore,ewallet}.ts
+│  │  ├─ snap/                      # request.ts, response.ts, shared.ts
+│  │  ├─ payment-link/              # request.ts, response.ts, shared.ts
+│  │  ├─ invoice/                   # request.ts, response.ts, shared.ts, webhook.ts
+│  │  ├─ subscription/              # request.ts, response.ts, schedule.ts
+│  │  ├─ notification/              # transaction.ts
+│  │  └─ error/                     # api-error, core, default, status, subscription, unauthorized
 │  ├─ helper/{status,signature,order-id}.ts
 │  ├─ constants.ts                  # URLs + limits only
 │  └─ env.ts                        # env keys only (single source of truth)
 ├─ fixtures/                        # sanitized, committed sandbox responses + README
-├─ tools/{capture-sandbox.ts,sanitize.ts,verify-fixtures.ts}
+├─ tools/{capture-sandbox.ts,card-sandbox.ts,pay-sandbox.ts,promote-notification.ts,sanitize.ts,verify-fixtures.ts,webhook-receiver.ts}
 ├─ __tests__/{unit,contract}/…
 ├─ .env.example
 └─ README.md
@@ -480,8 +495,9 @@ existing auth-billing adapter.
 - Payment vocabulary consolidated into `primitives/payment-channel.ts`:
   `PaymentTypeSchema` (core `payment_type`), `SnapPaymentMethodSchema`, `BankCodeSchema`, `VaBankSchema`,
   `EwalletSchema`, `CstoreSchema`, `CardlessSchema`.
-- Deprecated aliases (one minor cycle) for: `Address`, `Callbacks`, `ItemDetails`, `CustomerDetails`,
-  `TransactionDetails`, `Metadata`, `CustomFields`, `PaymentChannels`, `ExpirySchema`, `TransactionStatusSchema`.
+- Deprecated aliases retained in v2.0.0 are restricted to `WebhookPayload`, `PaymentLinkExpiry`, and `HttpStatus`.
+  All other redundant v1 aliases (`ResponseTransaction*`, `BillingAddress*`, `ShippingAddress*`, `SnapExpiry*`,
+  `PaymentLinkDetail`, `ItemDetailsBCAKlickPayExclusive`, `SharedClient`, etc.) were cleanly removed.
 
 ### 5.6 Config & environment resolution
 
@@ -523,32 +539,34 @@ resolveClientOptions(opts): {
 
 ## 7. Phased execution plan
 
-| Phase                                   | Goal                                            | Key work                                                                                                                                                                                                                | Exit criteria                                                                                                                         |
-| :-------------------------------------- | :---------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
-| **0. Guardrails** (0.5–1 d)             | Freeze contract, make drift visible             | client-surface snapshot test; `fixtures/` + capture/sanitize/verify tools; `.env.example`; remove `@opentf/obj-diff`; baseline numbers in README                                                                        | Surface test fails on any client member edit; `fixtures:verify` runs offline                                                          |
-| **1. Restructure** (1–1.5 d)            | Remove duplication & cycles, no behavior change | introduce `ClientContext` + `BaseService`, internalize symbols, export `MidtransMerchant`, merge `common`→`shared` (one family), delete dead code (P1-2/3), fix barrels (P1-4/5), collapse `constants`/`env` duplicates | `tsc`/lint/tests green; surface test unchanged; schema barrel exports every public schema once                                        |
-| **2. Transport & errors** (1 d)         | Fix runtime correctness                         | explicit business-success whitelist; non-throwing `normalizeError`; model 401/empty/subscription shapes; tests for 200/201/407/404/412/empty                                                                            | `expire()` → `ok:true`; `status()` after expiry → `ok:true`; `approve()` → structured error                                           |
-| **3. Schema rewrite** (2–3 d)           | Make schemas match reality                      | 3a core transactions (+channels) · 3b errors/notification · 3c snap preferences · 3d payment link · 3e invoice (incl. `virtual_accounts`, dates) · 3f subscription; each with fixtures + contract tests                 | 100% fixtures parse; payment-specific fields narrow correctly                                                                         |
-| **4. API typing** (1–1.5 d)             | Real request/response types                     | request schemas per endpoint; remove `NarrowInput`/`MergeWithSchema` generics; typed `capture`/`statusB2B`/subscription; `refund` overloads; `RequestOptions.signal`; `ClientOptions` validation                        | `client.invoice.create(payload)` typechecks without `as never`; `snap.create` accepts array + all channels; `data.va_numbers` narrows |
-| **5. Docs, tests, perf, release** (1 d) | Ship confidently                                | README + method tables + webhook example; coverage target; bundle/import measurements; `sideEffects:false`; v2 migration notes                                                                                          | `lint`/`format`/`build`/`typecheck`/`test --coverage` green; docs reviewed                                                            |
+| Phase                                        | Goal                                            | Key work                                                                                                                                                                                                                | Exit criteria                                                                                                                         |
+| :------------------------------------------- | :---------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
+| **0. Guardrails** (0.5–1 d)                  | Freeze contract, make drift visible             | client-surface snapshot test; `fixtures/` + capture/sanitize/verify tools; `.env.example`; remove `@opentf/obj-diff`; baseline numbers in README                                                                        | Surface test fails on any client member edit; `fixtures:verify` runs offline                                                          |
+| **1. Restructure** (1–1.5 d)                 | Remove duplication & cycles, no behavior change | introduce `ClientContext` + `BaseService`, internalize symbols, export `MidtransMerchant`, merge `common`→`shared` (one family), delete dead code (P1-2/3), fix barrels (P1-4/5), collapse `constants`/`env` duplicates | `tsc`/lint/tests green; surface test unchanged; schema barrel exports every public schema once                                        |
+| **2. Transport & errors** (1 d)              | Fix runtime correctness                         | explicit business-success whitelist; non-throwing `normalizeError`; model 401/empty/subscription shapes; tests for 200/201/407/404/412/empty                                                                            | `expire()` → `ok:true`; `status()` after expiry → `ok:true`; `approve()` → structured error                                           |
+| **3. Schema rewrite** (2–3 d)                | Make schemas match reality                      | 3a core transactions (+channels) · 3b errors/notification · 3c snap preferences · 3d payment link · 3e invoice (incl. `virtual_accounts`, dates) · 3f subscription; each with fixtures + contract tests                 | 100% fixtures parse; payment-specific fields narrow correctly                                                                         |
+| **4. API typing** (1–1.5 d)                  | Real request/response types                     | request schemas per endpoint; remove `NarrowInput`/`MergeWithSchema` generics; typed `capture`/`statusB2B`/subscription; `refund` overloads; `RequestOptions.signal`; `ClientOptions` validation                        | `client.invoice.create(payload)` typechecks without `as never`; `snap.create` accepts array + all channels; `data.va_numbers` narrows |
+| **5. Docs, tests, perf, release** (1 d)      | Ship confidently                                | README + method tables + webhook example; coverage target; bundle/import measurements; `sideEffects:false`; v2 migration notes                                                                                          | `lint`/`format`/`build`/`typecheck`/`test --coverage` green; docs reviewed                                                            |
+| **6. Paid paths & tools** (1 d)              | Paid transaction & notification coverage        | `card-sandbox.ts` tokenization, `webhook-receiver.ts`, capture card & settled fixtures (39 fixtures total), workflow drift check                                                                                        | 38 must-pass fixtures parse; card/settlement webhooks verified                                                                        |
+| **7. Schema reorganization & cleanup** (1 d) | Modular architecture & hygiene                  | Collapse 79 files across 16 folders to 26 flat modules; eliminate `helper.ts` (265 LOC); add tool unit tests; prune obsolete v1 aliases (`SharedClient`, `ResponseTransaction*`, etc.); refine e-wallet/link generics   | 11 Jest suites / 89 tests pass; 0 unused aliases; clean module boundaries                                                             |
 
-Ordering is strict `0 → 1 → 2 → 3 → 4 → 5`; phase 3 sub-steps can be parallelized per API surface but each must land
-with its fixture test. Estimated total: **7–9 engineer-days**.
+Ordering is strict `0 → 1 → 2 → 3 → 4 → 5 → 6 → 7`. Estimated total: **8–10 engineer-days**.
 
 ---
 
 ## 8. Testing strategy
 
-| Layer            | What                                                                                                                | Where                                   |
-| :--------------- | :------------------------------------------------------------------------------------------------------------------ | :-------------------------------------- |
-| Unit — surface   | client/service/merchant member snapshot, method arities, enumerable keys                                            | `__tests__/unit/client-surface.test.ts` |
-| Unit — options   | env precedence matrix, custom URLs, missing server key, `development` mapping                                       | `__tests__/unit/options.test.ts`        |
-| Unit — transport | auth header only for Midtrans hosts, success whitelist (200/201/202/407), failure mapping, retry config passthrough | `__tests__/unit/transport.test.ts`      |
-| Unit — errors    | all 6 error shapes incl. empty body, string body, unauthorized, subscription 400                                    | `__tests__/unit/error.test.ts`          |
-| Unit — helpers   | status predicates, signature (synthetic key), order-id format/collision charset                                     | `__tests__/unit/helpers.test.ts`        |
-| Contract         | every fixture × exactly one schema, offline                                                                         | `__tests__/contract/fixtures.test.ts`   |
-| Integration      | opt-in (`MIDTRANS_INTEGRATION=1`) real sandbox round-trip, skipped by default                                       | `__tests__/integration/sandbox.test.ts` |
-| Type-level       | compile-only assertions for valid/invalid payloads (charged payloads, snap channels, invoice)                       | `__tests__/types/*.ts`                  |
+| Layer            | What                                                                                                                | Where                                                                      |
+| :--------------- | :------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------- |
+| Unit — surface   | client/service/merchant member snapshot, method arities, enumerable keys                                            | `__tests__/unit/client-surface.test.ts`                                    |
+| Unit — options   | env precedence matrix, custom URLs, missing server key, `development` mapping                                       | `__tests__/unit/options.test.ts`                                           |
+| Unit — transport | auth header only for Midtrans hosts, success whitelist (200/201/202/407), failure mapping, retry config passthrough | `__tests__/unit/transport.test.ts`                                         |
+| Unit — errors    | all 6 error shapes incl. empty body, string body, unauthorized, subscription 400                                    | `__tests__/unit/error.test.ts`                                             |
+| Unit — helpers   | status predicates, signature (synthetic key), order-id format/collision charset                                     | `__tests__/unit/helpers.test.ts`                                           |
+| Unit — sandbox   | card tokenization, VA/store simulation, webhook receiver lifecycle & shutdown                                       | `__tests__/unit/{card-sandbox,sandbox-simulator,webhook-receiver}.test.ts` |
+| Contract         | every fixture × exactly one schema, offline                                                                         | `__tests__/contract/fixtures.test.ts`                                      |
+| Integration      | opt-in (`MIDTRANS_INTEGRATION=1`) real sandbox round-trip, skipped by default                                       | `__tests__/integration/sandbox.test.ts`                                    |
+| Type-level       | compile-only assertions for valid/invalid payloads (charged payloads, snap channels, invoice)                       | `__tests__/types/*.ts`                                                     |
 
 Coverage policy:
 
@@ -574,7 +592,8 @@ Coverage policy:
 - Version: **`@itsrose/midtrans@2.0.0`** (schema names/semantics and service constructors change; client surface does not).
 - Keep names used by in-repo consumers: `MidtransClient`, `ClientOptions`, `errorHandler`, `InvoiceWebhookSchema`,
   `WebhookPayload`, `InvoiceRequest`, `InvoiceResponse`.
-- Deprecated aliases for one minor cycle: old `common/*` names and `HttpStatus`; remove in v3.
+- Deprecated aliases retained in v2: `WebhookPayload`, `PaymentLinkExpiry`, and `HttpStatus`.
+  All other redundant v1 aliases were cleanly removed.
 - Update `packages/auth/billing/src/adapter/midtrans-gateway.ts` to drop `payload as never` once
   `NarrowInput` is removed (the adapter's `InvoiceCreatePayload` should be structurally assignable).
 - Never edit `package.json` `exports` by hand: add `tsdown` entries and run the package build.

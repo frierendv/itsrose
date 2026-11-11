@@ -59,31 +59,43 @@ if (result.error) {
 The `schema/common` family was merged into `schema/primitives`. Schema values now
 end with `Schema`; their inferred types keep the short name.
 
-| v1 value                                       | v2 value                            |
-| :--------------------------------------------- | :---------------------------------- |
-| `Address`                                      | `AddressSchema`                     |
-| `Callbacks`                                    | `CallbacksSchema`                   |
-| `CustomExpiry`                                 | `CustomExpirySchema`                |
-| `SnapExpiry` / `ExpirySchema`                  | `SnapExpirySchema` / `ExpirySchema` |
-| `CustomerDetails` (loose)                      | `CustomerDetailsSchema` (strict)    |
-| `ItemDetails`                                  | `ItemDetailsSchema`                 |
-| `Metadata`                                     | `MetadataSchema`                    |
-| `CustomFields`                                 | `CustomFieldsSchema`                |
-| `TimestampFields`                              | `TimestampFieldsSchema`             |
-| `TransactionDetails`                           | `TransactionDetailsSchema`          |
-| `BaseTransactionResult`                        | `BaseTransactionResultSchema`       |
-| `VaNumber` / `PaymentAction` / `PaymentAmount` | `…Schema`                           |
-| `PaymentChannelBankSchema` (internal)          | `BankCodeSchema`                    |
-| `PaymentChannelBankVaSchema`                   | `VaBankSchema`                      |
-| `PaymentChannelOverTheCounterSchema`           | `CstoreStoreSchema`                 |
-| `ResponseTransactionSchema`                    | `CoreTransactionResponseSchema`     |
-| `PaymentLinkDetailResponse` (schema)           | `PaymentLinkDetailResponseSchema`   |
-| `WebhookPayload` (schema)                      | `WebhookPayloadSchema`              |
+| v1 value                                       | v2 value                          |
+| :--------------------------------------------- | :-------------------------------- |
+| `Address`                                      | `AddressSchema`                   |
+| `Callbacks`                                    | `CallbacksSchema`                 |
+| `CustomExpiry`                                 | `CustomExpirySchema`              |
+| `SnapExpiry` / `ExpirySchema`                  | `ExpirySchema`                    |
+| `CustomerDetails` (loose)                      | `CustomerDetailsSchema` (strict)  |
+| `ItemDetails`                                  | `ItemDetailsSchema`               |
+| `Metadata`                                     | `MetadataSchema`                  |
+| `CustomFields`                                 | `CustomFieldsSchema`              |
+| `TimestampFields`                              | `TimestampFieldsSchema`           |
+| `TransactionDetails`                           | `TransactionDetailsSchema`        |
+| `BaseTransactionResult`                        | `BaseTransactionResultSchema`     |
+| `VaNumber` / `PaymentAction` / `PaymentAmount` | `…Schema`                         |
+| `PaymentChannelBankSchema` (internal)          | `BankCodeSchema`                  |
+| `PaymentChannelBankVaSchema`                   | `VaBankSchema`                    |
+| `PaymentChannelOverTheCounterSchema`           | `CstoreStoreSchema`               |
+| `ResponseTransactionSchema`                    | `CoreTransactionResponseSchema`   |
+| `PaymentLinkDetailResponse` (schema)           | `PaymentLinkDetailResponseSchema` |
+| `WebhookPayload` (schema)                      | `WebhookPayloadSchema`            |
 
-Kept as deprecated aliases: `ResponseTransactionSchema`,
-`ResponseTransactionBaseSchema`, `ResponseTransactionTypeFieldsSchema`,
-`WebhookPayload`, `PaymentLinkExpiry`, `PaymentLinkDetail`,
-`ItemDetailsBCAKlikPayExclusive` and `HttpStatus`.
+Kept as deprecated aliases for backwards compatibility:
+
+- `WebhookPayload` (alias of `WebhookPayloadSchema`)
+- `PaymentLinkExpiry` (alias of `PaymentLinkExpirySchema`)
+- `HttpStatus` (in `@itsrose/midtrans/schema`)
+
+The following deprecated aliases and redundant typings were removed in v2:
+
+- `ResponseTransactionSchema`, `ResponseTransactionBaseSchema`, `ResponseTransactionTypeFieldsSchema` (use `CoreTransactionResponseSchema` and `CoreChargeResponseSchema`).
+- `BillingAddressSchema`, `ShippingAddressSchema`, `BillingAddress`, `ShippingAddress` (use `AddressSchema` / `Address`).
+- `SnapExpirySchema`, `SnapExpiry` (use `ExpirySchema` / `Expiry`).
+- `PaymentLinkDetail` (use `PaymentLinkDetailResponse`).
+- `ItemDetailsBCAKlickPayExclusive` (use `ItemDetailsBCAKlikPayExclusiveSchema`).
+- `CoreDirectRefundRequestSchema` (use `CorePaymentRefundRequestSchema`).
+- `SharedClient` (use `BaseService`).
+- Local response/request type aliases in `Payment` service (`CorePaymentChargeResponse`, `ChargeResponse`, `CaptureRequest`, `CaptureResponse`, `StatusResponse`, `CancelResponse`, `ExpireResponse`, `RefundRequest`, `RefundResponse`, `DirectRefundRequest`, `StatusB2BResponse`) in favor of canonical types from `@itsrose/midtrans/schema`.
 
 Removed from `@itsrose/midtrans/typings`: `Prettify`, `NarrowSchemaInput` and
 `DeepRequired`. `DeepPartial` is still exported.
@@ -109,6 +121,9 @@ Removed from `@itsrose/midtrans/typings`: `Prettify`, `NarrowSchemaInput` and
   `SubscriptionUpdateRequest`; `disable`/`enable`/`cancel` return
   `SubscriptionActionResponse`.
 - `snap.updatePreferences` takes the `SnapPreference` request schema.
+- `paymentLink.create<T>(body)` is now generic over `T extends PaymentLinkRequest`.
+- `core.payment.charge` GoPay requests support `payment_provider_metadata` (`recurring_parent_order`, `recurring_sequence`) for tokenization and recurring subscriptions (`GopayPaymentProviderMetadataSchema`).
+- E-wallet parameters (`GopayFieldsSchema`, `OvoFieldsSchema.payer_phone_number`) and `qris` channel overrides in `PaymentTypeFieldsSchema` are now optional per live API specs.
 - `RequestOptions.signal` was added for request cancellation.
 
 ## Responses
@@ -120,9 +135,10 @@ Removed from `@itsrose/midtrans/typings`: `Prettify`, `NarrowSchemaInput` and
 - `fraud_status` now includes `challenge`.
 - `statusB2B` returns a typed `{ status_code, status_message, transactions }`
   object.
-- Payment Link create returns `{ order_id, payment_url, qr_url }`; the detail
-  response is an explicit schema (`customer_details`/`metadata` nullish,
-  `item_id` nullable, plural expiry units).
+- Payment Link create returns `{ order_id, payment_url, qr_url }`; the return
+  type `PaymentLinkResponse<T>` automatically narrows `qr_url` as required (`string`)
+  when `enabled_payments` contains `"other_qris"`. The detail response is an explicit
+  schema (`customer_details`/`metadata` nullish, `item_id` nullable, plural expiry units).
 - Snap preferences: `allow_retry` can be `null`, channels use
   `{ name, enabled }`, and `customer_imposed_payment_fee.payment_fee_configs` is
   an array.
@@ -143,7 +159,7 @@ Removed from `@itsrose/midtrans/typings`: `Prettify`, `NarrowSchemaInput` and
 
 - `SHARED_CLIENT` and `SHARED_HTTP_CLIENT` are no longer exported.
 - `BaseService` replaces the previous `SharedClient` base class; `SharedClient`
-  remains as a deprecated alias.
+  has been completely removed.
 - Services are constructed with a `ClientContext` instead of a
   `MidtransClient` (only relevant if you instantiate services directly).
 
