@@ -81,8 +81,3 @@ export abstract class BaseService<TError = MidtransApiError> {
 		return config;
 	}
 }
-
-/**
- * @deprecated Use {@link BaseService}. Kept as an alias for existing imports.
- */
-export { BaseService as SharedClient };

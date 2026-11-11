@@ -13,14 +13,19 @@ export const PaymentLinkResponse = z
 	.object({
 		order_id: z.string(),
 		payment_url: z.url(),
-		/** QR code image URL for the payment link. */
+		/** QRIS image URL. Available if `other_qris` in `enabled_payments`. */
 		qr_url: z.url().optional(),
 	})
 	.meta({
 		id: "MidtransPaymentLinkResponse",
 	});
 
-export type PaymentLinkResponse = z.infer<typeof PaymentLinkResponse>;
+export type PaymentLinkResponse<T = {}> = z.infer<typeof PaymentLinkResponse> &
+	(T extends { enabled_payments: (infer Element)[] }
+		? Extract<Element, "other_qris"> extends never
+			? {}
+			: { qr_url: string }
+		: {});
 
 /* ----------------------------- Delete Response ---------------------------- */
 
@@ -290,6 +295,3 @@ export const PaymentLinkDetailResponseSchema = z
 export type PaymentLinkDetailResponse = z.infer<
 	typeof PaymentLinkDetailResponseSchema
 >;
-
-/** @deprecated Use {@link PaymentLinkDetailResponse}. */
-export type PaymentLinkDetail = PaymentLinkDetailResponse;

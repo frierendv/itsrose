@@ -19,11 +19,11 @@ export class PaymentLink extends BaseService {
 	 * `POST /v1/payment-links`
 	 * @see https://docs.midtrans.com/reference/create-payment-link
 	 */
-	public create(
-		body: PaymentLinkRequest,
+	public create<T extends PaymentLinkRequest>(
+		body: T,
 		opts?: RequestOptions
-	): HttpPromise<PaymentLinkResponse, MidtransApiError> {
-		return this.http.post<PaymentLinkResponse>(
+	): HttpPromise<PaymentLinkResponse<T>, MidtransApiError> {
+		return this.http.post<PaymentLinkResponse<T>>(
 			"/v1/payment-links",
 			body,
 			this.resolveRequestOptions(opts)

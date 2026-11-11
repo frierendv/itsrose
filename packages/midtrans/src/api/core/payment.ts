@@ -12,18 +12,6 @@ import type {
 import type { RequestOptions } from "../../typings";
 import { BaseService } from "../service";
 
-export type CorePaymentChargeResponse = CoreChargeResponse;
-export type ChargeResponse = CoreChargeResponse;
-export type CaptureRequest = CoreCaptureRequest;
-export type CaptureResponse = CoreTransactionResponse;
-export type StatusResponse = CoreTransactionResponse;
-export type CancelResponse = CoreTransactionResponse;
-export type ExpireResponse = CoreTransactionResponse;
-export type RefundRequest = CorePaymentRefundRequest;
-export type RefundResponse = CoreTransactionResponse;
-export type DirectRefundRequest = CoreDirectRefundRequest;
-export type StatusB2BResponse = CoreStatusB2BResponse;
-
 /**
  * Pagination accepted by the B2B status endpoint.
  */
@@ -39,7 +27,7 @@ export class Payment extends BaseService {
 	 * `POST /v2/charge`
 	 */
 	public charge(body: CorePaymentChargeRequest, opts?: RequestOptions) {
-		return this.http.post<CorePaymentChargeResponse>(
+		return this.http.post<CoreChargeResponse>(
 			"/v2/charge",
 			body,
 			this.resolveRequestOptions(opts)
@@ -51,8 +39,8 @@ export class Payment extends BaseService {
 	 *
 	 * `POST /v2/capture`
 	 */
-	public capture(body: CaptureRequest, opts?: RequestOptions) {
-		return this.http.post<CaptureResponse>(
+	public capture(body: CoreCaptureRequest, opts?: RequestOptions) {
+		return this.http.post<CoreTransactionResponse>(
 			"/v2/capture",
 			body,
 			this.resolveRequestOptions(opts)
@@ -65,7 +53,7 @@ export class Payment extends BaseService {
 	 * `POST /v2/{orderId}/approve`
 	 */
 	public approve(orderId: string, opts?: RequestOptions) {
-		return this.http.post<StatusResponse>(
+		return this.http.post<CoreTransactionResponse>(
 			`/v2/${orderId}/approve`,
 			undefined,
 			this.resolveRequestOptions(opts)
@@ -78,7 +66,7 @@ export class Payment extends BaseService {
 	 * `POST /v2/{orderId}/deny`
 	 */
 	public deny(orderId: string, opts?: RequestOptions) {
-		return this.http.post<StatusResponse>(
+		return this.http.post<CoreTransactionResponse>(
 			`/v2/${orderId}/deny`,
 			undefined,
 			this.resolveRequestOptions(opts)
@@ -91,7 +79,7 @@ export class Payment extends BaseService {
 	 * `POST /v2/{orderId}/cancel`
 	 */
 	public cancel(orderId: string, opts?: RequestOptions) {
-		return this.http.post<CancelResponse>(
+		return this.http.post<CoreTransactionResponse>(
 			`/v2/${orderId}/cancel`,
 			undefined,
 			this.resolveRequestOptions(opts)
@@ -104,7 +92,7 @@ export class Payment extends BaseService {
 	 * `POST /v2/{orderId}/expire`
 	 */
 	public expire(orderId: string, opts?: RequestOptions) {
-		return this.http.post<ExpireResponse>(
+		return this.http.post<CoreTransactionResponse>(
 			`/v2/${orderId}/expire`,
 			undefined,
 			this.resolveRequestOptions(opts)
@@ -118,30 +106,30 @@ export class Payment extends BaseService {
 	 */
 	public refund(
 		orderId: string,
-		body: RefundRequest,
+		body: CorePaymentRefundRequest,
 		opts?: RequestOptions
-	): HttpPromise<RefundResponse, MidtransApiError>;
+	): HttpPromise<CoreTransactionResponse, MidtransApiError>;
 	public refund(
 		orderId: string,
 		opts?: RequestOptions
-	): HttpPromise<RefundResponse, MidtransApiError>;
+	): HttpPromise<CoreTransactionResponse, MidtransApiError>;
 	public refund(
 		orderId: string,
-		body?: RefundRequest | RequestOptions,
+		body?: CorePaymentRefundRequest | RequestOptions,
 		opts?: RequestOptions
-	): HttpPromise<RefundResponse, MidtransApiError> {
-		let bodyPayload: RefundRequest | undefined;
+	): HttpPromise<CoreTransactionResponse, MidtransApiError> {
+		let bodyPayload: CorePaymentRefundRequest | undefined;
 		let requestOpts = opts;
 
 		if (body) {
 			if ("reason" in body || "amount" in body || "refund_key" in body) {
-				bodyPayload = body as RefundRequest;
+				bodyPayload = body as CorePaymentRefundRequest;
 			} else {
 				requestOpts = body as RequestOptions;
 			}
 		}
 
-		return this.http.post<RefundResponse>(
+		return this.http.post<CoreTransactionResponse>(
 			`/v2/${orderId}/refund`,
 			bodyPayload,
 			this.resolveRequestOptions(requestOpts)
@@ -155,10 +143,10 @@ export class Payment extends BaseService {
 	 */
 	public directRefund(
 		orderId: string,
-		body: DirectRefundRequest,
+		body: CoreDirectRefundRequest,
 		opts?: RequestOptions
 	) {
-		return this.http.post<RefundResponse>(
+		return this.http.post<CoreTransactionResponse>(
 			`/v2/${orderId}/refund/online/direct`,
 			body,
 			this.resolveRequestOptions(opts)
@@ -173,8 +161,8 @@ export class Payment extends BaseService {
 	public status(
 		orderId: string,
 		opts?: RequestOptions
-	): HttpPromise<StatusResponse, MidtransApiError> {
-		return this.http.get<StatusResponse>(
+	): HttpPromise<CoreTransactionResponse, MidtransApiError> {
+		return this.http.get<CoreTransactionResponse>(
 			`/v2/${orderId}/status`,
 			this.resolveRequestOptions(opts)
 		);
@@ -189,16 +177,16 @@ export class Payment extends BaseService {
 		orderId: string,
 		pagination?: StatusB2BPagination,
 		opts?: RequestOptions
-	): HttpPromise<StatusB2BResponse, MidtransApiError>;
+	): HttpPromise<CoreStatusB2BResponse, MidtransApiError>;
 	public statusB2B(
 		orderId: string,
 		opts?: RequestOptions
-	): HttpPromise<StatusB2BResponse, MidtransApiError>;
+	): HttpPromise<CoreStatusB2BResponse, MidtransApiError>;
 	public statusB2B(
 		orderId: string,
 		pagination?: StatusB2BPagination | RequestOptions,
 		opts?: RequestOptions
-	): HttpPromise<StatusB2BResponse, MidtransApiError> {
+	): HttpPromise<CoreStatusB2BResponse, MidtransApiError> {
 		let paginationConfig: StatusB2BPagination = {};
 		let requestOpts = opts;
 
@@ -213,12 +201,15 @@ export class Payment extends BaseService {
 		const page = paginationConfig.page ?? 0;
 		const perPage = paginationConfig.per_page ?? 10;
 
-		return this.http.get<StatusB2BResponse>(`/v2/${orderId}/status/b2b`, {
-			...this.resolveRequestOptions(requestOpts),
-			params: {
-				page: page.toString(),
-				per_page: perPage.toString(),
-			},
-		});
+		return this.http.get<CoreStatusB2BResponse>(
+			`/v2/${orderId}/status/b2b`,
+			{
+				...this.resolveRequestOptions(requestOpts),
+				params: {
+					page: page.toString(),
+					per_page: perPage.toString(),
+				},
+			}
+		);
 	}
 }

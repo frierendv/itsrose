@@ -165,23 +165,3 @@ export const CoreStatusB2BResponseSchema = z
 	});
 
 export type CoreStatusB2BResponse = z.infer<typeof CoreStatusB2BResponseSchema>;
-
-/* --------------------------- Deprecated Aliases --------------------------- */
-
-/**
- * @deprecated Use {@link CoreTransactionResponseSchema}.
- */
-export const ResponseTransactionSchema = CoreTransactionResponseSchema;
-export type ResponseTransaction = CoreTransactionResponse;
-
-/**
- * @deprecated Use {@link CoreTransactionResponseSchema}.
- */
-export const ResponseTransactionBaseSchema = CoreTransactionResponseSchema;
-export type ResponseTransactionBase = CoreTransactionResponse;
-
-/**
- * @deprecated Use {@link CoreChargeResponseSchema}.
- */
-export const ResponseTransactionTypeFieldsSchema = CoreChargeResponseSchema;
-export type ResponseTransactionTypeFields = CoreChargeResponse;

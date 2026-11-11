@@ -14,7 +14,7 @@ export const GopayFieldsSchema = z
 		 *
 		 * @default false
 		 */
-		enable_callback: z.boolean(),
+		enable_callback: z.boolean().optional(),
 		/**
 		 * The HTTP or Deeplink URL to which the customer is redirected from Gojek app after successful payment.
 		 *
@@ -26,19 +26,19 @@ export const GopayFieldsSchema = z
 		 *
 		 * @default "callback_url in dashboard settings."
 		 */
-		callback_url: z.string(),
+		callback_url: z.string().optional(),
 		/**
 		 * ### Required for GoPay Tokenization.
 		 *
 		 * The customer account ID linked during {@link https://docs.midtrans.com/reference/create-pay-account | Create Pay Account API}.
 		 */
-		account_id: z.string(),
+		account_id: z.string().optional(),
 		/**
 		 * ### Required for GoPay Tokenization.
 		 *
 		 * Token to specify the payment option made by the customer from {@link https://docs.midtrans.com/reference/get-pay-account | Get Pay Account API metadata}.
 		 */
-		payment_option_token: z.string(),
+		payment_option_token: z.string().optional(),
 		/**
 		 * Reserve customer balance amount.
 		 *
@@ -48,7 +48,7 @@ export const GopayFieldsSchema = z
 		 *
 		 * @default false
 		 */
-		pre_auth: z.boolean(),
+		pre_auth: z.boolean().optional(),
 		/**
 		 * Mark as a recurring transaction.
 		 *
@@ -58,7 +58,7 @@ export const GopayFieldsSchema = z
 		 *
 		 * @default false
 		 */
-		recurring: z.boolean(),
+		recurring: z.boolean().optional(),
 		/**
 		 * GoPay promotion ID to be used for payment.
 		 *
@@ -66,7 +66,7 @@ export const GopayFieldsSchema = z
 		 * Only applicable for GoPay Tokenization. Acquired from Fetch Promotion API.
 		 * Currently only support single promotion per transaction, the first promotion id on the list will be applied.
 		 */
-		promotion_ids: z.array(z.string()),
+		promotion_ids: z.array(z.string()).optional(),
 	})
 	.partial()
 	.meta({
@@ -74,6 +74,16 @@ export const GopayFieldsSchema = z
 	});
 export type GopayFields = z.infer<typeof GopayFieldsSchema>;
 
+export const GopayPaymentProviderMetadataSchema = z.object({
+	/** Merchant's recurring parent order ID */
+	recurring_parent_order: z.string().optional(),
+	/**
+	 * Recurring sequence.
+	 * - **0** : parent transaction
+	 * - **1**  and so on: child transaction
+	 */
+	recurring_sequence: z.string().optional(),
+});
 /**
  * OVO charge parameters.
  */
@@ -81,7 +91,7 @@ export const OvoFieldsSchema = z.object({
 	/**
 	 * Customer's phone number that will be used to create payment request to OVO.
 	 */
-	payer_phone_number: z.string(),
+	payer_phone_number: z.string().optional(),
 });
 export type OvoFields = z.infer<typeof OvoFieldsSchema>;
 

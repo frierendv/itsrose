@@ -56,10 +56,3 @@ export const ItemDetailsBCAKlikPayExclusiveSchema = z
 export type ItemDetailsBCAKlikPayExclusive = z.infer<
 	typeof ItemDetailsBCAKlikPayExclusiveSchema
 >;
-
-/**
- * @deprecated Misspelled alias; use {@link ItemDetailsBCAKlikPayExclusiveSchema}.
- */
-export const ItemDetailsBCAKlickPayExclusive =
-	ItemDetailsBCAKlikPayExclusiveSchema;
-export type ItemDetailsBCAKlickPayExclusive = ItemDetailsBCAKlikPayExclusive;

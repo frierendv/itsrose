@@ -55,9 +55,3 @@ export const ExpirySchema = z
 	});
 
 export type Expiry = z.infer<typeof ExpirySchema>;
-
-/**
- * Snap-specific alias of {@link ExpirySchema}.
- */
-export const SnapExpirySchema = ExpirySchema;
-export type SnapExpiry = Expiry;

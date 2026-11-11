@@ -10,6 +10,7 @@ import {
 	BankTransferFieldsSchema,
 	CreditCardFieldsSchema,
 	GopayFieldsSchema,
+	GopayPaymentProviderMetadataSchema,
 	MandiriEchannelFieldsSchema,
 	OverTheCounterSchema,
 	OvoFieldsSchema,
@@ -86,6 +87,14 @@ export const PaymentTypeFieldsSchema = z.discriminatedUnion("payment_type", [
 	z.object({
 		payment_type: PaymentTypeSchema.extract(["gopay"]),
 		gopay: GopayFieldsSchema,
+		/**
+		 * Object containing the payment provider’s metadata parameter.
+		 * This is used whenever merchant needs to pass additional information to payment provider.
+		 * Your sales representative will inform you if you need to pass information.
+		 *
+		 * @link https://docs.midtrans.com/reference/gopay-tokenization
+		 */
+		payment_provider_metadata: GopayPaymentProviderMetadataSchema,
 	}),
 	z.object({
 		payment_type: PaymentTypeSchema.extract(["ovo"]),
@@ -93,7 +102,7 @@ export const PaymentTypeFieldsSchema = z.discriminatedUnion("payment_type", [
 	}),
 	z.object({
 		payment_type: PaymentTypeSchema.extract(["qris"]),
-		qris: QrisFieldsSchema,
+		qris: QrisFieldsSchema.optional(),
 	}),
 	z.object({
 		payment_type: PaymentTypeSchema.extract(["shopeepay"]),
@@ -168,5 +177,4 @@ export type CoreCaptureRequest = z.infer<typeof CoreCaptureRequestSchema>;
  *
  * The direct-refund endpoint accepts the same fields as a regular refund.
  */
-export const CoreDirectRefundRequestSchema = CorePaymentRefundRequestSchema;
 export type CoreDirectRefundRequest = CorePaymentRefundRequest;

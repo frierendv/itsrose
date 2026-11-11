@@ -225,7 +225,6 @@ describe("MidtransClient public surface", () => {
 
 	it("exports the service base class from the api barrel", () => {
 		expect(typeof apiBarrel.BaseService).toBe("function");
-		expect(apiBarrel.SharedClient).toBe(apiBarrel.BaseService);
 	});
 
 	it("does not leak internal transport symbols from the root barrel", () => {
