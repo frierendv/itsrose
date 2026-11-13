@@ -29,6 +29,13 @@ export const adminQueryKeys = {
 		list: (filters?: Record<string, unknown>) =>
 			[...adminQueryKeys.events.all, "list", filters ?? {}] as const,
 	},
+	users: {
+		all: ["admin", "users"] as const,
+		detail: (user_id: string) =>
+			[...adminQueryKeys.users.all, "detail", user_id] as const,
+		subscription: (user_id: string) =>
+			[...adminQueryKeys.users.all, "subscription", user_id] as const,
+	},
 	metrics: () => [...adminQueryKeys.all, "metrics"] as const,
 	usage: {
 		all: ["admin", "usage"] as const,

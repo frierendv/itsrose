@@ -5,3 +5,4 @@ export * from "./use-admin-plans";
 export * from "./use-admin-rates";
 export * from "./use-admin-settlements";
 export * from "./use-admin-subs";
+export * from "./use-admin-users";

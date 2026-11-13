@@ -1,12 +1,10 @@
 "use client";
 
-import { withAuthQueryFn } from "@/lib/api";
-import { authClient } from "@/lib/auth";
 import { UserView } from "@better-auth-ui/heroui";
 import { CircleInfo } from "@gravity-ui/icons";
 import { Button, Popover, Skeleton, Tooltip } from "@heroui/react";
-import { useQuery } from "@tanstack/react-query";
 import React, { useState, type PropsWithChildren } from "react";
+import { useAdminUser, useAdminUserSubscription } from "../hooks";
 import { SubscriptionDetailOverview } from "./subscriptions/subscription-inspect-drawer";
 
 export type ViewUserPopoverProps = PropsWithChildren<{
@@ -19,18 +17,7 @@ export const ViewUserPopover: React.FC<
 > = ({ userId, children, showSubscription = true }) => {
 	const [isOpen, setIsOpen] = useState(false);
 
-	const {
-		isLoading,
-		isEnabled,
-		data: user,
-	} = useQuery({
-		// make sure `queryFn` not run when empty `userId`
-		enabled: !!userId && isOpen,
-		queryKey: ["user", "info", userId],
-		queryFn: withAuthQueryFn(
-			authClient.admin.getUser({ query: { id: userId! } })
-		),
-	});
+	const { isLoading, isEnabled, data: user } = useAdminUser(userId, isOpen);
 
 	return (
 		<Popover onOpenChange={setIsOpen} isOpen={isOpen}>
@@ -77,14 +64,7 @@ export const ViewSubscriptionPopover: React.FC<
 	ViewSubscriptionPopoverProps
 > = ({ userId, children }) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const { data: subscription } = useQuery({
-		// same as before.
-		enabled: !!userId && isOpen,
-		queryKey: ["user", "info", "subscription", userId],
-		queryFn: withAuthQueryFn(
-			authClient.itsrose.subscription.get({ query: { user_id: userId! } })
-		),
-	});
+	const { data: subscription } = useAdminUserSubscription(userId, isOpen);
 
 	return (
 		<Popover onOpenChange={setIsOpen} isOpen={isOpen}>
