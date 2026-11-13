@@ -226,7 +226,7 @@ export async function sweepPastDueAndExpired(
 					);
 					if (voidResult.ok) {
 						await repositories.invoices.update(invoice.invoice_id, {
-							status: "void",
+							status: "voided",
 						});
 					}
 				} catch {

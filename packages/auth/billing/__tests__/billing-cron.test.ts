@@ -250,7 +250,7 @@ describe("Recurring Billing Cron Engine", () => {
 					where: [{ field: "invoice_id", value: "inv-to-void" }],
 				})
 			);
-			expect(inv.status).toBe("void");
+			expect(inv.status).toBe("voided");
 		});
 	});
 
