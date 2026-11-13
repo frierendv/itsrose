@@ -1,10 +1,10 @@
 plop-templates
 dist
 .sonda
-package-lock.json
+# no need to format this
+pnpm-lock.yaml
 
 # Git submodules (standalone repositories)
-/repository/
 /scripts/
 
 # Generated output

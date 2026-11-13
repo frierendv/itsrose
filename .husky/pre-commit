@@ -5,4 +5,4 @@ else
 	echo "Install gitleaks (https://github.com/gitleaks/gitleaks) to scan for secrets before committing." >&2
 fi
 
-pnpm lint-staged
+pnpm lint-staged --config .lintstagedrc.mjs

@@ -2,6 +2,12 @@
 	"editor.codeActionsOnSave": {
 		"source.fixAll.eslint": "always"
 	},
+	"customLocalFormatters.formatters": [
+		// https://github.com/reteps/dockerfmt/releases
+		{ "command": "dockerfmt --newline", "languages": ["dockerfile"] },
+		// https://github.com/mvdan/sh/releases
+		{ "command": "shfmt", "languages": ["shellscript"] }
+	],
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
 	"editor.detectIndentation": false,
 	"[typescript]": {
@@ -16,7 +22,10 @@
 		]
 	},
 	"[dockerfile]": {
-		"editor.defaultFormatter": "ms-azuretools.vscode-containers"
+		"editor.defaultFormatter": "jkillian.custom-local-formatters"
+	},
+	"[dockercompose]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
 	"[astro]": {
 		"editor.defaultFormatter": "astro-build.astro-vscode"
@@ -24,6 +33,15 @@
 	"[sql]": {
 		"editor.defaultFormatter": "ReneSaarsoo.sql-formatter-vsc"
 	},
+	"[yaml]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+
+	/* shell */
+	"[shellscript]": {
+		"editor.defaultFormatter": "jkillian.custom-local-formatters"
+	},
+	"shellcheck.executablePath": "shellcheck",
 
 	"search.exclude": {
 		"**/dist": true,
@@ -39,10 +57,6 @@
 		"**/node_modules/**": true,
 		"**/.turbo/**": true
 	},
-	"[dockercompose]": {
-		"editor.defaultFormatter": "ms-azuretools.vscode-containers"
-	},
 
-	// gitea source control
-	"gitea-for-vscode.baseUrl": "https://git.itsrose.my.id"
+	"chat.disableAIFeatures": true
 }

@@ -11,5 +11,20 @@
 	"bracketSpacing": true,
 	"arrowParens": "always",
 	"endOfLine": "lf",
-	"importOrder": ["^\\.\\./", "^\\./"]
+	"importOrder": ["^\\.\\./", "^\\./"],
+	"overrides": [
+		{
+			"files": [
+				"*.yml",
+				"*.yaml",
+				"docker-compose*.yml",
+				"docker-compose*.yaml"
+			],
+			"options": {
+				"tabWidth": 2,
+				"useTabs": false,
+				"singleQuote": false
+			}
+		}
+	]
 }

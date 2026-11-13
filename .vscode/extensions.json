@@ -6,6 +6,9 @@
 		"redhat.vscode-yaml",
 		"ms-azuretools.vscode-containers",
 		"esbenp.prettier-vscode",
-		"ReneSaarsoo.sql-formatter-vsc"
+		"ReneSaarsoo.sql-formatter-vsc",
+		"jkillian.custom-local-formatters",
+		"dbaeumer.vscode-eslint",
+		"christian-kohler.npm-intellisense"
 	]
 }
