@@ -14,6 +14,8 @@ to read `index.md` and know where to look.
 
 - [Architecture deepening programme](programme.md) — the seven candidates, the
   wave order, and what unlocks what.
+- [The original review](architecture-review.html) — the seven-candidate report
+  this programme came out of, with before/after diagrams.
 
 ## Decisions
 

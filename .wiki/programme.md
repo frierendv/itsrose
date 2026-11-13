@@ -2,9 +2,9 @@
 
 On 2026-11-14 the repo was reviewed for architectural friction, on the
 `development` branch of `frierendv/itsrose`, at `70ab174`. Seven candidates
-were surfaced. The review report is at
-`/tmp/architecture-review-20261113-173018.html` (ephemeral — regenerate from
-the findings if it is gone).
+were surfaced. The review report is at [`architecture-review.html`](architecture-review.html),
+kept here so it survives `/tmp`. Open it in a browser — it renders its own
+diagrams.
 
 The user declined to pick one candidate: _"All candidate is legit, I can't
 just pick one."_ The programme below is the response — a wave order, because

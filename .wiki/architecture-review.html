@@ -1,0 +1,2024 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Architecture review — itsrose</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<script type="module">
+			import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+			mermaid.initialize({
+				startOnLoad: true,
+				theme: "neutral",
+				securityLevel: "loose",
+				fontFamily: "ui-sans-serif, system-ui, sans-serif",
+			});
+		</script>
+		<style>
+			.seam {
+				stroke-dasharray: 4 4;
+			}
+			.deep {
+				background: linear-gradient(135deg, #0f172a, #1e293b);
+				color: #f8fafc;
+			}
+			.leak {
+				color: #dc2626;
+				border-color: #fca5a5;
+				background: #fef2f2;
+			}
+			.module-card {
+				border: 1px solid #e7e5e4;
+				background: #fff;
+				border-radius: 0.375rem;
+			}
+			.schematic {
+				font-size: 0.625rem;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				font-weight: 600;
+			}
+			.mono {
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+			}
+			.before-after {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 1rem;
+			}
+			@media (max-width: 900px) {
+				.before-after {
+					grid-template-columns: 1fr;
+				}
+			}
+			.arrow-v {
+				position: relative;
+				height: 1.5rem;
+			}
+			.arrow-v::after {
+				content: "";
+				position: absolute;
+				left: 50%;
+				top: 0;
+				bottom: 0;
+				width: 1px;
+				background: #94a3b8;
+			}
+			.arrow-v::before {
+				content: "";
+				position: absolute;
+				left: calc(50% - 4px);
+				bottom: 0;
+				border-left: 4px solid transparent;
+				border-right: 4px solid transparent;
+				border-top: 6px solid #94a3b8;
+			}
+			.leak-arrow::after {
+				background: #dc2626;
+			}
+			.leak-arrow::before {
+				border-top-color: #dc2626;
+			}
+		</style>
+	</head>
+
+	<body class="bg-stone-50 text-slate-900 font-sans antialiased">
+		<main class="max-w-6xl mx-auto px-6 py-14 space-y-14">
+			<header class="border-b border-stone-300 pb-10">
+				<div
+					class="flex flex-wrap items-baseline justify-between gap-4"
+				>
+					<div>
+						<p class="schematic text-emerald-700">
+							Architecture review
+						</p>
+						<h1
+							class="font-serif text-4xl sm:text-5xl mt-2 tracking-tight"
+						>
+							itsrose
+						</h1>
+						<p class="text-sm text-slate-500 mt-2 mono">
+							13 November 2026 &middot; branch
+							<code>development</code> &middot; scope: packages/*
+							+ apps/*
+						</p>
+					</div>
+					<div class="text-xs text-slate-600 leading-relaxed">
+						<p class="schematic text-slate-400 mb-2">Legend</p>
+						<p class="flex items-center gap-2">
+							<span
+								class="inline-block w-7 h-4 border border-slate-400 bg-white"
+							></span>
+							module
+						</p>
+						<p class="flex items-center gap-2 mt-1">
+							<span
+								class="inline-block w-7 h-0 border-t-2 border-dashed border-slate-500"
+							></span>
+							seam
+						</p>
+						<p class="flex items-center gap-2 mt-1">
+							<span
+								class="inline-block w-7 h-0 border-t-2 border-red-600"
+							></span>
+							leakage
+						</p>
+						<p class="flex items-center gap-2 mt-1">
+							<span class="inline-block w-7 h-4 deep"></span>
+							deep module
+						</p>
+					</div>
+				</div>
+				<p class="mt-6 text-sm text-slate-600 max-w-3xl">
+					Seven candidates. Each names the files it touches, the
+					friction it removes, and the module that gets deeper.
+					Diagrams are before&nbsp;/&nbsp;after.
+				</p>
+			</header>
+
+			<section id="status" class="pb-2">
+				<p class="schematic text-emerald-700">Status</p>
+				<h2 class="font-serif text-2xl mt-1 mb-4">
+					Waves 0 and 1 are landed; Wave 2 is half landed
+				</h2>
+				<div class="grid md:grid-cols-2 gap-3">
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">Wave 0</p>
+						<p class="text-sm mt-1">
+							<strong>GLOSSARY.md</strong> &mdash; the domain
+							vocabulary the seams are named in, including the
+							split between Invoice Status and Transaction Status.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">d5d8a2f</p>
+					</div>
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">Candidate 05</p>
+						<p class="text-sm mt-1">
+							<strong>Retry policy actually fires</strong> &mdash;
+							measured 1 attempt vs 4, plus an interface-level
+							regression test that fails against the old policy.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">7e69f44</p>
+					</div>
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">Candidate 07</p>
+						<p class="text-sm mt-1">
+							<strong>Three packages removed</strong> &mdash;
+							logger, lowdb and api-client, none of which had a
+							caller.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">2786b2b</p>
+					</div>
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">Candidate 04</p>
+						<p class="text-sm mt-1">
+							<strong>One proration rule</strong> &mdash; the
+							browser copy is gone, the price comes from the live
+							plan list, and a parity test pins the two together.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">994dd4e</p>
+					</div>
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">Candidate 06</p>
+						<p class="text-sm mt-1">
+							<strong>Popovers stop fetching per row</strong>
+							&mdash; the seam takes a thunk, the queries moved
+							into a hook.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">a798101</p>
+					</div>
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">Tooling</p>
+						<p class="text-sm mt-1">
+							<strong>The gate runs</strong> &mdash; a root ESLint
+							config, a valid <code>format:check</code>, and
+							coverage back above the threshold.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">dad0063</p>
+					</div>
+				</div>
+				<p class="text-sm text-slate-600 mt-4 max-w-3xl">
+					Wave 2 has since landed on the midtrans side: one status
+					taxonomy over all twelve transaction states, one error
+					model, and the signature invariant that makes the signed
+					amount a fact the caller no longer has to know.
+				</p>
+
+				<div class="grid md:grid-cols-2 gap-3 mt-6">
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">
+							Candidate 03 &mdash; midtrans
+						</p>
+						<p class="text-sm mt-1">
+							<strong>One status taxonomy</strong> &mdash; all
+							twelve transaction states classified, with the fraud
+							pairing folded in. Three were classified by no
+							predicate at all.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">2025bcc</p>
+					</div>
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">
+							Candidate 03 &mdash; errors
+						</p>
+						<p class="text-sm mt-1">
+							<strong>One error model</strong> &mdash; two models
+							classified the same payload differently. The Zod
+							union is now the implementation, and it is total.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">3d2d97a</p>
+					</div>
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">
+							Candidate 03 &mdash; signature
+						</p>
+						<p class="text-sm mt-1">
+							<strong
+								>The signed amount is the module's fact</strong
+							>
+							&mdash; parsed before verifying, the raw amount
+							hashes identically to what Midtrans sent.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">8d1f181</p>
+					</div>
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">Environment</p>
+						<p class="text-sm mt-1">
+							<strong>A wiki and a pre-push gate</strong> &mdash;
+							plus a pit-of-success audit that found five more
+							instances of the shape the retry bug had.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">
+							b00b841 &middot; 498c9c6
+						</p>
+					</div>
+				</div>
+
+				<p class="text-sm text-slate-600 mt-4 max-w-3xl">
+					The billing half of Candidate 03 has since landed too: the
+					domain InvoiceStatus union, so one invoice-status column
+					stops carrying three merged vendor vocabularies, and one
+					predicate answers "is this invoice paid?" for both the
+					domain and the application layer.
+				</p>
+
+				<div class="grid md:grid-cols-2 gap-3 mt-6">
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">
+							Candidate 03 &mdash; billing
+						</p>
+						<p class="text-sm mt-1">
+							<strong>One invoice-status vocabulary</strong>
+							&mdash; the domain owns it, the adapter is the only
+							place that knows Midtrans, and a failed gateway read
+							can no longer decide whether a customer gets their
+							subscription.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">7ff8fba</p>
+					</div>
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">Environment</p>
+						<p class="text-sm mt-1">
+							<strong>The gate sees the codebase now</strong>
+							&mdash; the coverage denominator went from 294 files
+							to 754, and the number it reports went from a
+							flattering 90.1% to an honest 42.1%.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">9f24292</p>
+					</div>
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">Environment</p>
+						<p class="text-sm mt-1">
+							<strong>The mandatory rules are enforced</strong>
+							&mdash; zero <code>any</code> in the repo, the
+							Zod-only rule back on, and snake_case payloads
+							checked where they are the wire contract.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">9f2034c</p>
+					</div>
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">CI</p>
+						<p class="text-sm mt-1">
+							<strong>The gate runs on the shared branch</strong>
+							&mdash; a direct push to
+							<code>development</code> now runs CI, and one test
+							script serves both environments.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">da1ab94</p>
+					</div>
+				</div>
+
+				<p class="text-sm text-slate-600 mt-4 max-w-3xl">
+					Still to come: Waves 3 and 4 &mdash; closing the axios
+					escape hatches, the upstream-client module, one shared route
+					module mounted by both apps, and the dashboard's schema wire
+					types &mdash; and the environment backlog that runs
+					alongside them.
+				</p>
+			</section>
+
+			<section id="candidates" class="space-y-16">
+				<article id="c1" class="space-y-6">
+					<div
+						class="flex flex-wrap items-start justify-between gap-4"
+					>
+						<div class="max-w-3xl">
+							<p class="schematic text-slate-400">Candidate 01</p>
+							<h2 class="font-serif text-3xl mt-1">
+								Collapse the duplicated Fastify surface into one
+								mounted route module
+							</h2>
+						</div>
+						<div class="flex flex-wrap gap-2 shrink-0">
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200"
+							>
+								Strong
+							</span>
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200"
+							>
+								in-process
+							</span>
+						</div>
+					</div>
+
+					<p class="mono text-sm text-slate-600">
+						apps/api/src/routes/** (21 files, 748 lines) &middot;
+						apps/api-internal/src/routes/** (17 files, 559 lines)
+						&middot;
+						apps/api/src/plugins/openapi/api-response.ts:13-104
+						&middot;
+						apps/api-internal/src/plugins/openapi/api-response.ts:12-94
+					</p>
+
+					<div class="before-after">
+						<div
+							class="rounded-lg border border-slate-200 bg-white p-4"
+						>
+							<p class="schematic text-red-700 mb-3">
+								Before &mdash; two forks of one surface
+							</p>
+							<div class="grid grid-cols-2 gap-3">
+								<div class="space-y-2">
+									<p
+										class="schematic text-slate-500 text-center"
+									>
+										apps/api
+									</p>
+									<div class="module-card p-2 text-center">
+										<p class="schematic text-slate-700">
+											audio routes
+										</p>
+										<p class="text-xs text-slate-500">
+											4 files
+										</p>
+									</div>
+									<div class="module-card p-2 text-center">
+										<p class="schematic text-slate-700">
+											mtxx routes
+										</p>
+										<p class="text-xs text-slate-500">
+											7 files
+										</p>
+									</div>
+									<div class="module-card p-2 text-center">
+										<p class="schematic text-slate-700">
+											tiktok &middot; remini &middot;
+											instagram
+										</p>
+										<p class="text-xs text-slate-500">
+											3 files
+										</p>
+									</div>
+									<div
+										class="leak rounded p-2 text-center border"
+									>
+										<p class="schematic text-red-700">
+											api-response.ts
+										</p>
+										<p class="text-xs text-red-700">
+											104 lines
+										</p>
+									</div>
+								</div>
+								<div class="space-y-2">
+									<p
+										class="schematic text-slate-500 text-center"
+									>
+										apps/api-internal
+									</p>
+									<div class="module-card p-2 text-center">
+										<p class="schematic text-slate-700">
+											audio routes
+										</p>
+										<p class="text-xs text-slate-500">
+											4 files
+										</p>
+									</div>
+									<div class="module-card p-2 text-center">
+										<p class="schematic text-slate-700">
+											mtxx routes
+										</p>
+										<p class="text-xs text-slate-500">
+											7 files
+										</p>
+									</div>
+									<div class="module-card p-2 text-center">
+										<p class="schematic text-slate-700">
+											tiktok &middot; remini &middot;
+											instagram
+										</p>
+										<p class="text-xs text-slate-500">
+											3 files
+										</p>
+									</div>
+									<div
+										class="leak rounded p-2 text-center border"
+									>
+										<p class="schematic text-red-700">
+											api-response.ts
+										</p>
+										<p class="text-xs text-red-700">
+											94 lines
+										</p>
+									</div>
+								</div>
+							</div>
+							<div class="mt-3 space-y-1">
+								<p
+									class="text-xs text-red-700 flex items-start gap-2"
+								>
+									<span class="mt-0.5 shrink-0"
+										>&#10007;</span
+									>
+									<span
+										>7 route files
+										<strong>byte-identical</strong>:
+										audio/get-models, audio/get-voices,
+										instagram/get-media,
+										mtxx/image-restoration, mtxx/remove-bg,
+										remini/create-task,
+										tiktok/get-content.</span
+									>
+								</p>
+								<p
+									class="text-xs text-red-700 flex items-start gap-2"
+								>
+									<span class="mt-0.5 shrink-0"
+										>&#10007;</span
+									>
+									<span
+										>9 more differ by 7&ndash;25 changed
+										lines (audio, mtxx).</span
+									>
+								</p>
+								<p
+									class="text-xs text-red-700 flex items-start gap-2"
+								>
+									<span class="mt-0.5 shrink-0"
+										>&#10007;</span
+									>
+									<span
+										>Error handler diff is
+										<strong>one hunk</strong>: apps/api adds
+										a 9-line better-auth branch.</span
+									>
+								</p>
+							</div>
+						</div>
+						<div
+							class="rounded-lg border border-slate-200 bg-white p-4"
+						>
+							<p class="schematic text-emerald-700 mb-3">
+								After &mdash; one module, two mounts
+							</p>
+							<div class="deep rounded-lg p-4 text-center">
+								<p class="schematic text-slate-300">
+									deep module
+								</p>
+								<p class="text-sm mt-1">@itsrose/api-routes</p>
+								<p class="text-xs text-slate-400 mt-1">
+									upstream feature routes +
+									error&rarr;envelope mapping
+								</p>
+							</div>
+							<div class="arrow-v"></div>
+							<div class="grid grid-cols-2 gap-3">
+								<div class="module-card p-3 text-center">
+									<p class="schematic text-slate-700">
+										apps/api
+									</p>
+									<p class="text-xs text-slate-500 mt-1">
+										auth guard &middot; rate limit &middot;
+										audio&rarr;S3
+									</p>
+									<p class="text-xs text-emerald-700 mt-1">
+										as plugin options
+									</p>
+								</div>
+								<div class="module-card p-3 text-center">
+									<p class="schematic text-slate-700">
+										apps/api-internal
+									</p>
+									<p class="text-xs text-slate-500 mt-1">
+										no public auth surface
+									</p>
+									<p class="text-xs text-emerald-700 mt-1">
+										as plugin options
+									</p>
+								</div>
+							</div>
+							<p class="text-xs text-slate-600 mt-3">
+								The differences that remain are real and belong
+								in the app. The 16 shared files and the 94
+								duplicated error lines are not.
+							</p>
+						</div>
+					</div>
+
+					<div class="grid md:grid-cols-2 gap-6">
+						<div>
+							<p class="schematic text-slate-400">Problem</p>
+							<p class="text-sm mt-1">
+								Two apps carry the same upstream surface, and
+								the copies have already drifted. Every upstream
+								feature change is two edits, and the
+								error&rarr;envelope mapper &mdash; the most
+								reusable transport code in the repo &mdash; is
+								copied line for line.
+							</p>
+							<p class="schematic text-slate-400 mt-4">
+								Solution
+							</p>
+							<p class="text-sm mt-1">
+								One shared route module both apps mount. The
+								per-app differences become plugin options. The
+								error&rarr;envelope mapping moves behind the
+								<code>@itsrose/api-response</code> seam as a
+								single
+								<code>toFailureResponse(error, request)</code>.
+							</p>
+						</div>
+						<div>
+							<p class="schematic text-slate-400">Wins</p>
+							<ul
+								class="text-sm mt-1 space-y-1 list-disc list-inside text-slate-700"
+							>
+								<li>locality: one upstream change, one edit</li>
+								<li>delete 7 byte-identical route files</li>
+								<li>
+									error taxonomy exists in exactly one place
+								</li>
+								<li>leverage: one route module, two apps</li>
+								<li>
+									<code>SystemError</code> stops falling
+									through to <code>UNHANDLED_EXCEPTION</code>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</article>
+
+				<article
+					id="c2"
+					class="space-y-6 pt-8 border-t border-stone-200"
+				>
+					<div
+						class="flex flex-wrap items-start justify-between gap-4"
+					>
+						<div class="max-w-3xl">
+							<p class="schematic text-slate-400">Candidate 02</p>
+							<h2 class="font-serif text-3xl mt-1">
+								One upstream-client module at the seam between
+								feature packages and their services
+							</h2>
+						</div>
+						<div class="flex flex-wrap gap-2 shrink-0">
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200"
+							>
+								Strong
+							</span>
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200"
+							>
+								mock &middot; true external
+							</span>
+						</div>
+					</div>
+
+					<p class="mono text-sm text-slate-600">
+						packages/features/character-ai/src/client/ &middot;
+						packages/features/elevenlabs/src/client/ &middot;
+						packages/features/instagram/src/scraping/ &middot;
+						packages/features/mtxx/src/client/ &middot;
+						packages/features/remini/src/client/ &middot;
+						packages/features/tiktok/src/tiktok/ &middot;
+						packages/internal/http-client/src/core/client.ts:28-45
+					</p>
+
+					<div class="before-after">
+						<div
+							class="rounded-lg border border-slate-200 bg-white p-4"
+						>
+							<p class="schematic text-red-700 mb-3">
+								Before &mdash; four concerns, six answers
+							</p>
+							<table class="w-full text-xs">
+								<thead>
+									<tr
+										class="schematic text-slate-400 text-left"
+									>
+										<th class="pb-1 pr-2">package</th>
+										<th class="pb-1 pr-2">http idiom</th>
+										<th class="pb-1 pr-2">error map</th>
+										<th class="pb-1">parses response?</th>
+									</tr>
+								</thead>
+								<tbody class="text-slate-700">
+									<tr class="border-t border-stone-200">
+										<td class="py-1 pr-2 mono">
+											character-ai
+										</td>
+										<td class="py-1 pr-2">client-held</td>
+										<td class="py-1 pr-2">
+											inline &times;4
+										</td>
+										<td class="py-1 text-red-700">no</td>
+									</tr>
+									<tr class="border-t border-stone-200">
+										<td class="py-1 pr-2 mono">
+											elevenlabs
+										</td>
+										<td class="py-1 pr-2">
+											module singleton
+										</td>
+										<td class="py-1 pr-2">
+											70-line parser
+										</td>
+										<td class="py-1 text-emerald-700">
+											yes (1 of 8)
+										</td>
+									</tr>
+									<tr class="border-t border-stone-200">
+										<td class="py-1 pr-2 mono">
+											instagram
+										</td>
+										<td class="py-1 pr-2">
+											global fetcher &times;3
+										</td>
+										<td class="py-1 pr-2">inline</td>
+										<td class="py-1 text-red-700">no</td>
+									</tr>
+									<tr class="border-t border-stone-200">
+										<td class="py-1 pr-2 mono">mtxx</td>
+										<td class="py-1 pr-2">
+											extends HttpClient
+										</td>
+										<td class="py-1 pr-2">78-line table</td>
+										<td class="py-1 text-red-700">no</td>
+									</tr>
+									<tr class="border-t border-stone-200">
+										<td class="py-1 pr-2 mono">remini</td>
+										<td class="py-1 pr-2">
+											extends HttpClient
+										</td>
+										<td class="py-1 pr-2">
+											inline &times;6
+										</td>
+										<td class="py-1 text-red-700">no</td>
+									</tr>
+									<tr class="border-t border-stone-200">
+										<td class="py-1 pr-2 mono">tiktok</td>
+										<td class="py-1 pr-2">
+											global fetcher
+										</td>
+										<td class="py-1 pr-2 text-red-700">
+											none
+										</td>
+										<td class="py-1 text-red-700">no</td>
+									</tr>
+								</tbody>
+							</table>
+							<p class="text-xs text-red-700 mt-3">
+								Three mutually incompatible HTTP idioms. Four
+								error mappers. One response schema parsed across
+								six packages. mtxx and remini mutate
+								<code>client.defaults.headers.common</code> and
+								<code>client.interceptors</code> &mdash; axios
+								internals.
+							</p>
+						</div>
+						<div
+							class="rounded-lg border border-slate-200 bg-white p-4"
+						>
+							<p class="schematic text-emerald-700 mb-3">
+								After &mdash; one deep module, six thin adapters
+							</p>
+							<div class="deep rounded-lg p-4">
+								<p class="schematic text-slate-300">
+									deep module
+								</p>
+								<p class="text-sm mt-1">
+									createUpstreamClient(config)
+								</p>
+								<div
+									class="grid grid-cols-2 gap-x-4 gap-y-1 mt-3 text-xs text-slate-300 text-left"
+								>
+									<p>axios instance lifetime</p>
+									<p>retry / backoff policy</p>
+									<p>credential + signing hook</p>
+									<p>upstream error &rarr; domain error</p>
+									<p>response schema parse</p>
+									<p>user-agent + timeouts</p>
+								</div>
+							</div>
+							<div class="arrow-v"></div>
+							<div class="grid grid-cols-3 gap-2">
+								<div class="module-card p-2 text-center">
+									<p class="schematic text-slate-700">
+										character-ai
+									</p>
+								</div>
+								<div class="module-card p-2 text-center">
+									<p class="schematic text-slate-700">
+										elevenlabs
+									</p>
+								</div>
+								<div class="module-card p-2 text-center">
+									<p class="schematic text-slate-700">
+										instagram
+									</p>
+								</div>
+								<div class="module-card p-2 text-center">
+									<p class="schematic text-slate-700">mtxx</p>
+								</div>
+								<div class="module-card p-2 text-center">
+									<p class="schematic text-slate-700">
+										remini
+									</p>
+								</div>
+								<div class="module-card p-2 text-center">
+									<p class="schematic text-slate-700">
+										tiktok
+									</p>
+								</div>
+							</div>
+							<p class="text-xs text-slate-600 mt-3">
+								Each package becomes a ~40-line adapter
+								supplying its own Zod schemas and error map. Six
+								adapters behind one concept &mdash; the seam is
+								real, not hypothetical.
+							</p>
+						</div>
+					</div>
+
+					<div class="grid md:grid-cols-2 gap-6">
+						<div>
+							<p class="schematic text-slate-400">Problem</p>
+							<p class="text-sm mt-1">
+								Six packages independently re-decide how to
+								build a client, how to attach credentials, how
+								to translate an upstream error, and how to shape
+								a response. Nothing learned in one package
+								transfers to another, and the Zod schema each
+								package exports as its interface is never
+								actually enforced.
+							</p>
+							<p class="schematic text-slate-400 mt-4">
+								Solution
+							</p>
+							<p class="text-sm mt-1">
+								One module at the seam. The seam already exists
+								conceptually &mdash; six adapters &mdash; it
+								just has no owner. Each feature package supplies
+								schemas and an error map; the module owns
+								transport, retry, parsing.
+							</p>
+						</div>
+						<div>
+							<p class="schematic text-slate-400">Wins</p>
+							<ul
+								class="text-sm mt-1 space-y-1 list-disc list-inside text-slate-700"
+							>
+								<li>one idiom instead of three</li>
+								<li>one error map instead of four</li>
+								<li>schemas enforced where they live</li>
+								<li>axios stops being the interface</li>
+								<li>retry lands in one place (see C5)</li>
+								<li>locality: upstream drift surfaces once</li>
+							</ul>
+						</div>
+					</div>
+				</article>
+
+				<article
+					id="c3"
+					class="space-y-6 pt-8 border-t border-stone-200"
+				>
+					<div
+						class="flex flex-wrap items-start justify-between gap-4"
+					>
+						<div class="max-w-3xl">
+							<p class="schematic text-slate-400">Candidate 03</p>
+							<h2 class="font-serif text-3xl mt-1">
+								One invoice-status vocabulary, normalised at the
+								adapter seam
+							</h2>
+						</div>
+						<div class="flex flex-wrap gap-2 shrink-0">
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200"
+							>
+								Strong
+							</span>
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-100 text-slate-700 border border-stone-200"
+							>
+								ports &amp; adapters
+							</span>
+						</div>
+					</div>
+
+					<p class="mono text-sm text-slate-600">
+						packages/auth/billing/src/domain/webhook.service.ts:69-79
+						&middot;
+						packages/auth/billing/src/application/webhook.service.ts:110-112
+						&middot;
+						packages/auth/billing/src/domain/invoice.service.ts:342-354
+						&middot; packages/midtrans/src/helper/status.ts:10-61
+						&middot;
+						packages/midtrans/src/schema/primitives/transaction.ts:8-22
+						&middot;
+						packages/midtrans/src/schema/invoice/shared.ts:11-21
+						&middot; apps/dashboard/features/billing/utils.ts:32-43
+					</p>
+
+					<div class="before-after">
+						<div
+							class="rounded-lg border border-slate-200 bg-white p-4"
+						>
+							<p class="schematic text-red-700 mb-3">
+								Before &mdash; one column, three vocabularies
+							</p>
+							<div class="space-y-2">
+								<div class="module-card p-2">
+									<p class="schematic text-slate-500">
+										midtrans invoice status
+									</p>
+									<p class="text-xs mono text-slate-700 mt-1">
+										draft &middot; pending &middot;
+										published &middot; expired &middot;
+										overdue &middot; paid &middot; voided
+										&middot; rejected &middot; canceled
+									</p>
+								</div>
+								<div class="module-card p-2">
+									<p class="schematic text-slate-500">
+										midtrans transaction status
+									</p>
+									<p class="text-xs mono text-slate-700 mt-1">
+										authorize &middot; capture &middot;
+										settlement &middot; deny &middot;
+										pending &middot; cancel &middot; refund
+										&middot; partial_refund &middot;
+										chargeback &middot; partial_chargeback
+										&middot; expire &middot; failure
+									</p>
+								</div>
+								<div class="module-card p-2">
+									<p class="schematic text-slate-500">
+										local sweeper
+									</p>
+									<p class="text-xs mono text-slate-700 mt-1">
+										void
+									</p>
+								</div>
+							</div>
+							<div class="leak rounded border p-2 mt-3 text-xs">
+								<p class="schematic text-red-700">
+									all three write into one
+									<code>status: string</code> column
+								</p>
+								<p class="text-red-700 mt-1">
+									The paid test is the literal
+									<code>"paid"</code> &mdash; a value that
+									exists in only the first vocabulary.
+								</p>
+							</div>
+							<div
+								class="mt-3 rounded border border-slate-200 bg-stone-50 p-3"
+							>
+								<pre class="mermaid">
+sequenceDiagram
+    participant W as Midtrans webhook
+    participant A as midtrans-gateway adapter
+    participant D as domain webhook.service
+    participant App as application webhook.service
+    W->>A: notification, transaction_status = settlement
+    A->>A: getInvoice(id) returns null (read failed)
+    A->>D: remoteData = null
+    D->>D: finalStatus = transaction_status = settlement
+    D->>App: outcome.finalStatus = settlement
+    App->>App: if finalStatus is not paid, return
+    Note over App: subscription never settles
+                </pre>
+							</div>
+						</div>
+						<div
+							class="rounded-lg border border-slate-200 bg-white p-4"
+						>
+							<p class="schematic text-emerald-700 mb-3">
+								After &mdash; adapter owns the vocabulary
+							</p>
+							<div class="deep rounded-lg p-4">
+								<p class="schematic text-slate-300">
+									adapter &middot; the only place that knows
+									midtrans
+								</p>
+								<p class="text-sm mt-1">
+									status &rarr; domain
+									<code>InvoiceStatus</code>
+								</p>
+								<p class="text-xs text-slate-400 mt-1">
+									uses
+									<code>isSuccessStatus(status, fraud)</code>
+									&mdash; already shipped by
+									@itsrose/midtrans, currently 0 production
+									callers
+								</p>
+							</div>
+							<div class="arrow-v"></div>
+							<div class="module-card p-3">
+								<p class="schematic text-slate-700">domain</p>
+								<p class="text-xs text-slate-600 mt-1">
+									asks &ldquo;is this paid?&rdquo; once
+								</p>
+							</div>
+							<div class="arrow-v"></div>
+							<div class="grid grid-cols-2 gap-3">
+								<div class="module-card p-2 text-center">
+									<p class="schematic text-slate-700">
+										billing
+									</p>
+									<p class="text-xs text-emerald-700">
+										typed union
+									</p>
+								</div>
+								<div class="module-card p-2 text-center">
+									<p class="schematic text-slate-700">
+										dashboard
+									</p>
+									<p class="text-xs text-emerald-700">
+										compensation deleted
+									</p>
+								</div>
+							</div>
+							<p class="text-xs text-slate-600 mt-3">
+								The dashboard already guesses:
+								<code
+									>status === "paid" || status ===
+									"settlement"</code
+								>. That guess is the leak, visible in the UI.
+							</p>
+						</div>
+					</div>
+
+					<div class="grid md:grid-cols-2 gap-6">
+						<div>
+							<p class="schematic text-slate-400">Problem</p>
+							<p class="text-sm mt-1">
+								One <code>status</code> column carries three
+								merged vendor vocabularies. A single transient
+								gateway read failure turns a paid invoice into
+								<code>status: "settlement"</code>, which
+								silently skips the subscription settlement,
+								defeats the idempotency guard, and makes the
+								invoice voidable &mdash; because
+								<code>"settlement"</code> is absent from
+								<code>NON_VOIDABLE_STATUSES</code>.
+							</p>
+							<p class="schematic text-slate-400 mt-4">
+								Solution
+							</p>
+							<p class="text-sm mt-1">
+								The adapter normalises vendor status into a
+								domain
+								<code>InvoiceStatus</code> union, using the
+								<code>isSuccessStatus</code> helper
+								<code>@itsrose/midtrans</code>
+								already ships. The domain asks &ldquo;is this
+								paid?&rdquo; once, in one place.
+							</p>
+						</div>
+						<div>
+							<p class="schematic text-slate-400">Wins</p>
+							<ul
+								class="text-sm mt-1 space-y-1 list-disc list-inside text-slate-700"
+							>
+								<li>
+									the money path stops depending on a literal
+								</li>
+								<li>
+									idempotency guard recognises paid invoices
+									again
+								</li>
+								<li>
+									dashboard deletes its compensation branch
+								</li>
+								<li>
+									4 transaction statuses currently classified
+									by no predicate
+								</li>
+								<li>
+									one status vocabulary per module, not three
+								</li>
+							</ul>
+							<p class="schematic text-slate-400 mt-4">
+								Deletion test
+							</p>
+							<p class="text-sm mt-1 text-slate-700">
+								Delete the normalisation and the
+								<code>"paid"</code> literal reappears in every
+								caller &mdash; complexity concentrates behind
+								the seam. <strong>Deep.</strong>
+							</p>
+						</div>
+					</div>
+				</article>
+
+				<article
+					id="c4"
+					class="space-y-6 pt-8 border-t border-stone-200"
+				>
+					<div
+						class="flex flex-wrap items-start justify-between gap-4"
+					>
+						<div class="max-w-3xl">
+							<p class="schematic text-slate-400">Candidate 04</p>
+							<h2 class="font-serif text-3xl mt-1">
+								Delete the browser's second proration rule
+								&mdash; the server owns the number
+							</h2>
+						</div>
+						<div class="flex flex-wrap gap-2 shrink-0">
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-900 text-white border border-slate-900"
+								>Landed</span
+							>
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200"
+							>
+								Strong
+							</span>
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200"
+							>
+								in-process
+							</span>
+						</div>
+					</div>
+
+					<p class="mono text-sm text-slate-600">
+						packages/auth/billing/src/client/proration.ts:39-142
+						(154 lines) &middot;
+						packages/auth/billing/src/domain/proration.ts:67-159
+						(181 lines) &middot;
+						apps/dashboard/features/billing/components/upgrade-modal.tsx:45-51
+						&middot;
+						packages/auth/billing/src/domain/invoice.service.ts:153
+						&middot;
+						packages/auth/billing/src/domain/constants.ts:192-197
+					</p>
+
+					<div class="before-after">
+						<div
+							class="rounded-lg border border-slate-200 bg-white p-4"
+						>
+							<p class="schematic text-red-700 mb-3">
+								Before &mdash; one rule, two implementations,
+								two inputs
+							</p>
+							<div class="grid grid-cols-2 gap-3">
+								<div class="leak rounded border p-3">
+									<p class="schematic text-red-700">
+										client/proration.ts
+									</p>
+									<p class="text-xs text-slate-700 mt-1">
+										154 lines, no test
+									</p>
+									<p class="text-xs mono text-slate-700 mt-2">
+										currentTierPrice ?? STANDARD_TIER_RATES
+									</p>
+									<p class="text-xs text-red-700 mt-1">
+										frozen catalog
+									</p>
+								</div>
+								<div class="module-card p-3">
+									<p class="schematic text-slate-700">
+										domain/proration.ts
+									</p>
+									<p class="text-xs text-slate-700 mt-1">
+										181 lines, tested
+									</p>
+									<p class="text-xs mono text-slate-700 mt-2">
+										currentPlan?.price.amount
+									</p>
+									<p class="text-xs text-emerald-700 mt-1">
+										live database price
+									</p>
+								</div>
+							</div>
+							<div class="arrow-v leak-arrow"></div>
+							<div class="module-card p-3 text-center">
+								<p class="schematic text-slate-700">
+									upgrade-modal.tsx:45-51
+								</p>
+								<p class="text-xs text-red-700 mt-1">
+									passes <code>targetTierPrice</code> only
+									&mdash; current tier falls back to the
+									catalog
+								</p>
+							</div>
+							<p class="text-xs text-red-700 mt-3">
+								Plan prices are mutable through
+								<code>POST /plan/update</code>. Edit Pro's price
+								and the modal quotes from the catalog while the
+								server charges the database.
+							</p>
+						</div>
+						<div
+							class="rounded-lg border border-slate-200 bg-white p-4"
+						>
+							<p class="schematic text-emerald-700 mb-3">
+								After &mdash; one rule behind the seam
+							</p>
+							<div class="module-card p-3 text-center">
+								<p class="schematic text-slate-700">
+									dashboard upgrade modal
+								</p>
+								<p class="text-xs text-slate-500 mt-1">
+									renders the server's number
+								</p>
+							</div>
+							<div class="arrow-v"></div>
+							<div class="deep rounded-lg p-4">
+								<p class="schematic text-slate-300">
+									deep module &middot; domain/proration.ts
+								</p>
+								<p class="text-sm mt-1">calculateProration</p>
+								<p class="text-xs text-slate-400 mt-1">
+									one rule, three edge cases, one test surface
+								</p>
+							</div>
+							<div class="arrow-v"></div>
+							<div class="module-card p-3 text-center">
+								<p class="schematic text-slate-700">
+									invoice decision table
+								</p>
+								<p class="text-xs text-slate-500 mt-1">
+									already computes this breakdown
+								</p>
+							</div>
+							<p class="text-xs text-slate-600 mt-3">
+								The fix is a removal: the browser copy is
+								deleted, the server exposes the preview it
+								already has.
+							</p>
+						</div>
+					</div>
+
+					<div class="grid md:grid-cols-2 gap-6">
+						<div>
+							<p class="schematic text-slate-400">Problem</p>
+							<p class="text-sm mt-1">
+								The browser re-implements the charging rule from
+								different inputs &mdash; a frozen catalog price
+								where the server uses the live database price.
+								The upgrade modal shows one number and the
+								system charges another, at the exact moment of
+								purchase. The browser copy has no test at all.
+							</p>
+							<p class="schematic text-slate-400 mt-4">
+								Solution
+							</p>
+							<p class="text-sm mt-1">
+								Delete <code>client/proration.ts</code>. The
+								server computes the preview (the decision table
+								already does) and the modal renders it. If an
+								instant preview is required, move the rule into
+								a package both sides import and add a parity
+								test that runs one input vector through both.
+							</p>
+						</div>
+						<div>
+							<p class="schematic text-slate-400">Wins</p>
+							<ul
+								class="text-sm mt-1 space-y-1 list-disc list-inside text-slate-700"
+							>
+								<li>quoted amount equals charged amount</li>
+								<li>one rule, one implementation</li>
+								<li>one test surface instead of two</li>
+								<li>
+									154 lines removed from the browser bundle
+								</li>
+								<li>
+									no parity test needed when there is one copy
+								</li>
+							</ul>
+						</div>
+					</div>
+				</article>
+
+				<article
+					id="c5"
+					class="space-y-6 pt-8 border-t border-stone-200"
+				>
+					<div
+						class="flex flex-wrap items-start justify-between gap-4"
+					>
+						<div class="max-w-3xl">
+							<p class="schematic text-slate-400">Candidate 05</p>
+							<h2 class="font-serif text-3xl mt-1">
+								Repair <code>@itsrose/http-client</code>: the
+								retry policy never fires, and axios is the
+								interface
+							</h2>
+						</div>
+						<div class="flex flex-wrap gap-2 shrink-0">
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-900 text-white border border-slate-900"
+								>Landed</span
+							>
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200"
+							>
+								Strong
+							</span>
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200"
+							>
+								local-substitutable
+							</span>
+						</div>
+					</div>
+
+					<p class="mono text-sm text-slate-600">
+						packages/internal/http-client/src/retry/policy.ts:21-36
+						&middot;
+						packages/internal/http-client/src/core/client.ts:28-45,
+						61-65 &middot;
+						packages/internal/http-client/__tests__/http-client.test.ts:55-66
+					</p>
+
+					<div class="before-after">
+						<div
+							class="rounded-lg border border-slate-200 bg-white p-4"
+						>
+							<p class="schematic text-red-700 mb-3">
+								Before &mdash; the condition always says no
+							</p>
+							<div
+								class="rounded border border-slate-200 bg-stone-50 p-3"
+							>
+								<pre class="mermaid">
+flowchart LR
+    A["AxiosError<br/>isAxiosError = true"] --> C{"retryCondition"}
+    S["HTTP 500"] --> C
+    C -->|"isAxiosError === true<br/>return false"| N["no retry"]
+                </pre>
+							</div>
+							<p class="text-xs text-slate-600 mt-3">
+								axios-retry always hands the condition the
+								<strong>raw</strong> AxiosError.
+								<code>HttpClientError</code> is only constructed
+								afterwards, inside the executor. So the guard
+								trips on every failure.
+							</p>
+							<div
+								class="mt-3 rounded border border-slate-200 p-3"
+							>
+								<p class="schematic text-slate-500">
+									measured against a local stub server
+								</p>
+								<div
+									class="grid grid-cols-3 gap-2 mt-2 text-center"
+								>
+									<div>
+										<p
+											class="text-2xl font-serif text-red-700"
+										>
+											1
+										</p>
+										<p class="text-xs text-slate-500">
+											repo client
+										</p>
+									</div>
+									<div>
+										<p
+											class="text-2xl font-serif text-red-700"
+										>
+											1
+										</p>
+										<p class="text-xs text-slate-500">
+											repo retry config
+										</p>
+									</div>
+									<div>
+										<p
+											class="text-2xl font-serif text-emerald-700"
+										>
+											4
+										</p>
+										<p class="text-xs text-slate-500">
+											stock axios-retry
+										</p>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div
+							class="rounded-lg border border-slate-200 bg-white p-4"
+						>
+							<p class="schematic text-emerald-700 mb-3">
+								After &mdash; condition over the normalised
+								error
+							</p>
+							<div
+								class="rounded border border-slate-200 bg-stone-50 p-3"
+							>
+								<pre class="mermaid">
+flowchart LR
+    A["normalised error<br/>status and code"] --> C{"retryOn"}
+    S["HTTP 503"] --> C
+    C -->|"status 500 or more<br/>or network code"| Y["retry with backoff"]
+    C -->|"status 4xx"| N["give up"]
+                </pre>
+							</div>
+							<div class="arrow-v"></div>
+							<div class="deep rounded-lg p-4">
+								<p class="schematic text-slate-300">
+									deep module &middot; @itsrose/http-client
+								</p>
+								<p class="text-sm mt-1">
+									createHttpClient(config)
+								</p>
+								<p class="text-xs text-slate-400 mt-1">
+									retry, backoff, error typing, config
+									normalisation &mdash; all behind one
+									interface
+								</p>
+							</div>
+							<div class="arrow-v"></div>
+							<div class="module-card p-3 text-center">
+								<p class="schematic text-slate-700">
+									interceptors &middot; defaults &middot;
+									axiosInstance
+								</p>
+								<p class="text-xs text-emerald-700 mt-1">
+									replaced by a sign / headers hook
+								</p>
+							</div>
+							<p class="text-xs text-slate-600 mt-3">
+								The only test asserts that
+								<code>resolveRetryConfig()</code>
+								returns the right shape. It never asserts that a
+								retry happens.
+							</p>
+						</div>
+					</div>
+
+					<div class="grid md:grid-cols-2 gap-6">
+						<div>
+							<p class="schematic text-slate-400">Problem</p>
+							<p class="text-sm mt-1">
+								The module&rsquo;s headline behaviour is dead.
+								No feature package re-implements retry locally,
+								so the effective retry policy of the entire
+								upstream surface is none. The module also hands
+								callers axios through <code>interceptors</code>,
+								<code>defaults</code> and
+								<code>axiosInstance</code>, so mtxx and remini
+								mutate axios internals to sign their requests.
+							</p>
+							<p class="schematic text-slate-400 mt-4">
+								Solution
+							</p>
+							<p class="text-sm mt-1">
+								Express &ldquo;when to retry&rdquo; over the
+								normalised error (<code>status</code>,
+								<code>code</code>), never the transport&rsquo;s
+								brand. Close the axios escape hatches behind a
+								<code>sign</code>/<code>headers</code> hook.
+								Test through the interface with a localhost stub
+								server.
+							</p>
+						</div>
+						<div>
+							<p class="schematic text-slate-400">Wins</p>
+							<ul
+								class="text-sm mt-1 space-y-1 list-disc list-inside text-slate-700"
+							>
+								<li>
+									the module delivers the depth it advertises
+								</li>
+								<li>
+									6 packages stop assuming a retry that never
+									came
+								</li>
+								<li>axios stops being the interface</li>
+								<li>
+									one test through the interface would have
+									caught it
+								</li>
+								<li>
+									prerequisite for C2 landing without a big
+									bang
+								</li>
+							</ul>
+						</div>
+					</div>
+				</article>
+
+				<article
+					id="c6"
+					class="space-y-6 pt-8 border-t border-stone-200"
+				>
+					<div
+						class="flex flex-wrap items-start justify-between gap-4"
+					>
+						<div class="max-w-3xl">
+							<p class="schematic text-slate-400">Candidate 06</p>
+							<h2 class="font-serif text-3xl mt-1">
+								Make the dashboard&rsquo;s data seam take a
+								thunk, and let the schema own the wire types
+							</h2>
+						</div>
+						<div class="flex flex-wrap gap-2 shrink-0">
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-900 text-white border border-slate-900"
+								>Landed</span
+							>
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200"
+							>
+								Strong
+							</span>
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200"
+							>
+								ports &amp; adapters
+							</span>
+						</div>
+					</div>
+
+					<p class="mono text-sm text-slate-600">
+						apps/dashboard/lib/api/with-auth-query.ts:11-15 &middot;
+						apps/dashboard/features/admin/components/view-popover.tsx:26-33,
+						80-87 &middot;
+						apps/dashboard/features/admin/types.ts:21-90 &middot;
+						packages/auth/billing/src/schema/{invoice,subscription,api-plan}.ts
+					</p>
+
+					<div class="before-after">
+						<div
+							class="rounded-lg border border-slate-200 bg-white p-4"
+						>
+							<p class="schematic text-red-700 mb-3">
+								Before &mdash; the request starts before the
+								guard
+							</p>
+							<div
+								class="rounded border border-slate-200 bg-stone-50 p-3"
+							>
+								<pre class="mermaid">
+sequenceDiagram
+    participant R as React render
+    participant API as authClient.admin.getUser
+    participant Q as TanStack useQuery
+    Note over R: 40 table rows render
+    R->>API: getUser(id) fires at render
+    API-->>R: HTTP request already sent
+    R->>Q: useQuery enabled false, queryFn
+    Q-->>Q: enabled is false, queryFn never called
+    Note over Q: the request already happened
+                </pre>
+							</div>
+							<div class="leak rounded border p-2 mt-3 text-xs">
+								<p class="schematic text-red-700">
+									same file &mdash; a second leak
+								</p>
+								<p class="text-red-700 mt-1">
+									<code>features/admin/types.ts</code>
+									hand-declares 8 wire interfaces that already
+									exist as Zod schemas in
+									<code>@itsrose/auth-billing/schema</code>.
+									Drift is visible: one endpoint sends
+									<code>user_id</code>, another sends
+									<code>userId</code>.
+								</p>
+							</div>
+						</div>
+						<div
+							class="rounded-lg border border-slate-200 bg-white p-4"
+						>
+							<p class="schematic text-emerald-700 mb-3">
+								After &mdash; the seam defers
+							</p>
+							<div
+								class="rounded border border-slate-200 bg-stone-50 p-3"
+							>
+								<pre class="mermaid">
+sequenceDiagram
+    participant R as React render
+    participant Q as TanStack useQuery
+    participant API as authClient.admin.getUser
+    R->>Q: useQuery enabled false, queryFn
+    Q-->>Q: enabled is false, nothing runs
+    Note over Q: 0 requests
+    Q->>Q: popover opens, enabled true
+    Q->>API: queryFn invokes the thunk
+    API-->>Q: 1 request
+                </pre>
+							</div>
+							<div class="arrow-v"></div>
+							<div class="deep rounded-lg p-4">
+								<p class="schematic text-slate-300">
+									deep module &middot; the data seam
+								</p>
+								<p class="text-sm mt-1 mono">
+									authQueryFn(run: () =&gt; Promise)
+								</p>
+								<p class="text-xs text-slate-400 mt-1">
+									a thunk can be faked with an in-memory
+									adapter; a promise cannot
+								</p>
+							</div>
+							<div class="arrow-v"></div>
+							<div class="grid grid-cols-2 gap-3">
+								<div class="module-card p-2 text-center">
+									<p class="schematic text-slate-700">hook</p>
+									<p class="text-xs text-emerald-700">
+										use-admin-users
+									</p>
+								</div>
+								<div class="module-card p-2 text-center">
+									<p class="schematic text-slate-700">
+										types
+									</p>
+									<p class="text-xs text-emerald-700">
+										z.infer of published schema
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="grid md:grid-cols-2 gap-6">
+						<div>
+							<p class="schematic text-slate-400">Problem</p>
+							<p class="text-sm mt-1">
+								<code>withAuthQueryFn</code> takes an
+								already-created promise, so
+								<code>authClient.admin.getUser(...)</code> fires
+								at render time and
+								<code>enabled: !!userId &amp;&amp; isOpen</code>
+								cannot stop it. The popover renders inside every
+								admin invoice row and every subscription row
+								&mdash; one admin request per row per render,
+								for a popover that is closed.
+							</p>
+							<p class="schematic text-slate-400 mt-4">
+								Solution
+							</p>
+							<p class="text-sm mt-1">
+								Make the seam take a thunk so deferral is
+								structural. Move the popover queries into a
+								feature hook with keys in
+								<code>adminQueryKeys</code>. Infer the wire
+								types from the schemas
+								<code>@itsrose/auth-billing/schema</code>
+								already publishes.
+							</p>
+						</div>
+						<div>
+							<p class="schematic text-slate-400">Wins</p>
+							<ul
+								class="text-sm mt-1 space-y-1 list-disc list-inside text-slate-700"
+							>
+								<li>requests stop firing on closed popovers</li>
+								<li>
+									the seam becomes fakeable with an in-memory
+									adapter
+								</li>
+								<li>wire-type drift disappears</li>
+								<li>one seam guards every call site</li>
+								<li>
+									the last data fetch leaves the
+									presentational module
+								</li>
+							</ul>
+						</div>
+					</div>
+				</article>
+
+				<article
+					id="c7"
+					class="space-y-6 pt-8 border-t border-stone-200"
+				>
+					<div
+						class="flex flex-wrap items-start justify-between gap-4"
+					>
+						<div class="max-w-3xl">
+							<p class="schematic text-slate-400">Candidate 07</p>
+							<h2 class="font-serif text-3xl mt-1">
+								Three packages with a published interface and no
+								caller &mdash; the deletion test says cut
+							</h2>
+						</div>
+						<div class="flex flex-wrap gap-2 shrink-0">
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-900 text-white border border-slate-900"
+								>Landed</span
+							>
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200"
+							>
+								Worth exploring
+							</span>
+							<span
+								class="px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-200"
+							>
+								in-process
+							</span>
+						</div>
+					</div>
+
+					<p class="mono text-sm text-slate-600">
+						packages/core/logger/** (339 lines, 17 exports, 0
+						importers) &middot; packages/others/lowdb/** (0
+						importers) &middot; packages/others/api-client/** (0
+						importers)
+					</p>
+
+					<div class="before-after">
+						<div
+							class="rounded-lg border border-slate-200 bg-white p-4"
+						>
+							<p class="schematic text-red-700 mb-3">
+								Before &mdash; interfaces with nothing behind
+								them
+							</p>
+							<div class="space-y-3">
+								<div class="leak rounded border p-3">
+									<p class="schematic text-red-700">
+										@itsrose/logger
+									</p>
+									<p class="text-xs text-slate-700 mt-1">
+										pretty transport, colour map, error
+										serialiser. Every app logs through
+										Fastify&rsquo;s bundled pino instead.
+									</p>
+								</div>
+								<div class="leak rounded border p-3">
+									<p class="schematic text-red-700">
+										@itsrose/lowdb
+									</p>
+									<p class="text-xs text-slate-700 mt-1">
+										<code>CryptoAdapter</code> has no caller
+										&mdash; a hypothetical second adapter.
+										Carries a copy-pasted
+										<code>openapi:generate</code> script
+										pointing at a file that does not exist.
+									</p>
+								</div>
+								<div class="leak rounded border p-3">
+									<p class="schematic text-red-700">
+										@itsrose/api-client
+									</p>
+									<p class="text-xs text-slate-700 mt-1">
+										README documents
+										<code>scripts/generate-openapi.ts</code>
+										and <code>ItsRoseAPIClient</code>.
+										Neither exists. The published
+										<code>.d.mts</code> imports a
+										devDependency.
+									</p>
+								</div>
+							</div>
+						</div>
+						<div
+							class="rounded-lg border border-slate-200 bg-white p-4"
+						>
+							<p class="schematic text-emerald-700 mb-3">
+								After &mdash; cut, or finish
+							</p>
+							<div class="space-y-3">
+								<div class="module-card p-3">
+									<p class="schematic text-slate-700">
+										@itsrose/logger
+									</p>
+									<p class="text-xs text-slate-600 mt-1">
+										delete &mdash; or make Fastify consume
+										it via
+										<code>loggerInstance</code>, so
+										redaction and error flattening live in
+										one place
+									</p>
+								</div>
+								<div class="module-card p-3">
+									<p class="schematic text-slate-700">
+										@itsrose/lowdb
+									</p>
+									<p class="text-xs text-slate-600 mt-1">
+										delete &mdash; or give it a caller and
+										add the in-memory adapter that makes the
+										seam real
+									</p>
+								</div>
+								<div class="module-card p-3">
+									<p class="schematic text-slate-700">
+										@itsrose/api-client
+									</p>
+									<p class="text-xs text-slate-600 mt-1">
+										finish it &mdash; dump the runtime
+										OpenAPI spec, generate
+										<code>paths</code>, gate CI on
+										regeneration. Otherwise delete it.
+									</p>
+								</div>
+							</div>
+							<p class="text-xs text-slate-600 mt-3">
+								Deleting any of the three makes complexity
+								<em>vanish</em>
+								rather than move. That is the one case the
+								deletion test treats as a verdict rather than a
+								question.
+							</p>
+						</div>
+					</div>
+
+					<div class="grid md:grid-cols-2 gap-6">
+						<div>
+							<p class="schematic text-slate-400">Problem</p>
+							<p class="text-sm mt-1">
+								Three support packages publish an interface that
+								nothing calls. The costs are not only the code:
+								the
+								<code>@itsrose/api-client</code> README
+								describes a generator and a factory class that
+								do not exist, so a reader&rsquo;s mental model
+								of the platform is wrong before any code runs.
+							</p>
+							<p class="schematic text-slate-400 mt-4">
+								Solution
+							</p>
+							<p class="text-sm mt-1">
+								Delete <code>@itsrose/logger</code> and
+								<code>@itsrose/lowdb</code>. Either finish
+								<code>@itsrose/api-client</code> against the
+								spec the server already produces at runtime, or
+								delete it and its README claims.
+							</p>
+						</div>
+						<div>
+							<p class="schematic text-slate-400">Wins</p>
+							<ul
+								class="text-sm mt-1 space-y-1 list-disc list-inside text-slate-700"
+							>
+								<li>400+ lines and 2 dead scripts removed</li>
+								<li>the README stops lying about the client</li>
+								<li>no hypothetical seams left in the tree</li>
+								<li>
+									the published <code>.d.mts</code> stops
+									referencing a devDependency
+								</li>
+							</ul>
+						</div>
+					</div>
+				</article>
+			</section>
+
+			<section
+				id="top-recommendation"
+				class="pt-10 border-t-2 border-slate-800"
+			>
+				<p class="schematic text-emerald-700">Top recommendation</p>
+				<h2 class="font-serif text-4xl mt-2">
+					Candidate 03 &mdash; one invoice-status vocabulary
+				</h2>
+				<p class="mt-4 text-slate-700 max-w-3xl">
+					It is the only candidate where the architecture can cost
+					money. A single transient gateway read failure writes
+					<code>status: "settlement"</code> into a paid invoice, and
+					the settlement gate &mdash; a literal comparison against
+					<code>"paid"</code> &mdash; silently skips the subscription.
+					The idempotency guard stops recognising the invoice, and
+					<code>isVoidableStatus</code> makes it voidable because
+					<code>"settlement"</code> is not in the non-voidable list.
+					The dashboard already carries its own compensation (<code
+						>status === "paid" || status === "settlement"</code
+					>), which means the leak has already reached the UI.
+				</p>
+				<p class="mt-4 text-slate-700 max-w-3xl">
+					It is also the cheapest of the strong candidates: normalise
+					in the adapter, where the project&rsquo;s own rules already
+					permit vendor knowledge, and reuse the
+					<code>isSuccessStatus</code> helper
+					<code>@itsrose/midtrans</code> already ships and nobody
+					calls. The change removes a literal rather than adding
+					machinery, and it is the prerequisite for the midtrans
+					findings (the signature amount-format invariant and the
+					duplicated error model) landing on a coherent footing.
+				</p>
+				<p class="mt-4 text-slate-700 max-w-3xl">
+					<a
+						href="#c3"
+						class="underline decoration-emerald-500 underline-offset-4"
+						>Jump to Candidate 03</a
+					>
+					<span class="text-slate-400 mx-2">&middot;</span>
+					<a
+						href="#c5"
+						class="underline decoration-stone-400 underline-offset-4"
+						>C5 is the cheapest by hours</a
+					>
+					<span class="text-slate-400 mx-2">&middot;</span>
+					<a
+						href="#c1"
+						class="underline decoration-stone-400 underline-offset-4"
+						>C1 is the biggest locality win</a
+					>
+				</p>
+			</section>
+
+			<section id="appendix" class="pt-10 border-t border-stone-300">
+				<p class="schematic text-slate-400">Also surfaced</p>
+				<h2 class="font-serif text-2xl mt-1 mb-5">
+					Findings that did not make the seven
+				</h2>
+				<div class="grid md:grid-cols-2 gap-x-10 gap-y-5">
+					<div class="space-y-4">
+						<div>
+							<p class="text-sm font-semibold">
+								Midtrans &mdash; the signature invariant is not
+								in the interface
+							</p>
+							<p class="text-xs text-slate-600 mt-1 mono">
+								packages/midtrans/src/helper/signature.ts:9-21
+								&middot;
+								packages/auth/billing/src/adapter/midtrans-gateway.ts:84-86
+							</p>
+							<p class="text-sm text-slate-700 mt-1">
+								The signed amount is the raw 2-decimal string,
+								but the package&rsquo;s own invoice webhook
+								schema coerces it to a number. The one
+								production caller escapes the type system with
+								<code>as never</code> to stay correct.
+							</p>
+						</div>
+						<div>
+							<p class="text-sm font-semibold">
+								Midtrans &mdash; two error models, one of them
+								dead
+							</p>
+							<p class="text-xs text-slate-600 mt-1 mono">
+								packages/midtrans/src/client/error.ts:21-38
+								&middot; packages/midtrans/src/schema/error/**
+								(7 files)
+							</p>
+							<p class="text-sm text-slate-700 mt-1">
+								The exported Zod error schemas have no runtime
+								importer and classify the same payload
+								differently from the hand-written classifier
+								that actually runs.
+							</p>
+						</div>
+						<div>
+							<p class="text-sm font-semibold">
+								Billing &mdash; <code>ClockPort</code> is
+								declared but not a seam
+							</p>
+							<p class="text-xs text-slate-600 mt-1 mono">
+								packages/auth/billing/src/plugin/bindings.ts:108-114
+								&middot;
+								packages/auth/billing/src/domain/invoice.service.ts:44-54
+							</p>
+							<p class="text-sm text-slate-700 mt-1">
+								The production wiring hard-codes
+								<code>systemClock</code> and domain functions
+								keep a wall-clock fallback. The sibling usage
+								package gets this right &mdash; do not
+								&ldquo;fix&rdquo; it the same way.
+							</p>
+						</div>
+						<div>
+							<p class="text-sm font-semibold">
+								Billing &mdash; the domain has no interface
+							</p>
+							<p class="text-xs text-slate-600 mt-1 mono">
+								packages/auth/billing/src/domain/ (no index.ts)
+								&middot;
+								packages/auth/billing/src/plugin/routes/subscription/downgrade.ts:11
+							</p>
+							<p class="text-sm text-slate-700 mt-1">
+								Routes and the adapter reach past the
+								application layer straight into the domain, so
+								the application layer is optional and is skipped
+								in practice.
+							</p>
+						</div>
+					</div>
+					<div class="space-y-4">
+						<div>
+							<p class="text-sm font-semibold">
+								Billing &mdash; two decision tables disagree on
+								&ldquo;active&rdquo;
+							</p>
+							<p class="text-xs text-slate-600 mt-1 mono">
+								packages/auth/billing/src/domain/invoice.service.ts:110-130,
+								196-226
+							</p>
+							<p class="text-sm text-slate-700 mt-1">
+								<code>planInvoiceChange</code> gates on
+								<code>isActive</code>;
+								<code>planUpgradeInvoice</code> does not. For an
+								expired subscription, one endpoint creates a
+								fresh invoice and the other rejects with
+								&ldquo;already subscribed&rdquo;.
+							</p>
+						</div>
+						<div>
+							<p class="text-sm font-semibold">
+								Auth &mdash; env access leaks past the
+								<code>getEnv</code> seam
+							</p>
+							<p class="text-xs text-slate-600 mt-1 mono">
+								packages/auth/core/src/server/plugins.ts:19
+								&middot;
+								packages/auth/mailer/src/client.ts:29-35
+								&middot;
+								packages/auth/billing/src/plugin/routes/subscription/cron-billing.ts:29
+							</p>
+							<p class="text-sm text-slate-700 mt-1">
+								Five raw <code>process.env</code> reads bypass
+								the seam and lose its named boot-time error
+								mode. A purpose-built
+								<code>readEnvs</code> helper exists and is
+								unused.
+							</p>
+						</div>
+						<div>
+							<p class="text-sm font-semibold">
+								Usage &mdash; the deepest modules are the
+								untested ones
+							</p>
+							<p class="text-xs text-slate-600 mt-1 mono">
+								packages/auth/usage/src/application/settlement.ts
+								&middot;
+								packages/auth/usage/src/adapter/redis.ts (478
+								lines, 0% covered)
+							</p>
+							<p class="text-sm text-slate-700 mt-1">
+								<code>settleUsagePeriod</code> hides ten
+								behaviours behind one flat input and has no
+								test. The billable-aggregate rule is split
+								between SQL and application code with nothing
+								asserting they agree.
+							</p>
+						</div>
+						<div>
+							<p class="text-sm font-semibold">
+								Dashboard &mdash; one barrel, 140 declarations
+							</p>
+							<p class="text-xs text-slate-600 mt-1 mono">
+								apps/dashboard/features/admin/index.ts:1-13
+								&middot; apps/dashboard/lib/api/prefetch.ts:1
+							</p>
+							<p class="text-sm text-slate-700 mt-1">
+								The admin barrel re-exports 140 declarations
+								while four of its own useful modules are
+								excluded from it &mdash; and reached through
+								deep paths by outsiders anyway.
+							</p>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<footer
+				class="pt-12 pb-6 text-xs text-slate-400 border-t border-stone-200"
+			>
+				<p>
+					Scanned from git churn over the last 90 days:
+					packages/midtrans, apps/dashboard, packages/auth/*,
+					apps/api, packages/internal/*, packages/features/*. Findings
+					verified against source; the retry behaviour was measured
+					against a local stub server.
+				</p>
+			</footer>
+		</main>
+	</body>
+</html>
