@@ -1,9 +1,9 @@
+import { isCancel } from "axios";
 import {
 	exponentialDelay,
-	isNetworkOrIdempotentRequestError,
+	isNetworkError,
 	type IAxiosRetryConfig,
 } from "axios-retry";
-import { isHttpClientError } from "../errors";
 import type { HttpConfig } from "../types";
 
 /**
@@ -14,25 +14,38 @@ export type RetryConfig = IAxiosRetryConfig;
 /**
  * Default retry policy for HTTP requests.
  * Retries up to 3 times with exponential backoff on network errors or 5xx server responses.
+ *
+ * The condition is expressed over the failure itself — the status code, or the
+ * absence of a response — never over the transport's brand. `axios-retry`
+ * always hands this callback the raw `AxiosError`, so a guard on
+ * `isAxiosError` would reject every failure and the policy would never fire.
+ *
+ * Note that 5xx is retried for every method, including ones that mutate state.
+ * Callers issuing non-idempotent requests should narrow the policy with
+ * `retry: { retryCondition }` so a replayed write cannot happen twice.
  */
 export const defaultRetryConfig: RetryConfig = {
 	retries: 3,
 	retryDelay: exponentialDelay,
 	retryCondition: (error) => {
-		// no retry if is HttpClientError
-		if (isHttpClientError(error) || error?.isAxiosError === true) {
+		// A cancelled request is a decision, never a blip.
+		if (isCancel(error) || error?.code === "ERR_CANCELED") {
 			return false;
 		}
 
-		if ((error as any)?.__CANCEL__ || error.code === "ERR_CANCELED") {
+		// A response the server chose to send (4xx) is an answer, not a blip.
+		const status = error?.response?.status;
+		if (typeof status === "number" && status < 500) {
 			return false;
 		}
 
-		if (error.response && error.response.status < 500) {
-			return false;
+		// No response at all — the request never reached a server.
+		if (!error?.response) {
+			return isNetworkError(error);
 		}
 
-		return isNetworkOrIdempotentRequestError(error);
+		// 5xx — the server received the request and failed to handle it.
+		return true;
 	},
 } as const;
 
