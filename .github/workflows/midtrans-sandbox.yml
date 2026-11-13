@@ -17,81 +17,81 @@ name: Midtrans Sandbox
 # a live sandbox and would leak credentials to forked workflows.
 
 on:
-    schedule:
-        - cron: "0 3 * * 1"
-    workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
 
 concurrency:
-    group: midtrans-sandbox
-    cancel-in-progress: false
+  group: midtrans-sandbox
+  cancel-in-progress: false
 
 permissions:
-    contents: read
+  contents: read
 
 env:
-    CI: "true"
-    TURBO_TELEMETRY_DISABLED: "1"
-    TURBO_UI: "false"
-    NEXT_TELEMETRY_DISABLED: "1"
-    MIDTRANS_ENVIRONMENT: sandbox
-    MIDTRANS_SERVER_KEY: ${{ secrets.MIDTRANS_SANDBOX_SERVER_KEY }}
-    MIDTRANS_CLIENT_KEY: ${{ secrets.MIDTRANS_SANDBOX_CLIENT_KEY }}
-    MIDTRANS_MERCHANT_ID: ${{ secrets.MIDTRANS_SANDBOX_MERCHANT_ID }}
-    MIDTRANS_INTEGRATION: "1"
+  CI: "true"
+  TURBO_TELEMETRY_DISABLED: "1"
+  TURBO_UI: "false"
+  NEXT_TELEMETRY_DISABLED: "1"
+  MIDTRANS_ENVIRONMENT: sandbox
+  MIDTRANS_SERVER_KEY: ${{ secrets.MIDTRANS_SANDBOX_SERVER_KEY }}
+  MIDTRANS_CLIENT_KEY: ${{ secrets.MIDTRANS_SANDBOX_CLIENT_KEY }}
+  MIDTRANS_MERCHANT_ID: ${{ secrets.MIDTRANS_SANDBOX_MERCHANT_ID }}
+  MIDTRANS_INTEGRATION: "1"
 
 jobs:
-    sandbox:
-        name: Sandbox drift check
-        runs-on: ubuntu-latest
-        timeout-minutes: 20
-        defaults:
-            run:
-                working-directory: packages/midtrans
-        steps:
-            - name: Checkout branch
-              uses: actions/checkout@v6
-              with:
-                  fetch-depth: 1
+  sandbox:
+    name: Sandbox drift check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: packages/midtrans
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
-            - name: Install
-              uses: ./.github/common-actions/install
+      - name: Install
+        uses: ./.github/common-actions/install
 
-            - name: Guard credentials
-              run: |
-                  if [ -z "${MIDTRANS_SERVER_KEY}" ]; then
-                    echo "::error::MIDTRANS_SANDBOX_SERVER_KEY is not configured."
-                    exit 1
-                  fi
-                  case "${MIDTRANS_SERVER_KEY}" in
-                    SB-Mid-server-*) ;;
-                    *)
-                      echo "::error::The server key is not a sandbox key (SB-Mid-server-…)."
-                      exit 1
-                      ;;
-                  esac
+      - name: Guard credentials
+        run: |
+          if [ -z "${MIDTRANS_SERVER_KEY}" ]; then
+            echo "::error::MIDTRANS_SANDBOX_SERVER_KEY is not configured."
+            exit 1
+          fi
+          case "${MIDTRANS_SERVER_KEY}" in
+            SB-Mid-server-*) ;;
+            *)
+              echo "::error::The server key is not a sandbox key (SB-Mid-server-…)."
+              exit 1
+              ;;
+          esac
 
-            - name: Verify committed fixtures (offline)
-              run: pnpm fixtures:verify
+      - name: Verify committed fixtures (offline)
+        run: pnpm fixtures:verify
 
-            - name: Capture fixtures from the sandbox
-              run: pnpm fixtures:capture
+      - name: Capture fixtures from the sandbox
+        run: pnpm fixtures:capture
 
-            # The capture rewrites `_meta.captured_at` and a handful of
-            # timestamps, so a byte diff always exists. Validate the *fresh*
-            # responses against the schemas instead: a contract change fails
-            # here, a clock change does not.
-            - name: Validate fresh captures against the schemas
-              run: pnpm fixtures:verify
+      # The capture rewrites `_meta.captured_at` and a handful of
+      # timestamps, so a byte diff always exists. Validate the *fresh*
+      # responses against the schemas instead: a contract change fails
+      # here, a clock change does not.
+      - name: Validate fresh captures against the schemas
+        run: pnpm fixtures:verify
 
-            - name: Report response drift
-              if: always()
-              run: |
-                  git --no-pager diff --stat -- fixtures || true
+      - name: Report response drift
+        if: always()
+        run: |
+          git --no-pager diff --stat -- fixtures || true
 
-            - name: Restore committed fixtures
-              if: always()
-              run: git checkout -- fixtures
+      - name: Restore committed fixtures
+        if: always()
+        run: git checkout -- fixtures
 
-            - name: Run sandbox integration tests
-              working-directory: .
-              run: pnpm exec jest --runInBand packages/midtrans/__tests__/integration
+      - name: Run sandbox integration tests
+        working-directory: .
+        run: pnpm exec jest --runInBand packages/midtrans/__tests__/integration

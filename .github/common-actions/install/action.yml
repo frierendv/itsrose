@@ -1,5 +1,5 @@
-name: 'Install'
-description: 'Setup Node.js and runs install'
+name: "Install"
+description: "Setup Node.js and runs install"
 
 runs:
   using: composite
@@ -13,9 +13,9 @@ runs:
       uses: actions/setup-node@v7
       with:
         cache: pnpm
-        node-version-file: '.nvmrc'
+        node-version-file: ".nvmrc"
         cache-dependency-path: pnpm-lock.yaml
-        registry-url: 'https://registry.npmjs.org'
+        registry-url: "https://registry.npmjs.org"
 
     - name: Install dependencies
       shell: bash

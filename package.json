@@ -17,7 +17,7 @@
 		"commitlint": "commitlint --edit",
 		"dev": "turbo run dev",
 		"format": "prettier --write . --list-different && syncpack format",
-		"format:check": "prettier --check . && syncpack lint --dry-run",
+		"format:check": "prettier --check . && syncpack lint",
 		"lint": "turbo run lint",
 		"lint-staged": "lint-staged",
 		"lint:fix": "turbo run lint:fix",

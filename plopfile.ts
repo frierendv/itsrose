@@ -70,7 +70,9 @@ export default function (plop: NodePlopAPI) {
 					message: `Package name ${scope}/name\n->`,
 					validate: (input: string) => {
 						const name = input.trim();
-						if (!name) return "Package name is required.";
+						if (!name) {
+							return "Package name is required.";
+						}
 						if (!/^[a-z0-9-]+$/.test(name)) {
 							return "Package name must contain only lowercase letters, numbers, and hyphens.";
 						}

@@ -1,19 +1,19 @@
 services:
-    api:
-        container_name: itsrose-api
-        build:
-            context: ../../
-            dockerfile: apps/api/Dockerfile
-            network: host
-        restart: unless-stopped
-        env_file:
-            - .env.api
-        environment:
-            NODE_ENV: production
-            PORT: 3000
-        networks:
-            - itsrose_network
+  api:
+    container_name: itsrose-api
+    build:
+      context: ../../
+      dockerfile: apps/api/Dockerfile
+      network: host
+    restart: unless-stopped
+    env_file:
+      - .env.api
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    networks:
+      - itsrose_network
 
 networks:
-    itsrose_network:
-        driver: bridge
+  itsrose_network:
+    driver: bridge

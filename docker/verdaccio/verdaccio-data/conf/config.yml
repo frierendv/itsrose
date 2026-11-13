@@ -10,12 +10,12 @@ uplinks:
     url: https://registry.npmjs.org/
 
 packages:
-  '@itsrose/*':
+  "@itsrose/*":
     # scoped packages
     access: $all
     publish: $authenticated
     proxy: npmjs
-  '**':
+  "**":
     access: $all
     publish: $authenticated
     proxy: npmjs

@@ -2,9 +2,9 @@
 name: itsrose
 
 include:
-    - docker-compose.cloudflared.yml
-    - api/compose.yml
+  - docker-compose.cloudflared.yml
+  - api/compose.yml
 
 networks:
-    itsrose_network:
-        driver: bridge
+  itsrose_network:
+    driver: bridge

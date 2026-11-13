@@ -1,31 +1,31 @@
 name: database
 
 services:
-    postgres:
-        image: postgres:18-alpine3.24
-        container_name: local-postgres
-        environment:
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: localpassword
-            POSTGRES_DB: testdb
-        ports:
-            - "5432:5432"
-        volumes:
-            - pg_test_data_18:/var/lib/postgresql
-        networks:
-            - itsrose_network
+  postgres:
+    image: postgres:18-alpine3.24
+    container_name: local-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: localpassword
+      POSTGRES_DB: testdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_test_data_18:/var/lib/postgresql
+    networks:
+      - itsrose_network
 
-    redis:
-        image: redis:8.8.1-alpine
-        container_name: local-redis
-        ports:
-            - "6379:6379"
-        networks:
-            - itsrose_network
+  redis:
+    image: redis:8.8.1-alpine
+    container_name: local-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - itsrose_network
 
 networks:
-    itsrose_network:
-        driver: bridge
+  itsrose_network:
+    driver: bridge
 
 volumes:
-    pg_test_data_18:
+  pg_test_data_18:

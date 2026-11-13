@@ -1,16 +1,16 @@
 name: cloudflared
 
 services:
-    cloudflared:
-        container_name: itsrose-cloudflared
-        image: cloudflare/cloudflared:latest
-        restart: unless-stopped
-        env_file:
-            - .env.cloudflared
-        command: tunnel --no-autoupdate run --protocol quic
-        networks:
-            - itsrose_network
+  cloudflared:
+    container_name: itsrose-cloudflared
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    env_file:
+      - .env.cloudflared
+    command: tunnel --no-autoupdate run --protocol quic
+    networks:
+      - itsrose_network
 
 networks:
-    itsrose_network:
-        driver: bridge
+  itsrose_network:
+    driver: bridge

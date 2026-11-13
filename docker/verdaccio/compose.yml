@@ -1,19 +1,19 @@
 services:
-    verdaccio:
-        image: verdaccio/verdaccio
-        container_name: "verdaccio"
-        networks:
-            - itsrose_network
-        environment:
-            - VERDACCIO_PORT=4873
-        ports:
-            - "4873:4873"
-        volumes:
-            - verdaccio-data:/verdaccio
+  verdaccio:
+    image: verdaccio/verdaccio
+    container_name: "verdaccio"
+    networks:
+      - itsrose_network
+    environment:
+      - VERDACCIO_PORT=4873
+    ports:
+      - "4873:4873"
+    volumes:
+      - verdaccio-data:/verdaccio
 
 networks:
-    itsrose_network:
-        driver: bridge
+  itsrose_network:
+    driver: bridge
 
 volumes:
-    verdaccio-data:
+  verdaccio-data:
