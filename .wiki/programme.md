@@ -64,13 +64,19 @@ interface that permitted it to be destroyed, and a test that asserted the
 default directly rather than the production path that breaks it. See
 [interfaces that permit misuse](problems/interfaces-that-permit-misuse.md).
 
-### In flight — Wave 2, the billing half
+### Landed — Wave 2, the billing half
 
 The domain InvoiceStatus union: stop one invoice-status column carrying three
 merged vendor vocabularies. This is the item that can cost money — a
-transient gateway read failure can currently write a vendor status into a
-paid invoice and silently skip the subscription settlement. See
-[the decision](decisions/invoice-status-vocabulary.md).
+transient gateway read failure can write a vendor status into a paid invoice
+and silently skip the subscription settlement.
+
+| Commit    | Subject                                                                                 |
+| --------- | --------------------------------------------------------------------------------------- |
+| `e6a38c8` | fix(auth-billing): spell the voided invoice status consistently                         |
+| `7ff8fba` | fix(auth-billing): one invoice-status vocabulary, and one place that asks "is it paid?" |
+
+See [the decision](decisions/invoice-status-vocabulary.md).
 
 ### Not started — Waves 3 and 4
 

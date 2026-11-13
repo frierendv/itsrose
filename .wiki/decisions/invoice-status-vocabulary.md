@@ -51,6 +51,68 @@ visible in the UI.
 A caller of the billing package no longer needs to know that Midtrans has two
 status systems. It asks whether an invoice is paid; the domain answers.
 
+## Landed, 2026-11-14
+
+`7ff8fba` — the vocabulary, the mapping, and the single predicate.
+
+The domain owns the vocabulary: `packages/auth/billing/src/domain/invoice-status.ts`
+holds a Zod v4 enum of the glossary's Invoice Status set, so the type is
+inferred rather than hand-written. `TransactionInvoice.status` is typed as it.
+
+The adapter is the only place that knows Midtrans. It maps the provider's
+transaction status and fraud status onto the domain vocabulary using the
+gateway's own outcome classifier, so the fraud refinement of `capture`,
+`authorize` and `pending` is honoured.
+
+**One predicate answers "is this paid?"** — `isPaidInvoiceStatus`. Both the
+domain and the application layer ask through it, so a status is never
+compared against a literal in two places that can drift apart. The old
+`isVoidableStatus` was replaced rather than kept: a status outside the
+vocabulary is now **never voidable**, because voiding is irreversible at the
+provider and an invoice in a state this code does not understand should be
+left alone rather than cancelled on a guess.
+
+The gateway read no longer aborts the webhook when it fails. The normalised
+notification status carries what the domain needs, so a transient upstream
+failure can no longer decide whether a customer gets their subscription.
+
+The dashboard's compensation is deleted, and the "is this pending?" predicate
+that the admin invoice table had copied verbatim now lives in one place.
+
+### The mapping
+
+| Midtrans outcome                                    | Domain invoice status |
+| --------------------------------------------------- | --------------------- |
+| `paid` (settlement, capture + accept)               | `paid`                |
+| `pending` (authorize, pending, capture + challenge) | `pending`             |
+| `failed` (deny, failure)                            | `rejected`            |
+| `failed` (cancel)                                   | `canceled`            |
+| `failed` (expire)                                   | `expired`             |
+| `refunded`                                          | `paid`                |
+| `unknown`                                           | `pending`             |
+
+### Two judgement calls, both deliberate
+
+- **A refunded transaction maps to `paid`.** A refund can only follow a
+  captured payment, and the invoice vocabulary has no refunded state.
+  Reporting `canceled` would erase the payment record of a genuinely settled
+  invoice. The refund remains a transaction-level fact.
+- **A persisted row holding an unknown status is reported as pending and
+  self-heals on the next sync.** The repository has no migration mechanism,
+  so rows written before the vocabulary was enforced may still carry `void`.
+  The code does not crash on them, and does not treat them as voidable.
+
+### The test surface
+
+`packages/auth/billing/__tests__/invoice-status.test.ts` — 34 tests. The two
+that matter most are the ones that fail against the old code: with the fix
+reverted, a gateway read that throws or returns nothing leaves the
+subscription unsettled, and the invoice status reads `settlement` where it
+should read `paid`.
+
+There is also an architectural guard: the test fails if a provider status
+literal reappears in the domain or application layer.
+
 ## Related
 
 - [Billing subsystem](../subsystems/billing.md)

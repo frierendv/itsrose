@@ -29,6 +29,19 @@ recorded.
 The status vocabulary that decides "did this get paid" is
 [the invoice-status decision](../decisions/invoice-status-vocabulary.md).
 
+## The invoice-status vocabulary
+
+The domain owns it: `src/domain/invoice-status.ts` holds a Zod v4 enum of the
+glossary's Invoice Status set, and `TransactionInvoice.status` is typed as it.
+The adapter is the only place that knows Midtrans.
+
+**One predicate answers "is this paid?"** — `isPaidInvoiceStatus`, in the
+domain, used by both the domain and the application layer. A status outside
+the vocabulary is never paid and never voidable.
+
+Landed at `7ff8fba`. See
+[the decision](../decisions/invoice-status-vocabulary.md).
+
 ## Things known to be rough, as of 2026-11-14
 
 - **`ClockPort` is declared but is not a seam.** `plugin/bindings.ts` hard-wires
@@ -45,6 +58,10 @@ The status vocabulary that decides "did this get paid" is
   subscription status. For an expired subscription one endpoint opens a fresh
   invoice while the other rejects as "already subscribed". Pinned by a test at
   `a2f8486` so settling it later is a deliberate change.
+- **There is no migration mechanism**, so a row persisted before the status
+  vocabulary was enforced may still hold a status the code does not know. It
+  is reported as pending and self-heals on the next sync rather than
+  crashing — but nothing rewrites the stored value.
 - **`InvoiceSequenceRepository.next` promises atomicity it does not deliver.**
   The implementation is read-then-write, so two concurrent calls can allocate
   the same invoice number; the retry path salts with `Date.now()`.
