@@ -1,84 +1,20 @@
-# Non-root DSH (DeepSeek Harness) behind the shared Traefik edge.
-#
-# The edge lives in ../docker-compose.net.yml: that file creates the
-# `itsrose_dev_center` network, runs Traefik v3 with a single `web` (:80)
-# entrypoint and `exposedbydefault=false`, and puts a cloudflared tunnel in
-# front. TLS terminates at Cloudflare, so the router below deliberately does
-# NOT declare a certresolver, and `traefik.enable=true` is mandatory.
-#
-# PROXY_USERNAME/PROXY_PASSWORD are optional here: the expected perimeter is
-# Cloudflare Access (Zero Trust) in front of the tunnel, not HTTP Basic Auth in
-# the container. The upstream proxy redeems DSH's launch token automatically for
-# any visitor of `/`, so if you ever publish this hostname without an edge
-# policy, set both -- otherwise the whole agent (bash tool, this workspace, the
-# model credentials in ~/.dsh) is served to whoever can reach it.
-
 services:
   harness:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        # Pinned version tag: `-latest` floats with every DSH release.
-        BASE_IMAGE: ${DSH_BASE_IMAGE:-smanx/deepseek-harness:devtools-min-0.2.2-rc.1}
-    image: ${DSH_IMAGE:-dsh-harness:nonroot}
+    image: ${DSH_IMAGE:-harness:dev}
     container_name: harness
+    hostname: ${CONTAINER_HOSTNAME:-dsh-harness}
     restart: unless-stopped
-    # docker-init reaps the proxy/tail children and forwards SIGTERM to the
-    # entrypoint, which forwards it to DSH (bounded shutdown).
-    init: true
-    stop_grace_period: 30s
-
-    volumes:
-      # Everything DSH keeps (sessions, credentials, pnpm store, agent config).
-      - dsh-data:/home/node/.dsh
-      # The agent's workspace. Bind-mounted so work lands on the host; the
-      # entrypoint hands it to uid 1000 on first start.
-      - ./workspace:/workspace
-    networks:
-      - itsrose_dev_center
     environment:
-      - DSH_WORKSPACE_ROOT=/workspace
-      # The authority browsers use. The Traefik rule in `labels` interpolates the
-      # same variable, and inside the container the entrypoint hands it to DSH as
-      # `--trusted-host` so the deployment names itself as the public-deployment
-      # guide asks. (Inert while the proxy rewrites Host to the loopback
-      # listener; strip-forwarded.js is what unblocks the market's privileged
-      # routes -- see the Dockerfile.)
-      - DSH_PUBLIC_HOST=${DSH_PUBLIC_HOST:-harness.itsrose.my.id}
-      # Empty means "probe": the entrypoint picks workspace-write or
-      # danger-full-access, and validates anything non-empty.
-      - DSH_PERMISSION_MODE=${DSH_PERMISSION_MODE:-}
-      # First boot installs the ~250 MB web profile; be patient on a slow link.
-      - DSH_READY_TIMEOUT=${DSH_READY_TIMEOUT:-600}
-      - DSH_PORT=${DSH_PORT:-3079}
-      - PROXY_PORT=${PROXY_PORT:-3080}
-      # Optional in-container Basic Auth: the upstream proxy enables it only when
-      # both are non-empty. Empty by default -- the edge (Cloudflare Access) is
-      # the gate. See the header comment.
-      - PROXY_USERNAME=${DSH_PROXY_USER:-}
-      - PROXY_PASSWORD=${DSH_PROXY_PASS:-}
-      - TZ=${TZ:-Asia/Jakarta}
-    healthcheck:
-      # Probes the proxy -- the path a browser actually takes -- without using
-      # `/`: the proxy's root handler performs the launch-token -> session-cookie
-      # exchange on every anonymous hit, so probing `/` mints a new DSH session
-      # and logs "[upstream-token] ..." every interval. /manifest.webmanifest is
-      # a static public asset forwarded straight through: it proves proxy and
-      # upstream are both alive and creates no session (a 404 would still count,
-      # since only reachability matters here).
-      test: [ "CMD", "node", "-e", "fetch('http://127.0.0.1:${PROXY_PORT:-3080}/manifest.webmanifest').then(()=>process.exit(0)).catch(()=>process.exit(1))" ]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      # Profile install on first start is the long pole; keep the container out
-      # of "unhealthy" while it runs.
-      start_period: 300s
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+      # Public reverse proxy port
+      - GATEWAY_PORT=${GATEWAY_PORT:-8080}
+      # Expected external hostname for DSH web server
+      - DSH_TRUSTED_HOST=${DSH_TRUSTED_HOST:-}
+    volumes:
+      - ${DSH_WORKSPACE:-./workspace}:/workspace
+      - dsh-data:/home/node/.dsh
 
     # DSH's confinement backends need user namespaces, which the default Docker
     # seccomp profile and masked-path set can block. The container is the
@@ -99,6 +35,8 @@ services:
       # Cloudflare tunnel (dashboard -> tunnel -> public hostnames).
       - "traefik.http.routers.harness.rule=Host(`${DSH_PUBLIC_HOST:-harness.itsrose.my.id}`)"
       - traefik.http.services.harness.loadbalancer.server.port=3080
+    networks:
+      - itsrose_dev_center
 
 volumes:
   dsh-data:

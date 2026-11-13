@@ -1,0 +1,23 @@
+{
+	admin off
+	auto_https off
+	persist_config off
+}
+
+:{$GATEWAY_PORT:8080} {
+	@auto_auth {
+		path /
+		header Cf-Ray *
+		not client_ip 127.0.0.1 ::1
+		not header_regexp Cookie dsh-auth-
+	}
+	rewrite @auto_auth /?token={$DSH_TOKEN}
+
+	reverse_proxy 127.0.0.1:{$DSH_INTERNAL_PORT:3080} {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		transport http {
+			response_header_timeout 3600s
+		}
+	}
+}
