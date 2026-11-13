@@ -23,6 +23,7 @@ import {
 import type { ApiPlan } from "@itsrose/auth-billing";
 import { useState } from "react";
 import { useCreatePlanMutation, useUpdatePlanMutation } from "../../hooks";
+import type { PlanPriceInput } from "../../types";
 
 export interface PlanFormModalProps {
 	plan?: ApiPlan | null;
@@ -50,7 +51,7 @@ const PlanFormContent: React.FC<PlanFormContentProps> = ({
 	const [amount, setAmount] = useState<number>(
 		plan?.price?.amount === undefined ? 0 : plan.price.amount
 	);
-	const [interval] = useState<"month" | "year">(
+	const [interval] = useState<PlanPriceInput["interval"]>(
 		plan?.price?.interval ?? "month"
 	);
 	// Blank means "unlimited"; the API accepts `null` for that case.
