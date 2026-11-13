@@ -40,6 +40,13 @@ export const PlanGrid: React.FC<PlanGridProps> = ({
 	const currentTierId = (subscription?.plan_id || "free").toLowerCase();
 	const scheduledTierId = subscription?.scheduled_tier?.toLowerCase();
 
+	// The price of the plan the customer is on now, taken from the live plan
+	// list. A plan's price is mutable, so the upgrade preview must use the
+	// same price the server will charge.
+	const currentTierPrice =
+		plans.find((plan) => plan.plan_id.toLowerCase() === currentTierId)
+			?.price.amount ?? 0;
+
 	// Ensure plans are ordered by rank: free (0) -> hobby (1) -> pro (2) -> business (3)
 	const sortedPlans = [...plans].sort((a, b) => {
 		const rankA = PLAN_TIER_RANK[a.plan_id.toLowerCase()] ?? 0;
@@ -174,6 +181,7 @@ export const PlanGrid: React.FC<PlanGridProps> = ({
 			<UpgradeModal
 				targetPlan={upgradePlan}
 				subscription={subscription}
+				currentTierPrice={currentTierPrice}
 				isOpen={Boolean(upgradePlan)}
 				onOpenChange={(open) => {
 					if (!open) {

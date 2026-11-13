@@ -1,23 +1,30 @@
 import {
-	BILLING_PERIOD_MS,
-	PLAN_TIER_RANK,
-	STANDARD_TIER_RATES,
-	UNDER_24_HOURS_MS,
-} from "../domain/constants";
-import type { PlanTier } from "../types";
+	calculateProration,
+	isTierDowngrade,
+	isTierUpgrade,
+} from "../domain/proration";
 
-export const BILLING_CYCLE_MS = BILLING_PERIOD_MS;
-export { UNDER_24_HOURS_MS };
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export interface ProrationPreviewInput {
 	currentTier: string;
 	targetTier: string;
+	/**
+	 * Price of the plan the customer is on right now, in the smallest unit.
+	 * Must be the plan's current price — a plan's price is mutable, so a
+	 * catalog or seeded value here would quote a different number than the
+	 * customer is charged.
+	 */
+	currentTierPrice: number;
+	/**
+	 * Price of the plan being moved to, in the smallest unit.
+	 */
+	targetTierPrice: number;
 	periodStart?: string | Date | null;
 	periodEnd?: string | Date | null;
-	currentTierPrice?: number;
-	targetTierPrice?: number;
 	now?: Date;
 }
+
 export interface ProrationPreviewResult {
 	currentTier: string;
 	targetTier: string;
@@ -34,7 +41,12 @@ export interface ProrationPreviewResult {
 }
 
 /**
- * Computes live mathematical proration breakdown matching the server billing engine.
+ * Projects the proration rule for the browser.
+ *
+ * The rule itself lives in `domain/proration.ts` — the server charges with it.
+ * This is a view over that rule's result, not a second implementation of it,
+ * so the number the customer is quoted and the number the server charges come
+ * from the same decision.
  */
 export function calculateProrationPreview(
 	params: ProrationPreviewInput
@@ -43,112 +55,58 @@ export function calculateProrationPreview(
 	const currentTier = params.currentTier.toLowerCase();
 	const targetTier = params.targetTier.toLowerCase();
 
-	const currentTierPrice =
-		params.currentTierPrice ??
-		(STANDARD_TIER_RATES[currentTier as PlanTier] || 0);
-	const targetTierPrice =
-		params.targetTierPrice ??
-		(STANDARD_TIER_RATES[targetTier as PlanTier] || 0);
-
+	// Without a billing period there is nothing to prorate against; an empty
+	// range puts the rule on its new-subscription branch.
 	const periodStart = params.periodStart ? new Date(params.periodStart) : now;
 	const periodEnd = params.periodEnd
 		? new Date(params.periodEnd)
-		: new Date(now.getTime() + BILLING_CYCLE_MS);
+		: periodStart;
 
-	const nowMs = now.getTime();
-	const startMs = periodStart.getTime();
-	const endMs = periodEnd.getTime();
+	const result = calculateProration({
+		currentTier,
+		targetTier,
+		currentPeriodStart: periodStart,
+		currentPeriodEnd: periodEnd,
+		currentTierPrice: params.currentTierPrice,
+		targetTierPrice: params.targetTierPrice,
+		now,
+	});
 
-	// If currently on free tier or invalid range, treat as full new cycle
-	if (currentTier === "free" || currentTierPrice <= 0 || endMs <= startMs) {
-		const renewalDate = new Date(nowMs + BILLING_CYCLE_MS);
-		return {
-			currentTier,
-			targetTier,
-			currentTierPrice: 0,
-			targetTierPrice,
-			unusedCredit: 0,
-			proratedTargetCost: targetTierPrice,
-			netPayable: targetTierPrice,
-			isCycleReset: true,
-			cycleResetReason: "new_subscription",
-			remainingDays: 30,
-			renewalDate,
-			fullRenewalPrice: targetTierPrice,
-		};
-	}
-
-	const totalPeriodMs = Math.max(endMs - startMs, 1);
-	const remainingMs = Math.max(endMs - nowMs, 0);
-	const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
-	const ratio = remainingMs / totalPeriodMs;
-
-	// Edge case 1: Remaining time under 24 hours -> Full cycle reset
-	if (remainingMs < UNDER_24_HOURS_MS) {
-		const renewalDate = new Date(nowMs + BILLING_CYCLE_MS);
-		return {
-			currentTier,
-			targetTier,
-			currentTierPrice,
-			targetTierPrice,
-			unusedCredit: 0,
-			proratedTargetCost: targetTierPrice,
-			netPayable: targetTierPrice,
-			isCycleReset: true,
-			cycleResetReason: "under_24_hours",
-			remainingDays,
-			renewalDate,
-			fullRenewalPrice: targetTierPrice,
-		};
-	}
-
-	const unusedCredit = Math.round(currentTierPrice * ratio);
-	const proratedTargetCost = Math.round(targetTierPrice * ratio);
-	const priceDifference = targetTierPrice - currentTierPrice;
-	const rawPayable = Math.round(priceDifference * ratio);
-
-	// Edge case 2: Trivial payable amount -> Full cycle reset
-	if (rawPayable <= 0) {
-		const renewalDate = new Date(nowMs + BILLING_CYCLE_MS);
-		return {
-			currentTier,
-			targetTier,
-			currentTierPrice,
-			targetTierPrice,
-			unusedCredit: 0,
-			proratedTargetCost: targetTierPrice,
-			netPayable: targetTierPrice,
-			isCycleReset: true,
-			cycleResetReason: "trivial_payable",
-			remainingDays,
-			renewalDate,
-			fullRenewalPrice: targetTierPrice,
-		};
-	}
+	const ratio =
+		result.totalPeriodMs > 0
+			? result.remainingMs / result.totalPeriodMs
+			: 0;
 
 	return {
 		currentTier,
 		targetTier,
-		currentTierPrice,
-		targetTierPrice,
-		unusedCredit,
-		proratedTargetCost,
-		netPayable: rawPayable,
-		isCycleReset: false,
-		remainingDays,
-		renewalDate: periodEnd,
-		fullRenewalPrice: targetTierPrice,
+		currentTierPrice: result.currentTierPrice,
+		targetTierPrice: result.targetTierPrice,
+		unusedCredit: result.isCycleReset
+			? 0
+			: Math.round(result.currentTierPrice * ratio),
+		proratedTargetCost: result.isCycleReset
+			? 0
+			: Math.round(result.targetTierPrice * ratio),
+		netPayable: result.payableAmount,
+		isCycleReset: result.isCycleReset,
+		cycleResetReason: result.cycleResetReason,
+		remainingDays: Math.ceil(result.remainingMs / DAY_MS),
+		renewalDate: result.effectiveNewPeriodEnd ?? result.currentPeriodEnd,
+		fullRenewalPrice: result.targetTierPrice,
 	};
 }
 
+/**
+ * Whether moving from `currentTier` to `targetTier` is an upgrade.
+ */
 export function isUpgrade(currentTier: string, targetTier: string): boolean {
-	const currentRank = PLAN_TIER_RANK[currentTier.toLowerCase()] ?? 0;
-	const targetRank = PLAN_TIER_RANK[targetTier.toLowerCase()] ?? 0;
-	return targetRank > currentRank;
+	return isTierUpgrade(currentTier, targetTier);
 }
 
+/**
+ * Whether moving from `currentTier` to `targetTier` is a downgrade.
+ */
 export function isDowngrade(currentTier: string, targetTier: string): boolean {
-	const currentRank = PLAN_TIER_RANK[currentTier.toLowerCase()] ?? 0;
-	const targetRank = PLAN_TIER_RANK[targetTier.toLowerCase()] ?? 0;
-	return targetRank < currentRank;
+	return isTierDowngrade(currentTier, targetTier);
 }

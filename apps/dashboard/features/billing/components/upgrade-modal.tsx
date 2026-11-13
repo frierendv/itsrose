@@ -23,6 +23,12 @@ import { calculateProrationPreview, formatDateID, formatIDR } from "../utils";
 export interface UpgradeModalProps {
 	targetPlan: ApiPlan | null;
 	subscription?: Subscription | null;
+	/**
+	 * Current price of the plan the customer is on, in the smallest unit.
+	 * Taken from the live plan list so the preview quotes what the server
+	 * charges.
+	 */
+	currentTierPrice: number;
 	isOpen: boolean;
 	onOpenChange: (open: boolean) => void;
 }
@@ -30,6 +36,7 @@ export interface UpgradeModalProps {
 export const UpgradeModal: React.FC<UpgradeModalProps> = ({
 	targetPlan,
 	subscription,
+	currentTierPrice,
 	isOpen,
 	onOpenChange,
 }) => {
@@ -45,9 +52,10 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
 	const proration = calculateProrationPreview({
 		currentTier,
 		targetTier,
+		currentTierPrice,
+		targetTierPrice: targetPlan.price.amount,
 		periodStart: subscription?.period_start,
 		periodEnd: subscription?.period_end,
-		targetTierPrice: targetPlan.price.amount,
 	});
 
 	const handleProceed = async () => {
