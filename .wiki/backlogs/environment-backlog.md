@@ -15,8 +15,8 @@ is visible.
 
 | #   | Item                                                                                          | Status   | Note                                                                                                                                           |
 | --- | --------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `collectCoverageFrom` — the coverage number measured only files a test had loaded             | Todo     | Will make the gate red on landing; land with #2 in one commit                                                                                  |
-| 2   | Per-package coverage thresholds                                                               | Todo     | `./packages/auth/usage/`, `./packages/auth/billing/`, `./packages/features/`                                                                   |
+| 1   | `collectCoverageFrom` — the coverage number measured only files a test had loaded             | **Done** | `9f24292`. The denominator went from 294 files to 754; global coverage from a flattering 90.30% to an honest 41.65%                            |
+| 2   | Per-package coverage thresholds                                                               | **Done** | `9f24292`. Nine path floors, each set at the package's real number so the gate is green today and red on the first regression                  |
 | 3   | CI runs on pushes to `development`                                                            | **Done** | `ci.yml` triggered `push: [main]` only — this is how `8216c89` reached the shared branch unobserved                                            |
 | 4   | Local and CI test invocations agree                                                           | **Done** | One script, `--maxWorkers=2` pinned; local and CI now enforce the same coverage threshold                                                      |
 | 4b  | A jest project that loses all its tests still passes                                          | Todo     | `--passWithNoTests` is gone, but jest's "no tests found" check is aggregate across projects. Needs a per-project assertion in `jest.config.ts` |
@@ -25,12 +25,12 @@ is visible.
 
 ## Rules that are written but not enforced
 
-| #   | Item                                                                                                          | Status | Note                                                                                                                                                                                           |
-| --- | ------------------------------------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 7   | `no-explicit-any` → error                                                                                     | Todo   | 22 live `any`; the consequential ones erase a boundary (`fetcher<any>` in tiktok, `process.env as any`)                                                                                        |
-| 8   | `no-empty-object-type` → error                                                                                | Todo   | 17 `interface X extends z.infer<...> {}`; the rule was switched off to accommodate them                                                                                                        |
-| 9   | snake_case payload check, scoped to `apps/api`, `apps/api-internal`, `packages/features/*`, `packages/auth/*` | Todo   | Live violations in `schema/subscription.ts`, `schema/api-plan.ts`, `storage/src/plugin-server.ts`                                                                                              |
-| 10  | Hexagonal import restriction for `src/application/**`                                                         | Todo   | `src/domain` and `src/client` are restricted in billing; `src/application` is not, and `packages/auth/usage` has no restriction at all. No live violations — this is a missing rule, not a bug |
+| #   | Item                                                  | Status   | Note                                                                                                                                                                                           |
+| --- | ----------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 7   | `no-explicit-any` → error                             | **Done** | `9f2034c`. 179 `any` were live, not 22 — the audit had counted only `src`. Now zero. Three behavioural repairs fell out of it                                                                  |
+| 8   | `no-empty-object-type` → error                        | **Done** | `9f2034c`. 28 sites; the 17 `interface X extends z.infer` are now type aliases, as AGENTS.md §5.2 prescribes                                                                                   |
+| 9   | snake_case payload check, scoped to the API packages  | **Done** | `9f2034c`. A dedicated rule on Zod object schemas, not a `camelcase` flip — flipping it would have enforced camelCase. Three third-party contracts are excluded, each documented               |
+| 10  | Hexagonal import restriction for `src/application/**` | Todo     | `src/domain` and `src/client` are restricted in billing; `src/application` is not, and `packages/auth/usage` has no restriction at all. No live violations — this is a missing rule, not a bug |
 
 ## Behaviour that is advertised and never exercised
 
@@ -54,6 +54,23 @@ is visible.
 | 16  | A PR template carrying the §5.5 gate block and the "which behaviour is now tested through which public interface" question | **Done** | `.github/PULL_REQUEST_TEMPLATE.md`. The cheapest high-leverage step; works with or without the missing skills                                                                                            |
 | 17  | `specs/` directory and a ticket template                                                                                   | Todo     | No spec exists in-tree, so nothing is reviewable before the code is written                                                                                                                              |
 | 18  | The `retro`, `to-spec`, `to-tickets` and `implement-spec` skills                                                           | Todo     | All four are referenced by the `chief-of-staff` skill and **none are installed**. The audit recommends creating the artefacts before installing the skills, so the skills have something to work against |
+
+## Newly visible now that the gate sees the codebase
+
+These were always true. The gate just could not report them.
+
+| Area                                                    |                             Coverage | Note                                   |
+| ------------------------------------------------------- | -----------------------------------: | -------------------------------------- |
+| `packages/auth/usage/src/adapter/redis.ts`              | 96/478 statements, **0/5 functions** | the adapter that meters billable usage |
+| `packages/auth/mailer/src/renderer.ts`                  |                      0/26 statements |                                        |
+| `packages/auth/billing/src/application/plan.service.ts` |                               45.97% |                                        |
+| `packages/auth/billing/src/domain/proration.ts`         |                               46.96% |                                        |
+| `packages/features/mtxx`                                |                                5.41% | all seven operations                   |
+| `packages/features/elevenlabs`                          |                               26.43% |                                        |
+| `packages/features/tiktok`                              |                               12.60% |                                        |
+| `apps/api`                                              |                                9.37% | 18 routes, 21 plugins                  |
+| `apps/dashboard`                                        |                               11.88% | no component or hook test              |
+| `apps/api-internal`, `apps/web`                         |                                   0% | no test project at all                 |
 
 ## Deliberately not done, and why
 
