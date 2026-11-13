@@ -26,7 +26,9 @@ codebase before the two large consolidations in Wave 3.
 
 ## Status as of 2026-11-14
 
-Wave 0 and Wave 1 landed as eight commits on `development`, unpushed:
+### Landed — Wave 0 and Wave 1
+
+Eight commits on `development`, unpushed:
 
 | Commit    | Subject                                                            |
 | --------- | ------------------------------------------------------------------ |
@@ -40,6 +42,47 @@ Wave 0 and Wave 1 landed as eight commits on `development`, unpushed:
 | `a2f8486` | test(auth-billing): cover the invoice decision tables              |
 
 Net 87 files, +1681 / −2517 lines.
+
+### Landed — the environment, and the wiki
+
+| Commit    | Subject                                                  |
+| --------- | -------------------------------------------------------- |
+| `b00b841` | docs(wiki): add the engineering wiki and a pre-push gate |
+
+### Landed — Wave 2, the midtrans half
+
+| Commit    | Subject                                                                 |
+| --------- | ----------------------------------------------------------------------- |
+| `2025bcc` | feat(midtrans): classify every transaction status, not eight of twelve  |
+| `3d2d97a` | refactor(midtrans): one error model instead of two that disagreed       |
+| `8d1f181` | fix(midtrans): the signed amount is the module's fact, not the caller's |
+| `b1c35e4` | fix(mtxx): keep the sync timeout default when the caller omits it       |
+
+`b1c35e4` came out of the environment audit rather than the candidate list:
+the same shape as the http-client retry bug — a default advertised, an
+interface that permitted it to be destroyed, and a test that asserted the
+default directly rather than the production path that breaks it. See
+[interfaces that permit misuse](problems/interfaces-that-permit-misuse.md).
+
+### In flight — Wave 2, the billing half
+
+The domain InvoiceStatus union: stop one invoice-status column carrying three
+merged vendor vocabularies. This is the item that can cost money — a
+transient gateway read failure can currently write a vendor status into a
+paid invoice and silently skip the subscription settlement. See
+[the decision](decisions/invoice-status-vocabulary.md).
+
+### Not started — Waves 3 and 4
+
+C5b (close the axios escape hatches), C2 (the upstream-client module), C1
+(one shared route module mounted by both apps), C6b (schema wire types and a
+narrower admin barrel).
+
+The environment backlog runs alongside the programme — see
+[the environment backlog](backlogs/environment-backlog.md). Its first two
+items, `collectCoverageFrom` and per-package coverage thresholds, are worth
+starting before Wave 3: they make the untested parts of the codebase visible,
+which changes what Wave 3 should prioritise.
 
 ## The candidate list
 

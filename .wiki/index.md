@@ -45,8 +45,22 @@ to read `index.md` and know where to look.
   noticed for a day.
 - [A global coverage threshold hides holes](problems/global-coverage-threshold.md)
   — 80% globally, while a 478-line module sat at 20%.
+- [The gate cannot see most of the codebase](problems/the-gate-cannot-see-most-of-the-codebase.md)
+  — the coverage number measured the files that had tests, not the codebase.
+- [Mandatory rules that nothing enforces](problems/mandatory-rules-that-nothing-enforces.md)
+  — three MANDATORY clauses in AGENTS.md, three rules switched off in the shared ESLint preset.
+- [Interfaces that permit misuse](problems/interfaces-that-permit-misuse.md)
+  — three bugs where the interface shape allowed it and the test asserted the shape, not the behaviour.
+- [Four workspaces outside the net](problems/four-workspaces-outside-the-net.md)
+  — including the package that defines the lint preset every other package consumes.
 - [The environment does not fail loudly](problems/environment-does-not-fail-loudly.md)
-  — the general shape behind the two problems above.
+  — the general shape behind all of the above.
+
+## Backlogs
+
+- [The environment backlog](backlogs/environment-backlog.md) — the ranked list
+  of what the environment audit found, with what has been done and what has
+  not.
 
 ## Preferences
 

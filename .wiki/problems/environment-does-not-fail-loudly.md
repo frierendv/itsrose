@@ -11,14 +11,28 @@ Three defects in a row had the same shape: **something promised a behaviour,
 the environment could not tell whether the promise was kept, and so the
 promise was quietly false.**
 
-| Promise                                          | Reality                                  | How it stayed hidden                                                          |
-| ------------------------------------------------ | ---------------------------------------- | ----------------------------------------------------------------------------- |
-| "Retries up to 3 times with exponential backoff" | 1 attempt, always                        | The only test asserted the _shape_ of the config, never that a retry happened |
-| `prettier --check . && syncpack lint`            | exits non-zero on an invalid flag        | The failure was real, on the shared branch, and nobody looked                 |
-| `withAuthQueryFn(promise)`                       | the request started before the query ran | The interface _shape_ permitted the mistake; no test exercised deferral       |
+| Promise                                          | Reality                                          | How it stayed hidden                                                                               |
+| ------------------------------------------------ | ------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| "Retries up to 3 times with exponential backoff" | 1 attempt, always                                | The only test asserted the _shape_ of the config, never that a retry happened                      |
+| `prettier --check . && syncpack lint`            | exits non-zero on an invalid flag                | The failure was real, on the shared branch, and nobody looked                                      |
+| `withAuthQueryFn(promise)`                       | the request started before the query ran         | The interface _shape_ permitted the mistake; no test exercised deferral                            |
+| `sync_timeout defaults to 60`                    | the field was dropped when the caller omitted it | The default was applied before the spread; the test asserted the default directly, without the key |
+| "the coverage gate is at 81%"                    | the gate measured only files that had tests      | `collectCoverageFrom` was never set, so the denominator was the tested subset                      |
 
 The pattern is not carelessness. It is an environment that answers "does this
 compile" rather than "does this do what it says".
+
+A pit-of-success audit on 2026-11-14 found five more instances of the same
+shape, all written up: the coverage gate
+[could not see most of the codebase](the-gate-cannot-see-most-of-the-codebase.md),
+three MANDATORY rules were
+[switched off in the shared preset](mandatory-rules-that-nothing-enforces.md),
+four workspaces sat
+[outside the test, lint and typecheck net](four-workspaces-outside-the-net.md),
+and three bugs came from
+[interfaces whose shape permitted the mistake](interfaces-that-permit-misuse.md).
+The ranked list of what to do about it is
+[the environment backlog](../backlogs/environment-backlog.md).
 
 ## What would force correctness instead
 
