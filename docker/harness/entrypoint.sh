@@ -54,10 +54,16 @@ if [ ! -w "$DSH_WORKSPACE" ]; then
 fi
 
 # -- Probe bwrap sandbox -------------------------------------------
-if bwrap --ro-bind / / true >/dev/null 2>&1; then
-	echo "[dsh] bubblewrap sandbox: available"
+# Mirror DSH's own probe profile (dsh-sandbox-local's bwrapProfileArgs): the
+# entrypoint must report what DSH will actually be able to enforce.
+if bwrap --ro-bind / / --dev /dev --unshare-pid --proc /proc --die-with-parent -- true >/dev/null 2>&1; then
+	echo "[dsh] bubblewrap sandbox: available ($(bwrap --version 2>/dev/null || echo unknown))"
 else
-	echo "[dsh] bubblewrap sandbox: unavailable (unprivileged container environment)"
+	echo "[dsh] bubblewrap sandbox: unavailable - DSH has no usable confinement" >&2
+	echo "[dsh]          backend and will refuse to run sandboxed commands (fail-closed)." >&2
+	echo "[dsh]          bubblewrap >= 0.12 needs openat2 (Linux >= 5.6) and a build" >&2
+	echo "[dsh]          without -Dassume_kernel; older kernels need bubblewrap <= 0.11." >&2
+	echo "[dsh]          Reproduce with: bwrap --ro-bind / / true" >&2
 fi
 
 # Prepare log file with restricted permissions

@@ -18,8 +18,8 @@ services:
 
     # DSH's confinement backends need user namespaces, which the default Docker
     # seccomp profile and masked-path set can block. The container is the
-    # boundary here, so these stay; drop them only if the startup log reports
-    # `sandbox backend: landlock` (Landlock needs neither).
+    # boundary here, so these stay; they are only removable if DSH selects the
+    # Landlock backend (Linux >= 5.13), which needs neither.
     security_opt:
       - seccomp=unconfined
       - systempaths=unconfined

@@ -3,6 +3,8 @@
 ARG NODE_IMAGE=node:24-trixie-slim
 ARG DSH_VERSION=0.2.2-rc.2
 ARG PNPM_VERSION=11.20.0
+# bubblewrap is pinned to bookworm's build; see the runtime stage for why.
+ARG BWRAP_VERSION=0.8.0-2+deb12u1
 ARG GH_VERSION=2.103.3
 ARG GITLEAKS_VERSION=8.30.1
 ARG SHFMT_VERSION=3.14.1
@@ -138,6 +140,7 @@ WORKDIR /opt/deepseek-harness
 
 ARG DSH_VERSION
 ARG PNPM_VERSION
+ARG BWRAP_VERSION
 ARG GH_VERSION
 ARG GITLEAKS_VERSION
 ARG SHFMT_VERSION
@@ -146,6 +149,24 @@ ARG SHELLCHECK_VERSION
 ARG CADDY_VERSION
 
 # Install runtime dependencies only (no build-essential / compilers)
+#
+# bubblewrap comes from bookworm's package instead of trixie's on purpose:
+# trixie ships 0.12.0, whose sandbox setup resolves paths through
+# openat2(RESOLVE_IN_ROOT) (Linux >= 5.6), and Debian's build also compiles
+# out bubblewrap's own fallback (-Dassume_kernel). On an older host kernel
+# that combination always fails with ENOSYS ("Can't open source /: Function not
+# implemented"), so DSH's bwrap probe fails and the next backend, Landlock,
+# needs Linux >= 5.13 - leaving DSH with no usable confinement at all.
+# Bookworm's 0.8.0 resolves paths with plain mount(2) and works on such
+# kernels. Its dependencies (libc6 >= 2.34, libcap2 >= 2.10, libselinux1 >=
+# 3.1~) are all satisfied by trixie, so no suite mixing is involved.
+#
+# The sandbox cannot be probed functionally here: bwrap needs an unprivileged
+# user namespace, and Docker's default build-time seccomp profile denies
+# clone(CLONE_NEWUSER) without CAP_SYS_ADMIN ("Creating new namespace failed:
+# Operation not permitted"). The runtime container opts out with
+# seccomp=unconfined/systempaths=unconfined, so entrypoint.sh probes the
+# sandbox at startup with DSH's real profile and reports the result.
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         ca-certificates \
@@ -153,8 +174,9 @@ RUN apt-get update \
         git \
         procps \
         python3 \
-        bubblewrap \
         libatomic1 \
+        libcap2 \
+        libselinux1 \
         rsync \
         ripgrep \
         jq \
@@ -162,6 +184,11 @@ RUN apt-get update \
         openssh-client \
         tini \
         wget \
+    && curl -fsSL -o /tmp/bubblewrap.deb \
+        "https://deb.debian.org/debian/pool/main/b/bubblewrap/bubblewrap_${BWRAP_VERSION}_$(dpkg --print-architecture).deb" \
+    && dpkg -i /tmp/bubblewrap.deb \
+    && rm -f /tmp/bubblewrap.deb \
+    && test "$(bwrap --version)" = "bubblewrap ${BWRAP_VERSION%%-*}" \
     && command -v bwrap >/dev/null \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/* /usr/share/man /usr/share/doc
 
