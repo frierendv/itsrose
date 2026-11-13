@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { PaymentTypeSchema, QrisAcquirerSchema } from "../core";
 import {
 	BankCodeSchema,
+	SignedAmountSchema,
 	TransactionFraudStatusSchema,
 	TransactionStatusSchema,
 } from "../primitives";
@@ -56,7 +57,13 @@ export const InvoiceWebhookSchema = z
 		transaction_status: TransactionStatusSchema,
 		fraud_status: TransactionFraudStatusSchema,
 		payment_type: PaymentTypeSchema,
-		gross_amount: z.coerce.number(),
+		/**
+		 * The signed amount, kept exactly as Midtrans sent it.
+		 *
+		 * It is the raw 2-decimal string (`"15000.00"`) because that string —
+		 * not a parsed number — is what the notification signature covers.
+		 */
+		gross_amount: SignedAmountSchema,
 		customer_details: InvoiceWebhookCustomerDetailsSchema,
 		expiry_time: z.string(),
 		metadata: InvoiceMetadataSchema,

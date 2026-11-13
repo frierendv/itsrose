@@ -1,9 +1,17 @@
+import type { z } from "zod/v4";
 import { generateOrderId as buildOrderId } from "../helper/order-id";
 import {
 	createTransactionSignature,
+	readSignedNotificationFields,
+	verifyNotificationSignature,
 	verifyTransactionSignature,
 } from "../helper/signature";
-import type { MerchantOptions, PartialSignatureTransaction } from "../typings";
+import { WebhookPayloadSchema, type WebhookPayload } from "../schema";
+import type {
+	MerchantOptions,
+	NotificationVerificationResult,
+	PartialSignatureTransaction,
+} from "../typings";
 
 export class MidtransMerchant {
 	/**
@@ -74,9 +82,82 @@ export class MidtransMerchant {
 	 * using constant-time comparison to prevent timing attacks.
 	 *
 	 * This also can be used to verifies an {@link https://docs.midtrans.com/docs/https-notification-webhooks | incoming webhook notification}.
+	 *
+	 * The payload is accepted as it arrived: the signed fields — including the
+	 * raw 2-decimal amount — are read by the package itself, so a caller can
+	 * never hash a different amount than the one Midtrans sent.
 	 */
-	public verifySignature(transaction: PartialSignatureTransaction): boolean {
-		return verifyTransactionSignature(this.#serverKey, transaction);
+	public verifySignature(payload: unknown): boolean {
+		return verifyNotificationSignature(this.#serverKey, payload);
+	}
+
+	/**
+	 * Verifies **and** parses a raw Midtrans notification in a single call.
+	 *
+	 * The signature is checked against the payload as it arrived, before the
+	 * payload is parsed, and the notification is only handed back once both
+	 * steps succeeded. Callers therefore cannot verify one payload and parse
+	 * another, which is the only way a forged amount could slip through.
+	 *
+	 * ```ts
+	 * const result = client.merchant.verifyNotification(rawPayload);
+	 *
+	 * if (!result.ok) {
+	 *   // result.reason: "malformed_notification" | "signature_mismatch" | "schema_mismatch"
+	 *   return reply.code(400).send(result.message);
+	 * }
+	 *
+	 * result.notification.gross_amount; // "15000.00" — the signed amount
+	 * ```
+	 *
+	 * @param payload The raw notification body, exactly as received.
+	 * @param schema The notification schema to parse with. Defaults to
+	 * {@link WebhookPayloadSchema}; pass {@link InvoiceWebhookSchema} for
+	 * invoice notifications.
+	 */
+	public verifyNotification(
+		payload: unknown
+	): NotificationVerificationResult<WebhookPayload>;
+	public verifyNotification<TNotification>(
+		payload: unknown,
+		schema: z.ZodType<TNotification>
+	): NotificationVerificationResult<TNotification>;
+	public verifyNotification(
+		payload: unknown,
+		schema?: z.ZodType
+	): NotificationVerificationResult<unknown> {
+		const fields = readSignedNotificationFields(payload);
+
+		if (!fields) {
+			return {
+				ok: false,
+				reason: "malformed_notification",
+				message:
+					"The payload does not carry the fields Midtrans signs (order_id, status_code, gross_amount, signature_key).",
+			};
+		}
+
+		if (!verifyTransactionSignature(this.#serverKey, fields)) {
+			return {
+				ok: false,
+				reason: "signature_mismatch",
+				message:
+					"The notification signature does not match the payload it was sent with.",
+			};
+		}
+
+		const parsed = (schema ?? WebhookPayloadSchema).safeParse(payload);
+
+		if (!parsed.success) {
+			return {
+				ok: false,
+				reason: "schema_mismatch",
+				message:
+					"The verified notification does not match the expected notification schema.",
+			};
+		}
+
+		return { ok: true, notification: parsed.data };
 	}
 
 	/**

@@ -82,7 +82,7 @@ export function createMidtransPaymentGateway(
 		},
 
 		verifySignature(payload) {
-			return client.merchant.verifySignature(payload as never);
+			return client.merchant.verifySignature(payload);
 		},
 	};
 }

@@ -208,6 +208,9 @@ const valid = client.merchant.verifySignature({
 });
 ```
 
+`gross_amount` is the raw 2-decimal string Midtrans signed; it is never a
+number.
+
 `client.merchant.clientKey` is non-enumerable so serializing the merchant does
 not leak it; the server key never exists on the public object.
 
@@ -266,20 +269,37 @@ resolve with a structured `transport` error instead of throwing.
 ## Webhooks
 
 ```ts
-import {
-	InvoiceWebhookSchema,
-	WebhookPayloadSchema,
-} from "@itsrose/midtrans/schema";
+import { InvoiceWebhookSchema } from "@itsrose/midtrans/schema";
 
-const payload = WebhookPayloadSchema.parse(request.body);
+// One call verifies the signature and parses the notification.
+const result = client.merchant.verifyNotification(request.body);
 
-if (!client.merchant.verifySignature(payload)) {
-	throw new Error("Invalid Midtrans signature");
+if (!result.ok) {
+	// "malformed_notification" | "signature_mismatch" | "schema_mismatch"
+	throw new Error(result.message);
 }
+
+result.notification.gross_amount; // "15000.00" — the signed amount
 ```
 
-The signature is `SHA512(order_id + status_code + gross_amount + serverKey)`.
-`InvoiceWebhookSchema` is available for invoice notifications.
+Pass a schema to parse a specific notification shape:
+
+```ts
+const invoice = client.merchant.verifyNotification(
+	request.body,
+	InvoiceWebhookSchema
+);
+```
+
+The signature is `SHA512(order_id + status_code + gross_amount + serverKey)`,
+where `gross_amount` is the raw 2-decimal string Midtrans sent
+(`"15000.00"`). The package owns that formatting: both webhook schemas expose
+the signed amount as a string, and `verifyNotification` hashes the amount the
+payload actually carries, so a parsed number can never be signed by accident.
+
+`client.merchant.verifySignature(payload)` remains available for callers that
+only need the boolean check; it also reads the signed fields from the raw
+payload.
 
 ## Typed schemas
 

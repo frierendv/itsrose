@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { toSignedAmount } from "../../helper/signature";
 
 /* -------------------------------- Status --------------------------------- */
 
@@ -121,6 +122,19 @@ export type PaymentAmount = z.infer<typeof PaymentAmountSchema>;
 /* ----------------------- Base Transaction Result ------------------------- */
 
 /**
+ * The gross amount exactly as Midtrans signs it.
+ *
+ * Midtrans hashes the raw 2-decimal amount string it sent (e.g. `"15000.00"`),
+ * so the signed amount is a string and never a number. A JSON number is
+ * normalised into the same 2-decimal form, which keeps the amount a caller
+ * reads identical to the amount that was signed.
+ */
+export const SignedAmountSchema = z
+	.union([z.string(), z.number()])
+	.transform((amount) => toSignedAmount(amount))
+	.describe("Raw gross amount signed by Midtrans (e.g. '15000.00')");
+
+/**
  * Canonical transaction result schema representing payment status across Core API, Snap, and Webhooks.
  */
 export const BaseTransactionResultSchema = z
@@ -136,11 +150,7 @@ export const BaseTransactionResultSchema = z
 			.describe("Midtrans unique transaction identifier (UUID)"),
 		order_id: z.string().describe("Merchant unique order identifier"),
 		merchant_id: z.string().optional().describe("Midtrans merchant ID"),
-		gross_amount: z
-			.string()
-			.describe(
-				"Transaction gross amount formatted as string (e.g. '10000.00')"
-			),
+		gross_amount: SignedAmountSchema,
 		currency: z
 			.string()
 			.default("IDR")

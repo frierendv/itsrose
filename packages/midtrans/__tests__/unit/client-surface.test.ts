@@ -47,6 +47,7 @@ const FROZEN_SERVICES: Readonly<Record<string, FrozenService>> = {
 			createAuthKey: 0,
 			createSignature: 1,
 			generateOrderId: 1,
+			verifyNotification: 2,
 			verifySignature: 1,
 		},
 	},

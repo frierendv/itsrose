@@ -9,6 +9,11 @@ import {
  * Midtrans HTTP POST Notification (Webhook) payload.
  *
  * Sent by Midtrans to the merchant configured Payment Notification URL.
+ *
+ * `gross_amount` is inherited from {@link BaseTransactionResultSchema} and is
+ * therefore the raw 2-decimal string Midtrans signed (`"15000.00"`), exactly
+ * like {@link InvoiceWebhookSchema} exposes it. The two webhook schemas can no
+ * longer disagree about the signed field.
  */
 export const WebhookPayloadSchema = BaseTransactionResultSchema.extend(
 	CustomFieldsSchema.shape

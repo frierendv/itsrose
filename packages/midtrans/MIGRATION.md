@@ -84,9 +84,11 @@ Kept as deprecated aliases for backwards compatibility:
 
 - `WebhookPayload` (alias of `WebhookPayloadSchema`)
 - `PaymentLinkExpiry` (alias of `PaymentLinkExpirySchema`)
-- `HttpStatus` (in `@itsrose/midtrans/schema`)
 
 The following deprecated aliases and redundant typings were removed in v2:
+
+- `HttpStatus` (in `@itsrose/midtrans/schema`). Its success rule (200-299) contradicted the client's actual rule, which treats 407 as success. Use `BUSINESS_SUCCESS_CODES` from `@itsrose/midtrans/client` instead.
+- `SubscriptionErrorSchema` / `SubscriptionError`. The subscription-shaped payload is classified as a `core` error by the single error model in `@itsrose/midtrans/schema` (`schema/error/model.ts`).
 
 - `ResponseTransactionSchema`, `ResponseTransactionBaseSchema`, `ResponseTransactionTypeFieldsSchema` (use `CoreTransactionResponseSchema` and `CoreChargeResponseSchema`).
 - `BillingAddressSchema`, `ShippingAddressSchema`, `BillingAddress`, `ShippingAddress` (use `AddressSchema` / `Address`).
