@@ -40,9 +40,13 @@ export const createSDKParameter = (
 			: JSON.stringify(initialParameter.params);
 
 	return {
-		task_id: generateUUID(),
-		sync_timeout: 60,
 		...initialParameter,
+		task_id: generateUUID(),
+		// The default must come after the spread: every operation forwards a
+		// `sync_timeout` key, so an explicit `undefined` in the caller's
+		// options would otherwise overwrite the default and drop the field
+		// entirely.
+		sync_timeout: initialParameter.sync_timeout ?? 60,
 		params,
 	} satisfies ISDKParameter;
 };

@@ -31,7 +31,6 @@ describe("features/mtxx", () => {
 			expect(sdkParam.params).toBe(JSON.stringify({ style: "anime" }));
 			expect(sdkParam.task_id).toContain("itsrose_mtxx");
 			expect(sdkParam.sync_timeout).toBe(60);
-
 			// Test string params
 			const sdkParamString = createSDKParameter({
 				task: "transform",
@@ -39,6 +38,30 @@ describe("features/mtxx", () => {
 				params: "already-stringified",
 			});
 			expect(sdkParamString.params).toBe("already-stringified");
+		});
+
+		it("keeps the sync timeout default when the caller omits the field", () => {
+			// Every operation forwards a `sync_timeout` key, so when a caller
+			// omits it the key is present with the value `undefined`. A default
+			// applied before the spread would be overwritten by it, and the
+			// field would be dropped entirely.
+			const sdkParam = createSDKParameter({
+				task: "transform",
+				task_type: "image",
+				params: {},
+				sync_timeout: undefined,
+			});
+			expect(sdkParam.sync_timeout).toBe(60);
+		});
+
+		it("honours an explicit sync timeout", () => {
+			const sdkParam = createSDKParameter({
+				task: "transform",
+				task_type: "image",
+				params: {},
+				sync_timeout: 30,
+			});
+			expect(sdkParam.sync_timeout).toBe(30);
 		});
 	});
 });
