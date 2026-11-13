@@ -30,7 +30,7 @@ function usageLineDescription(input: {
 	unit: string;
 	requests: number;
 }): string {
-	return `API usage ${input.period} — ${input.requests} ${input.unit} request(s)`;
+	return `API usage ${input.period} — ${input.requests} ${input.unit}(s)`;
 }
 
 /**
