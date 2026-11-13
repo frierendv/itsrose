@@ -1,5 +1,10 @@
 import type { InvoiceType, TransactionInvoice } from "../types";
 import { INVOICE_TYPE } from "./constants";
+import {
+	InvoiceStatusSchema,
+	isPaidInvoiceStatus,
+	type InvoiceStatus,
+} from "./invoice-status";
 import type { GatewayInvoice } from "./invoice.service";
 
 export type WebhookPayload = Record<string, unknown>;
@@ -28,7 +33,7 @@ export function readOrderId(payload: WebhookPayload): string | undefined {
  * status. Re-applying it would advance the billing cycle twice.
  */
 export function isDuplicatePaidWebhook(invoice: TransactionInvoice): boolean {
-	return invoice.status === "paid";
+	return isPaidInvoiceStatus(invoice.status);
 }
 
 export type SettlementKind = "upgrade" | "renewal" | "new";
@@ -48,7 +53,7 @@ export function resolveSettlementKind(
 }
 
 export type WebhookNotificationOutcome = {
-	finalStatus: string;
+	finalStatus: InvoiceStatus;
 	paidDate: string | null;
 	invoiceUpdate: Partial<TransactionInvoice>;
 	eventName: string;
@@ -57,25 +62,47 @@ export type WebhookNotificationOutcome = {
 };
 
 /**
+ * Narrows a persisted status back into the domain vocabulary.
+ *
+ * Rows written before the vocabulary was enforced may hold a status this code
+ * does not know. Such a row is reported as `pending` rather than being carried
+ * into the invoice column, so an unknown value is never persisted and never
+ * mistaken for a settled invoice.
+ */
+export function normalizeInvoiceStatus(
+	status: string | null | undefined
+): InvoiceStatus | null {
+	const parsed = InvoiceStatusSchema.safeParse(status);
+
+	return parsed.success ? parsed.data : null;
+}
+
+/**
  * Pure mapping of a verified Midtrans notification onto local invoice fields.
+ *
+ * `notificationStatus` is the provider status already translated into the
+ * domain vocabulary by the gateway adapter. The domain never reads a provider
+ * status string off the raw payload, so a failed remote read can no longer
+ * write a provider status into the invoice column.
  */
 export function resolveWebhookNotification(input: {
 	existingInvoice: TransactionInvoice;
 	remoteData?: GatewayInvoice | null;
+	notificationStatus?: InvoiceStatus | null;
 	payload: WebhookPayload;
 	now?: Date;
 }): WebhookNotificationOutcome {
 	const { existingInvoice, remoteData, payload } = input;
 	const now = input.now ?? new Date();
 
-	const finalStatus =
-		remoteData?.status ||
-		(typeof payload.transaction_status === "string"
-			? payload.transaction_status
-			: "pending");
+	const finalStatus: InvoiceStatus =
+		normalizeInvoiceStatus(remoteData?.status) ??
+		normalizeInvoiceStatus(input.notificationStatus) ??
+		normalizeInvoiceStatus(existingInvoice.status) ??
+		"pending";
 	const paidDate =
 		remoteData?.paid_date ||
-		(finalStatus === "paid" ? now.toISOString() : null);
+		(isPaidInvoiceStatus(finalStatus) ? now.toISOString() : null);
 
 	return {
 		finalStatus,

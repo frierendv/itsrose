@@ -49,23 +49,22 @@ describe("getSubscriptionStatusProps", () => {
 });
 
 describe("getInvoiceStatusProps", () => {
-	it("maps paid-like statuses to success", () => {
+	it("maps paid to success", () => {
 		expect(getInvoiceStatusProps("paid").color).toBe("success");
-		expect(getInvoiceStatusProps("settlement").color).toBe("success");
 	});
 
 	it("maps pending-like statuses to warning", () => {
 		expect(getInvoiceStatusProps("pending").color).toBe("warning");
-		expect(getInvoiceStatusProps("unpaid").color).toBe("warning");
+		expect(getInvoiceStatusProps("published").color).toBe("warning");
+		expect(getInvoiceStatusProps("overdue").color).toBe("warning");
 	});
 
-	it("maps failed-like statuses to danger", () => {
-		expect(getInvoiceStatusProps("failed").color).toBe("danger");
-		expect(getInvoiceStatusProps("deny").color).toBe("danger");
+	it("maps rejected and expired to danger", () => {
+		expect(getInvoiceStatusProps("rejected").color).toBe("danger");
+		expect(getInvoiceStatusProps("expired").color).toBe("danger");
 	});
 
 	it("maps void-like statuses to default", () => {
-		expect(getInvoiceStatusProps("void").color).toBe("default");
 		expect(getInvoiceStatusProps("voided").color).toBe("default");
 		expect(getInvoiceStatusProps("canceled").color).toBe("default");
 	});

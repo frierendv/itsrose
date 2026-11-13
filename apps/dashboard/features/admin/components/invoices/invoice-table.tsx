@@ -3,6 +3,7 @@
 import { CopyButton } from "@/components/copy-button";
 import type { DataTableFeatures } from "@/components/table";
 import { useAdminTableState } from "@/hooks/use-admin-table-state";
+import { isPendingInvoice } from "@/shared/status-props";
 import { Eye, TrashBin } from "@gravity-ui/icons";
 import { Button, Chip, Typography } from "@heroui/react";
 import type { Invoice } from "@itsrose/auth-billing";
@@ -23,11 +24,6 @@ import { VoidInvoiceDialog } from "./void-invoice-dialog";
 
 const columnHelper = createColumnHelper<DataTableFeatures, Invoice>();
 const FILTER_DEFAULTS = { filters: { status: "all", type: "ALL" } };
-
-function isPendingInvoice(status: string | null | undefined): boolean {
-	const normalized = (status || "").toLowerCase();
-	return normalized === "pending" || normalized === "unpaid";
-}
 
 export const InvoiceTable: React.FC = () => {
 	const {

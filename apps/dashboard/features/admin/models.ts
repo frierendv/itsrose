@@ -285,14 +285,15 @@ export function buildOverviewMetrics(
 				new Date(right.period_end ?? 0).getTime()
 		);
 
-	const pendingInvoices = input.invoices.filter((invoice) => {
-		const status = (invoice.status || "").toLowerCase();
-		return status === "pending" || status === "unpaid";
-	});
-	const paidInvoices = input.invoices.filter((invoice) => {
-		const status = (invoice.status || "").toLowerCase();
-		return status === "paid" || status === "settlement";
-	});
+	// The invoice status is already in the domain vocabulary: the billing
+	// package translates the provider status before it reaches the client, so
+	// no provider spelling is compensated for here.
+	const pendingInvoices = input.invoices.filter(
+		(invoice) => invoice.status === "pending"
+	);
+	const paidInvoices = input.invoices.filter(
+		(invoice) => invoice.status === "paid"
+	);
 
 	const mrr = Math.round(
 		active.reduce(

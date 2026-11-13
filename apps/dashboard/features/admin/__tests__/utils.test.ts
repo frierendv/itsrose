@@ -59,6 +59,24 @@ describe("event status props", () => {
 		expect(getEventStatusProps("invoice.success").color).toBe("success");
 	});
 
+	it("maps the domain invoice status event names", () => {
+		expect(getEventStatusProps("midtrans.invoice.paid").color).toBe(
+			"success"
+		);
+		expect(getEventStatusProps("midtrans.invoice.voided").color).toBe(
+			"danger"
+		);
+		expect(getEventStatusProps("midtrans.invoice.rejected").color).toBe(
+			"danger"
+		);
+		expect(getEventStatusProps("midtrans.invoice.canceled").color).toBe(
+			"danger"
+		);
+		expect(getEventStatusProps("midtrans.invoice.pending").color).toBe(
+			"warning"
+		);
+	});
+
 	it("maps failure events", () => {
 		expect(getEventStatusProps("invoice.failed").color).toBe("danger");
 		expect(getEventStatusProps("invoice.voided").color).toBe("danger");

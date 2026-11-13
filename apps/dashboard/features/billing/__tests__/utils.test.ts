@@ -40,14 +40,13 @@ describe("billing utils", () => {
 
 	it("re-exports the canonical status props", () => {
 		expect(getInvoiceStatusProps("paid").color).toBe("success");
-		expect(getInvoiceStatusProps("void").color).toBe("default");
+		expect(getInvoiceStatusProps("voided").color).toBe("default");
 	});
 
-	it("identifies pending and unpaid invoices", () => {
+	it("identifies pending invoices", () => {
 		expect(isPendingInvoice("pending")).toBe(true);
-		expect(isPendingInvoice("PENDING")).toBe(true);
-		expect(isPendingInvoice("unpaid")).toBe(true);
 		expect(isPendingInvoice("paid")).toBe(false);
+		expect(isPendingInvoice("voided")).toBe(false);
 		expect(isPendingInvoice(null)).toBe(false);
 		expect(isPendingInvoice(undefined)).toBe(false);
 	});
@@ -66,58 +65,52 @@ describe("matchesInvoiceStatus", () => {
 		).toBe(true);
 	});
 
-	it("matches paid and settlement aliases", () => {
+	it("matches the paid status", () => {
 		expect(
 			matchesInvoiceStatus(makeInvoice({ status: "paid" }), "paid")
-		).toBe(true);
-		expect(
-			matchesInvoiceStatus(makeInvoice({ status: "settlement" }), "paid")
-		).toBe(true);
-		expect(
-			matchesInvoiceStatus(makeInvoice({ status: "PAID" }), "paid")
 		).toBe(true);
 		expect(
 			matchesInvoiceStatus(makeInvoice({ status: "pending" }), "paid")
 		).toBe(false);
 	});
 
-	it("matches pending and unpaid aliases", () => {
+	it("matches the pending status", () => {
 		expect(
 			matchesInvoiceStatus(makeInvoice({ status: "pending" }), "pending")
-		).toBe(true);
-		expect(
-			matchesInvoiceStatus(makeInvoice({ status: "unpaid" }), "pending")
 		).toBe(true);
 		expect(
 			matchesInvoiceStatus(makeInvoice({ status: "paid" }), "pending")
 		).toBe(false);
 	});
 
-	it("matches expired and expire aliases", () => {
+	it("matches the expired status", () => {
 		expect(
 			matchesInvoiceStatus(makeInvoice({ status: "expired" }), "expired")
-		).toBe(true);
-		expect(
-			matchesInvoiceStatus(makeInvoice({ status: "expire" }), "expired")
 		).toBe(true);
 		expect(
 			matchesInvoiceStatus(makeInvoice({ status: "pending" }), "expired")
 		).toBe(false);
 	});
 
-	it("matches void, canceled, and cancelled aliases", () => {
+	it("matches the voided and canceled statuses", () => {
 		expect(
-			matchesInvoiceStatus(makeInvoice({ status: "void" }), "void")
+			matchesInvoiceStatus(makeInvoice({ status: "voided" }), "void")
 		).toBe(true);
 		expect(
 			matchesInvoiceStatus(makeInvoice({ status: "canceled" }), "void")
 		).toBe(true);
 		expect(
-			matchesInvoiceStatus(makeInvoice({ status: "cancelled" }), "void")
-		).toBe(true);
-		expect(
 			matchesInvoiceStatus(makeInvoice({ status: "paid" }), "void")
 		).toBe(false);
+	});
+
+	it("does not treat provider statuses as invoice statuses", () => {
+		const settlement = makeInvoice({
+			status: "settlement" as unknown as Invoice["status"],
+		});
+
+		expect(matchesInvoiceStatus(settlement, "paid")).toBe(false);
+		expect(matchesInvoiceStatus(settlement, "void")).toBe(false);
 	});
 });
 

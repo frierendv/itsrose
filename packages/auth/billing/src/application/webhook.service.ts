@@ -1,4 +1,8 @@
 import { INVOICE_TYPE } from "../domain/constants";
+import {
+	isPaidInvoiceStatus,
+	type InvoiceStatus,
+} from "../domain/invoice-status";
 import type {
 	BillingDependencies,
 	BillingRepositories,
@@ -25,7 +29,7 @@ export type WebhookProcessResult =
 	| { status: "logged" }
 	| { status: "invoice_not_found" }
 	| { status: "idempotent_skip"; invoiceId: string }
-	| { status: "processed"; invoiceId: string; finalStatus: string };
+	| { status: "processed"; invoiceId: string; finalStatus: InvoiceStatus };
 
 /**
  * Application service behind `POST /payment/webhook`.
@@ -92,6 +96,7 @@ export async function processWebhookEvent(
 	const outcome = resolveWebhookNotification({
 		existingInvoice,
 		remoteData,
+		notificationStatus: notification.status,
 		payload,
 		now: clock.now(),
 	});
@@ -107,7 +112,7 @@ export async function processWebhookEvent(
 			clock.now()
 		);
 
-		if (outcome.finalStatus !== "paid") {
+		if (!isPaidInvoiceStatus(outcome.finalStatus)) {
 			return;
 		}
 

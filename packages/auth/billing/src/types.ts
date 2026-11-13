@@ -1,8 +1,13 @@
 import type { ClientOptions, MidtransClient } from "@itsrose/midtrans";
 import type { GenericEndpointContext } from "better-auth";
+import type { InvoiceStatus } from "./domain/invoice-status";
 
 // Re-export reusable Midtrans typings (headers, signatures, options, ...).
 export type * from "@itsrose/midtrans/typings";
+
+// The invoice lifecycle vocabulary, re-exported so consumers of the root
+// types can speak about invoice statuses without reaching into the domain.
+export type { InvoiceStatus };
 
 /**
  * Well-known plan tiers. Custom plan ids are allowed through the
@@ -90,7 +95,7 @@ export type TransactionInvoice = {
 	order_id: string;
 	invoice_type: InvoiceType;
 	target_tier: string;
-	status: string;
+	status: InvoiceStatus;
 	invoice_date: string;
 	due_date: string;
 	invoice_number: string;

@@ -1,4 +1,8 @@
-import type { InvoiceType, SubscriptionStatus } from "@itsrose/auth-billing";
+import type {
+	InvoiceStatus,
+	InvoiceType,
+	SubscriptionStatus,
+} from "@itsrose/auth-billing";
 
 /**
  * Canonical presentation mapping for billing states, shared by the
@@ -42,28 +46,33 @@ export type InvoiceStatusProps = {
 	color: StatusColor;
 };
 
+/**
+ * Presentation of an invoice status.
+ *
+ * The invoice status is always one of the domain vocabulary states; the
+ * billing package normalises provider statuses before they reach the UI, so
+ * there are no provider aliases to compensate for here.
+ */
 export function getInvoiceStatusProps(
-	status?: string | null
+	status?: InvoiceStatus | string | null
 ): InvoiceStatusProps {
 	const normalized = (status || "").toLowerCase().trim();
 
 	switch (normalized) {
 		case "paid":
-		case "settlement":
 			return { label: "Paid", color: "success" };
 		case "pending":
-		case "unpaid":
+		case "published":
+		case "overdue":
 			return { label: "Pending", color: "warning" };
+		case "draft":
+			return { label: "Draft", color: "default" };
 		case "expired":
-		case "expire":
 			return { label: "Expired", color: "danger" };
-		case "failed":
-		case "deny":
-			return { label: "Failed", color: "danger" };
-		case "void":
+		case "rejected":
+			return { label: "Rejected", color: "danger" };
 		case "voided":
 		case "canceled":
-		case "cancelled":
 			return { label: "Void", color: "default" };
 		default:
 			return {
@@ -71,6 +80,20 @@ export function getInvoiceStatusProps(
 				color: "default",
 			};
 	}
+}
+
+/**
+ * Whether an invoice is still awaiting payment.
+ *
+ * The single place the dashboard answers that question. The invoice status is
+ * always one of the domain vocabulary states — the billing package translates
+ * the provider status before it reaches the client — so there is no provider
+ * spelling to compensate for.
+ */
+export function isPendingInvoice(
+	status?: InvoiceStatus | string | null
+): boolean {
+	return status === "pending";
 }
 
 export type InvoiceTypeProps = {

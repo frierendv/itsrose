@@ -305,7 +305,7 @@ export function createMockMidtransClient(
 			void: async (invoiceId: string) => {
 				const found = invoiceStore.get(invoiceId);
 				if (found) {
-					found.status = "void";
+					found.status = "voided";
 				}
 				return { data: { success: true }, error: null };
 			},

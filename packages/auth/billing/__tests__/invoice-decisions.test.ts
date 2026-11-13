@@ -244,10 +244,14 @@ describe("auth/billing invoice decisions", () => {
 	describe("invoice status and voiding", () => {
 		it("does not void a settled or cancelled invoice", () => {
 			expect(isVoidableStatus("paid")).toBe(false);
-			expect(isVoidableStatus("void")).toBe(false);
 			expect(isVoidableStatus("voided")).toBe(false);
 			expect(isVoidableStatus("canceled")).toBe(false);
 			expect(isVoidableStatus("rejected")).toBe(false);
+		});
+
+		it("does not void a status outside the vocabulary", () => {
+			expect(isVoidableStatus("void")).toBe(false);
+			expect(isVoidableStatus("settlement")).toBe(false);
 		});
 
 		it("allows voiding an invoice that was never paid", () => {

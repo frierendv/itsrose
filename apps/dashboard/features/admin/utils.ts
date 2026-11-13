@@ -53,7 +53,12 @@ export function getEventStatusProps(eventName?: string | null): {
 } {
 	const normalized = (eventName || "").toLowerCase().trim();
 
+	// The billing domain names its invoice events after the invoice status
+	// vocabulary (`midtrans.invoice.paid`, `midtrans.invoice.voided`, ...), so
+	// those endings are matched first. The provider-status endings are kept
+	// for events written before the vocabulary was enforced.
 	if (
+		normalized.endsWith(".paid") ||
 		normalized.endsWith(".settlement") ||
 		normalized.endsWith(".success") ||
 		normalized === "settlement" ||
@@ -65,6 +70,9 @@ export function getEventStatusProps(eventName?: string | null): {
 	if (
 		normalized.endsWith(".failed") ||
 		normalized.endsWith(".voided") ||
+		normalized.endsWith(".rejected") ||
+		normalized.endsWith(".canceled") ||
+		normalized.endsWith(".expired") ||
 		normalized === "invoice.voided" ||
 		normalized.includes("failed") ||
 		normalized.includes("void")
@@ -74,6 +82,8 @@ export function getEventStatusProps(eventName?: string | null): {
 
 	if (
 		normalized.endsWith(".pending") ||
+		normalized.endsWith(".published") ||
+		normalized.endsWith(".overdue") ||
 		normalized.endsWith(".not_found") ||
 		normalized.includes("not_found") ||
 		normalized.includes("pending")

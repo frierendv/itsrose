@@ -12,6 +12,7 @@ import {
 } from "../components";
 import { BILLING_KEY_POINTS, FAQ_ITEMS } from "../constants";
 import { useInvoices, usePlans, useSubscription } from "../hooks";
+import { isPendingInvoice } from "../utils";
 
 export const BillingPage: React.FC = () => {
 	const { subscription, isPending: isSubPending } = useSubscription();
@@ -19,11 +20,7 @@ export const BillingPage: React.FC = () => {
 	const { invoices, isPending: isInvoicesPending } = useInvoices();
 
 	const pendingInvoice =
-		invoices.find(
-			(inv) =>
-				(inv.status || "").toLowerCase() === "pending" ||
-				(inv.status || "").toLowerCase() === "unpaid"
-		) ?? null;
+		invoices.find((inv) => isPendingInvoice(inv.status)) ?? null;
 
 	return (
 		<div className="flex flex-col gap-8">

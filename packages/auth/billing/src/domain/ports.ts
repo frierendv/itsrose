@@ -6,6 +6,7 @@ import type {
 	TransactionInvoice,
 	TransactionInvoiceEvent,
 } from "../types";
+import type { InvoiceStatus } from "./invoice-status";
 import type { GatewayInvoice } from "./invoice.service";
 
 /* -------------------------------------------------------------------------- */
@@ -188,6 +189,12 @@ export interface WebhookNotificationContext {
 	invoiceId?: string;
 	/** Provider order id used as a fallback lookup key. */
 	orderId?: string;
+	/**
+	 * The provider transaction status already translated into the domain
+	 * invoice vocabulary by the adapter. The domain never reads a provider
+	 * status string off the raw payload.
+	 */
+	status?: InvoiceStatus;
 }
 
 export interface PaymentGatewayPort {

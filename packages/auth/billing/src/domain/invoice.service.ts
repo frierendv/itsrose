@@ -14,6 +14,11 @@ import {
 	UPGRADE_INVOICE_LIFESPAN_MS,
 } from "./constants";
 import {
+	isPaidInvoiceStatus,
+	isVoidableStatus,
+	type InvoiceStatus,
+} from "./invoice-status";
+import {
 	calculateProration,
 	formatProrationDetails,
 	isTierDowngrade,
@@ -25,10 +30,13 @@ import { isNonTerminalStatus } from "./subscription.service";
  * Minimal structural shape of a Midtrans invoice returned by the SDK.
  * Kept structural (instead of the full zod-inferred response) so the domain
  * layer does not depend on the gateway transport types.
+ *
+ * `status` is already normalised into the domain invoice vocabulary by the
+ * gateway adapter — the domain never sees a provider status string.
  */
 export type GatewayInvoice = {
 	id: string;
-	status?: string | null;
+	status?: InvoiceStatus | null;
 	invoice_date?: string | null;
 	due_date?: string | null;
 	payment_type?: string | null;
@@ -339,19 +347,7 @@ export function buildInvoiceRecord(
 	};
 }
 
-const NON_VOIDABLE_STATUSES = [
-	"paid",
-	"void",
-	"voided",
-	"canceled",
-	"rejected",
-] as const;
-
-export function isVoidableStatus(status: string): boolean {
-	return !NON_VOIDABLE_STATUSES.includes(
-		status.toLowerCase() as (typeof NON_VOIDABLE_STATUSES)[number]
-	);
-}
+export { isPaidInvoiceStatus, isVoidableStatus };
 
 /**
  * Computes the local invoice fields that should be synced from a remote
