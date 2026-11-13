@@ -1,3 +1,3 @@
-import { config } from "@itsrose/standard/eslint/base";
+import { config, snakeCasePayloadConfig } from "@itsrose/standard/eslint/base";
 
-export default config;
+export default [...config, ...snakeCasePayloadConfig];

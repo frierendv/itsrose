@@ -129,6 +129,6 @@ export const ElevenLabsListVoicesResponseSchema = z
 		id: "ElevenLabsVoices",
 	});
 
-export interface IElevenLabsListVoicesResponse extends z.infer<
+export type IElevenLabsListVoicesResponse = z.infer<
 	typeof ElevenLabsListVoicesResponseSchema
-> {}
+>;

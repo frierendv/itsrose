@@ -28,6 +28,6 @@ export const ImageRestorationRequestSchema = z
 		title: "Image Restoration Request Schema",
 	});
 
-export interface IImageRestorationRequest extends z.infer<
+export type IImageRestorationRequest = z.infer<
 	typeof ImageRestorationRequestSchema
-> {}
+>;

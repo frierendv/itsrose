@@ -28,7 +28,7 @@ export const updateSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
 			const { repositories } = createBillingServices(ctx);
 			const updated = await updateSubscriptionRecord(repositories, {
 				subscriptionId: ctx.body.subscription_id,
-				userId: ctx.body.userId,
+				userId: ctx.body.user_id,
 				plan_id: ctx.body.plan_id,
 				interval: ctx.body.interval,
 				status: ctx.body.status,

@@ -20,11 +20,12 @@ export const createSubscriptionEndpoint = (opts?: BillingPluginOptions) => {
 			body: createSubscriptionSchema,
 		},
 		async (ctx) => {
-			const targetUserId = ctx.body.userId || ctx.context.session.user.id;
+			const targetUserId =
+				ctx.body.user_id || ctx.context.session.user.id;
 
 			if (
-				ctx.body.userId &&
-				!isOwnerOrAdmin(ctx.context.session.user, ctx.body.userId)
+				ctx.body.user_id &&
+				!isOwnerOrAdmin(ctx.context.session.user, ctx.body.user_id)
 			) {
 				throw new APIError("FORBIDDEN", {
 					message:

@@ -9,6 +9,6 @@ export const ElevenLabsCreateIVCVoiceResponseSchema = z.object({
 		.describe("Whether the voice requires verification"),
 });
 
-export interface IElevenLabsCreateIVCVoiceResponse extends z.infer<
+export type IElevenLabsCreateIVCVoiceResponse = z.infer<
 	typeof ElevenLabsCreateIVCVoiceResponseSchema
-> {}
+>;

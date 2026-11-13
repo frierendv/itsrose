@@ -1,3 +1,4 @@
+import { createTransactionSignature } from "@itsrose/midtrans";
 import { createBillingRepositories } from "../src/adapter";
 import { resolveUserSubscription } from "../src/application";
 import {
@@ -11,10 +12,12 @@ import { systemClock } from "../src/domain/ports";
 import { webhookEndpoint } from "../src/plugin/routes/payment/webhook";
 import { cancelDowngradeEndpoint } from "../src/plugin/routes/subscription/cancel-downgrade";
 import { downgradeSubscriptionEndpoint } from "../src/plugin/routes/subscription/downgrade";
+import type { Subscription } from "../src/types";
 import {
 	createMockDbAdapter,
 	createMockEndpointContext,
 	createMockMidtransClient,
+	expectRow,
 } from "./test-helpers";
 
 describe("Downgrade Scheduling and Renewal Execution", () => {
@@ -58,7 +61,7 @@ describe("Downgrade Scheduling and Renewal Execution", () => {
 			body: { target_tier: "hobby" },
 		});
 
-		const response: any = await endpoint(ctx as any);
+		const response = await endpoint(ctx);
 
 		// 1. Returns confirmation of retained access
 		expect(response.success).toBe(true);
@@ -107,15 +110,17 @@ describe("Downgrade Scheduling and Renewal Execution", () => {
 			adapter,
 		});
 
-		const response: any = await cancelEndpoint(ctx as any);
+		const response = await cancelEndpoint(ctx);
 
 		expect(response.success).toBe(true);
 		expect(response.scheduled_tier).toBeNull();
 
-		const sub = await adapter.findOne({
-			model: SUBSCRIPTION_TABLE_NAME,
-			where: [{ field: "user_id", value: userId }],
-		});
+		const sub = expectRow(
+			await adapter.findOne<Subscription>({
+				model: SUBSCRIPTION_TABLE_NAME,
+				where: [{ field: "user_id", value: userId }],
+			})
+		);
 		expect(sub.scheduled_tier).toBeNull();
 	});
 
@@ -162,7 +167,7 @@ describe("Downgrade Scheduling and Renewal Execution", () => {
 			},
 		});
 
-		(client as any).invoiceStore.set(invoiceId, {
+		client.invoiceStore.set(invoiceId, {
 			id: invoiceId,
 			order_id: orderId,
 			status: "paid",
@@ -174,7 +179,7 @@ describe("Downgrade Scheduling and Renewal Execution", () => {
 			status_code: "200",
 			gross_amount: "60000",
 			transaction_status: "settlement",
-			signature_key: (client.merchant as any).createSignature({
+			signature_key: createTransactionSignature(serverKey, {
 				order_id: orderId,
 				status_code: "200",
 				gross_amount: "60000",
@@ -189,14 +194,16 @@ describe("Downgrade Scheduling and Renewal Execution", () => {
 			},
 		});
 
-		const result: any = await webhookHandler(ctx as any);
+		const result = await webhookHandler(ctx);
 		expect(result.ok).toBe(true);
 		expect(result.status).toBe("paid");
 
-		const updatedSub = await adapter.findOne({
-			model: SUBSCRIPTION_TABLE_NAME,
-			where: [{ field: "user_id", value: userId }],
-		});
+		const updatedSub = expectRow(
+			await adapter.findOne<Subscription>({
+				model: SUBSCRIPTION_TABLE_NAME,
+				where: [{ field: "user_id", value: userId }],
+			})
+		);
 
 		// 1. Tier successfully transitioned to scheduled 'hobby'
 		expect(updatedSub.plan_id).toBe("hobby");

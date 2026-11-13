@@ -17,9 +17,9 @@ export const listSubscriptionEndpoint = (_opts?: BillingPluginOptions) => {
 			const { user } = ctx.context.session;
 			const isUserAdmin = isAdmin(user);
 
-			const scopeToUser = !isUserAdmin || Boolean(ctx.query?.userId);
+			const scopeToUser = !isUserAdmin || Boolean(ctx.query?.user_id);
 			const userId = scopeToUser
-				? ctx.query?.userId || user.id
+				? ctx.query?.user_id || user.id
 				: undefined;
 
 			const { repositories } = createBillingServices(ctx);

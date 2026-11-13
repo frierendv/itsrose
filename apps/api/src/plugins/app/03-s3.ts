@@ -72,7 +72,7 @@ export default fp(
 	async (fastify) => {
 		if (!fastify.auth) {
 			void fastify.decorate("s3", {
-				uploadUserFile: async (_request, data, _options) => data as any,
+				uploadUserFile: async (_request, data, _options) => data,
 				deleteUserFile: async (_request, _options) => false,
 			} satisfies S3Plugin);
 

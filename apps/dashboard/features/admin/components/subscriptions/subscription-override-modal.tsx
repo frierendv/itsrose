@@ -68,7 +68,7 @@ const SubscriptionOverrideForm: React.FC<SubscriptionOverrideFormProps> = ({
 
 			await updateMutation.mutateAsync({
 				subscription_id: subscription.id,
-				userId: subscription.user_id,
+				user_id: subscription.user_id,
 				plan_id: planId,
 				status,
 				period_end: parsedEndDate,

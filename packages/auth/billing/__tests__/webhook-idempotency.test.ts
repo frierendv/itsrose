@@ -1,3 +1,4 @@
+import { createTransactionSignature } from "@itsrose/midtrans";
 import {
 	BILLING_PERIOD_MS,
 	INVOICE_EVENT_TABLE_NAME,
@@ -7,10 +8,12 @@ import {
 	SUBSCRIPTION_TABLE_NAME,
 } from "../src/domain/constants";
 import { webhookEndpoint } from "../src/plugin/routes/payment/webhook";
+import type { Subscription } from "../src/types";
 import {
 	createMockDbAdapter,
 	createMockEndpointContext,
 	createMockMidtransClient,
+	expectRow,
 } from "./test-helpers";
 
 describe("Midtrans Webhook Security & Idempotency", () => {
@@ -36,7 +39,7 @@ describe("Midtrans Webhook Security & Idempotency", () => {
 			},
 		});
 
-		await expect(webhookHandler(ctx as any)).rejects.toThrow(
+		await expect(webhookHandler(ctx)).rejects.toThrow(
 			/Transaction signature verification failed/
 		);
 	});
@@ -87,7 +90,7 @@ describe("Midtrans Webhook Security & Idempotency", () => {
 			status_code: "200",
 			gross_amount: "160000",
 			transaction_status: "settlement",
-			signature_key: (client.merchant as any).createSignature({
+			signature_key: createTransactionSignature(serverKey, {
 				order_id: orderId,
 				status_code: "200",
 				gross_amount: "160000",
@@ -103,17 +106,19 @@ describe("Midtrans Webhook Security & Idempotency", () => {
 		});
 
 		// First duplicate delivery
-		const response: any = await webhookHandler(ctx as any);
+		const response = await webhookHandler(ctx);
 
 		// Must return idempotent_skip
 		expect(response.ok).toBe(true);
 		expect(response.status).toBe("idempotent_skip");
 
 		// Subscription dates MUST remain unchanged!
-		const sub = await adapter.findOne({
-			model: SUBSCRIPTION_TABLE_NAME,
-			where: [{ field: "user_id", value: userId }],
-		});
+		const sub = expectRow(
+			await adapter.findOne<Subscription>({
+				model: SUBSCRIPTION_TABLE_NAME,
+				where: [{ field: "user_id", value: userId }],
+			})
+		);
 
 		expect(new Date(sub.period_end).toISOString()).toBe(
 			cycleEnd.toISOString()

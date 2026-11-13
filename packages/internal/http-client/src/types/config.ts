@@ -57,7 +57,7 @@ export type ResolvesTData<T extends HttpConfig, TData> =
 /**
  * Request-level configuration options extending AxiosRequestConfig.
  */
-export interface HttpRequestConfig extends AxiosRequestConfig {}
+export type HttpRequestConfig = AxiosRequestConfig;
 
 declare module "axios" {
 	interface AxiosRequestConfig {

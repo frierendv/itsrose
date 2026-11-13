@@ -8,8 +8,21 @@ import type { SharedEnv } from "../shared";
 import { COOKIE_PREFIX } from "../shared/constants";
 import { resolveGoogleOAuthCredentials } from "../shared/env";
 
+/**
+ * Builds the default environment source for {@linkcode getAuthOptions}.
+ *
+ * `process.env` is a plain `string | undefined` map, so it structurally
+ * satisfies every shared environment key (`SharedEnv` maps them to
+ * `string | undefined`). TypeScript cannot prove that for an index-signature
+ * type, hence the explicit assertion below.
+ *
+ * @returns The process environment, typed as the shared environment.
+ */
+const defaultEnv = () =>
+	process.env as unknown as SharedEnv & Record<string, unknown>;
+
 export function getAuthOptions(
-	env: SharedEnv & Record<string, unknown> = process.env as any
+	env: SharedEnv & Record<string, unknown> = defaultEnv()
 ) {
 	const google = resolveGoogleOAuthCredentials(env);
 	const isCrossDomainOrProd =

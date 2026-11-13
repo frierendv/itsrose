@@ -54,7 +54,7 @@ export function createContext<ContextType>(
 ): CreateContextReturn<ContextType>;
 export function createContext<ContextType>(
 	options: CreateContextOptions<ContextType> = {}
-): CreateContextReturn<any> {
+): CreateContextReturn<ContextType | undefined> {
 	const { strict = true, errorMessage, name, defaultValue } = options;
 
 	const Context = React.createContext<ContextType | undefined>(defaultValue);
@@ -85,5 +85,5 @@ export function createContext<ContextType>(
 		Context.Provider,
 		useContext,
 		Context,
-	] as unknown as CreateContextReturn<ContextType>;
+	] as unknown as CreateContextReturn<ContextType | undefined>;
 }

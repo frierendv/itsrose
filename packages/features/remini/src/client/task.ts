@@ -101,12 +101,30 @@ export class Task {
 	) {
 		try {
 			return await this._execute(initImageBuffer, featurePipelines);
-		} catch (err: any) {
-			if (err?.status === 401 || err?.statusCode === 401) {
+		} catch (err: unknown) {
+			if (isUnauthorizedError(err)) {
 				await this.client.oracle.refresh();
 				return await this._execute(initImageBuffer, featurePipelines);
 			}
 			throw err;
 		}
 	}
+}
+
+/**
+ * Detects an unauthorized failure (HTTP 401) in an unknown error payload.
+ *
+ * @param error Unknown error payload thrown by the client.
+ * @returns True when the payload carries a 401 status.
+ */
+function isUnauthorizedError(error: unknown): boolean {
+	if (typeof error !== "object" || error === null) {
+		return false;
+	}
+
+	if ("status" in error && error.status === 401) {
+		return true;
+	}
+
+	return "statusCode" in error && error.statusCode === 401;
 }

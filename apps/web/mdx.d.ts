@@ -4,8 +4,8 @@ declare module "*.mdx" {
 		title?: string;
 		description?: string;
 		published?: string;
-		[key: string]: any;
+		[key: string]: unknown;
 	};
-	const MDXContent: ComponentType<any>;
+	const MDXContent: ComponentType;
 	export default MDXContent;
 }

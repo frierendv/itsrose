@@ -1,3 +1,4 @@
+import { createTransactionSignature } from "@itsrose/midtrans";
 import {
 	BILLING_PERIOD_MS,
 	INVOICE_TABLE_NAME,
@@ -8,10 +9,12 @@ import {
 } from "../src/domain/constants";
 import { webhookEndpoint } from "../src/plugin/routes/payment/webhook";
 import { upgradeSubscriptionEndpoint } from "../src/plugin/routes/subscription/upgrade";
+import type { Subscription } from "../src/types";
 import {
 	createMockDbAdapter,
 	createMockEndpointContext,
 	createMockMidtransClient,
+	expectRow,
 } from "./test-helpers";
 
 describe("Mid-Cycle Upgrade Flow", () => {
@@ -49,7 +52,7 @@ describe("Mid-Cycle Upgrade Flow", () => {
 			body: { target_tier: "pro" },
 		});
 
-		const response: any = await endpoint(ctx as any);
+		const response = await endpoint(ctx);
 
 		const { invoice, proration } = response;
 
@@ -67,10 +70,11 @@ describe("Mid-Cycle Upgrade Flow", () => {
 		expect(invoice.due_date).toBe(expectedDueDate);
 
 		// Proration audit values
-		expect(proration.current_tier).toBe("hobby");
-		expect(proration.target_tier).toBe("pro");
-		expect(proration.payable_amount).toBe(66_667);
-		expect(proration.is_cycle_reset).toBe(false);
+		const prorationDetails = expectRow(proration);
+		expect(prorationDetails.current_tier).toBe("hobby");
+		expect(prorationDetails.target_tier).toBe("pro");
+		expect(prorationDetails.payable_amount).toBe(66_667);
+		expect(prorationDetails.is_cycle_reset).toBe(false);
 
 		jest.useRealTimers();
 	});
@@ -97,7 +101,7 @@ describe("Mid-Cycle Upgrade Flow", () => {
 			body: { target_tier: "pro" },
 		});
 
-		await expect(endpoint(ctx as any)).rejects.toThrow(
+		await expect(endpoint(ctx)).rejects.toThrow(
 			/Target tier 'Pro' is a downgrade/
 		);
 	});
@@ -151,7 +155,7 @@ describe("Mid-Cycle Upgrade Flow", () => {
 		});
 
 		// Store in mock Midtrans client as paid
-		(client as any).invoiceStore.set(invoiceId, {
+		client.invoiceStore.set(invoiceId, {
 			id: invoiceId,
 			order_id: orderId,
 			status: "paid",
@@ -164,7 +168,7 @@ describe("Mid-Cycle Upgrade Flow", () => {
 			status_code: "200",
 			gross_amount: "66667",
 			transaction_status: "settlement",
-			signature_key: (client.merchant as any).createSignature({
+			signature_key: createTransactionSignature(serverKey, {
 				order_id: orderId,
 				status_code: "200",
 				gross_amount: "66667",
@@ -179,15 +183,17 @@ describe("Mid-Cycle Upgrade Flow", () => {
 			},
 		});
 
-		const result: any = await webhookHandler(ctx as any);
+		const result = await webhookHandler(ctx);
 		expect(result.ok).toBe(true);
 		expect(result.status).toBe("paid");
 
 		// Assert subscription record in DB:
-		const updatedSub = await adapter.findOne({
-			model: SUBSCRIPTION_TABLE_NAME,
-			where: [{ field: "user_id", value: userId }],
-		});
+		const updatedSub = expectRow(
+			await adapter.findOne<Subscription>({
+				model: SUBSCRIPTION_TABLE_NAME,
+				where: [{ field: "user_id", value: userId }],
+			})
+		);
 
 		expect(updatedSub).toBeDefined();
 		// 1. Tier immediately upgraded to 'pro'
@@ -249,7 +255,7 @@ describe("Mid-Cycle Upgrade Flow", () => {
 			},
 		});
 
-		(client as any).invoiceStore.set(invoiceId, {
+		client.invoiceStore.set(invoiceId, {
 			id: invoiceId,
 			order_id: orderId,
 			status: "paid",
@@ -261,7 +267,7 @@ describe("Mid-Cycle Upgrade Flow", () => {
 			status_code: "200",
 			gross_amount: "160000",
 			transaction_status: "settlement",
-			signature_key: (client.merchant as any).createSignature({
+			signature_key: createTransactionSignature(serverKey, {
 				order_id: orderId,
 				status_code: "200",
 				gross_amount: "160000",
@@ -276,14 +282,16 @@ describe("Mid-Cycle Upgrade Flow", () => {
 			},
 		});
 
-		const result: any = await webhookHandler(ctx as any);
+		const result = await webhookHandler(ctx);
 		expect(result.ok).toBe(true);
 		expect(result.status).toBe("paid");
 
-		const updatedSub = await adapter.findOne({
-			model: SUBSCRIPTION_TABLE_NAME,
-			where: [{ field: "user_id", value: userId }],
-		});
+		const updatedSub = expectRow(
+			await adapter.findOne<Subscription>({
+				model: SUBSCRIPTION_TABLE_NAME,
+				where: [{ field: "user_id", value: userId }],
+			})
+		);
 
 		// 1. Tier changed to 'pro'
 		expect(updatedSub.plan_id).toBe("pro");

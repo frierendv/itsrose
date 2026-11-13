@@ -11,7 +11,7 @@ const subscriptionStatusSchema = z.enum([
 ]);
 
 export const createSubscriptionSchema = z.object({
-	userId: z.string().optional(),
+	user_id: z.string().optional(),
 	plan_id: z.string(),
 	interval: z.enum(["month", "year"]).optional().default("month"),
 	period_start: z.iso.datetime().optional(),
@@ -21,7 +21,7 @@ export const createSubscriptionSchema = z.object({
 
 export const updateSubscriptionSchema = z.object({
 	subscription_id: z.string().optional(),
-	userId: z.string().optional(),
+	user_id: z.string().optional(),
 	plan_id: z.string().optional(),
 	interval: z.enum(["month", "year"]).optional(),
 	status: subscriptionStatusSchema.optional(),
@@ -56,7 +56,7 @@ export const restoreSubscriptionSchema = z.object({
 });
 
 export const hasAccessQuerySchema = z.object({
-	userId: z.string().optional(),
+	user_id: z.string().optional(),
 });
 
 export const getSubscriptionSchema = z.object({
@@ -66,7 +66,7 @@ export const getSubscriptionSchema = z.object({
 });
 
 export const listSubscriptionSchema = z.object({
-	userId: z.string().optional(),
+	user_id: z.string().optional(),
 	status: z.string().optional(),
 	limit: z.coerce.number().min(1).max(100).default(50).optional(),
 	offset: z.coerce.number().min(0).default(0).optional(),

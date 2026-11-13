@@ -11,11 +11,13 @@ import {
 	SUBSCRIPTION_STATUS,
 	SUBSCRIPTION_TABLE_NAME,
 } from "../src/domain/constants";
+import type { Subscription, TransactionInvoice } from "../src/types";
 import {
 	createMockDbAdapter,
 	createMockEndpointContext,
 	createMockMidtransClient,
 	createTestDependencies,
+	expectRow,
 } from "./test-helpers";
 
 describe("Recurring Billing Cron Engine", () => {
@@ -59,7 +61,7 @@ describe("Recurring Billing Cron Engine", () => {
 			});
 
 			expect(invoices.length).toBe(1);
-			const invoice = invoices[0];
+			const invoice = expectRow(invoices[0]);
 			expect(invoice.invoice_type).toBe(INVOICE_TYPE.RENEWAL);
 			// Must bill for scheduled_tier ('hobby' = 60,000 IDR)
 			expect(invoice.target_tier).toBe("hobby");
@@ -164,18 +166,20 @@ describe("Recurring Billing Cron Engine", () => {
 
 			expect(result.tracked).toBe(1);
 
-			const sub = await adapter.findOne({
-				model: SUBSCRIPTION_TABLE_NAME,
-				where: [{ field: "id", value: "sub-grace" }],
-			});
+			const sub = expectRow(
+				await adapter.findOne<Subscription>({
+					model: SUBSCRIPTION_TABLE_NAME,
+					where: [{ field: "id", value: "sub-grace" }],
+				})
+			);
 
 			expect(sub.status).toBe(SUBSCRIPTION_STATUS.PAST_DUE);
 			const expectedGraceEnd = new Date(
 				periodEnd.getTime() + GRACE_PERIOD_MS
 			);
-			expect(new Date(sub.grace_period_end).toISOString()).toBe(
-				expectedGraceEnd.toISOString()
-			);
+			expect(
+				new Date(expectRow(sub.grace_period_end)).toISOString()
+			).toBe(expectedGraceEnd.toISOString());
 		});
 	});
 
@@ -229,19 +233,23 @@ describe("Recurring Billing Cron Engine", () => {
 
 			expect(result.swept).toBe(1);
 
-			const sub = await adapter.findOne({
-				model: SUBSCRIPTION_TABLE_NAME,
-				where: [{ field: "id", value: "sub-expired" }],
-			});
+			const sub = expectRow(
+				await adapter.findOne<Subscription>({
+					model: SUBSCRIPTION_TABLE_NAME,
+					where: [{ field: "id", value: "sub-expired" }],
+				})
+			);
 
 			expect(sub.status).toBe(SUBSCRIPTION_STATUS.EXPIRED);
 			expect(sub.plan_id).toBe("free");
 
 			// Check invoice was voided
-			const inv = await adapter.findOne({
-				model: INVOICE_TABLE_NAME,
-				where: [{ field: "invoice_id", value: "inv-to-void" }],
-			});
+			const inv = expectRow(
+				await adapter.findOne<TransactionInvoice>({
+					model: INVOICE_TABLE_NAME,
+					where: [{ field: "invoice_id", value: "inv-to-void" }],
+				})
+			);
 			expect(inv.status).toBe("void");
 		});
 	});

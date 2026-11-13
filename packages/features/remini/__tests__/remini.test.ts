@@ -1,5 +1,36 @@
+import type { HttpClientError, HttpResponse } from "@itsrose/http-client";
+import type { Client } from "../src/client/client";
 import { extractImageMetadata } from "../src/utils/extract-image-metadata";
 import { ReminiRequestSchema } from "../src/zod-schema/request";
+
+/**
+ * Builds a resolved HTTP response envelope.
+ *
+ * Invariant: the code under test only reads `data` from the envelope; the
+ * axios-only `headers`/`config` fields are never inspected by these tests, so
+ * empty placeholders are safe here.
+ */
+const mockResponse = (
+	partial: Partial<HttpResponse<unknown, HttpClientError>>
+): HttpResponse<unknown, HttpClientError> =>
+	({
+		ok: true,
+		headers: {},
+		config: {},
+		...partial,
+	}) as unknown as HttpResponse<unknown, HttpClientError>;
+
+/**
+ * Builds a minimal `Client` double exposing only `task.create`.
+ *
+ * Invariant: `createTask` only calls `activeClient.task.create(...)`, so the
+ * double implements exactly that surface. The real `Client` additionally owns
+ * environment-bound private state, which cannot be expressed structurally.
+ */
+const mockClientDouble = (create: jest.Mock): Client =>
+	({
+		task: { create },
+	}) as unknown as Client;
 
 // eslint-disable-next-line turbo/no-undeclared-env-vars
 process.env.REMINI_API_BASE_URL = "https://remini.example.com";
@@ -76,17 +107,15 @@ describe("features/remini", () => {
 			const base64Png =
 				"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
-			const mockClient = {
-				task: {
-					create: jest.fn().mockResolvedValue({
-						status: "completed",
-						result: {
-							outputs: [{ url: "https://example.com/out.jpg" }],
-						},
-						error: null,
-					}),
-				},
-			} as any;
+			const mockClient = mockClientDouble(
+				jest.fn().mockResolvedValue({
+					status: "completed",
+					result: {
+						outputs: [{ url: "https://example.com/out.jpg" }],
+					},
+					error: null,
+				})
+			);
 
 			const res = await createTask(
 				{
@@ -109,23 +138,19 @@ describe("features/remini", () => {
 				"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 			const buffer = Buffer.from(base64Png, "base64");
 
-			jest.spyOn(fetcher, "get").mockResolvedValue({
-				data: buffer,
-			} as any);
+			jest.spyOn(fetcher, "get").mockResolvedValue(
+				mockResponse({ data: buffer })
+			);
 
-			const mockClient = {
-				task: {
-					create: jest.fn().mockResolvedValue({
-						status: "completed",
-						result: {
-							outputs: [
-								{ url: "https://example.com/url_out.jpg" },
-							],
-						},
-						error: null,
-					}),
-				},
-			} as any;
+			const mockClient = mockClientDouble(
+				jest.fn().mockResolvedValue({
+					status: "completed",
+					result: {
+						outputs: [{ url: "https://example.com/url_out.jpg" }],
+					},
+					error: null,
+				})
+			);
 
 			const res = await createTask(
 				{
@@ -146,18 +171,16 @@ describe("features/remini", () => {
 		it("throws ThirdPartyApiError when task processing status is failed", async () => {
 			const { createTask } = await import("../src/remini/create-task");
 
-			const mockClient = {
-				task: {
-					create: jest.fn().mockResolvedValue({
-						status: "failed",
-						result: null,
-						error: {
-							error_reason: "FAILED",
-							error_description: "Inference failed",
-						},
-					}),
-				},
-			} as any;
+			const mockClient = mockClientDouble(
+				jest.fn().mockResolvedValue({
+					status: "failed",
+					result: null,
+					error: {
+						error_reason: "FAILED",
+						error_description: "Inference failed",
+					},
+				})
+			);
 
 			await expect(
 				createTask(
@@ -180,15 +203,13 @@ describe("features/remini", () => {
 		it("throws ThirdPartyApiError fallback message when error_description is missing", async () => {
 			const { createTask } = await import("../src/remini/create-task");
 
-			const mockClient = {
-				task: {
-					create: jest.fn().mockResolvedValue({
-						status: "failed",
-						result: null,
-						error: null,
-					}),
-				},
-			} as any;
+			const mockClient = mockClientDouble(
+				jest.fn().mockResolvedValue({
+					status: "failed",
+					result: null,
+					error: null,
+				})
+			);
 
 			await expect(
 				createTask(

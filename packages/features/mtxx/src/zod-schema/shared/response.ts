@@ -15,4 +15,4 @@ export const SharedResponseSchema = z
 		description: "The response schema for MTXx API.",
 	});
 
-export interface ISharedResponse extends z.infer<typeof SharedResponseSchema> {}
+export type ISharedResponse = z.infer<typeof SharedResponseSchema>;

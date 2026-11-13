@@ -13,4 +13,4 @@ export const SharedRequestSchema = z
 		id: "MTXxRequest",
 	});
 
-export interface ISharedRequest extends z.infer<typeof SharedRequestSchema> {}
+export type ISharedRequest = z.infer<typeof SharedRequestSchema>;

@@ -22,6 +22,6 @@ export const ElevenLabsSharedResponseAudioSchema = z.object({
 		.optional()
 		.describe("By default the audio response format is base64"),
 });
-export interface IElevenLabsSharedResponse extends z.infer<
+export type IElevenLabsSharedResponse = z.infer<
 	typeof ElevenLabsSharedResponseSchema
-> {}
+>;

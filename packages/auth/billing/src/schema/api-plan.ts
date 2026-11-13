@@ -34,7 +34,7 @@ export const updatePlanSchema = z.object({
 	quota_requests: z.number().int().min(0).nullable().optional(),
 	highlighted: z.boolean().optional(),
 	/** Accepted for dashboard compatibility; not persisted by the catalog schema. */
-	seatBased: z.boolean().optional(),
+	seat_based: z.boolean().optional(),
 });
 
 export const deletePlanSchema = z.object({

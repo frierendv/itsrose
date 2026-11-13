@@ -4,7 +4,7 @@ import type { ReactElement } from "react";
 /**
  * Renders a React Email component to both static HTML and formatted plain text asynchronously.
  */
-export async function renderEmail(component: ReactElement<any>): Promise<{
+export async function renderEmail(component: ReactElement): Promise<{
 	html: string;
 	text: string;
 }> {

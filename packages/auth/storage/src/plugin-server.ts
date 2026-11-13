@@ -14,13 +14,13 @@ import {
 	listUserFiles,
 	uploadUserFile,
 } from "./operations";
-import type { StoragePluginOptions } from "./types";
+import type { PresignedUploadOptions, StoragePluginOptions } from "./types";
 
 export const presignedUploadSchema = z.object({
 	category: z.string().default("uploads"),
 	filename: z.string().min(1, "Filename is required."),
-	contentType: z.string().optional(),
-	expiresIn: z.number().int().min(60).max(86400).optional(),
+	content_type: z.string().optional(),
+	expires_in: z.number().int().min(60).max(86400).optional(),
 });
 
 export const listFilesSchema = z.object({
@@ -60,8 +60,8 @@ export function storagePlugin(options: StoragePluginOptions = {}) {
 								userId: user.id,
 								category: ctx.body.category,
 								filename: ctx.body.filename,
-								contentType: ctx.body.contentType,
-								expiresInSeconds: ctx.body.expiresIn,
+								contentType: ctx.body.content_type,
+								expiresInSeconds: ctx.body.expires_in,
 							},
 							s3
 						);
@@ -192,14 +192,15 @@ export function storagePlugin(options: StoragePluginOptions = {}) {
 						userId: string,
 						category: string,
 						filename: string,
-						opts?: any
+						opts?: PresignedUploadOptions
 					) =>
 						createPresignedUpload(
 							{
 								userId,
 								category,
 								filename,
-								...opts,
+								contentType: opts?.contentType,
+								expiresInSeconds: opts?.expiresIn,
 							},
 							s3
 						),

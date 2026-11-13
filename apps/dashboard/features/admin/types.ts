@@ -44,7 +44,7 @@ export interface UpdatePlanInput {
 
 export interface UpdateSubscriptionInput {
 	subscription_id?: string;
-	userId?: string;
+	user_id?: string;
 	plan_id?: string;
 	interval?: BillingInterval;
 	status?: SubscriptionStatus;

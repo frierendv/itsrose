@@ -6,9 +6,30 @@ import type { Client as CAIClient } from "../src/client";
 
 jest.mock("ws");
 
+/**
+ * Invokes a private method on the object under test.
+ *
+ * TypeScript's `private` modifier is erased at runtime, so reflecting on the
+ * instance is equivalent to the previous untyped private-method call
+ * call while keeping the looked-up method `unknown`-typed.
+ */
+const invokePrivate = (
+	target: object,
+	method: string,
+	...args: unknown[]
+): unknown => {
+	const fn: unknown = Reflect.get(target, method);
+	if (typeof fn !== "function") {
+		throw new Error(`Expected "${method}" to be a function.`);
+	}
+	return Reflect.apply(fn, target, args);
+};
+
 class MockWebSocket extends EventEmitter {
-	public readyState = WebSocket.CONNECTING;
-	public send = jest.fn();
+	public readyState: number = WebSocket.CONNECTING;
+	public send = jest.fn(
+		(_data: unknown, _callback?: (error?: Error) => void): void => undefined
+	);
 	public close = jest.fn();
 }
 
@@ -20,6 +41,8 @@ describe("ChatSocket", () => {
 		jest.clearAllMocks();
 		jest.useRealTimers();
 
+		// Invariant: `ChatSocket` only reads `client.neoWssUrl` and
+		// `client.getHeaders()` from the client it is constructed with.
 		mockClient = {
 			neoWssUrl: "wss://example.com/ws",
 			getHeaders: jest
@@ -28,6 +51,9 @@ describe("ChatSocket", () => {
 		} as unknown as CAIClient;
 
 		mockWs = new MockWebSocket();
+		// Invariant: `jest.mock("ws")` replaces the class with an automock;
+		// this implementation makes every `new WebSocket(...)` return the
+		// local `mockWs` double used by the tests.
 		(WebSocket as unknown as jest.Mock).mockImplementation(() => mockWs);
 	});
 
@@ -55,7 +81,7 @@ describe("ChatSocket", () => {
 	it("should resolve waitForOpen() immediately if readyState is OPEN", async () => {
 		const chatSocket = new ChatSocket(mockClient);
 		chatSocket.create();
-		(mockWs as any).readyState = WebSocket.OPEN;
+		mockWs.readyState = WebSocket.OPEN;
 
 		await expect(chatSocket.waitForOpen()).resolves.toBeUndefined();
 	});
@@ -106,13 +132,12 @@ describe("ChatSocket", () => {
 	it("should send message via websocket when open", async () => {
 		const chatSocket = new ChatSocket(mockClient);
 		chatSocket.create();
-		(mockWs as any).readyState = WebSocket.OPEN;
+		mockWs.readyState = WebSocket.OPEN;
 
-		mockWs.send.mockImplementation((_data: any, callback?: any) => {
+		mockWs.send.mockImplementation((_data, callback) => {
 			if (typeof callback === "function") {
 				callback();
 			}
-			return true as any;
 		});
 
 		await expect(
@@ -127,13 +152,12 @@ describe("ChatSocket", () => {
 	it("should reject send() when websocket send returns an error", async () => {
 		const chatSocket = new ChatSocket(mockClient);
 		chatSocket.create();
-		(mockWs as any).readyState = WebSocket.OPEN;
+		mockWs.readyState = WebSocket.OPEN;
 
-		mockWs.send.mockImplementation((_data: any, callback?: any) => {
+		mockWs.send.mockImplementation((_data, callback) => {
 			if (typeof callback === "function") {
 				callback(new Error("socket send error"));
 			}
-			return true as any;
 		});
 
 		await expect(chatSocket.send({ command: "test" })).rejects.toThrow(
@@ -333,12 +357,12 @@ describe("ChatSocket", () => {
 		chatSocket.create();
 
 		const waitPromise = chatSocket.waitForOutput();
-		(chatSocket as any).startTimeoutTimer();
-		(chatSocket as any).resetTimeoutTimer();
+		invokePrivate(chatSocket, "startTimeoutTimer");
+		invokePrivate(chatSocket, "resetTimeoutTimer");
 
 		jest.advanceTimersByTime(30_000);
 		await expect(waitPromise).rejects.toThrow("Chat timed out.");
 
-		(chatSocket as any).resetTimeoutTimer();
+		invokePrivate(chatSocket, "resetTimeoutTimer");
 	});
 });

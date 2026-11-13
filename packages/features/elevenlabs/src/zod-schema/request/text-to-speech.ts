@@ -72,6 +72,6 @@ export const ElevenLabsTextToSpeechConvertSchema = z
  * Ref: {@link https://elevenlabs.io/docs/api-reference/text-to-speech/convert | Create speech}
  */
 
-export interface IElevenLabsTextToSpeechConvert extends z.infer<
+export type IElevenLabsTextToSpeechConvert = z.infer<
 	typeof ElevenLabsTextToSpeechConvertSchema
-> {}
+>;

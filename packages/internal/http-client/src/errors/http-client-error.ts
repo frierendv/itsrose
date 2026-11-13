@@ -2,6 +2,24 @@ import { AxiosError, isAxiosError, isCancel, type AxiosResponse } from "axios";
 import type { HttpRequestConfig } from "../types";
 
 /**
+ * Transport context captured alongside an {@linkcode HttpClientError}.
+ */
+export interface HttpClientErrorContext {
+	/**
+	 * Request configuration that produced the failure.
+	 */
+	config?: HttpRequestConfig;
+	/**
+	 * Underlying request object, when the transport exposes one.
+	 */
+	request?: unknown;
+	/**
+	 * Server response associated with the failure, when one was received.
+	 */
+	response?: AxiosResponse;
+}
+
+/**
  * Custom error thrown by the HTTP client when a transport, network, or client-side failure occurs.
  */
 export class HttpClientError extends Error {
@@ -19,11 +37,28 @@ export class HttpClientError extends Error {
 	 */
 	public override readonly cause!: AxiosError;
 	/**
+	 * The request configuration that produced this error, when available.
+	 *
+	 * Stored separately from {@linkcode HttpClientError.cause} because the public
+	 * request configuration type is the pre-resolution shape, while Axios only
+	 * exposes the resolved internal shape.
+	 */
+	private readonly requestConfig?: HttpRequestConfig;
+	/**
+	 * The underlying request object, when the transport exposes one.
+	 */
+	private readonly requestPayload?: unknown;
+	/**
+	 * The server response associated with this error, when one was received.
+	 */
+	private readonly responsePayload?: AxiosResponse;
+	/**
 	 * Creates a new HttpClientError.
 	 *
 	 * @param cause The original {@linkcode AxiosError} that triggered this failure.
+	 * @param context Transport context captured with the failure.
 	 */
-	constructor(cause: AxiosError) {
+	constructor(cause: AxiosError, context: HttpClientErrorContext = {}) {
 		const status = cause.response?.status;
 		const statusText = cause.response?.statusText;
 
@@ -43,6 +78,10 @@ export class HttpClientError extends Error {
 			Error.captureStackTrace(this, this.constructor);
 		}
 
+		this.requestConfig = context.config;
+		this.requestPayload = context.request;
+		this.responsePayload = context.response;
+
 		// Store cause non-enumerably to prevent deeply nested console logs
 		Object.defineProperty(this, "cause", {
 			value: cause,
@@ -52,16 +91,22 @@ export class HttpClientError extends Error {
 		});
 	}
 	/**
+	 * The server response associated with the failure, when one was received.
+	 */
+	private get resolvedResponse(): AxiosResponse | undefined {
+		return this.responsePayload ?? this.cause?.response;
+	}
+	/**
 	 * HTTP status code returned by the server, if a response was received.
 	 */
 	public get status(): number | undefined {
-		return this.cause.response?.status;
+		return this.resolvedResponse?.status;
 	}
 	/**
 	 * HTTP status text returned by the server, if a response was received.
 	 */
 	public get statusText(): string | undefined {
-		return this.cause.response?.statusText;
+		return this.resolvedResponse?.statusText;
 	}
 	/**
 	 * Error code identifier.
@@ -73,25 +118,31 @@ export class HttpClientError extends Error {
 	 * Request URL that triggered the error.
 	 */
 	public get url(): string | undefined {
-		return this.cause?.config?.url;
+		return this.requestConfig?.url ?? this.cause?.config?.url;
 	}
 	/**
 	 * Request HTTP method.
 	 */
 	public get method(): string | undefined {
-		return this.cause?.config?.method;
+		return this.requestConfig?.method ?? this.cause?.config?.method;
 	}
 	/**
 	 * Complete Axios response object, if available.
 	 */
 	public get response(): AxiosResponse | undefined {
-		return this.cause?.response;
+		return this.resolvedResponse;
+	}
+	/**
+	 * Underlying request object, if available.
+	 */
+	public get request(): unknown {
+		return this.requestPayload ?? this.cause?.request;
 	}
 	/**
 	 * Complete request configuration used for the request.
 	 */
 	public get config(): HttpRequestConfig | undefined {
-		return this.cause?.config as HttpRequestConfig | undefined;
+		return this.requestConfig ?? this.cause?.config;
 	}
 	/**
 	 * Whether this error was caused by a network disconnection or DNS failure.
@@ -133,9 +184,9 @@ export class HttpClientError extends Error {
 	/**
 	 * Serialized error to JSON object.
 	 *
-	 * @returns {Record<string, any>}
+	 * @returns {Record<string, unknown>}
 	 */
-	public toJSON(): Record<string, any> {
+	public toJSON(): Record<string, unknown> {
 		const causeJson =
 			typeof this.cause?.toJSON === "function" ? this.cause.toJSON() : {};
 		return {
@@ -158,12 +209,14 @@ export class HttpClientError extends Error {
 	 *
 	 * @param error Unknown error payload or existing error instance.
 	 * @param config Optional request configuration.
+	 * @param request Optional underlying request object.
+	 * @param response Optional server response associated with the failure.
 	 * @returns A normalized {@linkcode HttpClientError} instance.
 	 */
 	public static from(
 		error: unknown,
 		config?: HttpRequestConfig,
-		request?: any,
+		request?: unknown,
 		response?: AxiosResponse
 	): HttpClientError {
 		if (isHttpClientError(error)) {
@@ -171,27 +224,36 @@ export class HttpClientError extends Error {
 		}
 
 		if (isAxiosError(error)) {
-			return new HttpClientError(error);
+			return new HttpClientError(error, { config, request, response });
 		}
 
 		const message = error instanceof Error ? error.message : String(error);
-		const axiosError = new AxiosError(
-			message,
-			(error as any)?.code,
-			config as any,
-			request,
-			response
-		);
+		const axiosError = new AxiosError(message, extractErrorCode(error));
 
 		if (error instanceof Error) {
 			if (error.stack) {
 				axiosError.stack = error.stack;
 			}
-			(axiosError as any).cause = error;
+			axiosError.cause = error;
 		}
 
-		return new HttpClientError(axiosError);
+		return new HttpClientError(axiosError, { config, request, response });
 	}
+}
+
+/**
+ * Extracts a string error code from an unknown error payload.
+ *
+ * @param error Unknown error payload.
+ * @returns The `code` property when it is a string, otherwise `undefined`.
+ */
+function extractErrorCode(error: unknown): string | undefined {
+	if (typeof error !== "object" || error === null || !("code" in error)) {
+		return undefined;
+	}
+
+	const code = error.code;
+	return typeof code === "string" ? code : undefined;
 }
 
 /**
@@ -207,8 +269,9 @@ export function isHttpClientError(
 		return false;
 	}
 
-	return (
-		payload instanceof HttpClientError ||
-		(payload as Record<string, any>)?.isHttpClientError === true
-	);
+	if (payload instanceof HttpClientError) {
+		return true;
+	}
+
+	return "isHttpClientError" in payload && payload.isHttpClientError === true;
 }

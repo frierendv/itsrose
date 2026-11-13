@@ -29,7 +29,7 @@ export class Character {
 	public async info(
 		options: Pick<CharacterInfo, "external_id">
 	): Promise<CharacterInfo> {
-		const { data } = await this.client.http.post<{ character: {} }>(
+		const { data } = await this.client.http.post<{ character: unknown }>(
 			"/character/v1/get_character_info",
 			options
 		);
@@ -52,7 +52,7 @@ export class Character {
 	public async search(
 		options: SearchCharacter
 	): Promise<{ characters: CharacterInfo[] }> {
-		const { data } = await this.client.http.get<{ characters: {}[] }>(
+		const { data } = await this.client.http.get<{ characters: unknown[] }>(
 			"/search/v1/character",
 			{ params: { sortedBy: "relevance", ...options } }
 		);

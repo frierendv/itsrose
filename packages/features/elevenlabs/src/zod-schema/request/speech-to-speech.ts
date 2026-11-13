@@ -60,6 +60,6 @@ export const ElevenLabsSpeechToSpeechConvertSchema = z
 		id: "ElevenLabsSpeechToSpeech",
 	});
 
-export interface IElevenLabsSpeechToSpeechConvert extends z.infer<
+export type IElevenLabsSpeechToSpeechConvert = z.infer<
 	typeof ElevenLabsSpeechToSpeechConvertSchema
-> {}
+>;

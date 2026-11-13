@@ -7,6 +7,6 @@ export const ElevenLabsErrorResponseSchema = z.object({
 	}),
 });
 
-export interface IElevenLabsErrorResponse extends z.infer<
+export type IElevenLabsErrorResponse = z.infer<
 	typeof ElevenLabsErrorResponseSchema
-> {}
+>;

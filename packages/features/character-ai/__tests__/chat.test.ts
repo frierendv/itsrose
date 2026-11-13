@@ -4,10 +4,49 @@ import type { Client } from "../src/client/client";
 
 jest.mock("../src/chat/chat-socket");
 
+/**
+ * Minimal double for the `http.get` envelope consumed by `Chat.clearHistory`.
+ *
+ * Invariant: `clearHistory` only awaits `http.get(...).onError(handler)` and
+ * reads the `error` field of the resolved envelope, so nothing else is needed.
+ */
+type MockHttpEnvelope = {
+	error?: Error;
+	onError: (
+		handler: (data: unknown, error: unknown) => unknown
+	) => Promise<MockHttpEnvelope>;
+};
+
+/**
+ * Minimal double for the `Client.user` sub-client.
+ *
+ * Invariant: `Chat.sendMessage` only checks `user.detail` for truthiness and
+ * calls `user.get()` when it is missing.
+ */
+type MockUser = {
+	detail: unknown;
+	get: jest.Mock;
+};
+
+/**
+ * Minimal double for the mocked `ChatSocket` instance.
+ *
+ * Invariant: `Chat.sendMessage` only drives `create`, `waitForOpen`, `send`
+ * and `waitForOutput`, and reads back the accumulated `output`.
+ */
+type MockChatSocket = {
+	create: jest.Mock;
+	waitForOpen: jest.Mock;
+	send: jest.Mock;
+	waitForOutput: jest.Mock;
+	output: unknown;
+};
+
 describe("Chat", () => {
 	let mockClient: Client;
 	let mockHttpGet: jest.Mock;
 	let mockUserGet: jest.Mock;
+	let mockUser: MockUser;
 
 	beforeEach(() => {
 		jest.clearAllMocks();
@@ -17,27 +56,33 @@ describe("Chat", () => {
 			user: { id: "123", account: { name: "Test" } },
 		});
 
+		mockUser = {
+			detail: { user: { id: 123, account: { name: "Test" } } },
+			get: mockUserGet,
+		};
+
+		// Invariant: `Chat` only touches `client.http.get` and `client.user`;
+		// the real `Client` also owns a private token field, so the double
+		// cannot be expressed as a structural `Client` type.
 		mockClient = {
 			http: {
 				get: mockHttpGet,
 			},
-			user: {
-				detail: {
-					user: { id: 123, account: { name: "Test" } },
-				},
-				get: mockUserGet,
-			},
+			user: mockUser,
 		} as unknown as Client;
 	});
 
 	describe("clearHistory", () => {
 		it("should return true when HTTP GET request succeeds without error", async () => {
 			mockHttpGet.mockImplementation(() => {
-				const promise = Promise.resolve({ error: undefined }) as any;
-				promise.onError = jest
-					.fn()
-					.mockImplementation((_fn: any) => promise);
-				return promise;
+				const envelope: MockHttpEnvelope = {
+					error: undefined,
+					onError: (handler) => {
+						handler(undefined, undefined);
+						return Promise.resolve(envelope);
+					},
+				};
+				return envelope;
 			});
 
 			const chat = new Chat(mockClient);
@@ -51,14 +96,15 @@ describe("Chat", () => {
 
 		it("should return false when HTTP GET request has error", async () => {
 			mockHttpGet.mockImplementation(() => {
-				const promise = Promise.resolve({
-					error: new Error("Failed"),
-				}) as any;
-				promise.onError = jest.fn().mockImplementation((fn: any) => {
-					fn();
-					return Promise.resolve({ error: new Error("Failed") });
-				});
-				return promise;
+				const error = new Error("Failed");
+				const envelope: MockHttpEnvelope = {
+					error,
+					onError: (handler) => {
+						handler(undefined, error);
+						return Promise.resolve(envelope);
+					},
+				};
+				return envelope;
 			});
 
 			const chat = new Chat(mockClient);
@@ -70,9 +116,9 @@ describe("Chat", () => {
 
 	describe("sendMessage", () => {
 		it("should fetch user details if detail is not cached", async () => {
-			(mockClient.user as any).detail = undefined;
+			mockUser.detail = undefined;
 
-			const mockSocketInstance = {
+			const mockSocketInstance: MockChatSocket = {
 				create: jest.fn(),
 				waitForOpen: jest.fn().mockResolvedValue(undefined),
 				send: jest.fn().mockResolvedValue(undefined),
@@ -84,9 +130,9 @@ describe("Chat", () => {
 						],
 						generation_mode: {},
 						context_stats: {},
-					} as any;
+					};
 				}),
-				output: null as any,
+				output: null,
 			};
 
 			(ChatSocket as jest.Mock).mockImplementation(

@@ -40,6 +40,6 @@ export const ExpressionGenerationRequestSchema = z
 		title: "Expression Generation Request Schema",
 	});
 
-export interface IExpressionGenerationRequest extends z.infer<
+export type IExpressionGenerationRequest = z.infer<
 	typeof ExpressionGenerationRequestSchema
-> {}
+>;

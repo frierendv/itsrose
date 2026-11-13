@@ -20,12 +20,14 @@ export const PaymentLinkResponse = z
 		id: "MidtransPaymentLinkResponse",
 	});
 
-export type PaymentLinkResponse<T = {}> = z.infer<typeof PaymentLinkResponse> &
+export type PaymentLinkResponse<T = unknown> = z.infer<
+	typeof PaymentLinkResponse
+> &
 	(T extends { enabled_payments: (infer Element)[] }
 		? Extract<Element, "other_qris"> extends never
-			? {}
+			? unknown
 			: { qr_url: string }
-		: {});
+		: unknown);
 
 /* ----------------------------- Delete Response ---------------------------- */
 

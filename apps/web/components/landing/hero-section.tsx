@@ -26,8 +26,8 @@ type EndpointPreset = {
 	method: "POST" | "GET";
 	path: string;
 	description: string;
-	requestBody: Record<string, any>;
-	responseBody: Record<string, any>;
+	requestBody: Record<string, unknown>;
+	responseBody: Record<string, unknown>;
 	latency: string;
 };
 

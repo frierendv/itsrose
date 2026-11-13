@@ -74,7 +74,7 @@ export class Signer {
 		return a.join("\n");
 	}
 
-	private signedHeaders(headers: Record<string, any>) {
+	private signedHeaders(headers: Record<string, string>) {
 		const signedHeaders = Object.keys(headers).map((header) =>
 			header.toLowerCase()
 		);

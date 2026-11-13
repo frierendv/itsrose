@@ -51,6 +51,6 @@ export const ElevenLabsTextToDialogueConvertSchema = z
 		id: "ElevenLabsTextToDialogue",
 	});
 
-export interface IElevenLabsTextToDialogueConvert extends z.infer<
+export type IElevenLabsTextToDialogueConvert = z.infer<
 	typeof ElevenLabsTextToDialogueConvertSchema
-> {}
+>;

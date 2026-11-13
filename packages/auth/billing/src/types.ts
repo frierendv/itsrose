@@ -33,7 +33,7 @@ export type ApiPlan<OmitId extends boolean = false> = {
 	/** Monthly billable request allowance; `null` means unlimited. */
 	quota_requests: number | null;
 	highlighted: boolean;
-} & (OmitId extends false ? { id: string } : {});
+} & (OmitId extends false ? { id: string } : unknown);
 
 export type RateLimit = {
 	readonly [T in ApiPlan["plan_id"]]: PlanLimits;

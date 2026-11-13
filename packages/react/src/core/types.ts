@@ -12,7 +12,7 @@ import type {
  *
  * @template Props Custom props accepted by the element type.
  */
-export type As<Props = {}> = ElementType<Props>;
+export type As<Props = Record<never, never>> = ElementType<Props>;
 
 /**
  * Extracts the props of a React element or component type.

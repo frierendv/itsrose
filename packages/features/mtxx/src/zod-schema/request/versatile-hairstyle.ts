@@ -15,6 +15,6 @@ export const VersatileHairstyleRequestSchema = z
 		title: "Versatile Hairstyle Request",
 	});
 
-export interface IVersatileHairstyleRequest extends z.infer<
+export type IVersatileHairstyleRequest = z.infer<
 	typeof VersatileHairstyleRequestSchema
-> {}
+>;

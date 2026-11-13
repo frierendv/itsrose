@@ -5,8 +5,20 @@ import type {
 	SecondaryStorage,
 } from "better-auth";
 
-export type DatabaseAdapter =
-	GenericEndpointContext["context"]["adapter"] | DBAdapter<any>;
+/**
+ * Options-erased view of a Better Auth database adapter.
+ *
+ * `DBAdapter<Options>` is invariant in `Options`: the type parameter leaks
+ * into `transaction`, `createSchema` and `options`, so an adapter built from a
+ * concrete auth options type (`DBAdapter<ConcreteOptions>`) cannot be
+ * assigned to `DBAdapter<BetterAuthOptions>`. The billing layer only uses the
+ * options-independent CRUD surface, so those three members are dropped here
+ * and the remaining surface is shared by every adapter.
+ */
+export type DatabaseAdapter = Omit<
+	DBAdapter<BetterAuthOptions>,
+	"transaction" | "createSchema" | "options"
+>;
 
 /**
  * Minimal persistence context accepted by the repository factory. This lets

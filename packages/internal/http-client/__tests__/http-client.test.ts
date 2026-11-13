@@ -1,5 +1,5 @@
 import { USER_AGENT } from "@itsrose/system";
-import axios from "axios";
+import axios, { AxiosError, AxiosHeaders } from "axios";
 import {
 	createHttpClient,
 	DEFAULT_RETRY_CONFIG,
@@ -11,6 +11,37 @@ import {
 	isHttpClientError,
 	resolveRetryConfig,
 } from "../src";
+
+/**
+ * Reads the `User-Agent` header out of the Axios defaults.
+ *
+ * Depending on the Axios version the header lives either directly on the
+ * defaults object or inside its `common` bucket, so both locations are
+ * inspected and the raw value is returned.
+ */
+const readUserAgentHeader = (headers: unknown): unknown => {
+	if (typeof headers !== "object" || headers === null) {
+		return undefined;
+	}
+
+	if ("User-Agent" in headers) {
+		const direct = headers["User-Agent"];
+		if (direct !== undefined && direct !== null) {
+			return direct;
+		}
+	}
+
+	if (!("common" in headers)) {
+		return undefined;
+	}
+
+	const common = headers.common;
+	if (typeof common !== "object" || common === null) {
+		return undefined;
+	}
+
+	return "User-Agent" in common ? common["User-Agent"] : undefined;
+};
 
 describe("internal/http-client", () => {
 	describe("exports & architecture", () => {
@@ -38,17 +69,13 @@ describe("internal/http-client", () => {
 	describe("client creation & configuration", () => {
 		it("sets default User-Agent header from @itsrose/system", () => {
 			const client = createHttpClient();
-			const ua =
-				(client.defaults.headers as any)["User-Agent"] ??
-				client.defaults.headers.common["User-Agent"];
+			const ua = readUserAgentHeader(client.defaults.headers);
 			expect(ua).toBe(USER_AGENT);
 		});
 
 		it("allows custom User-Agent override", () => {
 			const client = createHttpClient({ userAgent: "CustomAgent/1.0" });
-			const ua =
-				(client.defaults.headers as any)["User-Agent"] ??
-				client.defaults.headers.common["User-Agent"];
+			const ua = readUserAgentHeader(client.defaults.headers);
 			expect(ua).toBe("CustomAgent/1.0");
 		});
 
@@ -251,9 +278,16 @@ describe("internal/http-client", () => {
 			});
 
 			const client = createHttpClient();
-			const res = await client
-				.get("/bad")
-				.onError((data) => `Custom error: ${data?.code}`);
+			const res = await client.get("/bad").onError((data) => {
+				const code =
+					typeof data === "object" &&
+					data !== null &&
+					"code" in data &&
+					typeof data.code === "string"
+						? data.code
+						: "unknown";
+				return `Custom error: ${code}`;
+			});
 
 			expect(res.ok).toBe(false);
 			expect(res.error).toBe("Custom error: INVALID_PARAM");
@@ -418,17 +452,25 @@ describe("internal/http-client", () => {
 
 	describe("HttpClientError", () => {
 		it("constructs informative error with status, url, method, and cause", () => {
-			const axiosErr = {
-				name: "AxiosError",
-				message: "Request failed with status code 500",
-				isAxiosError: true,
-				config: { method: "post", url: "https://api.com/checkout" },
-				response: {
+			const requestConfig = {
+				method: "post",
+				url: "https://api.com/checkout",
+				headers: new AxiosHeaders(),
+			};
+
+			const axiosErr = new AxiosError(
+				"Request failed with status code 500",
+				"ERR_BAD_RESPONSE",
+				requestConfig,
+				undefined,
+				{
+					data: { details: "crash" },
 					status: 500,
 					statusText: "Internal Server Error",
-					data: { details: "crash" },
-				},
-			} as any;
+					headers: {},
+					config: requestConfig,
+				}
+			);
 
 			const err = new HttpClientError(axiosErr);
 			expect(err.name).toBe("HttpClientError");

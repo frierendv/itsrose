@@ -5,7 +5,14 @@ import { motion } from "motion/react";
 import { useMemo } from "react";
 import { useNavbarContext } from "./context";
 
-export type NavbarMenuToggleProps = {};
+/**
+ * `NavbarMenuToggle` declares no custom props.
+ *
+ * `Record<never, never>` is the "no props" marker: structurally identical to
+ * `{}`, but expressed as a mapped type so the empty-object-type rule stays
+ * strict across the repository.
+ */
+export type NavbarMenuToggleProps = Record<never, never>;
 
 export const NavbarMenuToggle = forwardRef<"button", NavbarMenuToggleProps>(
 	(props, ref) => {

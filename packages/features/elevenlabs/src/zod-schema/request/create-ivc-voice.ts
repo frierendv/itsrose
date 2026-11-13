@@ -46,6 +46,6 @@ export const ElevenLabsCreateIVCVoiceSchema = z
 		id: "ElevenLabsCreateIVCVoice",
 	});
 
-export interface IElevenLabsCreateIVCVoice extends z.infer<
+export type IElevenLabsCreateIVCVoice = z.infer<
 	typeof ElevenLabsCreateIVCVoiceSchema
-> {}
+>;

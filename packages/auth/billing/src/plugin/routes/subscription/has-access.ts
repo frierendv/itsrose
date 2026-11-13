@@ -21,11 +21,11 @@ export const hasAccessEndpoint = (_opts?: BillingPluginOptions) => {
 		},
 		async (ctx) => {
 			const { user } = ctx.context.session;
-			const targetUserId = ctx.query?.userId || user.id;
+			const targetUserId = ctx.query?.user_id || user.id;
 
 			if (
-				ctx.query?.userId &&
-				ctx.query.userId !== user.id &&
+				ctx.query?.user_id &&
+				ctx.query.user_id !== user.id &&
 				!isAdmin(user)
 			) {
 				throw new APIError("FORBIDDEN", {

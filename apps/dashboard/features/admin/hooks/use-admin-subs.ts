@@ -26,7 +26,7 @@ export function useAdminSubscriptions(filters?: SubscriptionFilters) {
 			const res = await withAuthQuery(
 				authClient.itsrose.subscription.list({
 					query: {
-						userId: filters?.userId,
+						user_id: filters?.userId,
 						status:
 							filters?.status && filters.status !== "all"
 								? filters.status

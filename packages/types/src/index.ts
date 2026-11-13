@@ -14,7 +14,7 @@ export type Prettify<T> = {
 /**
  * Makes all properties (and nested properties) of an object optional.
  */
-export type DeepPartial<T> = T extends (...args: any[]) => any
+export type DeepPartial<T> = T extends (...args: never[]) => unknown
 	? T
 	: T extends Array<infer U>
 		? DeepPartialArray<U>
@@ -22,7 +22,7 @@ export type DeepPartial<T> = T extends (...args: any[]) => any
 			? DeepPartialObject<T>
 			: T | undefined;
 
-interface DeepPartialArray<T> extends Array<DeepPartial<T>> {}
+type DeepPartialArray<T> = Array<DeepPartial<T>>;
 
 type DeepPartialObject<T> = { [P in keyof T]?: DeepPartial<T[P]> };
 

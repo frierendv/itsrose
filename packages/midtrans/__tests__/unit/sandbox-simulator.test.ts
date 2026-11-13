@@ -1,4 +1,8 @@
-import { payCstore, payVirtualAccount } from "../../tools/sandbox-simulator";
+import {
+	payCstore,
+	payVirtualAccount,
+	type SimulatorVaBank,
+} from "../../tools/sandbox-simulator";
 
 describe("sandbox-simulator tooling", () => {
 	const originalFetch = globalThis.fetch;
@@ -8,9 +12,13 @@ describe("sandbox-simulator tooling", () => {
 	});
 
 	it("throws for unsupported virtual account bank", async () => {
+		// Invariant: the bank code is intentionally outside the supported
+		// `SimulatorVaBank` union so the helper has to reject it at runtime.
+		const unsupportedBank = "unknown_bank" as unknown as SimulatorVaBank;
+
 		await expect(
 			payVirtualAccount({
-				bank: "unknown_bank" as any,
+				bank: unsupportedBank,
 				vaNumber: "12345",
 				amount: 10000,
 			})

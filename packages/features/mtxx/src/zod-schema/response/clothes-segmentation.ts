@@ -40,6 +40,6 @@ export const ClothesSegmentationResponseSchema = SharedResponseSchema.extend({
 	labels: z.array(LabelSchema).describe("Array of segmented clothing items"),
 }).omit({ task_id: true, status: true, media_list: true });
 
-export interface IClothesSegmentationResponse extends z.infer<
+export type IClothesSegmentationResponse = z.infer<
 	typeof ClothesSegmentationResponseSchema
-> {}
+>;

@@ -1,4 +1,4 @@
-import { config } from "@itsrose/standard/eslint/base";
+import { config, snakeCasePayloadConfig } from "@itsrose/standard/eslint/base";
 
 const BETTER_AUTH_MESSAGE =
 	"Architecture violation: the domain layer must not depend on Better Auth. Define a port in src/domain/ports.ts and implement it under src/adapter/*.";
@@ -17,6 +17,7 @@ const CLIENT_SERVER_PLUGIN_MESSAGE =
 
 export default [
 	...config,
+	...snakeCasePayloadConfig,
 	{
 		files: ["src/domain/**/*.ts"],
 		rules: {
