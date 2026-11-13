@@ -93,6 +93,15 @@ expire, or failure. Distinct from Invoice Status; a charge can be settled
 while the invoice that requested it is not yet paid.
 _Avoid_: Invoice Status, Payment Status
 
+**Transaction Outcome**:
+The classification a Transaction Status resolves to once the processor's fraud
+decision is taken into account — paid, pending, failed, refunded, challenged,
+or unknown. A derived concept, not a processor vocabulary: two Transaction
+Statuses can share an Outcome, and one Outcome can follow from several
+Transaction Statuses. Distinct from both Invoice Status and Transaction
+Status.
+_Avoid_: Transaction Status, Invoice Status, Payment Status
+
 **Void**:
 Cancelling an Invoice with the provider before it is paid.
 _Avoid_: Cancel, Refund
