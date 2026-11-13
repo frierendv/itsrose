@@ -476,6 +476,8 @@ Shared dependency versions are pinned centrally in `pnpm-workspace.yaml` under t
     pnpm typecheck
     pnpm test --coverage
     ```
+4. **The Gate Runs Before a Push**:
+   A `pre-push` hook (`.husky/pre-push`) runs the same five steps, so a red gate cannot reach a shared branch. It is deliberately the _full_ gate rather than a fast subset — the point is that "the gate is green" means something. `git push --no-verify` skips it.
 
 ---
 
@@ -532,3 +534,15 @@ pnpm build
 ```
 
 Following this protocol cleanly resolves resolution errors without corrupting the repository's configuration files.
+
+---
+
+## 7. Engineering Wiki
+
+`.wiki/` holds the engineering wiki: the decisions behind the architecture, how the subsystems are shaped, and the recurring problems worth not rediscovering.
+
+- **Start at [`.wiki/index.md`](.wiki/index.md).** It lists every page with a one-line summary, grouped by category.
+- **It is a historical record.** Every claim is dated and cites the commit it was true at. When a claim changes, add a new dated claim and mark the old one superseded — do not rewrite history.
+- **Sources are never copied in.** Pages cite commits, PRs, issues and reports; they do not reproduce them.
+- **Read before deciding.** If a page covers the area you are about to change, read it first — several pages exist because the obvious approach was already tried and found wrong.
+- **Write as you learn.** When a decision crystallises, a subagent reports something durable, or the user corrects an approach, update the affected pages and the index — not only the new page.

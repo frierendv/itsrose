@@ -1,0 +1,21 @@
+# The verification gate, run before a push reaches a shared branch.
+#
+# CI runs the same steps on every pull request. Running them here means a red
+# gate cannot land on `development` — the incident that motivated this hook is
+# written up in .wiki/problems/gate-red-on-shared-branch.md.
+#
+# Skippable with `git push --no-verify`.
+
+set -e
+
+echo "pre-push: running the verification gate..."
+echo
+
+pnpm format:check
+pnpm lint
+pnpm build
+pnpm typecheck
+pnpm test --coverage
+
+echo
+echo "pre-push: gate passed."
