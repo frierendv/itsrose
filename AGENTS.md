@@ -57,16 +57,10 @@ flowchart TD
 
     subgraph CorePlatform ["Core Platform (packages/core/*)"]
         SYSTEM["@itsrose/system (Constants, Env, Error Classes)"]
-        LOGGER["@itsrose/logger (Pino Structured Logging)"]
     end
 
     subgraph Shared ["Shared Utilities (packages/shared/*)"]
         SHARED_SCHEMA["@itsrose/shared-schema (Common Zod Schemas)"]
-    end
-
-    subgraph Auxiliary ["Auxiliary (packages/others/*)"]
-        API_CLIENT["@itsrose/api-client (Typed OpenAPI Client)"]
-        LOWDB["@itsrose/lowdb (File-backed JSON DB)"]
     end
 
     subgraph TopLevel ["Top-level Packages"]
@@ -127,7 +121,6 @@ flowchart TD
     HTTP_CLIENT --> SYSTEM
     MIDTRANS --> HTTP_CLIENT
     MIDTRANS --> SYSTEM
-    API_CLIENT --> HTTP_CLIENT
 ```
 
 > Some feature packages additionally depend on `@itsrose/shared-schema` (`elevenlabs`, `mtxx`, `remini`); those edges are omitted from the diagram for readability.
@@ -169,13 +162,10 @@ Feature packages provide isolated, typed client wrappers around upstream AI and 
 - `packages/internal/http-code` (`@itsrose/http-code`): Standard HTTP status codes and business-logic semantic enums.
 - `packages/internal/s3` (`@itsrose/s3`): Cloudflare R2 / AWS S3 client using AWS SDK v3 (`@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`) with presigned URL creation and magic-byte MIME detection (`file-type`).
 
-### 2.5. Core, Shared, Auxiliary & Tooling Packages
+### 2.5. Core, Shared & Tooling Packages
 
-- `packages/core/logger` (`@itsrose/logger`): Pino structured logging with a custom pretty transport.
 - `packages/core/system` (`@itsrose/system`): Shared platform constants, environment access helpers, and typed error classes.
 - `packages/shared/shared-schema` (`@itsrose/shared-schema`): Common Zod schemas shared across feature packages.
-- `packages/others/api-client` (`@itsrose/api-client`): Typed API client generated from the ItsRose OpenAPI surface; wraps `@itsrose/http-client`.
-- `packages/others/lowdb` (`@itsrose/lowdb`): File-backed, document-style local database (lowdb-inspired) with SuperJSON serialization, atomic writes, and an encrypted adapter.
 - `packages/types` (`@itsrose/types`): Pure zero-runtime TypeScript utility types (`Prettify<T>`, `DeepPartial<T>`, `ValueOf<T>`, `Nullable<T>`, `Brand<T, B>`, etc.).
 - `packages/midtrans` (`@itsrose/midtrans`): In-house Midtrans payment-gateway client (HTTP + Zod validation) with `./api`, `./client`, `./helper`, `./schema`, and `./typings` subpaths.
 - `packages/react` (`@itsrose/react`): Shared React UI component library with `./core`, `./itsrose`, `./navbar`, `./utils`, `./styles`, and `./hooks/*` subpaths.
@@ -376,7 +366,7 @@ When injecting packages, pnpm respects each package's `"files"` field. Two rules
 1. **Always include `dist`** in `"files"` — production deployments resolve exports against `./dist/*`.
 2. **Include `src`** for any package consumed from source during development (server composition roots and their subpaths, e.g. `@itsrose/auth*`, `@itsrose/http-client`, `@itsrose/system`, `@itsrose/s3`, `@itsrose/midtrans`) so `devExports` source references survive injection.
 
-> Not every package lists `"src"`: leaf libraries (`@itsrose/types`, `@itsrose/react`, feature packages, `api-response`, `http-code`, `logger`, `shared-*`, `others/*`) publish `"files": ["dist"]` only. This is correct — do not "normalize" `files` across packages.
+> Not every package lists `"src"`: leaf libraries (`@itsrose/types`, `@itsrose/react`, feature packages, `api-response`, `http-code`, `shared-*`) publish `"files": ["dist"]` only. This is correct — do not "normalize" `files` across packages.
 
 ---
 

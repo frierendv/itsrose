@@ -1,9 +1,0 @@
-{
-	"extends": "@itsrose/standard/typescript/node.json",
-	"compilerOptions": {
-		"rootDir": ".",
-		"outDir": "dist"
-	},
-	"include": ["src", "__tests__"],
-	"exclude": ["node_modules", "dist"]
-}

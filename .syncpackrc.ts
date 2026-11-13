@@ -27,7 +27,6 @@ const config: RcFile = {
 
 				"better-auth",
 				"typescript",
-				"chalk",
 				"zod",
 				// React/nextjs
 				"@types/react",
@@ -45,16 +44,6 @@ const config: RcFile = {
 			// within the current major until the migration is done
 			// deliberately (bump the catalog entry by hand).
 			dependencies: ["typescript"],
-			target: "minor",
-		},
-		{
-			label: "chalk stays on the CommonJS major",
-			// chalk 5+ is ESM-only. The logger is dual CJS/ESM and Jest
-			// runs its suite as CommonJS, so a major bump fails the
-			// logger test suite with "Must use import to load ES Module".
-			// Stay on 4.x until the CJS build is dropped or Jest is
-			// switched to ESM transforms.
-			dependencies: ["chalk"],
 			target: "minor",
 		},
 	],

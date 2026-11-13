@@ -1,8 +1,0 @@
-{
-	"extends": "@itsrose/standard/typescript/node.json",
-	"include": ["src", "__tests__"],
-	"compilerOptions": {
-		"noUncheckedIndexedAccess": true
-	},
-	"exclude": ["node_modules", "dist"]
-}

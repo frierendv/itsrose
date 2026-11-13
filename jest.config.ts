@@ -42,18 +42,15 @@ const moduleNameMapper = {
 		"<rootDir>/packages/core/$1/src",
 		"<rootDir>/packages/features/$1/src",
 		"<rootDir>/packages/internal/$1/src",
-		"<rootDir>/packages/others/$1/src",
 		"<rootDir>/packages/shared/$1/src",
 		"<rootDir>/packages/$1/src",
 	],
-	"^atomically$": "<rootDir>/packages/others/lowdb/__mocks__/atomically.ts",
-	"^superjson$": "<rootDir>/packages/others/lowdb/__mocks__/superjson.ts",
 	"^better-auth/api$":
 		"<rootDir>/packages/auth/core/__mocks__/better-auth-api.ts",
 };
 
 const transformIgnorePatterns = [
-	"/node_modules/(?!(atomically|superjson|copy-anything|better-auth)/)",
+	"/node_modules/(?!(copy-anything|better-auth)/)",
 ];
 
 function createProject<const Path extends `packages/${string}`>(
@@ -79,7 +76,6 @@ const config: Config = {
 		createProject("packages/features"),
 		createProject("packages/internal"),
 		createProject("packages/shared"),
-		createProject("packages/others"),
 		createProject("packages/midtrans"),
 		createProject("packages/auth"),
 		{

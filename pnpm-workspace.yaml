@@ -10,7 +10,6 @@ catalog:
   "@types/react-dom": ^19.3.0
   axios: ^1.21.1
   better-auth: ^1.7.19
-  chalk: ^4.1.2
   next: ^16.4.6
   react: ^19.3.1
   react-dom: ^19.3.1

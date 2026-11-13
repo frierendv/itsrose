@@ -36,7 +36,6 @@
 	"exclude": ["**/standard", "**/__tests__/**"],
 	"includeVersion": true,
 	"externalSymbolLinkMappings": {
-		"@itsrose/logger": { "pinoTransport": "#" },
 		"s3mini": { "S3mini": "#" },
 		"axios": { "AxiosError": "#" }
 	},

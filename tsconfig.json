@@ -18,9 +18,6 @@
 			"path": "packages/auth/usage"
 		},
 		{
-			"path": "packages/core/logger"
-		},
-		{
 			"path": "packages/core/system"
 		},
 		{
@@ -55,12 +52,6 @@
 		},
 		{
 			"path": "packages/midtrans"
-		},
-		{
-			"path": "packages/others/api-client"
-		},
-		{
-			"path": "packages/others/lowdb"
 		},
 		{
 			"path": "packages/react"
