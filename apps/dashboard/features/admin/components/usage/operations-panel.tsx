@@ -75,6 +75,13 @@ const OperationCard: React.FC<OperationCardProps> = ({
 	</Card>
 );
 
+/**
+ * The server accepts 1 to 14 days for the renewal lead and the grace period
+ * (`billingCronSchema`). The inputs carry the same bound, so an out-of-range
+ * value is caught before it is sent rather than coming back as a 400.
+ */
+const CRON_DAY_LIMIT = 14;
+
 export const OperationsPanel: React.FC = () => {
 	const flush = useFlushUsageMutation();
 	const sync = useSyncTenantsMutation();
@@ -211,7 +218,11 @@ export const OperationsPanel: React.FC = () => {
 						value={leadDays}
 					>
 						<Label>Lead days</Label>
-						<Input variant="secondary" />
+						<Input
+							max={CRON_DAY_LIMIT}
+							min={1}
+							variant="secondary"
+						/>
 					</TextField>
 					<TextField
 						name="grace_days"
@@ -220,7 +231,11 @@ export const OperationsPanel: React.FC = () => {
 						value={graceDays}
 					>
 						<Label>Grace days</Label>
-						<Input variant="secondary" />
+						<Input
+							max={CRON_DAY_LIMIT}
+							min={1}
+							variant="secondary"
+						/>
 					</TextField>
 				</div>
 			</OperationCard>

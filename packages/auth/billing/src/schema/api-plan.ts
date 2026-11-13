@@ -7,7 +7,11 @@ import { parseJson } from "./json";
 export const planPriceInputSchema = z.object({
 	/** Legacy catalog id; discarded when persisting the canonical price. */
 	id: z.string().min(1).optional(),
-	amount: z.number().int().positive(),
+	/**
+	 * Zero is a legitimate price: the free tier is priced at 0, and the seed
+	 * path writes it. The schema must accept what the system itself creates.
+	 */
+	amount: z.number().int().nonnegative(),
 	currency: z.literal("IDR").default("IDR"),
 	interval: z.enum(["month", "year"]),
 });
