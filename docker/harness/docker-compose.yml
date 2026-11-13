@@ -31,9 +31,9 @@ services:
       - traefik.docker.network=itsrose_dev_center
       - traefik.http.routers.harness.entrypoints=web
       # Public hostname the tunnel forwards to this router. Override with
-      # DSH_PUBLIC_HOST; it must match the public hostname configured on the
+      # DSH_TRUSTED_HOST; it must match the public hostname configured on the
       # Cloudflare tunnel (dashboard -> tunnel -> public hostnames).
-      - "traefik.http.routers.harness.rule=Host(`${DSH_PUBLIC_HOST:-harness.itsrose.my.id}`)"
+      - "traefik.http.routers.harness.rule=Host(`${DSH_TRUSTED_HOST}`)"
       - traefik.http.services.harness.loadbalancer.server.port=3080
     networks:
       - itsrose_dev_center
