@@ -24,7 +24,7 @@
 		"plop": "NODE_OPTIONS='--import tsx' plop --plopfile=plopfile.ts",
 		"prepare": "husky",
 		"sync:package": "tsx sync-package.ts",
-		"test": "jest --verbose --runInBand --passWithNoTests",
+		"test": "jest --verbose --coverage --maxWorkers=2",
 		"typecheck": "turbo run typecheck"
 	},
 	"devDependencies": {

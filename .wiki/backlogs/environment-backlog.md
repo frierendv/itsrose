@@ -13,14 +13,15 @@ is visible.
 
 ## The gate's own blindness
 
-| #   | Item                                                                                          | Status    | Note                                                                                               |
-| --- | --------------------------------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------- |
-| 1   | `collectCoverageFrom` — the coverage number measured only files a test had loaded             | Todo      | Will make the gate red on landing; land with #2 in one commit                                      |
-| 2   | Per-package coverage thresholds                                                               | Todo      | `./packages/auth/usage/`, `./packages/auth/billing/`, `./packages/features/`                       |
-| 3   | CI runs on pushes to `development`                                                            | In flight | `ci.yml` triggers `push: [main]` only — this is how `8216c89` reached the shared branch unobserved |
-| 4   | Local and CI test invocations agree                                                           | In flight | Local serial, CI parallel: a class of flake manifests in one environment only                      |
-| 5   | Five missing jest projects; `apps/waf-page` and `packages/standard` have no lint or typecheck | Todo      | `packages/standard` defines the preset every other package consumes                                |
-| 6   | `testMatch` breadth — a test outside `__tests__/` is silently never run                       | Todo      | `--passWithNoTests` hides the loss                                                                 |
+| #   | Item                                                                                          | Status   | Note                                                                                                                                           |
+| --- | --------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `collectCoverageFrom` — the coverage number measured only files a test had loaded             | Todo     | Will make the gate red on landing; land with #2 in one commit                                                                                  |
+| 2   | Per-package coverage thresholds                                                               | Todo     | `./packages/auth/usage/`, `./packages/auth/billing/`, `./packages/features/`                                                                   |
+| 3   | CI runs on pushes to `development`                                                            | **Done** | `ci.yml` triggered `push: [main]` only — this is how `8216c89` reached the shared branch unobserved                                            |
+| 4   | Local and CI test invocations agree                                                           | **Done** | One script, `--maxWorkers=2` pinned; local and CI now enforce the same coverage threshold                                                      |
+| 4b  | A jest project that loses all its tests still passes                                          | Todo     | `--passWithNoTests` is gone, but jest's "no tests found" check is aggregate across projects. Needs a per-project assertion in `jest.config.ts` |
+| 5   | Five missing jest projects; `apps/waf-page` and `packages/standard` have no lint or typecheck | Todo     | `packages/standard` defines the preset every other package consumes                                                                            |
+| 6   | `testMatch` breadth — a test outside `__tests__/` is silently never run                       | Todo     | `--passWithNoTests` is gone, but the loss is still silent                                                                                      |
 
 ## Rules that are written but not enforced
 

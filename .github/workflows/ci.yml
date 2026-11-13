@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, development]
   pull_request:
     branches: [development, main]
   workflow_dispatch:
@@ -37,11 +37,11 @@ jobs:
       - name: Install
         uses: ./.github/common-actions/install
 
-      - name: Lint
-        run: pnpm lint
-
       - name: Check formatting
         run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
 
       - name: Build packages
         run: pnpm build
@@ -50,4 +50,4 @@ jobs:
         run: pnpm typecheck
 
       - name: Test with coverage
-        run: pnpm test --verbose=false --runInBand=false --coverage --ci --testLocationInResults
+        run: pnpm test --ci --verbose=false --testLocationInResults
