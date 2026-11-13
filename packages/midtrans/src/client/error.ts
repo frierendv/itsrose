@@ -2,7 +2,8 @@ import type { ErrorHandler, HttpClientError } from "@itsrose/http-client";
 import {
 	createMidtransErrorModel,
 	MidtransApiErrorSchema,
-	type ApiError,
+	type ApiError as MidtransApiError,
+	type ApiErrorKind as MidtransErrorKind,
 } from "../schema/error";
 
 /**
@@ -11,7 +12,7 @@ import {
  * The type is inferred from the Zod model in `schema/error/model.ts`; it is
  * re-exported here because the client is its main consumer.
  */
-export type { ApiError as MidtransApiError } from "../schema/error";
+export type { MidtransApiError };
 
 /**
  * Category of a normalized Midtrans error.
@@ -21,7 +22,7 @@ export type { ApiError as MidtransApiError } from "../schema/error";
  * - `unauthorized`: `{ error: "Unauthorized" }` (HTTP 401).
  * - `transport`: empty, plain-text, or network-level failure.
  */
-export type { ApiErrorKind as MidtransErrorKind } from "../schema/error";
+export type { MidtransErrorKind };
 
 /**
  * Normalizes any Midtrans or transport failure into a stable error object.

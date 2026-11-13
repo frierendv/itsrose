@@ -114,8 +114,8 @@ export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 	},
 	"core/approve-empty-response": {
 		schema: ApiErrorSchema,
-		expectation: "knownMismatch",
-		note: "approve/deny answer HTTP 404 with an empty body, which no schema models",
+		expectation: "mustPass",
+		note: "approve/deny answer HTTP 404 with an empty body; the total error model classifies it as a transport error",
 	},
 
 	// --- Core API: errors --------------------------------------------------
