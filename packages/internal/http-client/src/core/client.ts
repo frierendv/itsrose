@@ -8,9 +8,10 @@ import type {
 	ResolvesTData,
 	ResolvesTError,
 } from "../types";
-import { applyDefaultUserAgent } from "../utils";
+import { applyDefaultHeader, applyDefaultUserAgent } from "../utils";
 import { createHttpExecutor } from "./executor";
 import { HttpPromise } from "./http-promise";
+import { registerTransforms } from "./transform";
 
 /**
  * Core HTTP client managing Axios instances, defaults, interceptors, and request dispatching.
@@ -25,24 +26,6 @@ export class HttpClient<
 	private readonly _instance: AxiosInstance;
 	private readonly _errorHandler?: ErrorHandler<TError>;
 	private readonly _throwOnError: boolean;
-	/**
-	 * Access the underlying Axios interceptor manager.
-	 */
-	public get interceptors() {
-		return this._instance.interceptors;
-	}
-	/**
-	 * Access the underlying Axios instance default configurations.
-	 */
-	public get defaults() {
-		return this._instance.defaults;
-	}
-	/**
-	 * Direct access to the internal Axios instance.
-	 */
-	public get axiosInstance(): AxiosInstance {
-		return this._instance;
-	}
 	/**
 	 * Effective policy on throwing on network/transport failure.
 	 */
@@ -64,9 +47,51 @@ export class HttpClient<
 			axiosRetry(instance, retryConfig);
 		}
 
+		// Attach the client-owned request/response hooks.
+		//
+		// They are registered after the retry interceptor on purpose: the retry
+		// interceptor counts the attempts and stamps the retry headers, while
+		// the hooks own the caller's payload (signing, auth headers, business
+		// status mapping).
+		registerTransforms(instance, config);
+
 		this._errorHandler = config?.onError as ErrorHandler<TError>;
 		this._throwOnError = config?.throwOnError ?? true;
 		this._instance = instance;
+	}
+	/**
+	 * Sets a default header applied to every request dispatched by this client.
+	 *
+	 * @param name Header name.
+	 * @param value Header value.
+	 */
+	public setDefaultHeader(name: string, value: string): void {
+		applyDefaultHeader(this._instance, name, value);
+	}
+	/**
+	 * Sets several default headers at once.
+	 *
+	 * @param headers Header name/value pairs.
+	 */
+	public setDefaultHeaders(headers: Record<string, string>): void {
+		for (const [name, value] of Object.entries(headers)) {
+			this.setDefaultHeader(name, value);
+		}
+	}
+	/**
+	 * Resolves the absolute URL a request configuration targets.
+	 *
+	 * The client defaults are merged into the configuration first, so the
+	 * result is the URL the transport will actually call, query string
+	 * included.
+	 *
+	 * @param config Request URL or configuration to resolve.
+	 * @returns The absolute request URL.
+	 */
+	public resolveUrl(config: string | HttpRequestConfig = {}): string {
+		return this._instance.getUri(
+			typeof config === "string" ? { url: config } : config
+		);
 	}
 	/**
 	 * Dispatches a generic HTTP request.
@@ -316,6 +341,11 @@ export class HttpClient<
 			},
 			retry: childConfig?.retry ?? this.config?.retry,
 			retryConfig: childConfig?.retryConfig ?? this.config?.retryConfig,
+			requestTransform:
+				childConfig?.requestTransform ?? this.config?.requestTransform,
+			responseTransform:
+				childConfig?.responseTransform ??
+				this.config?.responseTransform,
 			onError: childConfig?.onError ?? this._errorHandler,
 			throwOnError: childConfig?.throwOnError ?? this._throwOnError,
 		} as C;

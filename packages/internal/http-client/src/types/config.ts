@@ -1,5 +1,10 @@
 import type { AxiosRequestConfig, CreateAxiosDefaults } from "axios";
 import type { IAxiosRetryConfig } from "axios-retry";
+import type {
+	HttpAdapter,
+	HttpRequestTransform,
+	HttpResponseTransform,
+} from "../core/transform";
 import type { ErrorHandler } from "./executor";
 import type { InferObjectValue } from "./internal";
 
@@ -37,6 +42,29 @@ export interface HttpConfig extends Omit<
 	 * @default true
 	 */
 	throwOnError?: boolean;
+
+	/**
+	 * Transport adapter used to execute requests.
+	 *
+	 * @see {@linkcode HttpAdapter}
+	 */
+	adapter?: HttpAdapter;
+
+	/**
+	 * Hook that rewrites the outgoing request configuration before it is
+	 * dispatched.
+	 *
+	 * @see {@linkcode HttpRequestTransform}
+	 */
+	requestTransform?: HttpRequestTransform;
+
+	/**
+	 * Hook that inspects or rewrites the response before it is handed back to
+	 * the caller.
+	 *
+	 * @see {@linkcode HttpResponseTransform}
+	 */
+	responseTransform?: HttpResponseTransform;
 }
 
 /**

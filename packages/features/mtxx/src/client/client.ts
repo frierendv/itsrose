@@ -1,4 +1,9 @@
-import { HttpClient, type HttpRequestConfig } from "@itsrose/http-client";
+import {
+	HttpClient,
+	type HttpRequestConfig,
+	type HttpRequestTransform,
+	type HttpRequestTransformContext,
+} from "@itsrose/http-client";
 import { getEnv, ThirdPartyApiError } from "@itsrose/system";
 import { MTXX_ENV } from "../env";
 import type { IInferenceResponse, MtlabInferenceData } from "../types";
@@ -6,12 +11,86 @@ import type { ISDKParameter } from "../utils";
 import { DEFAULT_ERROR, ERROR_MAP } from "./error";
 import { Signer } from "./signer";
 
+/**
+ * Everything the request hook needs to route and sign a request.
+ */
+interface MtxxRequestOptions {
+	/** Origin of the SDK API. Requests to it are signed. */
+	sdkBaseUrl: string;
+	/** Origin of the openapi API. Requests to it carry the credentials in the query. */
+	openApiBaseUrl: string;
+	/** Access key. */
+	key: string;
+	/** Access secret. */
+	secret: string;
+	/** Signer used to sign SDK requests. */
+	signer: Signer;
+}
+
+/**
+ * Signs the configuration of an SDK request.
+ *
+ * @param config Resolved request configuration.
+ * @param signer Signer holding the SDK credentials.
+ * @returns The same configuration, with the signature applied.
+ */
+function signConfig(
+	config: HttpRequestTransformContext,
+	signer: Signer
+): HttpRequestTransformContext {
+	const params = config.params
+		? `?${new URLSearchParams(config.params).toString()}`
+		: "";
+	const url = new URL((config.url || "") + params, config.baseURL);
+	const { headers, ...options } = signer.sign(
+		url.href,
+		config.method?.toUpperCase() || "GET",
+		{ Host: url.host },
+		config.data ? JSON.stringify(config.data) : ""
+	);
+	Object.assign(config, options);
+	if (config.headers) {
+		Object.assign(config.headers, headers);
+	}
+	return config;
+}
+
+/**
+ * Builds the request hook of the MTXX client.
+ *
+ * The hook receives the resolved configuration, so `config.baseURL` is the
+ * effective base URL of the request: SDK requests are signed, openapi requests
+ * carry the credentials in the query string.
+ *
+ * @param options Routing and credential options.
+ * @returns The request hook.
+ */
+function createRequestTransform(
+	options: MtxxRequestOptions
+): HttpRequestTransform {
+	return (config) => {
+		// only intercept if the request is to the sdk base URL
+		if (config.baseURL === options.sdkBaseUrl) {
+			return signConfig(config, options.signer);
+		}
+		// if the request is to the openapi base URL, add the api_key and api_secret to the query parameters
+		if (config.baseURL === options.openApiBaseUrl) {
+			return {
+				...config,
+				params: {
+					api_key: options.key,
+					api_secret: options.secret,
+					...config.params,
+				},
+			};
+		}
+		return config;
+	};
+}
+
 class BaseHttpClient extends HttpClient {
 	private readonly _sdkBaseUrl: string;
 	private readonly _openApiBaseUrl: string;
-	#secret: string;
-	#key: string;
-	#signer: Signer;
 
 	public appVersion = getEnv(MTXX_ENV.appVersion, {
 		defaultValue: "12.11.5",
@@ -24,40 +103,27 @@ class BaseHttpClient extends HttpClient {
 		const openApiUrl = new URL(
 			getEnv(MTXX_ENV.openapiBaseUrl, { isRequired: true })
 		);
+		const key = getEnv(MTXX_ENV.key, { isRequired: true });
+		const secret = getEnv(MTXX_ENV.secret, { isRequired: true });
+		const signer = new Signer({ key, secret });
+
 		super({
 			baseURL: sdkUrl.origin,
 			headers: {
 				"User-Agent": "mtxx-121105-OnePlus-NE2210-android-9-c1923306",
-				// "x-mtcc-client": this._mttc(),
-				// "Host": this.sdkUrl.host,
 			},
+			requestTransform: createRequestTransform({
+				sdkBaseUrl: sdkUrl.origin,
+				openApiBaseUrl: openApiUrl.origin,
+				key,
+				secret,
+				signer,
+			}),
 		});
-		this.defaults.headers.common["x-mtcc-client"] = this._mttc();
+
+		this.setDefaultHeader("x-mtcc-client", this._mttc());
 		this._sdkBaseUrl = sdkUrl.origin;
 		this._openApiBaseUrl = openApiUrl.origin;
-
-		this.#key = getEnv(MTXX_ENV.key, { isRequired: true });
-		this.#secret = getEnv(MTXX_ENV.secret, { isRequired: true });
-		this.#signer = new Signer({ key: this.#key, secret: this.#secret });
-
-		this.interceptors.request.use((config) => {
-			// only intercept if the request is to the sdk base URL
-			if (config.baseURL === this._sdkBaseUrl) {
-				return this._signConfig(config) as typeof config;
-			}
-			// if the request is to the openapi base URL, add the api_key and api_secret to the query parameters
-			if (config.baseURL === this._openApiBaseUrl) {
-				return {
-					...config,
-					params: {
-						api_key: this.#key,
-						api_secret: this.#secret,
-						...config.params,
-					},
-				};
-			}
-			return config;
-		});
 	}
 
 	public get sdkBaseUrl() {
@@ -76,24 +142,6 @@ class BaseHttpClient extends HttpClient {
 			gnum: "-1",
 		};
 		return Buffer.from(JSON.stringify(mttc)).toString("base64");
-	}
-
-	private _signConfig(config: HttpRequestConfig) {
-		const params = config.params
-			? `?${new URLSearchParams(config.params).toString()}`
-			: "";
-		const url = new URL((config.url || "") + params, config.baseURL);
-		const { headers, ...options } = this.#signer.sign(
-			url.href,
-			config.method?.toUpperCase() || "GET",
-			{ Host: url.host },
-			config.data ? JSON.stringify(config.data) : ""
-		);
-		Object.assign(config, options);
-		if (config.headers) {
-			Object.assign(config.headers, headers);
-		}
-		return config;
 	}
 }
 

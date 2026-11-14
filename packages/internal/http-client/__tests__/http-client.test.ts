@@ -1,3 +1,9 @@
+import {
+	createServer,
+	type IncomingMessage,
+	type ServerResponse,
+} from "node:http";
+import type { AddressInfo } from "node:net";
 import { USER_AGENT } from "@itsrose/system";
 import axios, { AxiosError, AxiosHeaders } from "axios";
 import {
@@ -13,35 +19,63 @@ import {
 } from "../src";
 
 /**
- * Reads the `User-Agent` header out of the Axios defaults.
- *
- * Depending on the Axios version the header lives either directly on the
- * defaults object or inside its `common` bucket, so both locations are
- * inspected and the raw value is returned.
+ * What a throwaway HTTP server saw during a request.
  */
-const readUserAgentHeader = (headers: unknown): unknown => {
-	if (typeof headers !== "object" || headers === null) {
-		return undefined;
+interface CapturedRequest {
+	headers: Record<string, string | undefined>;
+	url: string;
+}
+
+/**
+ * Runs `run` against a throwaway HTTP server and returns what the server saw.
+ *
+ * The client no longer exposes the transport's internals, so the only honest
+ * way to observe a header is to let a real server read it.
+ *
+ * @param run Callback that receives the base URL of the throwaway server.
+ * @returns The request the server received.
+ */
+async function captureRequest(
+	run: (baseURL: string) => Promise<void>
+): Promise<CapturedRequest> {
+	let captured: CapturedRequest | undefined;
+
+	const server = createServer((req: IncomingMessage, res: ServerResponse) => {
+		captured = {
+			headers: Object.fromEntries(
+				Object.entries(req.headers).map(([name, value]) => [
+					name,
+					Array.isArray(value) ? value.join(",") : value,
+				])
+			),
+			url: req.url ?? "",
+		};
+		res.writeHead(200, { "Content-Type": "application/json" }).end(
+			JSON.stringify({ ok: true })
+		);
+	});
+
+	await new Promise<void>((resolve) => {
+		server.listen(0, "127.0.0.1", () => resolve());
+	});
+
+	const address = server.address() as AddressInfo;
+
+	try {
+		await run(`http://127.0.0.1:${address.port}`);
+	} finally {
+		server.closeAllConnections();
+		await new Promise<void>((resolve) => {
+			server.close(() => resolve());
+		});
 	}
 
-	if ("User-Agent" in headers) {
-		const direct = headers["User-Agent"];
-		if (direct !== undefined && direct !== null) {
-			return direct;
-		}
+	if (!captured) {
+		throw new Error("The server did not receive a request.");
 	}
 
-	if (!("common" in headers)) {
-		return undefined;
-	}
-
-	const common = headers.common;
-	if (typeof common !== "object" || common === null) {
-		return undefined;
-	}
-
-	return "User-Agent" in common ? common["User-Agent"] : undefined;
-};
+	return captured;
+}
 
 describe("internal/http-client", () => {
 	describe("exports & architecture", () => {
@@ -67,16 +101,25 @@ describe("internal/http-client", () => {
 	});
 
 	describe("client creation & configuration", () => {
-		it("sets default User-Agent header from @itsrose/system", () => {
-			const client = createHttpClient();
-			const ua = readUserAgentHeader(client.defaults.headers);
-			expect(ua).toBe(USER_AGENT);
+		it("sets default User-Agent header from @itsrose/system", async () => {
+			const captured = await captureRequest(async (baseURL) => {
+				const client = createHttpClient({ baseURL });
+				await client.get("/user-agent");
+			});
+
+			expect(captured.headers["user-agent"]).toBe(USER_AGENT);
 		});
 
-		it("allows custom User-Agent override", () => {
-			const client = createHttpClient({ userAgent: "CustomAgent/1.0" });
-			const ua = readUserAgentHeader(client.defaults.headers);
-			expect(ua).toBe("CustomAgent/1.0");
+		it("allows custom User-Agent override", async () => {
+			const captured = await captureRequest(async (baseURL) => {
+				const client = createHttpClient({
+					baseURL,
+					userAgent: "CustomAgent/1.0",
+				});
+				await client.get("/user-agent");
+			});
+
+			expect(captured.headers["user-agent"]).toBe("CustomAgent/1.0");
 		});
 
 		it("configures retries with default or custom options", () => {
@@ -433,8 +476,8 @@ describe("internal/http-client", () => {
 			const child = client.create({ baseURL: "https://v2.api.com" });
 
 			expect(typeof child).toBe("function");
-			expect(child.defaults.baseURL).toBe("https://v2.api.com");
-			expect(client.defaults.baseURL).toBe("https://v1.api.com");
+			expect(child.resolveUrl("/ping")).toBe("https://v2.api.com/ping");
+			expect(client.resolveUrl("/ping")).toBe("https://v1.api.com/ping");
 		});
 
 		it("extend() merges headers and inherits callable factory behavior", () => {

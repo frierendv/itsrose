@@ -8,6 +8,7 @@ import { Snap } from "../../src/api/snap";
 import { MidtransClient } from "../../src/client/client";
 import * as clientBarrel from "../../src/client/index";
 import { MidtransMerchant } from "../../src/client/merchant";
+import { createTransport } from "../../src/client/transport";
 import {
 	API_BASE_URL_PRODUCTION,
 	API_BASE_URL_SANDBOX,
@@ -231,6 +232,31 @@ describe("MidtransClient public surface", () => {
 	it("does not leak internal transport symbols from the root barrel", () => {
 		expect("SHARED_CLIENT" in rootBarrel).toBe(false);
 		expect("SHARED_HTTP_CLIENT" in rootBarrel).toBe(false);
+	});
+
+	/**
+	 * The transport used to hand out the Axios internals through
+	 * `interceptors`, `defaults` and `axiosInstance`. Those escape hatches
+	 * were closed when the shared HTTP client grew a first-class surface for
+	 * request/response hooks, default headers and transport stubbing; this
+	 * case keeps them closed.
+	 */
+	it("keeps the transport free of Axios escape hatches", () => {
+		const merchant = new MidtransMerchant({
+			serverKey: "SB-Mid-server-surface-test",
+			merchantId: "G000000000",
+			baseUrl: API_BASE_URL_SANDBOX,
+			snapBaseUrl: SNAP_BASE_URL_SANDBOX,
+		});
+		const http = createTransport({ merchant });
+
+		for (const escapeHatch of [
+			"interceptors",
+			"defaults",
+			"axiosInstance",
+		]) {
+			expect(escapeHatch in http).toBe(false);
+		}
 	});
 
 	it("builds the basic auth key from the server key", () => {

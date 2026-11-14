@@ -76,7 +76,7 @@ export class Oracle {
 
 	private _patchClientHeader() {
 		const headers = this.getHeaders();
-		Object.assign(this.client.defaults.headers.common, headers);
+		this.client.setDefaultHeaders(headers);
 	}
 
 	/**

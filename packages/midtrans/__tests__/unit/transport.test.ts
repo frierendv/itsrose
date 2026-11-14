@@ -32,23 +32,27 @@ function createHarness(fixtureName: string) {
 		baseUrl: "https://api.sandbox.midtrans.com",
 		snapBaseUrl: "https://app.sandbox.midtrans.com",
 	});
-	const http = createTransport({ merchant });
 	let authorization: string | undefined;
 
-	http.axiosInstance.defaults.adapter = async (
-		config: InternalAxiosRequestConfig
-	): Promise<AxiosResponse> => {
-		const header = config.headers.get("Authorization");
-		authorization = typeof header === "string" ? header : undefined;
+	// The transport adapter is the supported seam for stubbing the network
+	// layer: the transport hands the request to it instead of dispatching it.
+	const http = createTransport({
+		merchant,
+		adapter: async (
+			config: InternalAxiosRequestConfig
+		): Promise<AxiosResponse> => {
+			const header = config.headers.get("Authorization");
+			authorization = typeof header === "string" ? header : undefined;
 
-		return {
-			data: fixture.body,
-			status: fixture._meta.http_status,
-			statusText: "",
-			headers: { "content-type": "application/json" },
-			config,
-		};
-	};
+			return {
+				data: fixture.body,
+				status: fixture._meta.http_status,
+				statusText: "",
+				headers: { "content-type": "application/json" },
+				config,
+			};
+		},
+	});
 
 	return {
 		http,
