@@ -50,7 +50,7 @@ const moduleNameMapper = {
 };
 
 const transformIgnorePatterns = [
-	"/node_modules/(?!(copy-anything|better-auth)/)",
+	"/node_modules/(?!(copy-anything|better-auth|@remix-run/multipart-parser)/)",
 ];
 
 /**
@@ -129,6 +129,12 @@ function createProject<const Path extends `packages/${string}`>(
  * describe a tree where one app is at 100% and another has no tests at all.
  */
 const perPathCoverageThresholds = {
+	"./packages/api-routes/": {
+		branches: 85,
+		functions: 55,
+		lines: 90,
+		statements: 90,
+	},
 	"./packages/auth/": {
 		branches: 60,
 		functions: 58,
@@ -196,6 +202,7 @@ const coverageFloorByProject: Record<
 	string,
 	keyof typeof perPathCoverageThresholds
 > = {
+	"packages/api-routes": "./packages/api-routes/",
 	"packages/auth": "./packages/auth/",
 	"packages/features": "./packages/features/",
 	"packages/internal": "./packages/internal/",
@@ -302,6 +309,27 @@ const config: Config = {
 		createProject("packages/shared"),
 		createProject("packages/midtrans"),
 		createProject("packages/auth"),
+		{
+			...createProject("packages/api-routes"),
+			// The feature clients read their credentials from the environment
+			// when they are imported, and the route module imports them.
+			setupFiles: [
+				"<rootDir>/packages/api-routes/__tests__/setup-env.ts",
+			],
+			moduleNameMapper: {
+				// The feature clients are replaced by stubs: the route tests assert
+				// what the route does, not what the upstream answered. The
+				// patterns come before the shared ones, which would resolve the
+				// real packages.
+				"^@itsrose/(elevenlabs|instagram|mtxx|remini|tiktok)$":
+					"<rootDir>/packages/api-routes/__tests__/mocks/$1",
+				// The multipart parser ships as ESM only, which the Jest runtime
+				// cannot require. The route test never reaches it.
+				"^@remix-run/multipart-parser/node$":
+					"<rootDir>/packages/api-routes/__tests__/mocks/multipart-parser.ts",
+				...moduleNameMapper,
+			},
+		},
 		{
 			displayName: "packages/react",
 			testEnvironment: "jsdom",

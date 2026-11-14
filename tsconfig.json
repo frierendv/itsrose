@@ -3,6 +3,9 @@
 	"include": [],
 	"references": [
 		{
+			"path": "packages/api-routes"
+		},
+		{
 			"path": "packages/auth/billing"
 		},
 		{

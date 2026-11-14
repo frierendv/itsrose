@@ -1,0 +1,69 @@
+{
+	"name": "@itsrose/api-routes",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"private": true,
+	"type": "module",
+	"sideEffects": false,
+	"license": "MIT",
+	"description": "Shared Fastify route surface and error envelope mounted by apps/api and apps/api-internal.",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/api-routes"
+	},
+	"bugs": {
+		"url": "https://github.com/frierendv/itsrose/issues"
+	},
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist",
+		"src"
+	],
+	"keywords": [
+		"api",
+		"fastify",
+		"itsrose",
+		"routes",
+		"typescript"
+	],
+	"exports": {
+		".": "./src/index.ts",
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"build": "tsdown",
+		"build:fast": "tsdown src",
+		"clean": "rimraf dist .sonda",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@itsrose/api-response": "workspace:*",
+		"@itsrose/elevenlabs": "workspace:*",
+		"@itsrose/instagram": "workspace:*",
+		"@itsrose/mtxx": "workspace:*",
+		"@itsrose/remini": "workspace:*",
+		"@itsrose/system": "workspace:*",
+		"@itsrose/tiktok": "workspace:*",
+		"fastify": "^5.12.8",
+		"fastify-plugin": "^6.0.1",
+		"fastify-zod-openapi": "^5.7.0"
+	},
+	"devDependencies": {
+		"@itsrose/standard": "workspace:*"
+	},
+	"publishConfig": {
+		"exports": {
+			".": {
+				"import": "./dist/index.mjs",
+				"require": "./dist/index.js"
+			},
+			"./package.json": "./package.json"
+		}
+	}
+}

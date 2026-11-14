@@ -34,6 +34,7 @@
 		"@fastify/under-pressure": "^9.2.1",
 		"@fastify/websocket": "^11.3.7",
 		"@itsrose/api-response": "workspace:*",
+		"@itsrose/api-routes": "workspace:*",
 		"@itsrose/auth": "workspace:*",
 		"@itsrose/auth-billing": "workspace:*",
 		"@itsrose/auth-mailer": "workspace:*",

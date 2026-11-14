@@ -2,11 +2,13 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import AutoLoad from "@fastify/autoload";
 import { FailureResponse, SuccessResponse } from "@itsrose/api-response";
+import { sharedRoutes } from "@itsrose/api-routes";
 import type { FastifyPluginAsync } from "fastify";
 import {
 	createSerializerCompiler,
 	validatorCompiler,
 } from "fastify-zod-openapi";
+import { sharedRoutesOptions } from "./lib/shared-routes";
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const __filename = fileURLToPath(import.meta.url);
@@ -58,6 +60,11 @@ const app: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		dir: join(__dirname, "plugins/external"),
 		options: { ...opts },
 	});
+
+	/**
+	 * Register the route surface shared with apps/api
+	 */
+	await fastify.register(sharedRoutes, sharedRoutesOptions);
 
 	/**
 	 * Register routes
