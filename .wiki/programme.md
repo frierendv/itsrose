@@ -119,11 +119,28 @@ names instead of 124.
 20% coverage, deciding what a customer is billed, with the legacy-merge rule
 never verified. 45 tests; the adapter itself needed no change.
 
-### In flight — the last programme item
+### Landed — the last programme item
 
-C2 — the upstream-client module: one way to hold a client, one error shape,
-and the response schema applied where one exists. The precondition (C5b) is
-landed.
+| Commit    | Subject                                                              |
+| --------- | -------------------------------------------------------------------- |
+| `c924acd` | fix(features): narrow the z.any residue and correct the voice schema |
+| `a5d8458` | feat(http-client): one upstream client for the feature packages      |
+
+C2 is `@itsrose/upstream-client`. It owns three things: the failure shape
+(`UpstreamApiError`, which extends `ThirdPartyApiError` so the shared route
+envelope already maps it), the schema (a caller that has one gets it
+applied), and the retry policy (the shared contract by default, narrowed per
+call for the requests that must not be replayed).
+
+**A mutating upstream call now carries `retry: { retryCondition:
+neverRetry }`.** The shared contract retries a 5xx for every method, and a
+mutating call replayed by that contract is a duplicate side effect the
+customer pays for — a second voice, a second composition, a second
+inference task.
+
+### The programme is complete
+
+All seven candidates are landed. C1, C2, C3, C4, C5, C6, C7.
 
 ### Also done, found along the way
 
@@ -131,6 +148,12 @@ The `z.any()` residue. The `no-explicit-any` rule cannot see `z.any()` —
 it is a runtime Zod call whose inferred type is `any` — so 22 of them
 survived. A schema is the contract, and a field typed `z.any()` accepts
 anything and disables the validation the schema exists to provide.
+
+Narrowing them surfaced a real defect: the ElevenLabs voice schema rejected
+the upstream's OWN documented payload, because the OpenAPI document's
+example omits ten properties the schema required. That was harmless while
+nothing parsed the response. It is not harmless now that the response is
+validated at the seam — a real voice would have become a 500.
 
 The environment backlog runs alongside the programme — see
 [the environment backlog](backlogs/environment-backlog.md). Its first two

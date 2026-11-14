@@ -58,6 +58,22 @@ to read `index.md` and know where to look.
 - [The environment does not fail loudly](problems/environment-does-not-fail-loudly.md)
   — the general shape behind all of the above.
 
+## Where the programme stands
+
+As of 2026-11-14, all seven candidates are landed, plus the environment
+work the pit-of-success audit asked for. The gate is green: 102 suites, 860
+tests.
+
+The coverage gate now measures the whole source tree rather than the files
+that happened to have tests, so the number it reports — 49.64% statements
+against a 754-file denominator — is the truth rather than a flattering
+summary. The `packages/auth/` floor is 58%; the Redis adapter that meters
+billable usage went from 0/5 functions to 100%.
+
+See [the programme](programme.md) for the wave order and what each commit
+did, and [the environment backlog](backlogs/environment-backlog.md) for what
+is still open.
+
 ## Backlogs
 
 - [The environment backlog](backlogs/environment-backlog.md) — the ranked list
