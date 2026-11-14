@@ -5,11 +5,13 @@ import type { IInstagramResponse, IMediaNode } from "./zod-schema";
  *
  * @param {string} url Target Instagram post or reel URL.
  * @param {AbortController} [controller] Optional AbortController instance for controlling cancellation.
+ * @param {string} [endpoint] Optional endpoint override, for a stub server.
  * @returns {Promise<IInstagramResponse | null>} Scraped Instagram response metadata, or null on failure.
  */
 export type ScrapeFn = (
 	url: string,
-	controller?: AbortController
+	controller?: AbortController,
+	endpoint?: string
 ) => Promise<IInstagramResponse | null>;
 
 /**

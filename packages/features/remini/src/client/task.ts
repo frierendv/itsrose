@@ -1,4 +1,9 @@
-import { InvalidRequestError, ThirdPartyApiError } from "@itsrose/system";
+import { InvalidRequestError } from "@itsrose/system";
+import {
+	isUpstreamApiError,
+	neverRetry,
+	UpstreamApiError,
+} from "@itsrose/upstream-client";
 import { extractImageMetadata } from "../utils";
 import type { IReminiPipelineFeature } from "../zod-schema";
 import type { Client } from "./client";
@@ -26,13 +31,14 @@ export class Task {
 		await this.client.ensureInitialized();
 		await this.client.user.getMe();
 
-		const { data } = await this.client.post<{
+		const data = await this.client.send<{
 			task_id?: string;
 			upload_url?: string;
 			upload_headers?: Record<string, string>;
-		}>(
-			"/v1/mobile/tasks",
-			{
+		}>({
+			url: "/v1/mobile/tasks",
+			method: "post",
+			data: {
 				...metadata,
 				feature: {
 					type: "multi-tool",
@@ -42,28 +48,42 @@ export class Task {
 					})),
 				},
 			},
-			{
-				headers: this.client.iris.getHeaders(),
-			}
-		);
+			headers: this.client.iris.getHeaders(),
+			// The call creates a task upstream: it must not be replayed.
+			retry: { retryCondition: neverRetry },
+		});
 
 		const { task_id, upload_url, upload_headers } = data || {};
 		if (!task_id || !upload_url) {
-			throw new ThirdPartyApiError("Failed to create task.", 500);
+			throw new UpstreamApiError("Failed to create task.", 500, {
+				service: "remini",
+			});
 		}
 
-		const { status: uploadStatus } = await this.client.put(
-			upload_url,
-			initImageBuffer,
-			{
+		const { status: uploadStatus } = await this.client
+			.sendWithResponse({
+				url: upload_url,
+				method: "put",
+				data: initImageBuffer,
 				headers: upload_headers,
-			}
-		);
+			})
+			.catch((error: unknown) => {
+				// The upload answers with the status it failed with; the
+				// caller is told about the upload, not about the transport.
+				throw new UpstreamApiError(
+					"Image upload error.",
+					isUpstreamApiError(error) && error.upstreamStatus
+						? error.upstreamStatus
+						: 400,
+					{ service: "remini", cause: error }
+				);
+			});
 
 		if (uploadStatus !== 200) {
-			throw new ThirdPartyApiError(
+			throw new UpstreamApiError(
 				"Image upload error.",
-				uploadStatus ?? 400
+				uploadStatus ?? 400,
+				{ service: "remini" }
 			);
 		}
 
@@ -81,14 +101,21 @@ export class Task {
 		const task = new TaskSocket(this.client);
 
 		task.submit(taskId);
-		await this.client.post(`/v1/mobile/tasks/${taskId}/process`);
+		await this.client.send({
+			url: `/v1/mobile/tasks/${taskId}/process`,
+			method: "post",
+			// The call starts the processing upstream: it must not be
+			// replayed.
+			retry: { retryCondition: neverRetry },
+		});
 
 		await task.waitForOutput();
 
 		if (!task.output) {
-			throw new ThirdPartyApiError(
+			throw new UpstreamApiError(
 				"Processing failed. Please try again.",
-				500
+				500,
+				{ service: "remini" }
 			);
 		}
 

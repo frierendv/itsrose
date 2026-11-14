@@ -42,6 +42,7 @@
 		"@itsrose/http-client": "workspace:*",
 		"@itsrose/shared-schema": "workspace:*",
 		"@itsrose/system": "workspace:*",
+		"@itsrose/upstream-client": "workspace:*",
 		"image-size": "^2.1.0",
 		"ws": "^8.22.2",
 		"zod": "catalog:"

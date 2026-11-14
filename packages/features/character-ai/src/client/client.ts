@@ -1,5 +1,5 @@
-import { createHttpClient, type HttpClient } from "@itsrose/http-client";
 import { getEnv } from "@itsrose/system";
+import { createUpstreamClient } from "@itsrose/upstream-client";
 import { Chat } from "../chat";
 import { CHARACTER_AI_ENV } from "../env";
 import { Character } from "./character";
@@ -25,7 +25,7 @@ import { User } from "./user";
  * const search = await client.character.search({ query: "Anime" });
  * ```
  *
- * ```mermaid
+ * @mermaid
  * sequenceDiagram
  *     autonumber
  *     actor Caller as Application / Caller
@@ -52,10 +52,8 @@ import { User } from "./user";
  *     Socket->>CAI: WSS Connect (Headers: Token Auth)
  *     CAI-->>Socket: WebSocket Opened
  *
- *     Chat->>Socket: send(create_chat)
- *     Socket->>CAI: WebSocket Payload "create_chat"
- *     Chat->>Socket: send(create_and_generate_turn)
- *     Socket->>CAI: WebSocket Payload "create_and_generate_turn"
+ *     Socket->>CAI: Socket Payload "create_chat"
+ *     Socket->>CAI: Socket Payload "create_and_generate_turn"
  *
  *     loop Streaming Turns
  *         CAI-->>Socket: "update_turn" message frames
@@ -66,7 +64,6 @@ import { User } from "./user";
  *         Chat->>CAI: GET /chat/{chat_id}/resurrect (HTTP)
  *     end
  *     Chat-->>Caller: ChatSendMessageResponse
- * ```
  */
 export class Client {
 	#token: string;
@@ -82,9 +79,9 @@ export class Client {
 	public neoWssUrl: string;
 
 	/**
-	 * Configured Axios-backed HTTP client configured with auth headers.
+	 * The client the package reaches the Character.ai HTTP services with.
 	 */
-	public http: HttpClient;
+	public http: ReturnType<typeof createUpstreamClient>;
 
 	/**
 	 * Sub-client for fetching and managing user profile details.
@@ -115,7 +112,8 @@ export class Client {
 		});
 		this.neoWssUrl = this.neoBaseUrl + "/ws/";
 
-		this.http = createHttpClient({
+		this.http = createUpstreamClient({
+			service: "character-ai",
 			baseURL: this.neoBaseUrl,
 			headers: this.getHeaders(),
 		});

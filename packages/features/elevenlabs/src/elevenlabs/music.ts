@@ -1,4 +1,8 @@
-import { ThirdPartyApiError } from "@itsrose/system";
+import {
+	neverRetry,
+	parseUpstreamPayload,
+	UpstreamApiError,
+} from "@itsrose/upstream-client";
 import { parseMultipart } from "@remix-run/multipart-parser/node";
 import { httpClient } from "../client";
 import type {
@@ -17,25 +21,24 @@ import {
 export async function musicCompose(
 	options: MusicCompose
 ): Promise<MusicComposeDetailedResponse> {
-	const {
-		data: mixed,
-		error,
-		headers,
-	} = await httpClient.post<Buffer>("/v1/music/detailed", options, {
+	const { data: mixed, headers } = await httpClient.sendWithResponse<Buffer>({
+		url: "/v1/music/detailed",
+		method: "post",
+		data: options,
 		responseType: "arraybuffer",
+		// The call is billed per composition: it must not be replayed.
+		retry: { retryCondition: neverRetry },
 	});
-	if (error) {
-		throw new ThirdPartyApiError(error.message, error.statusCode);
-	}
 
 	// TODO: parsing mixed/multipart response from elevenlabs
-	const contentType = (headers["content-type"] || "").toString();
+	const contentType = String(headers["content-type"] ?? "");
 	const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
 
 	if (!boundaryMatch) {
-		throw new ThirdPartyApiError(
+		throw new UpstreamApiError(
 			"No boundary found in Content-Type header",
-			500
+			500,
+			{ service: "elevenlabs" }
 		);
 	}
 	const boundary = (boundaryMatch[1] || boundaryMatch[2])!;
@@ -61,7 +64,11 @@ export async function musicCompose(
 			Object.assign(data, { audio: body });
 		}
 	}
-	return data as MusicComposeDetailedResponse;
+
+	return parseUpstreamPayload(MusicComposeDetailedResponseSchema, data, {
+		service: "elevenlabs",
+		label: "composition",
+	});
 }
 export const musicComposeSchema = {
 	request: MusicComposeSchema,
@@ -77,14 +84,14 @@ export const musicComposeSchema = {
 export async function musicComposePlan(
 	options: MusicComposePlan
 ): Promise<MusicComposePlanResponse> {
-	const { data, error } = await httpClient.post<MusicComposePlanResponse>(
-		"/v1/music/plan",
-		options
-	);
-	if (error) {
-		throw new ThirdPartyApiError(error.message, error.statusCode);
-	}
-	return data;
+	return httpClient.send({
+		url: "/v1/music/plan",
+		method: "post",
+		data: options,
+		schema: MusicComposePlanResponseSchema,
+		// The call is billed per plan: it must not be replayed.
+		retry: { retryCondition: neverRetry },
+	});
 }
 
 export const musicComposePlanSchema = {

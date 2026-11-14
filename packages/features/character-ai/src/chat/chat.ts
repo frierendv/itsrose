@@ -33,11 +33,14 @@ export class Chat {
 	 * ```
 	 */
 	public async clearHistory(options: { chat_id: string }): Promise<boolean> {
-		const { error } = await this.client.http
-			.get(`/chat/${options.chat_id}/resurrect`)
-			.onError(() => true);
-
-		return !error;
+		try {
+			await this.client.http.send({
+				url: `/chat/${options.chat_id}/resurrect`,
+			});
+			return true;
+		} catch {
+			return false;
+		}
 	}
 
 	/**

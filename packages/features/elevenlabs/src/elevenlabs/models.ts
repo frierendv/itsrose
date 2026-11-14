@@ -1,4 +1,3 @@
-import { ThirdPartyApiError } from "@itsrose/system";
 import { httpClient } from "../client";
 import {
 	ElevenLabsListModelsResponseSchema,
@@ -9,14 +8,16 @@ import {
  * Fetches all available ElevenLabs AI synthesis models.
  *
  * @returns {Promise<IElevenLabsListModelsResponse>} List of available speech models.
- * @throws {ThirdPartyApiError} If the ElevenLabs API returns an error status code.
+ * @throws {UpstreamApiError} If the ElevenLabs API returns an error status code
+ * or answers with a payload that does not match the published schema.
  */
 export async function getModels(): Promise<IElevenLabsListModelsResponse> {
-	const { data, error } = await httpClient.get("/v1/models");
-	if (error) {
-		throw new ThirdPartyApiError(error.message, error.statusCode);
-	}
-	return ElevenLabsListModelsResponseSchema.parse({ models: data });
+	const models = await httpClient.send({
+		url: "/v1/models",
+		schema: ElevenLabsListModelsResponseSchema.shape.models,
+	});
+
+	return { models };
 }
 
 /**

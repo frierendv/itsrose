@@ -42,6 +42,7 @@
 		"@itsrose/http-client": "workspace:*",
 		"@itsrose/shared-schema": "workspace:*",
 		"@itsrose/system": "workspace:*",
+		"@itsrose/upstream-client": "workspace:*",
 		"moment": "^2.31.0",
 		"zod": "catalog:"
 	},

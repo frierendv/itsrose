@@ -1,4 +1,7 @@
-import { ThirdPartyApiError } from "@itsrose/system";
+import {
+	parseUpstreamPayload,
+	UpstreamApiError,
+} from "@itsrose/upstream-client";
 import { fsaveScrape, savefromScrape, videodropperScrape } from "../scraping";
 import type { IInstagramRequest, IInstagramResponse } from "../zod-schema";
 import { InstagramRequestSchema, InstagramResponseSchema } from "../zod-schema";
@@ -8,7 +11,8 @@ import { InstagramRequestSchema, InstagramResponseSchema } from "../zod-schema";
  *
  * @param {IInstagramRequest} options
  * @returns {Promise<IInstagramResponse>}
- * @throws {ThirdPartyApiError} If no scraper returns a result.
+ * @throws {UpstreamApiError} If no scraper returns a result, or the result
+ * does not match the published schema.
  */
 export const getMedia = async (
 	options: IInstagramRequest
@@ -32,12 +36,17 @@ export const getMedia = async (
 
 	// if no scraper returned a result
 	if (!race) {
-		throw new ThirdPartyApiError(
+		throw new UpstreamApiError(
 			`No scraper returned a result for ${url}`,
-			500
+			500,
+			{ service: "instagram" }
 		);
 	}
-	return race;
+
+	return parseUpstreamPayload(InstagramResponseSchema, race, {
+		service: "instagram",
+		label: "media",
+	});
 };
 
 export const getMediaSchema = {

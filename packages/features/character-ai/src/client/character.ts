@@ -1,5 +1,11 @@
+import { parseUpstreamPayload } from "@itsrose/upstream-client";
 import { parseCharacterInfo } from "../utils";
-import type { CharacterInfo, SearchCharacter } from "../zod-schema";
+import {
+	CharacterInfoSchema,
+	SearchCharacterResponseSchema,
+	type CharacterInfo,
+	type SearchCharacter,
+} from "../zod-schema";
 import type { Client } from "./client";
 
 /**
@@ -29,12 +35,17 @@ export class Character {
 	public async info(
 		options: Pick<CharacterInfo, "external_id">
 	): Promise<CharacterInfo> {
-		const { data } = await this.client.http.post<{ character: unknown }>(
-			"/character/v1/get_character_info",
-			options
-		);
+		const data = await this.client.http.send<{ character: unknown }>({
+			url: "/character/v1/get_character_info",
+			method: "post",
+			data: options,
+		});
 
-		return parseCharacterInfo(data.character);
+		return parseUpstreamPayload(
+			CharacterInfoSchema,
+			parseCharacterInfo(data.character),
+			{ service: "character-ai", label: "character" }
+		);
 	}
 
 	/**
@@ -52,12 +63,17 @@ export class Character {
 	public async search(
 		options: SearchCharacter
 	): Promise<{ characters: CharacterInfo[] }> {
-		const { data } = await this.client.http.get<{ characters: unknown[] }>(
-			"/search/v1/character",
-			{ params: { sortedBy: "relevance", ...options } }
-		);
+		const data = await this.client.http.send<{ characters: unknown[] }>({
+			url: "/search/v1/character",
+			params: { sortedBy: "relevance", ...options },
+		});
 
 		const characters = data.characters.map(parseCharacterInfo);
-		return { characters };
+
+		return parseUpstreamPayload(
+			SearchCharacterResponseSchema,
+			{ characters },
+			{ service: "character-ai", label: "characters" }
+		);
 	}
 }

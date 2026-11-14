@@ -1,3 +1,4 @@
+import { parseUpstreamPayload } from "@itsrose/upstream-client";
 import { client, type MediaInfo } from "../client";
 import { SEGMENTATION_CLOTH_MAP } from "../constants/clothes-segmentation";
 import {
@@ -17,6 +18,8 @@ type SResponse = {
  *
  * @param {ISharedRequest} opts Options configuration containing the input image details.
  * @returns {Promise<IClothesSegmentationResponse>} A promise resolving to the segmentation masks and labeled clothing categories.
+ * @throws {UpstreamApiError} If the upstream call failed or the segmentation did
+ * not match the published schema.
  */
 export const clothesSegmentation = async (
 	opts: ISharedRequest
@@ -62,7 +65,12 @@ export const clothesSegmentation = async (
 			url: item.media_data,
 		});
 	}
-	return segmentation;
+
+	return parseUpstreamPayload(
+		ClothesSegmentationResponseSchema,
+		segmentation,
+		{ service: "mtxx", label: "segmentation" }
+	);
 };
 /** @internal */
 export const clothesSegmentationSchema = {

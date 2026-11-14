@@ -1,6 +1,7 @@
+import { parseUpstreamPayload } from "@itsrose/upstream-client";
 import { SyncState } from "../constants/sync-state";
 import type { IInferenceData, Result } from "../types";
-import type { ISharedResponse } from "../zod-schema";
+import { SharedResponseSchema, type ISharedResponse } from "../zod-schema";
 
 export const extractUrls = (result: Result): string[] | null => {
 	if (!result) {
@@ -20,10 +21,16 @@ export const parseResult = <T = object>(
 	const result = data.result;
 	const mediaList = extractUrls(result) || [];
 
-	return {
-		task_id: data.custom_task_id || data.task_id,
-		status: mediaList?.length ? SyncState.COMPLETED : SyncState.IN_PROGRESS,
-		media_list: mediaList,
-		meta: result.parameters,
-	};
+	return parseUpstreamPayload(
+		SharedResponseSchema,
+		{
+			task_id: data.custom_task_id || data.task_id,
+			status: mediaList?.length
+				? SyncState.COMPLETED
+				: SyncState.IN_PROGRESS,
+			media_list: mediaList,
+			meta: result.parameters,
+		},
+		{ service: "mtxx", label: "task" }
+	);
 };

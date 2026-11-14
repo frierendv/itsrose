@@ -5,19 +5,6 @@ import type { Client } from "../src/client/client";
 jest.mock("../src/chat/chat-socket");
 
 /**
- * Minimal double for the `http.get` envelope consumed by `Chat.clearHistory`.
- *
- * Invariant: `clearHistory` only awaits `http.get(...).onError(handler)` and
- * reads the `error` field of the resolved envelope, so nothing else is needed.
- */
-type MockHttpEnvelope = {
-	error?: Error;
-	onError: (
-		handler: (data: unknown, error: unknown) => unknown
-	) => Promise<MockHttpEnvelope>;
-};
-
-/**
  * Minimal double for the `Client.user` sub-client.
  *
  * Invariant: `Chat.sendMessage` only checks `user.detail` for truthiness and
@@ -44,14 +31,14 @@ type MockChatSocket = {
 
 describe("Chat", () => {
 	let mockClient: Client;
-	let mockHttpGet: jest.Mock;
+	let mockHttpSend: jest.Mock;
 	let mockUserGet: jest.Mock;
 	let mockUser: MockUser;
 
 	beforeEach(() => {
 		jest.clearAllMocks();
 
-		mockHttpGet = jest.fn();
+		mockHttpSend = jest.fn();
 		mockUserGet = jest.fn().mockResolvedValue({
 			user: { id: "123", account: { name: "Test" } },
 		});
@@ -61,51 +48,32 @@ describe("Chat", () => {
 			get: mockUserGet,
 		};
 
-		// Invariant: `Chat` only touches `client.http.get` and `client.user`;
+		// Invariant: `Chat` only touches `client.http.send` and `client.user`;
 		// the real `Client` also owns a private token field, so the double
 		// cannot be expressed as a structural `Client` type.
 		mockClient = {
 			http: {
-				get: mockHttpGet,
+				send: mockHttpSend,
 			},
 			user: mockUser,
 		} as unknown as Client;
 	});
 
 	describe("clearHistory", () => {
-		it("should return true when HTTP GET request succeeds without error", async () => {
-			mockHttpGet.mockImplementation(() => {
-				const envelope: MockHttpEnvelope = {
-					error: undefined,
-					onError: (handler) => {
-						handler(undefined, undefined);
-						return Promise.resolve(envelope);
-					},
-				};
-				return envelope;
-			});
+		it("should return true when the upstream call succeeds", async () => {
+			mockHttpSend.mockResolvedValue(undefined);
 
 			const chat = new Chat(mockClient);
 			const result = await chat.clearHistory({ chat_id: "chat-123" });
 
-			expect(mockHttpGet).toHaveBeenCalledWith(
-				"/chat/chat-123/resurrect"
-			);
+			expect(mockHttpSend).toHaveBeenCalledWith({
+				url: "/chat/chat-123/resurrect",
+			});
 			expect(result).toBe(true);
 		});
 
-		it("should return false when HTTP GET request has error", async () => {
-			mockHttpGet.mockImplementation(() => {
-				const error = new Error("Failed");
-				const envelope: MockHttpEnvelope = {
-					error,
-					onError: (handler) => {
-						handler(undefined, error);
-						return Promise.resolve(envelope);
-					},
-				};
-				return envelope;
-			});
+		it("should return false when the upstream call fails", async () => {
+			mockHttpSend.mockRejectedValue(new Error("Failed"));
 
 			const chat = new Chat(mockClient);
 			const result = await chat.clearHistory({ chat_id: "chat-123" });

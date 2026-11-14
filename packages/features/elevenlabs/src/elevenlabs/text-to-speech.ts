@@ -1,8 +1,9 @@
-import { ThirdPartyApiError } from "@itsrose/system";
+import { neverRetry, parseUpstreamPayload } from "@itsrose/upstream-client";
 import { httpClient } from "../client";
 import {
 	ElevenLabsSharedResponseSchema,
 	ElevenLabsTextToSpeechConvertSchema,
+	WithTimestampSchema,
 } from "../zod-schema";
 import type {
 	IElevenLabsSharedResponse,
@@ -15,48 +16,58 @@ import type {
  *
  * @param {IElevenLabsTextToSpeechConvert} options Speech conversion options including voice ID, text, and model settings.
  * @returns {Promise<IElevenLabsSharedResponse>} Object containing base64-encoded audio data.
- * @throws {ThirdPartyApiError} If the ElevenLabs API returns an error status code.
+ * @throws {UpstreamApiError} If the ElevenLabs API returns an error status code
+ * or answers with a payload that does not match the published schema.
  */
 export async function textToSpeech(
 	options: IElevenLabsTextToSpeechConvert
 ): Promise<IElevenLabsSharedResponse> {
 	const { voice_id, output_format, ...restOptions } = options;
-	const { data, error } = await httpClient.post<Buffer>(
-		`/v1/text-to-speech/${voice_id}`,
-		restOptions,
-		{
-			params: {
-				output_format,
-				enable_logging: false,
-			},
-			responseType: "arraybuffer",
-		}
+	const audio = await httpClient.send<Buffer>({
+		url: `/v1/text-to-speech/${voice_id}`,
+		method: "post",
+		data: restOptions,
+		params: {
+			output_format,
+			enable_logging: false,
+		},
+		responseType: "arraybuffer",
+		// The call is billed per generation: it must not be replayed.
+		retry: { retryCondition: neverRetry },
+	});
+
+	return parseUpstreamPayload(
+		ElevenLabsSharedResponseSchema,
+		{ audio: Buffer.from(audio).toString("base64") },
+		{ service: "elevenlabs", label: "speech" }
 	);
-	if (error) {
-		throw new ThirdPartyApiError(error.message, error.statusCode);
-	}
-	return {
-		audio: Buffer.from(data).toString("base64"),
-	};
 }
 
 export async function textToSpeechWithTiming(
 	options: IElevenLabsTextToSpeechConvert
 ): Promise<IElevenLabsSharedResponse & WithTimestamp> {
 	const { voice_id, output_format, ...restOptions } = options;
-	const { data, error } = await httpClient.post<
+	const data = await httpClient.send<
 		{ audio_base64: string } & WithTimestamp
-	>(`/v1/text-to-speech/${voice_id}/with-timestamps`, restOptions, {
+	>({
+		url: `/v1/text-to-speech/${voice_id}/with-timestamps`,
+		method: "post",
+		data: restOptions,
 		params: {
 			output_format,
 			enable_logging: false,
 		},
+		// The call is billed per generation: it must not be replayed.
+		retry: { retryCondition: neverRetry },
 	});
-	if (error) {
-		throw new ThirdPartyApiError(error.message, error.statusCode);
-	}
+
 	const { audio_base64: audio, ...rest } = data;
-	return { audio, ...rest };
+
+	return parseUpstreamPayload(
+		WithTimestampSchema.extend(ElevenLabsSharedResponseSchema.shape),
+		{ audio, ...rest },
+		{ service: "elevenlabs", label: "speech" }
+	);
 }
 
 /**

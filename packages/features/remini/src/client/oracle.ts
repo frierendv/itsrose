@@ -1,5 +1,5 @@
 import type { Client } from ".";
-import { ThirdPartyApiError } from "@itsrose/system";
+import { UpstreamApiError } from "@itsrose/upstream-client";
 import type { CurrentOracleUser, OracleSetupResponse } from "../types";
 import { createAId, createOracleConfig, type OracleConfig } from "../utils";
 
@@ -29,30 +29,48 @@ export class Oracle {
 
 		this.initPromise = (async () => {
 			const options = { headers: this._oracleHeaders };
-			const { data, error } = await this.client.get<OracleSetupResponse>(
-				"/v1/mobile/oracle/setup",
-				options
-			);
-			if (error || !data) {
-				throw new ThirdPartyApiError(
+			let data: OracleSetupResponse | undefined;
+			try {
+				data = await this.client.send<OracleSetupResponse>({
+					url: "/v1/mobile/oracle/setup",
+					...options,
+				});
+			} catch (error) {
+				throw new UpstreamApiError(
 					"Failed to initialize remini.",
-					500
+					500,
+					{ service: "remini", cause: error }
+				);
+			}
+			if (!data) {
+				throw new UpstreamApiError(
+					"Failed to initialize remini.",
+					500,
+					{ service: "remini" }
 				);
 			}
 
 			// if first
 			if (first) {
+				// The two notices are acknowledgements: a failure to record
+				// one does not stop the setup, exactly as before.
 				await Promise.all([
-					this.client.post(
-						"/v1/mobile/oracle/terms-of-service",
-						{ version: "2.3.0" },
-						options
-					),
-					this.client.post(
-						"/v1/mobile/oracle/privacy-notice",
-						{ version: "3.12.0" },
-						options
-					),
+					this.client
+						.send({
+							url: "/v1/mobile/oracle/terms-of-service",
+							method: "post",
+							data: { version: "2.3.0" },
+							...options,
+						})
+						.catch(() => undefined),
+					this.client
+						.send({
+							url: "/v1/mobile/oracle/privacy-notice",
+							method: "post",
+							data: { version: "3.12.0" },
+							...options,
+						})
+						.catch(() => undefined),
 				]);
 			}
 

@@ -22,9 +22,9 @@ export class User {
 
 		this.getMePromise = (async () => {
 			await this.client.ensureInitialized();
-			const { data } = await this.client.get<CurrentUserAccount>(
-				"/v1/mobile/users/@me"
-			);
+			const data = await this.client.send<CurrentUserAccount>({
+				url: "/v1/mobile/users/@me",
+			});
 			this.account = data;
 			return this.account;
 		})();

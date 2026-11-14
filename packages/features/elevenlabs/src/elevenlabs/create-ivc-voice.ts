@@ -1,6 +1,5 @@
-import { fetcher } from "@itsrose/http-client";
-import { ThirdPartyApiError } from "@itsrose/system";
-import { httpClient } from "../client";
+import { neverRetry } from "@itsrose/upstream-client";
+import { assetClient, httpClient } from "../client";
 import {
 	ElevenLabsCreateIVCVoiceResponseSchema,
 	ElevenLabsCreateIVCVoiceSchema,
@@ -10,9 +9,9 @@ import {
 
 const resolveAudioFiles = async (urls: string[], formData: FormData) => {
 	for await (const [index, url] of urls.entries()) {
-		const { data: file } = await fetcher
-			.get<Buffer>(url, { responseType: "arraybuffer" })
-			.catch(() => ({ data: null }));
+		const file = await assetClient
+			.send<Buffer>({ url, responseType: "arraybuffer" })
+			.catch(() => undefined);
 		if (!file) {
 			continue;
 		}
@@ -28,7 +27,8 @@ const resolveAudioFiles = async (urls: string[], formData: FormData) => {
  *
  * @param {IElevenLabsCreateIVCVoice} opts Voice creation parameters (name, description, labels).
  * @returns {Promise<IElevenLabsCreateIVCVoiceResponse>} Created voice details including voice_id.
- * @throws {ThirdPartyApiError} If the ElevenLabs API returns an error status code.
+ * @throws {UpstreamApiError} If the ElevenLabs API returns an error status code
+ * or answers with a payload that does not match the published schema.
  */
 export async function createIVCVoice(
 	opts: IElevenLabsCreateIVCVoice
@@ -48,16 +48,16 @@ export async function createIVCVoice(
 			);
 		}
 	});
-	const { data, error } =
-		await httpClient.post<IElevenLabsCreateIVCVoiceResponse>(
-			"/v1/voices/add",
-			formData,
-			{ headers: { "Content-Type": "multipart/form-data" } }
-		);
-	if (error) {
-		throw new ThirdPartyApiError(error.message, error.statusCode);
-	}
-	return data;
+
+	return httpClient.send({
+		url: "/v1/voices/add",
+		method: "post",
+		data: formData,
+		headers: { "Content-Type": "multipart/form-data" },
+		schema: ElevenLabsCreateIVCVoiceResponseSchema,
+		// The call creates a voice upstream: it must not be replayed.
+		retry: { retryCondition: neverRetry },
+	});
 }
 
 /**

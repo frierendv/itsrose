@@ -1,4 +1,4 @@
-import type { ErrorHandler } from "@itsrose/http-client";
+import type { UpstreamErrorMapper } from "@itsrose/upstream-client";
 import { ElevenLabsErrorResponseSchema } from "../zod-schema";
 
 const DEFAULT_ERROR_MESSAGE = "An error occurred.";
@@ -77,15 +77,19 @@ const getErrorDetail = (data: unknown): unknown => {
 };
 
 /**
- * Parses raw error responses or buffers returned from ElevenLabs API calls.
- * @param {unknown} data Raw response body.
- * @returns Standardized error object with status and descriptive message.
+ * Describes the error the ElevenLabs API answered with.
+ *
+ * The upstream body is untrusted: it is validated with the package schema
+ * when it matches, and read defensively otherwise. The shape of the body is
+ * ElevenLabs knowledge, which is why it lives here and not in the shared
+ * upstream client.
+ *
+ * @param data Raw error payload handed over by the upstream client.
+ * @param context The upstream the call was made against.
+ * @returns The message and the status the caller is told about.
  */
-export const parseElevenLabsError: ErrorHandler<{
-	statusCode: number;
-	message: string;
-}> = (data: unknown, error) => {
-	const statusCode = error.status ?? 500;
+export const mapElevenLabsError: UpstreamErrorMapper = (data, context) => {
+	const statusCode = context.status ?? 500;
 
 	// The upstream body is untrusted: validate it with the package schema when
 	// it matches, and fall back to a defensive read of `detail` otherwise.

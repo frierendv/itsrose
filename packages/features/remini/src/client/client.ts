@@ -1,12 +1,12 @@
-import { HttpClient } from "@itsrose/http-client";
 import { getEnv } from "@itsrose/system";
+import { createUpstreamClient, UpstreamClient } from "@itsrose/upstream-client";
 import { REMINI_ENV } from "../env";
 import { Iris } from "./iris";
 import { Oracle } from "./oracle";
 import { Task } from "./task";
 import { User } from "./user";
 
-export class Client extends HttpClient {
+export class Client extends UpstreamClient {
 	public baseUrl: string;
 	public wssBaseUrl: string;
 
@@ -30,7 +30,7 @@ export class Client extends HttpClient {
 		const wssBaseUrl = getEnv(REMINI_ENV.wssBaseUrl, {
 			isRequired: true,
 		});
-		super({ baseURL: baseUrl });
+		super({ service: "remini", baseURL: baseUrl });
 		this.baseUrl = baseUrl;
 		this.wssBaseUrl = wssBaseUrl;
 
@@ -65,10 +65,19 @@ export class Client extends HttpClient {
 	 * @returns {Promise<unknown>}
 	 */
 	async ping(): Promise<unknown> {
-		const { data } = await this.get<"pong">("/system/ping");
-		return data;
+		return this.send<string>({ url: "/system/ping" });
 	}
 }
+
+/**
+ * The client the package downloads input images with.
+ *
+ * The images live on other hosts, so this client carries no origin and no
+ * credentials.
+ */
+export const assetClient = createUpstreamClient({
+	service: "remini-assets",
+});
 
 let defaultClient: Client | undefined;
 

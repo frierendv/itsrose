@@ -1,4 +1,4 @@
-import { ThirdPartyApiError } from "@itsrose/system";
+import { neverRetry, parseUpstreamPayload } from "@itsrose/upstream-client";
 import { httpClient } from "../client";
 import {
 	ElevenLabsSharedResponseSchema,
@@ -12,29 +12,31 @@ import {
  *
  * @param {IElevenLabsTextToDialogueConvert} options Dialogue parameters including text inputs and voice mappings.
  * @returns {Promise<IElevenLabsSharedResponse>} Object containing base64-encoded audio data.
- * @throws {ThirdPartyApiError} If the ElevenLabs API returns an error status code.
+ * @throws {UpstreamApiError} If the ElevenLabs API returns an error status code
+ * or answers with a payload that does not match the published schema.
  */
 export async function textToDialogue(
 	options: IElevenLabsTextToDialogueConvert
 ): Promise<IElevenLabsSharedResponse> {
 	const { output_format, ...restOptions } = options;
-	const { data, error } = await httpClient.post<Buffer>(
-		"/v1/text-to-dialogue",
-		restOptions,
-		{
-			params: {
-				output_format,
-				enable_logging: false,
-			},
-			responseType: "arraybuffer",
-		}
+	const audio = await httpClient.send<Buffer>({
+		url: "/v1/text-to-dialogue",
+		method: "post",
+		data: restOptions,
+		params: {
+			output_format,
+			enable_logging: false,
+		},
+		responseType: "arraybuffer",
+		// The call is billed per generation: it must not be replayed.
+		retry: { retryCondition: neverRetry },
+	});
+
+	return parseUpstreamPayload(
+		ElevenLabsSharedResponseSchema,
+		{ audio: Buffer.from(audio).toString("base64") },
+		{ service: "elevenlabs", label: "dialogue" }
 	);
-	if (error) {
-		throw new ThirdPartyApiError(error.message, error.statusCode);
-	}
-	return {
-		audio: Buffer.from(data).toString("base64"),
-	};
 }
 
 /**

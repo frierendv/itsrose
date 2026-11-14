@@ -1,46 +1,52 @@
 import { Character } from "../src/client/character";
 import type { Client } from "../src/client/client";
 
+/**
+ * A character body as the upstream sends it, with every field the published
+ * schema requires.
+ */
+const RAW_CHARACTER = {
+	external_id: "char-abc",
+	title: "Character Title",
+	description: "A character",
+	greeting: "Hello!",
+	primary_language: "OTHER",
+	is_licensed_professional: false,
+	avatar_file_name: "avatar.png",
+	user_id: "user-1",
+	user__username: "creator",
+	participant__name: "Creator Name",
+	num_likes: 10,
+	num_chats: 20,
+	participant__num_interactions: 30,
+};
+
 describe("Character", () => {
 	let mockClient: Client;
-	let mockHttpPost: jest.Mock;
-	let mockHttpGet: jest.Mock;
+	let mockHttpSend: jest.Mock;
 
 	beforeEach(() => {
-		mockHttpPost = jest.fn();
-		mockHttpGet = jest.fn();
+		mockHttpSend = jest.fn();
 		mockClient = {
 			http: {
-				post: mockHttpPost,
-				get: mockHttpGet,
+				send: mockHttpSend,
 			},
 		} as unknown as Client;
 	});
 
 	it("should get character info via POST request and parse response", async () => {
-		const rawCharacter = {
-			external_id: "char-abc",
-			title: "Character Title",
-			avatar_file_name: "avatar.png",
-			user_id: "user-1",
-			user__username: "creator",
-			participant__name: "Creator Name",
-			num_likes: 10,
-			num_chats: 20,
-			participant__num_interactions: 30,
-		};
-
-		mockHttpPost.mockResolvedValueOnce({
-			data: { character: rawCharacter },
+		mockHttpSend.mockResolvedValueOnce({
+			character: RAW_CHARACTER,
 		});
 
 		const character = new Character(mockClient);
 		const result = await character.info({ external_id: "char-abc" });
 
-		expect(mockHttpPost).toHaveBeenCalledWith(
-			"/character/v1/get_character_info",
-			{ external_id: "char-abc" }
-		);
+		expect(mockHttpSend).toHaveBeenCalledWith({
+			url: "/character/v1/get_character_info",
+			method: "post",
+			data: { external_id: "char-abc" },
+		});
 		expect(result.external_id).toBe("char-abc");
 		expect(result.avatar_url).toBe(
 			"https://characterai.io/i/400/static/avatars/avatar.png"
@@ -49,26 +55,24 @@ describe("Character", () => {
 
 	it("should search characters via GET request and parse list of characters", async () => {
 		const rawCharacters = [
+			{ ...RAW_CHARACTER, external_id: "char-1", title: "Char 1" },
 			{
-				external_id: "char-1",
-				title: "Char 1",
-				avatar_file_name: "1.png",
-			},
-			{
+				...RAW_CHARACTER,
 				external_id: "char-2",
 				title: "Char 2",
 				avatar_file_name: "2.png",
 			},
 		];
 
-		mockHttpGet.mockResolvedValueOnce({
-			data: { characters: rawCharacters },
+		mockHttpSend.mockResolvedValueOnce({
+			characters: rawCharacters,
 		});
 
 		const character = new Character(mockClient);
 		const result = await character.search({ query: "Anime" });
 
-		expect(mockHttpGet).toHaveBeenCalledWith("/search/v1/character", {
+		expect(mockHttpSend).toHaveBeenCalledWith({
+			url: "/search/v1/character",
 			params: {
 				sortedBy: "relevance",
 				query: "Anime",
@@ -77,5 +81,17 @@ describe("Character", () => {
 		expect(result.characters).toHaveLength(2);
 		expect(result.characters[0]?.external_id).toBe("char-1");
 		expect(result.characters[1]?.external_id).toBe("char-2");
+	});
+
+	it("rejects a character the upstream drifted on", async () => {
+		mockHttpSend.mockResolvedValueOnce({
+			character: { ...RAW_CHARACTER, title: undefined },
+		});
+
+		const character = new Character(mockClient);
+
+		await expect(
+			character.info({ external_id: "char-abc" })
+		).rejects.toThrow("did not match the published schema");
 	});
 });

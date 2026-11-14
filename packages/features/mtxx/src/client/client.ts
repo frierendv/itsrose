@@ -1,10 +1,11 @@
+import { getEnv, ThirdPartyApiError } from "@itsrose/system";
 import {
-	HttpClient,
+	neverRetry,
+	UpstreamClient,
 	type HttpRequestConfig,
 	type HttpRequestTransform,
 	type HttpRequestTransformContext,
-} from "@itsrose/http-client";
-import { getEnv, ThirdPartyApiError } from "@itsrose/system";
+} from "@itsrose/upstream-client";
 import { MTXX_ENV } from "../env";
 import type { IInferenceResponse, MtlabInferenceData } from "../types";
 import type { ISDKParameter } from "../utils";
@@ -88,7 +89,7 @@ function createRequestTransform(
 	};
 }
 
-class BaseHttpClient extends HttpClient {
+export class Client extends UpstreamClient {
 	private readonly _sdkBaseUrl: string;
 	private readonly _openApiBaseUrl: string;
 
@@ -108,6 +109,7 @@ class BaseHttpClient extends HttpClient {
 		const signer = new Signer({ key, secret });
 
 		super({
+			service: "mtxx",
 			baseURL: sdkUrl.origin,
 			headers: {
 				"User-Agent": "mtxx-121105-OnePlus-NE2210-android-9-c1923306",
@@ -143,12 +145,7 @@ class BaseHttpClient extends HttpClient {
 		};
 		return Buffer.from(JSON.stringify(mttc)).toString("base64");
 	}
-}
 
-export class Client extends BaseHttpClient {
-	// constructor() {
-	// 	super();
-	// }
 	/**
 	 * Checks if the provided error code indicates an error
 	 * and throws a {@linkcode ThirdPartyApiError} if it does.
@@ -166,10 +163,10 @@ export class Client extends BaseHttpClient {
 	 * and returns the {@linkcode IInferenceResponse}.
 	 */
 	public async getTaskStatus<T = unknown>(taskId: string) {
-		const { data } = await this.get<IInferenceResponse<T>>(
-			"/api/v1/sdk/status",
-			{ params: { task_id: taskId } }
-		);
+		const data = await this.send<IInferenceResponse<T>>({
+			url: "/api/v1/sdk/status",
+			params: { task_id: taskId },
+		});
 		this._mtxxErrorGuard(data.code);
 		return data;
 	}
@@ -178,10 +175,13 @@ export class Client extends BaseHttpClient {
 	 * and returns the {@linkcode IInferenceResponse}.
 	 */
 	public async createTask<T = object>(parameter: ISDKParameter) {
-		const { data } = await this.post<IInferenceResponse<T>>(
-			"/api/v1/sdk/sync/push",
-			parameter
-		);
+		const data = await this.send<IInferenceResponse<T>>({
+			url: "/api/v1/sdk/sync/push",
+			method: "post",
+			data: parameter,
+			// The call creates a task upstream: it must not be replayed.
+			retry: { retryCondition: neverRetry },
+		});
 		this._mtxxErrorGuard(data.code);
 		return data;
 	}
@@ -193,10 +193,12 @@ export class Client extends BaseHttpClient {
 		config: HttpRequestConfig &
 			Required<Pick<HttpRequestConfig, "data" | "url">>
 	) {
-		const { data } = await this.request<MtlabInferenceData<T>>({
-			method: "POST",
+		const data = await this.send<MtlabInferenceData<T>>({
+			method: "post",
 			baseURL: this.openApiBaseUrl,
 			...config,
+			// The call creates a task upstream: it must not be replayed.
+			retry: { retryCondition: neverRetry },
 		});
 		this._mtxxErrorGuard(data?.ErrorCode);
 		return data;

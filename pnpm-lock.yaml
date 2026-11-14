@@ -763,6 +763,9 @@ importers:
       '@itsrose/system':
         specifier: workspace:*
         version: link:../../core/system
+      '@itsrose/upstream-client':
+        specifier: workspace:*
+        version: link:../../internal/upstream-client
       ws:
         specifier: ^8.22.2
         version: 8.22.2
@@ -788,6 +791,9 @@ importers:
       '@itsrose/system':
         specifier: workspace:*
         version: link:../../core/system
+      '@itsrose/upstream-client':
+        specifier: workspace:*
+        version: link:../../internal/upstream-client
       '@remix-run/multipart-parser':
         specifier: ^1.1.1
         version: 1.1.1
@@ -807,6 +813,9 @@ importers:
       '@itsrose/system':
         specifier: workspace:*
         version: link:../../core/system
+      '@itsrose/upstream-client':
+        specifier: workspace:*
+        version: link:../../internal/upstream-client
       zod:
         specifier: 'catalog:'
         version: 4.6.7
@@ -826,6 +835,9 @@ importers:
       '@itsrose/system':
         specifier: workspace:*
         version: link:../../core/system
+      '@itsrose/upstream-client':
+        specifier: workspace:*
+        version: link:../../internal/upstream-client
       moment:
         specifier: ^2.31.0
         version: 2.31.0
@@ -848,6 +860,9 @@ importers:
       '@itsrose/system':
         specifier: workspace:*
         version: link:../../core/system
+      '@itsrose/upstream-client':
+        specifier: workspace:*
+        version: link:../../internal/upstream-client
       image-size:
         specifier: ^2.1.0
         version: 2.1.0
@@ -873,6 +888,9 @@ importers:
       '@itsrose/system':
         specifier: workspace:*
         version: link:../../core/system
+      '@itsrose/upstream-client':
+        specifier: workspace:*
+        version: link:../../internal/upstream-client
       zod:
         specifier: 'catalog:'
         version: 4.6.7
@@ -934,6 +952,22 @@ importers:
       aws-sdk-client-mock:
         specifier: ^4.1.0
         version: 4.1.0
+
+  packages/internal/upstream-client:
+    dependencies:
+      '@itsrose/http-client':
+        specifier: workspace:*
+        version: file:packages/internal/http-client(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
+      '@itsrose/system':
+        specifier: workspace:*
+        version: link:../../core/system
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.7
+    devDependencies:
+      '@itsrose/standard':
+        specifier: workspace:*
+        version: link:../../standard
 
   packages/midtrans:
     dependencies:
@@ -2478,6 +2512,12 @@ packages:
   '@istanbuljs/schema@0.1.6':
     resolution: {integrity: sha512-+Sg6GCR/wy1oSmQDFq4LQDAhm3ETKnorxN+y5nbLULOR3P0c14f2Wurzj3/xqPXtasLFfHd5iRFQ7AJt4KH2cw==}
     engines: {node: '>=8'}
+
+  '@itsrose/http-client@file:packages/internal/http-client':
+    resolution: {directory: packages/internal/http-client, type: directory}
+
+  '@itsrose/system@file:packages/core/system':
+    resolution: {directory: packages/core/system, type: directory}
 
   '@jest/console@30.5.2':
     resolution: {integrity: sha512-e8sQC4pCMHPBrPX7Hk8TJr+DM5dkUnImSTNag8SEWFAFAF6xIz4AJvCKapnrdHnZxep4bxw4PhG+ZbimYBMyKw==}
@@ -10136,6 +10176,17 @@ snapshots:
       resolve-from: 5.0.0
 
   '@istanbuljs/schema@0.1.6': {}
+
+  '@itsrose/http-client@file:packages/internal/http-client(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)':
+    dependencies:
+      '@itsrose/system': file:packages/core/system
+      axios: 1.21.1(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
+      axios-retry: 4.5.0(axios@1.21.1(supports-color@8.1.1))
+    transitivePeerDependencies:
+      - debug
+      - supports-color
+
+  '@itsrose/system@file:packages/core/system': {}
 
   '@jest/console@30.5.2':
     dependencies:

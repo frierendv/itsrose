@@ -1,5 +1,5 @@
-import { ThirdPartyApiError } from "@itsrose/system";
 import { httpClient } from "../client";
+import { redact } from "../utils";
 import {
 	ElevenLabsListVoicesResponseSchema,
 	ElevenLabsListVoicesSchema,
@@ -7,31 +7,23 @@ import {
 	type IElevenLabsListVoicesResponse,
 } from "../zod-schema";
 
-const redact = (text: string) =>
-	text
-		.replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[EMAIL]")
-		.replace(/\b(?:\+?\d[\d\s()-]{7,}\d)\b/g, "[PHONE]")
-		.replace(/\bhttps?:\/\/\S+/gi, "[URL]");
-
 /**
  * Retrieves a list of available ElevenLabs voices with sensitive user info redacted.
  *
  * @param {IElevenLabsListVoices} [options] Optional query parameters for filtering voices.
  * @returns {Promise<IElevenLabsListVoicesResponse>} List of voices and response metadata.
- * @throws {ThirdPartyApiError} If the ElevenLabs API returns an error status code.
+ * @throws {UpstreamApiError} If the ElevenLabs API returns an error status code
+ * or answers with a payload that does not match the published schema.
  */
 export async function getVoices(
 	options?: IElevenLabsListVoices
 ): Promise<IElevenLabsListVoicesResponse> {
-	const { data, error } = await httpClient.get<IElevenLabsListVoicesResponse>(
-		"/v2/voices",
-		{
-			params: options,
-		}
-	);
-	if (error) {
-		throw new ThirdPartyApiError(error.message, error.statusCode);
-	}
+	const data = await httpClient.send({
+		url: "/v2/voices",
+		params: options,
+		schema: ElevenLabsListVoicesResponseSchema,
+	});
+
 	void data.voices.forEach((voice) => {
 		voice.name = redact(voice.name);
 		if (voice.description) {

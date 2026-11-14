@@ -1,8 +1,8 @@
-import { fetcher } from "@itsrose/http-client";
 import { SharedFileBufferSchema } from "@itsrose/shared-schema";
 import { ThirdPartyApiError } from "@itsrose/system";
+import { neverRetry, parseUpstreamPayload } from "@itsrose/upstream-client";
 import { z } from "zod/v4";
-import { httpClient } from "../client";
+import { assetClient, httpClient } from "../client";
 import {
 	ElevenLabsSharedResponseSchema,
 	ElevenLabsSpeechToSpeechConvertSchema,
@@ -13,10 +13,10 @@ import {
 async function getAudioBuffer(audio: Buffer | string): Promise<Buffer> {
 	if (typeof audio === "string") {
 		try {
-			const response = await fetcher.get<Buffer>(audio, {
+			return await assetClient.send<Buffer>({
+				url: audio,
 				responseType: "arraybuffer",
 			});
-			return response.data;
 		} catch {
 			throw new ThirdPartyApiError(
 				`Failed to get audio from url ${audio}`,
@@ -49,7 +49,9 @@ function appendFormDataOptions(
  * @param {Buffer | string} audio Input audio as a Buffer or URL string.
  * @param {IElevenLabsSpeechToSpeechConvert} options Conversion options including voice_id, model_id, and voice settings.
  * @returns {Promise<IElevenLabsSharedResponse>} Object containing base64-encoded converted audio data.
- * @throws {ThirdPartyApiError} If audio fetching fails or the ElevenLabs API returns an error status code.
+ * @throws {ThirdPartyApiError} If audio fetching fails.
+ * @throws {UpstreamApiError} If the ElevenLabs API returns an error status code
+ * or answers with a payload that does not match the published schema.
  */
 export async function speechToSpeech(
 	audio: Buffer | string,
@@ -66,26 +68,27 @@ export async function speechToSpeech(
 
 	appendFormDataOptions(formData, restOptions);
 
-	const { data, error } = await httpClient.post<Buffer>(
-		`/v1/speech-to-speech/${voice_id}`,
-		formData,
-		{
-			params: {
-				output_format,
-				enable_logging: false,
-			},
-			headers: {
-				"Content-Type": "multipart/form-data",
-			},
-			responseType: "arraybuffer",
-		}
+	const converted = await httpClient.send<Buffer>({
+		url: `/v1/speech-to-speech/${voice_id}`,
+		method: "post",
+		data: formData,
+		params: {
+			output_format,
+			enable_logging: false,
+		},
+		headers: {
+			"Content-Type": "multipart/form-data",
+		},
+		responseType: "arraybuffer",
+		// The call is billed per generation: it must not be replayed.
+		retry: { retryCondition: neverRetry },
+	});
+
+	return parseUpstreamPayload(
+		ElevenLabsSharedResponseSchema,
+		{ audio: Buffer.from(converted).toString("base64") },
+		{ service: "elevenlabs", label: "speech" }
 	);
-	if (error) {
-		throw new ThirdPartyApiError(error.message, error.statusCode);
-	}
-	return {
-		audio: Buffer.from(data).toString("base64"),
-	};
 }
 
 /**

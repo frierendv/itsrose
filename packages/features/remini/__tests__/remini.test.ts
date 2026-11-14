@@ -1,24 +1,6 @@
-import type { HttpClientError, HttpResponse } from "@itsrose/http-client";
 import type { Client } from "../src/client/client";
 import { extractImageMetadata } from "../src/utils/extract-image-metadata";
 import { ReminiRequestSchema } from "../src/zod-schema/request";
-
-/**
- * Builds a resolved HTTP response envelope.
- *
- * Invariant: the code under test only reads `data` from the envelope; the
- * axios-only `headers`/`config` fields are never inspected by these tests, so
- * empty placeholders are safe here.
- */
-const mockResponse = (
-	partial: Partial<HttpResponse<unknown, HttpClientError>>
-): HttpResponse<unknown, HttpClientError> =>
-	({
-		ok: true,
-		headers: {},
-		config: {},
-		...partial,
-	}) as unknown as HttpResponse<unknown, HttpClientError>;
 
 /**
  * Builds a minimal `Client` double exposing only `task.create`.
@@ -132,15 +114,13 @@ describe("features/remini", () => {
 
 		it("creates task with URL image successfully", async () => {
 			const { createTask } = await import("../src/remini/create-task");
-			const { fetcher } = await import("@itsrose/http-client");
+			const { assetClient } = await import("../src/client/client");
 
 			const base64Png =
 				"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 			const buffer = Buffer.from(base64Png, "base64");
 
-			jest.spyOn(fetcher, "get").mockResolvedValue(
-				mockResponse({ data: buffer })
-			);
+			jest.spyOn(assetClient, "send").mockResolvedValue(buffer);
 
 			const mockClient = mockClientDouble(
 				jest.fn().mockResolvedValue({

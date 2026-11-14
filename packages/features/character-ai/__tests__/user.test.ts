@@ -5,36 +5,59 @@ import type { UserDetail } from "../src/zod-schema";
 
 describe("User", () => {
 	let mockClient: Client;
-	let mockHttpGet: jest.Mock;
+	let mockHttpSend: jest.Mock;
 
-	const dummyUserDetail: UserDetail = {
+	/**
+	 * The user detail as the upstream sends it, with every field the
+	 * published schema requires.
+	 */
+	const dummyUserDetail = {
 		user: {
-			id: 999,
 			username: "cai_user",
+			id: 999,
+			first_name: "Cai",
 			account: {
 				name: "CAI Account Name",
 				avatar_type: "DEFAULT",
-				avatar_file_name: null,
+				onboarding_complete: true,
+				avatar_file_name: "avatar.png",
+				mobile_onboarding_complete: 1,
 			},
 			is_staff: false,
 			subscription: null,
+			entitlements: [],
+			ppid: "ppid",
+			phone_settings: {
+				phone_number: "+620000000000",
+				verified_at: "2024-01-01",
+			},
+			age_data: {
+				age_category: "adult",
+				verification_status: "verified",
+			},
 		},
 		is_human: true,
-	} as unknown as UserDetail;
+		name: "Cai User",
+		email: "cai@example.com",
+		date_joined: "2024-01-01",
+		date_of_birth: "2000-01-01",
+		needs_to_acknowledge_policy: false,
+		accepted_policy_acknowledgements: [],
+		hidden_characters: [],
+		blocked_users: [],
+	} satisfies UserDetail;
 
 	beforeEach(() => {
-		mockHttpGet = jest.fn();
+		mockHttpSend = jest.fn();
 		mockClient = {
 			http: {
-				get: mockHttpGet,
+				send: mockHttpSend,
 			},
 		} as unknown as Client;
 	});
 
 	it("should fetch user details from API and cache the result", async () => {
-		mockHttpGet.mockResolvedValueOnce({
-			data: { user: dummyUserDetail },
-		});
+		mockHttpSend.mockResolvedValueOnce({ user: dummyUserDetail });
 
 		const user = new User(mockClient);
 		expect(user.detail).toBeUndefined();
@@ -43,22 +66,32 @@ describe("User", () => {
 
 		expect(result).toEqual(dummyUserDetail);
 		expect(user.detail).toEqual(dummyUserDetail);
-		expect(mockHttpGet).toHaveBeenCalledWith("/user/");
-		expect(mockHttpGet).toHaveBeenCalledTimes(1);
+		expect(mockHttpSend).toHaveBeenCalledWith({ url: "/user/" });
+		expect(mockHttpSend).toHaveBeenCalledTimes(1);
 
 		// Subsequent call should use cache
 		const cachedResult = await user.get();
 		expect(cachedResult).toEqual(dummyUserDetail);
-		expect(mockHttpGet).toHaveBeenCalledTimes(1);
+		expect(mockHttpSend).toHaveBeenCalledTimes(1);
 	});
 
 	it("should throw ThirdPartyApiError if fetched user is null or undefined", async () => {
-		mockHttpGet.mockResolvedValueOnce({
-			data: { user: null },
-		});
+		mockHttpSend.mockResolvedValueOnce({ user: null });
 
 		const user = new User(mockClient);
 
 		await expect(user.get()).rejects.toThrow(ThirdPartyApiError);
+	});
+
+	it("rejects a user detail the upstream drifted on", async () => {
+		mockHttpSend.mockResolvedValueOnce({
+			user: { ...dummyUserDetail, email: undefined },
+		});
+
+		const user = new User(mockClient);
+
+		await expect(user.get()).rejects.toThrow(
+			"did not match the published schema"
+		);
 	});
 });
