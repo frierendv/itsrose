@@ -26,14 +26,27 @@ thunk, so deferral is structural.
 
 ## Known rough edges, as of 2026-11-14
 
-- **The admin barrel is a 140-declaration wall**, while four of the admin
-  feature's genuinely reusable modules (`./query-keys`, `./routes`, `./models`,
-  `./table-state`) are excluded from it and reached through deep paths by
-  outsiders anyway.
-- **`features/admin/types.ts` hand-declares eight wire interfaces** that
+- **The admin barrel exported 124 names** for nine outside consumers, each
+  of which imported exactly one page component. **Fixed at `f22d238`** — the
+  barrel now exports those nine, and the feature's own files reach their
+  internals by relative path.
+- **`features/admin/types.ts` hand-declared eight wire interfaces** that
   already exist as Zod schemas in `@itsrose/auth-billing/schema`, a published
-  client-safe subpath. Drift is already visible: one endpoint sends `user_id`,
-  another sends `userId`.
+  client-safe subpath. **Fixed at `f22d238`** — all eight are now derived
+  from the schemas.
+
+    The dashboard has no zod dependency, so `z.input` and `z.infer` are not in
+    scope. Both are defined over the `_zod` contract every Zod v4 schema
+    exposes, and the schemas are imported with `import type`, so zod never
+    enters the browser bundle. The linkage is real, not `any` — reading a field
+    that is not on the schema is a compile error.
+
+    `z.input` is used for everything the dashboard _sends_, because the plan
+    schemas carry defaults and a form legitimately omits those fields.
+    `z.infer` is used for the three list queries, whose `limit` and `offset`
+    are coerced: `z.input` types them as `unknown`, which is useless for
+    numeric UI state.
+
 - **Invoice-status semantics are encoded in four places**, including a
   verbatim copy of `isPendingInvoice` in the admin invoice table that shadows
   an exported helper in the billing feature.

@@ -19,15 +19,42 @@ Measured: 1 attempt where stock axios-retry made 4.
 
 Fixed at `7e69f44`. See [the decision](../decisions/http-retry-contract.md).
 
-## The axios leak
+## The axios leak — closed
 
-`HttpClient` exposes `interceptors`, `defaults` and `axiosInstance` — so
-callers learn axios rather than the client. Two feature packages use it:
-`packages/features/mtxx` mutates `client.defaults.headers.common` and
-`client.interceptors.request` to sign its requests, and
-`packages/features/remini` extends `HttpClient` directly. Wave 3 closes these
-behind a `sign`/`headers` hook, which is the precondition for the
-upstream-client module (candidate C2) to be worth building.
+**Fixed at `4d292ed`.** `HttpClient` used to expose `interceptors`,
+`defaults` and `axiosInstance`, so a caller of the client learned axios
+rather than the client. Four consumers used them.
+
+The client now has a surface for what those consumers actually needed:
+
+| Surface                                  | For                                                  |
+| ---------------------------------------- | ---------------------------------------------------- |
+| `requestTransform`                       | signing, auth headers, rewriting the outgoing config |
+| `responseTransform`                      | mapping the upstream response                        |
+| `adapter`                                | injecting the transport — a deliberate test seam     |
+| `setDefaultHeader` / `setDefaultHeaders` | a header computed after construction                 |
+| `resolveUrl`                             | the absolute URL a request targets                   |
+
+Two things about it are worth remembering, because both are easy to get
+wrong:
+
+- **The hook names are `requestTransform` and `responseTransform`, not
+  `transformRequest` and `transformResponse`.** Axios already owns those two
+  key names for its own _data_ transformers. `axios.create(config)` would
+  have handed our hook to axios, and axios would have called it with
+  `(data, headers)` instead of `(config)`.
+- **The hooks are registered after the retry interceptor.** Axios runs
+  request interceptors in reverse registration order and response
+  interceptors in registration order. Registering the hooks last means the
+  retry interceptor counts the attempts and the hooks own the caller's
+  payload. Registering them earlier would let midtrans' business-status
+  mapping preempt retries on a 5xx.
+
+The mtxx signing behaviour now has a test that proves it: the
+`Authorization` value is decoded and checked for the HMAC prefix, the signed
+headers and a 64-character hex signature — and a request to the openapi base
+URL is shown NOT to be signed and instead to carry `api_key` and `api_secret`
+in the query. That logic had only implicit coverage before.
 
 ## The feature packages sit on top of it, inconsistently
 

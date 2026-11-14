@@ -78,11 +78,59 @@ and silently skip the subscription settlement.
 
 See [the decision](decisions/invoice-status-vocabulary.md).
 
-### Not started — Waves 3 and 4
+### Landed — Wave 3 and 4
 
-C5b (close the axios escape hatches), C2 (the upstream-client module), C1
-(one shared route module mounted by both apps), C6b (schema wire types and a
-narrower admin barrel).
+| Commit    | Subject                                                                       |
+| --------- | ----------------------------------------------------------------------------- |
+| `c2bb6de` | test(auth-usage): cover the Redis adapter that meters billable usage          |
+| `f22d238` | refactor(dashboard): derive the admin wire types from the schemas             |
+| `1403f08` | fix(billing): a zero price is a price, and the cron inputs carry their bounds |
+| `4d292ed` | refactor(http-client): close the axios escape hatches                         |
+| `6a6a28f` | refactor(api): one shared route surface, mounted by both apps                 |
+
+**C5b — the axios escape hatches are closed.** `HttpClient` no longer exposes
+`interceptors`, `defaults` or `axiosInstance`. The client has a surface for
+what the four consumers actually needed: `requestTransform`,
+`responseTransform`, `adapter`, `setDefaultHeader(s)` and `resolveUrl`.
+
+The hook names are `requestTransform` and `responseTransform` rather than
+`transformRequest` and `transformResponse` because **axios already owns those
+two key names for its own data transformers** — `axios.create(config)` would
+have handed our hook to axios to call with `(data, headers)`.
+
+The hooks are registered **after** the retry interceptor on purpose. Axios
+runs request interceptors in reverse registration order and response
+interceptors in registration order, so the retry interceptor counts the
+attempts and the hooks own the caller's payload. Moving them earlier would
+let midtrans' business-status mapping preempt retries on a 5xx.
+
+**C1 — one shared route surface.** `@itsrose/api-routes` holds the sixteen
+routes and the error envelope; both apps mount it and pass their options. The
+four difference axes are data. The per-route upload condition was NOT
+unified, because it genuinely differs — `/music_compose` uploads unless the
+caller asked for the inline payload, the three speech routes upload only
+when a URL was asked for.
+
+**C6b — the dashboard's wire types come from the schemas.** All eight
+hand-declared interfaces are now derived, and the admin barrel exports nine
+names instead of 124.
+
+**The Redis usage adapter went from 0/5 functions to 100%.** 478 lines at
+20% coverage, deciding what a customer is billed, with the legacy-merge rule
+never verified. 45 tests; the adapter itself needed no change.
+
+### In flight — the last programme item
+
+C2 — the upstream-client module: one way to hold a client, one error shape,
+and the response schema applied where one exists. The precondition (C5b) is
+landed.
+
+### Also done, found along the way
+
+The `z.any()` residue. The `no-explicit-any` rule cannot see `z.any()` —
+it is a runtime Zod call whose inferred type is `any` — so 22 of them
+survived. A schema is the contract, and a field typed `z.any()` accepts
+anything and disables the validation the schema exists to provide.
 
 The environment backlog runs alongside the programme — see
 [the environment backlog](backlogs/environment-backlog.md). Its first two
@@ -92,21 +140,97 @@ which changes what Wave 3 should prioritise.
 
 ## The candidate list
 
-- **C1** — collapse the duplicated Fastify surface. 16 route files are shared
-  between `apps/api` and `apps/api-internal`; 7 are byte-identical and 9 differ
-  by 7–25 lines. The error→envelope mapper is copied line for line.
-- **C2** — one upstream-client module at the seam between the six feature
-  packages and their services. Three HTTP idioms, four error mappers, one
-  response schema actually parsed.
-- **C3** — one invoice-status vocabulary. See
-  [the decision](decisions/invoice-status-vocabulary.md).
-- **C4** — one proration rule. See [the decision](decisions/proration-single-rule.md).
-- **C5** — repair `@itsrose/http-client`. See
-  [the decision](decisions/http-retry-contract.md).
-- **C6** — the dashboard's data seam takes a thunk; the schema owns the wire
-  types.
-- **C7** — three packages with no callers. See
-  [the decision](decisions/deletion-test-applied.md).
+### C1 — collapse the duplicated Fastify surface
+
+16 route files are shared between `apps/api` and `apps/api-internal`. Measured
+on 2026-11-14: **7 are byte-identical** (`audio/get-models`, `audio/get-voices`,
+`instagram/get-media`, `mtxx/image-restoration`, `mtxx/remove-bg`,
+`remini/create-task`, `tiktok/get-content`) and **9 differ by 7–25 lines**.
+The error→envelope mapper is copied line for line.
+
+The differences reduce to exactly four axes, which is what makes the
+collapse possible rather than a rewrite:
+
+1. **OpenAPI description text.** `api` carries richer descriptions (markdown
+   tables, example asset links); `api-internal` carries one-liners.
+2. **The S3 audio upload.** `api` reads the `response-audio-format` request
+   header and uploads the base64 audio to S3 when the format asks for a URL.
+   `api-internal` returns the base64 inline. The condition differs per route
+   — `audio/music.ts` uploads when the format is not `base64`, while
+   `text-to-speech.ts` and `speech-to-speech.ts` upload when it is `url`.
+3. **The response header schema.** `api` declares
+   `headers: ElevenLabsSharedResponseAudioSchema` on the 200 response;
+   `api-internal` does not.
+4. **`consumes`.** `audio/create-ivc-voice.ts` declares
+   `multipart/form-data` in `api` and `application/json` in `api-internal`.
+
+`api` also has five routes `api-internal` does not (`auth`, the two
+character_ai routes, `hooks`, `status`); `api-internal` has `mtxx/get-task.ts`
+which `api` does not.
+
+Both apps are kept. The difference between them becomes data, not duplicated
+code.
+
+### C2 — one upstream-client module
+
+At the seam between the six feature packages and their services. Three HTTP
+idioms, four error mappers, one response schema actually parsed. Depends on
+C5b: the upstream-client module is only worth building once callers learn the
+client instead of axios.
+
+### C3 — one invoice-status vocabulary
+
+See [the decision](decisions/invoice-status-vocabulary.md). **Landed.**
+
+### C4 — one proration rule
+
+See [the decision](decisions/proration-single-rule.md). **Landed.**
+
+### C5 — repair `@itsrose/http-client`
+
+See [the decision](decisions/http-retry-contract.md) for the retry contract.
+**C5a landed.** C5b closes the axios escape hatches.
+
+### C6 — the dashboard's data seam takes a thunk; the schema owns the wire types
+
+**C6a landed** (`a798101`). C6b is the remaining half.
+
+### C7 — three packages with no callers
+
+See [the decision](decisions/deletion-test-applied.md). **Landed.**
+
+## The measured facts behind C1, C5b and C6b
+
+Recorded 2026-11-14 so the next agent does not have to re-derive them.
+
+**The axios escape hatches.** `HttpClient` exposes `interceptors`, `defaults`
+and `axiosInstance`. Four consumers:
+
+| Consumer                                                | What it uses it for                                                                                                                                                                                     |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/features/mtxx/src/client/client.ts`           | `extends HttpClient`; sets `defaults.headers.common["x-mtcc-client"]` after construction; installs a request interceptor that signs SDK requests and appends `api_key`/`api_secret` to openapi requests |
+| `packages/features/remini/src/client/oracle.ts:79`      | `Object.assign(this.client.defaults.headers.common, headers)`                                                                                                                                           |
+| `packages/midtrans/src/client/transport.ts:63,70`       | request and response interceptors                                                                                                                                                                       |
+| `packages/midtrans/__tests__/unit/transport.test.ts:38` | `http.axiosInstance.defaults.adapter` — a test seam that exists by accident                                                                                                                             |
+
+**The admin barrel.** `apps/dashboard/features/admin/index.ts` re-exports
+**142 names** from 58 files. Its only outside consumers are nine app-router
+pages, each importing exactly one page component. The feature's own files do
+not import its own barrel. So 133 of the 142 exports exist for nobody.
+
+**The dashboard's hand-declared wire types.** `features/admin/types.ts`
+declares eight interfaces that shadow schemas already published at
+`@itsrose/auth-billing/schema`. The drift is visible: `CreatePlanInput` is a
+flat form shape (`price_amount`, `interval`) while `createPlanSchema` is a
+nested wire shape (`prices: [...]`). The mutation translates between them —
+that part is legitimate — but nothing forces the field names to agree.
+
+**The usage Redis adapter.** `packages/auth/usage/src/adapter/redis.ts` is
+478 lines at **0/5 functions** covered. It encodes the rules that decide what
+a customer is billed, and nobody has verified them: the legacy-layout merge
+(`Math.max` per day, with `requestsOk` clamped by `Math.min`), the window
+clamp, the TTLs, and the pipeline stride of 5 with legacy keys versus 3
+without. A wrong stride makes every read return the wrong numbers.
 
 ## The sequencing principle
 
