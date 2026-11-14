@@ -4,10 +4,10 @@ import {
 	createSerializerCompiler,
 	validatorCompiler,
 } from "fastify-zod-openapi";
-import type { SharedRoutesOptions } from "../src";
-import { sharedRoutes } from "../src";
+import { audioRoutes } from "../src/audio";
+import type { AudioRoutesOptions } from "../src/audio/options";
 
-const build = async (options: SharedRoutesOptions) => {
+const build = async (options: AudioRoutesOptions) => {
 	const app = Fastify();
 
 	app.setValidatorCompiler(validatorCompiler);
@@ -27,7 +27,7 @@ const build = async (options: SharedRoutesOptions) => {
 		})
 	);
 
-	await app.register(sharedRoutes, options);
+	await app.register(audioRoutes, options);
 	await app.ready();
 
 	return app;
@@ -42,7 +42,7 @@ const PROMPT = {
 	prompt: "A song about the sea",
 };
 
-describe("the audio routes of the shared surface", () => {
+describe("the audio routes", () => {
 	it("uploads the audio of /music_compose unless base64 was asked for", async () => {
 		const uploaded: string[] = [];
 		const app = await build({
@@ -58,7 +58,7 @@ describe("the audio routes of the shared surface", () => {
 
 		await app.inject({
 			method: "POST",
-			url: "/music_compose",
+			url: "/audio/music_compose",
 			headers: { "response-audio-format": "base64" },
 			payload: PROMPT,
 		});
@@ -66,7 +66,7 @@ describe("the audio routes of the shared surface", () => {
 
 		await app.inject({
 			method: "POST",
-			url: "/music_compose",
+			url: "/audio/music_compose",
 			headers: { "response-audio-format": "url" },
 			payload: PROMPT,
 		});
@@ -90,7 +90,7 @@ describe("the audio routes of the shared surface", () => {
 
 		await app.inject({
 			method: "POST",
-			url: "/text_to_speech",
+			url: "/audio/text_to_speech",
 			headers: { "response-audio-format": "base64" },
 			payload: VOICE,
 		});
@@ -98,7 +98,7 @@ describe("the audio routes of the shared surface", () => {
 
 		await app.inject({
 			method: "POST",
-			url: "/text_to_speech",
+			url: "/audio/text_to_speech",
 			headers: { "response-audio-format": "url" },
 			payload: VOICE,
 		});
@@ -116,12 +116,28 @@ describe("the audio routes of the shared surface", () => {
 
 		await app.inject({
 			method: "POST",
-			url: "/music_compose",
+			url: "/audio/music_compose",
 			headers: { "response-audio-format": "url" },
 			payload: PROMPT,
 		});
 
 		expect(uploaded).toEqual([]);
+		await app.close();
+	});
+
+	it("does not serve the routes of another module", async () => {
+		const app = await build({
+			uploadAudioToStorage: false,
+			declareAudioResponseHeader: false,
+		});
+
+		const response = await app.inject({
+			method: "POST",
+			url: "/text_to_speech",
+			payload: VOICE,
+		});
+
+		expect(response.statusCode).toBe(404);
 		await app.close();
 	});
 });

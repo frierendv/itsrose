@@ -37,6 +37,8 @@ to read `index.md` and know where to look.
   competing error models, and the signature invariant.
 - [Shared HTTP client](subsystems/http-client.md) — the transport every
   upstream call goes through.
+- [Shared route surface](subsystems/api-routes.md) — the route modules
+  `apps/api` and `apps/api-internal` share, and the prefixes they live under.
 - [Dashboard](subsystems/dashboard.md) — the Next.js app, its feature slices,
   and its data seam.
 

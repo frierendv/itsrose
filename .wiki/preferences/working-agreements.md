@@ -11,6 +11,10 @@
   stay. Candidate C1 therefore becomes _one shared route module mounted
   twice_, with the auth guard, rate limit and audio→S3 upload expressed as
   per-app plugin options — not "delete one app".
+  **Superseded 2026-11-14:** the one shared route module became one module
+  per package, each mounted under its own prefix. The app split stands; the
+  shape of the shared surface changed. See
+  [the shared route surface](../subsystems/api-routes.md).
 - **`@itsrose/api-client` is deleted, not finished.** There was an option to
   generate it from the OpenAPI surface the server already produces at runtime;
   deletion was chosen instead.

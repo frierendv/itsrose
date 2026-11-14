@@ -1,12 +1,33 @@
 import type { FastifyRequest } from "fastify";
 
 /**
+ * The default URL namespace of every route module of the shared surface.
+ *
+ * This is the one place that says which namespace each module serves: a
+ * module reads its own prefix from here, and an application that wants to
+ * know where a module lives looks it up here.
+ */
+export const ROUTE_MODULE_PREFIXES = {
+	audio: "/audio",
+	"character-ai": "/character_ai",
+	instagram: "/instagram",
+	mtxx: "/mtxx",
+	remini: "/remini",
+	tiktok: "/tiktok",
+} as const;
+
+/**
+ * The name of a route module of the shared surface.
+ */
+export type RouteModuleName = keyof typeof ROUTE_MODULE_PREFIXES;
+
+/**
  * Port for storing generated audio outside the request/response cycle.
  *
- * The shared route module never talks to an object store itself: an app that
+ * The route module never talks to an object store itself: an app that
  * wants to hand out URLs provides an adapter, an app that returns the payload
  * inline opts out. This keeps the storage vendor (S3, R2, ...) an adapter
- * decision of the app, not of the shared route.
+ * decision of the app, not of the route module.
  */
 export interface AudioStoragePort {
 	/**
@@ -33,72 +54,32 @@ export type AudioStorageOptions =
 	| { uploadAudioToStorage: true; audioStorage: AudioStoragePort };
 
 /**
- * Every route of the shared surface, keyed by the route it belongs to.
+ * The options every route module understands.
  *
- * A route that defines more than one endpoint (`/text_to_speech` and
- * `/text_to_speech/with_timestamp`) gets one key per endpoint.
- */
-export const SHARED_ROUTE_KEYS = [
-	"createIvcVoice",
-	"getModels",
-	"getVoices",
-	"musicCompose",
-	"musicComposePlan",
-	"speechToSpeech",
-	"textToDialogue",
-	"textToSpeech",
-	"textToSpeechWithTiming",
-	"getMedia",
-	"clothesSegmentation",
-	"expressionGeneration",
-	"imageRestoration",
-	"outpainting",
-	"removeBg",
-	"versatileHairstyle",
-	"createTask",
-	"getContent",
-] as const;
-
-/**
- * The key of a route of the shared surface.
- */
-export type SharedRouteKey = (typeof SHARED_ROUTE_KEYS)[number];
-
-/**
- * OpenAPI description overrides, per route.
+ * The keys of `descriptions` and `consumes` are the routes of the module the
+ * options belong to, so an app cannot document a route of another package by
+ * mistake.
  *
- * The shared module carries the canonical description of every route. An app
- * documents a route differently - the public API publishes examples, the
- * internal API does not - by overriding the description here.
+ * @typeParam TKey - The route keys of the module.
  */
-export type SharedRouteDescriptions = Partial<Record<SharedRouteKey, string>>;
-
-/**
- * `consumes` (OpenAPI request content types) overrides, per route.
- */
-export type SharedRouteConsumes = Partial<Record<SharedRouteKey, string[]>>;
-
-/**
- * Options the mounting app hands to the shared route surface.
- */
-export type SharedRoutesOptions = AudioStorageOptions & {
+export type RouteModuleOptions<TKey extends string> = {
 	/**
-	 * Whether the `response-audio-format` request header is declared on the
-	 * audio routes.
+	 * The URL namespace the routes of the module live in.
 	 *
-	 * Declaring the header documents it in OpenAPI and makes Fastify validate
-	 * the incoming header value. An app that does not declare it must not
-	 * have the key present in the route schema at all.
+	 * Left out, the module uses its own default - the name of the package
+	 * the routes belong to. An empty string mounts the module at the root of
+	 * the application.
 	 */
-	declareAudioResponseHeader: boolean;
+	prefix?: string;
 
 	/**
-	 * OpenAPI description overrides, per route.
+	 * OpenAPI description overrides, per route of the module.
 	 */
-	descriptions?: SharedRouteDescriptions;
+	descriptions?: Partial<Record<TKey, string>>;
 
 	/**
-	 * `consumes` overrides, per route.
+	 * `consumes` (OpenAPI request content types) overrides, per route of the
+	 * module.
 	 */
-	consumes?: SharedRouteConsumes;
+	consumes?: Partial<Record<TKey, string[]>>;
 };

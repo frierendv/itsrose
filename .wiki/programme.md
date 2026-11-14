@@ -111,6 +111,11 @@ unified, because it genuinely differs — `/music_compose` uploads unless the
 caller asked for the inline payload, the three speech routes upload only
 when a URL was asked for.
 
+> **Superseded 2026-11-14.** The single shared surface became one route
+> module per package, each with its own prefix. See
+> [the shared route surface](subsystems/api-routes.md). The four difference
+> axes above are unchanged.
+
 **C6b — the dashboard's wire types come from the schemas.** All eight
 hand-declared interfaces are now derived, and the admin barrel exports nine
 names instead of 124.

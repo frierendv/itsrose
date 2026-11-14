@@ -321,7 +321,7 @@ const config: Config = {
 				// what the route does, not what the upstream answered. The
 				// patterns come before the shared ones, which would resolve the
 				// real packages.
-				"^@itsrose/(elevenlabs|instagram|mtxx|remini|tiktok)$":
+				"^@itsrose/(character-ai|elevenlabs|instagram|mtxx|remini|tiktok)$":
 					"<rootDir>/packages/api-routes/__tests__/mocks/$1",
 				// The multipart parser ships as ESM only, which the Jest runtime
 				// cannot require. The route test never reaches it.

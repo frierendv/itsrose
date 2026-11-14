@@ -41,7 +41,6 @@
 		"@itsrose/auth-usage": "workspace:*",
 		"@itsrose/character-ai": "workspace:*",
 		"@itsrose/elevenlabs": "workspace:*",
-		"@itsrose/instagram": "workspace:*",
 		"@itsrose/midtrans": "workspace:*",
 		"@itsrose/mtxx": "workspace:*",
 		"@itsrose/remini": "workspace:*",

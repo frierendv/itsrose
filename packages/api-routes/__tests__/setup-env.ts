@@ -3,6 +3,8 @@
  * are imported. The route module imports them, so the test environment needs
  * the keys to exist - their values are never used.
  */
+process.env.CAI_USER_TOKEN ??= "test-cai-user-token";
+process.env.CAI_NEO_BASE_URL ??= "https://character-ai.test";
 process.env.ELEVENLABS_API_KEY ??= "test-elevenlabs-key";
 process.env.MTXX_APP_VERSION ??= "1.0.0";
 process.env.MTXX_SDK_BASE_URL ??= "https://mtxx-sdk.test";

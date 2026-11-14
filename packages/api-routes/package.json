@@ -12,9 +12,7 @@
 		"url": "git+https://github.com/frierendv/itsrose.git",
 		"directory": "packages/api-routes"
 	},
-	"bugs": {
-		"url": "https://github.com/frierendv/itsrose/issues"
-	},
+	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
@@ -32,6 +30,12 @@
 	],
 	"exports": {
 		".": "./src/index.ts",
+		"./audio": "./src/audio/index.ts",
+		"./character-ai": "./src/character-ai/index.ts",
+		"./instagram": "./src/instagram/index.ts",
+		"./mtxx": "./src/mtxx/index.ts",
+		"./remini": "./src/remini/index.ts",
+		"./tiktok": "./src/tiktok/index.ts",
 		"./package.json": "./package.json"
 	},
 	"scripts": {
@@ -42,26 +46,56 @@
 		"lint:fix": "eslint . --max-warnings 0 --fix",
 		"typecheck": "tsc --noEmit"
 	},
+	"peerDependencies": {
+		"fastify": "^5.12.8",
+		"fastify-plugin": "^6.0.1",
+		"fastify-zod-openapi": "^5.7.0"
+	},
 	"dependencies": {
 		"@itsrose/api-response": "workspace:*",
+		"@itsrose/character-ai": "workspace:*",
 		"@itsrose/elevenlabs": "workspace:*",
 		"@itsrose/instagram": "workspace:*",
 		"@itsrose/mtxx": "workspace:*",
 		"@itsrose/remini": "workspace:*",
 		"@itsrose/system": "workspace:*",
-		"@itsrose/tiktok": "workspace:*",
+		"@itsrose/tiktok": "workspace:*"
+	},
+	"devDependencies": {
+		"@itsrose/standard": "workspace:*",
 		"fastify": "^5.12.8",
 		"fastify-plugin": "^6.0.1",
 		"fastify-zod-openapi": "^5.7.0"
-	},
-	"devDependencies": {
-		"@itsrose/standard": "workspace:*"
 	},
 	"publishConfig": {
 		"exports": {
 			".": {
 				"import": "./dist/index.mjs",
 				"require": "./dist/index.js"
+			},
+			"./audio": {
+				"import": "./dist/audio/index.mjs",
+				"require": "./dist/audio/index.js"
+			},
+			"./character-ai": {
+				"import": "./dist/character-ai/index.mjs",
+				"require": "./dist/character-ai/index.js"
+			},
+			"./instagram": {
+				"import": "./dist/instagram/index.mjs",
+				"require": "./dist/instagram/index.js"
+			},
+			"./mtxx": {
+				"import": "./dist/mtxx/index.mjs",
+				"require": "./dist/mtxx/index.js"
+			},
+			"./remini": {
+				"import": "./dist/remini/index.mjs",
+				"require": "./dist/remini/index.js"
+			},
+			"./tiktok": {
+				"import": "./dist/tiktok/index.mjs",
+				"require": "./dist/tiktok/index.js"
 			},
 			"./package.json": "./package.json"
 		}

@@ -222,9 +222,6 @@ importers:
       '@itsrose/elevenlabs':
         specifier: workspace:*
         version: link:../../packages/features/elevenlabs
-      '@itsrose/instagram':
-        specifier: workspace:*
-        version: link:../../packages/features/instagram
       '@itsrose/midtrans':
         specifier: workspace:*
         version: link:../../packages/midtrans
@@ -313,24 +310,9 @@ importers:
       '@itsrose/api-routes':
         specifier: workspace:*
         version: link:../../packages/api-routes
-      '@itsrose/elevenlabs':
-        specifier: workspace:*
-        version: link:../../packages/features/elevenlabs
-      '@itsrose/instagram':
-        specifier: workspace:*
-        version: link:../../packages/features/instagram
-      '@itsrose/mtxx':
-        specifier: workspace:*
-        version: link:../../packages/features/mtxx
-      '@itsrose/remini':
-        specifier: workspace:*
-        version: link:../../packages/features/remini
       '@itsrose/system':
         specifier: workspace:*
         version: link:../../packages/core/system
-      '@itsrose/tiktok':
-        specifier: workspace:*
-        version: link:../../packages/features/tiktok
       '@ngrok/ngrok':
         specifier: ^1.7.0
         version: 1.7.0
@@ -574,6 +556,9 @@ importers:
       '@itsrose/api-response':
         specifier: workspace:*
         version: link:../internal/api-response
+      '@itsrose/character-ai':
+        specifier: workspace:*
+        version: link:../features/character-ai
       '@itsrose/elevenlabs':
         specifier: workspace:*
         version: link:../features/elevenlabs
@@ -592,6 +577,10 @@ importers:
       '@itsrose/tiktok':
         specifier: workspace:*
         version: link:../features/tiktok
+    devDependencies:
+      '@itsrose/standard':
+        specifier: workspace:*
+        version: link:../standard
       fastify:
         specifier: ^5.12.8
         version: 5.12.8
@@ -601,10 +590,6 @@ importers:
       fastify-zod-openapi:
         specifier: ^5.7.0
         version: 5.7.0(@fastify/swagger@9.9.3(supports-color@8.1.1))(fastify@5.12.8)(zod@4.6.7)
-    devDependencies:
-      '@itsrose/standard':
-        specifier: workspace:*
-        version: link:../standard
 
   packages/auth/billing:
     dependencies:

@@ -6,7 +6,7 @@ import {
 	InstagramResponseSchema,
 } from "../../../features/instagram/src/zod-schema";
 
-export const getMedia = async () => ({ media: [] });
+export const getMedia = async () => ({ media_list: [] });
 export const getMediaSchema = {
 	request: InstagramRequestSchema,
 	response: InstagramResponseSchema,

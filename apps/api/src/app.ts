@@ -2,13 +2,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import AutoLoad from "@fastify/autoload";
 import { FailureResponse, SuccessResponse } from "@itsrose/api-response";
-import { sharedRoutes } from "@itsrose/api-routes";
 import type { FastifyPluginAsync } from "fastify";
 import {
 	createSerializerCompiler,
 	validatorCompiler,
 } from "fastify-zod-openapi";
-import { createSharedRoutesOptions } from "./lib/shared-routes";
+import { registerApiRouteModules } from "./lib/route-modules";
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const __filename = fileURLToPath(import.meta.url);
@@ -77,9 +76,9 @@ const app: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	});
 
 	/**
-	 * Register the route surface shared with apps/api-internal
+	 * Register the route modules this application serves
 	 */
-	await fastify.register(sharedRoutes, createSharedRoutesOptions(fastify));
+	await registerApiRouteModules(fastify);
 
 	/**
 	 * Register routes

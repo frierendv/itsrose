@@ -24,7 +24,10 @@ import {
 
 export { ElevenLabsSharedResponseAudioSchema, WithTimestampSchema };
 
-export const createIVCVoice = async () => ({ audio: "ivc-audio" });
+export const createIVCVoice = async () => ({
+	voice_id: "voice",
+	requires_verification: false,
+});
 export const createIVCVoiceSchema = {
 	request: ElevenLabsCreateIVCVoiceSchema,
 	response: ElevenLabsCreateIVCVoiceResponseSchema,
@@ -39,13 +42,37 @@ export const getVoicesSchema = {
 	response: ElevenLabsListVoicesResponseSchema,
 };
 
-export const musicCompose = async () => ({ audio: "music-audio" });
+const COMPOSITION_PLAN = {
+	positive_global_styles: ["pop"],
+	negative_global_styles: [],
+	sections: [
+		{
+			section_name: "Verse",
+			positive_local_styles: ["soft"],
+			negative_local_styles: [],
+			duration_ms: 30_000,
+			lines: ["Hello"],
+		},
+	],
+};
+
+export const musicCompose = async () => ({
+	audio: "music-audio",
+	composition_plan: COMPOSITION_PLAN,
+	song_metadata: {
+		description: null,
+		genres: [],
+		is_explicit: false,
+		languages: [],
+		title: "title",
+	},
+});
 export const musicComposeSchema = {
 	request: MusicComposeSchema,
 	response: MusicComposeDetailedResponseSchema,
 };
 
-export const musicComposePlan = async () => ({ plan: {} });
+export const musicComposePlan = async () => COMPOSITION_PLAN;
 export const musicComposePlanSchema = {
 	request: MusicComposePlanSchema,
 	response: MusicComposePlanResponseSchema,
@@ -69,4 +96,16 @@ export const textToSpeechSchema = {
 	response: ElevenLabsSharedResponseSchema,
 };
 
-export const textToSpeechWithTiming = async () => ({ audio: "timing-audio" });
+export const textToSpeechWithTiming = async () => ({
+	audio: "timing-audio",
+	alignment: {
+		characters: ["H"],
+		character_start_times_seconds: [0],
+		character_end_times_seconds: [1],
+	},
+	normalized_alignment: {
+		characters: ["H"],
+		character_start_times_seconds: [0],
+		character_end_times_seconds: [1],
+	},
+});

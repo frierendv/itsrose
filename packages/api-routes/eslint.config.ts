@@ -9,7 +9,7 @@ export default [
 			// used.
 			"turbo/no-undeclared-env-vars": [
 				"warn",
-				{ allowList: ["^(ELEVENLABS|MTXX|REMINI|TIKTOK)_"] },
+				{ allowList: ["^(CAI|ELEVENLABS|MTXX|REMINI|TIKTOK)_"] },
 			],
 		},
 	},

@@ -175,3 +175,14 @@ _Avoid_: Provider, Vendor
 Whether returned media is delivered inline as base64 or uploaded and
 referenced by URL.
 _Avoid_: Response Mode
+
+**Route Module**:
+The set of routes one package contributes to an API, mounted under its own
+URL namespace and registered on its own. An application registers the modules
+it serves; a module it does not register is never loaded.
+_Avoid_: Shared Routes, Route Group, Plugin
+
+**Route Prefix**:
+The URL namespace a Route Module's routes live under — `/audio`, `/mtxx`.
+It is the module's own, and the application may choose another.
+_Avoid_: Base Path, Namespace, Mount Point

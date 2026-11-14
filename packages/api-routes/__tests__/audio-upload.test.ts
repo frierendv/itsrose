@@ -1,16 +1,16 @@
 import type { FastifyRequest } from "fastify";
+import type { AudioRoutesOptions } from "../src/audio/options";
 import {
 	uploadAudio,
 	uploadUnlessBase64,
 	uploadWhenUrlRequested,
-} from "../src/audio";
-import type { SharedRoutesOptions } from "../src/options";
+} from "../src/audio/upload";
 
 const request = {} as FastifyRequest;
 
 const withPort = (
 	uploadBase64Audio: () => Promise<string>
-): SharedRoutesOptions => ({
+): AudioRoutesOptions => ({
 	uploadAudioToStorage: true,
 	audioStorage: { uploadBase64Audio },
 	declareAudioResponseHeader: false,
@@ -32,7 +32,7 @@ describe("audio upload conditions", () => {
 
 describe("uploadAudio", () => {
 	it("returns the inline payload when the app does not upload", async () => {
-		const options: SharedRoutesOptions = {
+		const options: AudioRoutesOptions = {
 			uploadAudioToStorage: false,
 			declareAudioResponseHeader: false,
 		};
