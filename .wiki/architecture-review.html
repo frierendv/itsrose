@@ -309,12 +309,53 @@
 					</div>
 				</div>
 
-				<p class="text-sm text-slate-600 mt-4 max-w-3xl">
-					Still to come: Waves 3 and 4 &mdash; closing the axios
-					escape hatches, the upstream-client module, one shared route
-					module mounted by both apps, and the dashboard's schema wire
-					types &mdash; and the environment backlog that runs
-					alongside them.
+				<div class="grid md:grid-cols-2 gap-3 mt-6">
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">Candidate 01</p>
+						<p class="text-sm mt-1">
+							<strong>One shared route surface</strong> &mdash;
+							both apps mount <code>@itsrose/api-routes</code> and
+							pass their own options. The difference between them
+							is data, not duplicated code.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">6a6a28f</p>
+					</div>
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">Candidate 02</p>
+						<p class="text-sm mt-1">
+							<strong>One upstream client</strong> &mdash; one
+							failure shape, the response schema applied, and a
+							mutating request no longer retried as if it were
+							safe to repeat.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">a5d8458</p>
+					</div>
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">Candidate 05</p>
+						<p class="text-sm mt-1">
+							<strong>The axios escape hatches are closed</strong>
+							&mdash; the client no longer hands its callers the
+							axios instance.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">4d292ed</p>
+					</div>
+					<div class="module-card p-3">
+						<p class="schematic text-slate-500">Candidate 06</p>
+						<p class="text-sm mt-1">
+							<strong>The schema owns the wire types</strong>
+							&mdash; the dashboard's hand-declared interfaces are
+							derived from the schemas that define them.
+						</p>
+						<p class="mono text-xs text-slate-500 mt-1">f22d238</p>
+					</div>
+				</div>
+
+				<p class="text-sm text-slate-600 mt-6 max-w-3xl">
+					<strong>All seven candidates are landed.</strong> The gate
+					is green: 102 suites, 860 tests. The coverage gate now
+					measures the whole source tree rather than the files that
+					had tests, so the number it reports is a measurement rather
+					than a flattering summary.
 				</p>
 			</section>
 
