@@ -30,7 +30,14 @@ const status: FastifyPluginAsync = async (fastify): Promise<void> => {
 			tags: ["General"],
 			description: "Check if the service is up and running",
 			response: {
-				200: z.record(z.string(), z.any()),
+				/**
+				 * The API key and the subscription of the caller.
+				 *
+				 * Both are shaped by their own packages, so the response is a
+				 * free-form map of unknown values here: the route hands the
+				 * two values over untouched.
+				 */
+				200: z.record(z.string(), z.unknown()),
 			},
 		},
 		handler: async (request) => {

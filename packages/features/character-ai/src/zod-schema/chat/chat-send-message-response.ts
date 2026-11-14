@@ -21,8 +21,21 @@ export const ChatSendMessageResponseSchema = z.object({
 			})
 		)
 		.describe("Character response candidates."),
-	generation_mode: z.record(z.string(), z.any()),
-	context_stats: z.record(z.string(), z.any()),
+	/**
+	 * The generation mode the reply was produced with.
+	 *
+	 * The upstream sends a map whose entries depend on the mode, so the values
+	 * stay `unknown`; the reader narrows the entries it cares about.
+	 */
+	generation_mode: z.record(z.string(), z.unknown()),
+	/**
+	 * The statistics of the context the reply was produced with.
+	 *
+	 * The upstream sends a map of counters whose entries depend on the model,
+	 * so the values stay `unknown`; the reader narrows the entries it cares
+	 * about.
+	 */
+	context_stats: z.record(z.string(), z.unknown()),
 });
 
 export type ChatSendMessageResponse = z.infer<

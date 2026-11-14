@@ -9,19 +9,40 @@ export const UserSchema = z.object({
 	first_name: z.string(),
 	account: UserAccountSchema,
 	is_staff: z.boolean(),
-	subscription: z.null().or(z.any()),
-	entitlements: z.array(z.any()),
+	/**
+	 * The subscription of the account.
+	 *
+	 * Character.ai sends `null` here for an account without a subscription.
+	 * The shape of a populated subscription is not described anywhere in this
+	 * repository, so the field stays `unknown`: a consumer has to narrow it
+	 * instead of being handed an unchecked value.
+	 */
+	subscription: z.unknown(),
+	/**
+	 * The entitlements granted to the account.
+	 *
+	 * The upstream sends an empty list for an account without entitlements and
+	 * the shape of an entry is not described anywhere in this repository, so
+	 * the entries stay `unknown` rather than being given an invented shape.
+	 */
+	entitlements: z.array(z.unknown()),
 	ppid: z.string(),
 	phone_settings: UserPhoneSettingSchema,
 	age_data: UserAgeSchema,
 });
 export const UserDetailSchema = z.object({
 	user: UserSchema,
+	/**
+	 * The attributes the upstream derived for the account.
+	 *
+	 * The upstream sends the object, or nothing at all for an account it has
+	 * not derived anything for.
+	 */
 	derived_attributes: z
 		.object({
-			eligible_for: z.array(z.any()),
+			eligible_for: z.array(z.unknown()).nullish(),
 		})
-		.or(z.any()),
+		.nullish(),
 	is_human: z.boolean(),
 	name: z.string(),
 	email: z.string(),
@@ -29,15 +50,41 @@ export const UserDetailSchema = z.object({
 	date_of_birth: z.string(),
 	needs_to_acknowledge_policy: z.boolean(),
 	accepted_policy_acknowledgements: z.array(z.string()),
-	suspended_until: z.any().nullish(),
-	hidden_characters: z.array(z.any()),
-	blocked_users: z.array(z.any()),
+	/**
+	 * When the suspension of the account ends.
+	 *
+	 * A timestamp like the other dates of this payload, and absent while the
+	 * account is not suspended.
+	 */
+	suspended_until: z.string().nullish(),
+	/**
+	 * The characters hidden from the account.
+	 *
+	 * The upstream sends an empty list when nothing is hidden and the shape of
+	 * an entry is not described anywhere in this repository, so the entries
+	 * stay `unknown`.
+	 */
+	hidden_characters: z.array(z.unknown()),
+	/**
+	 * The users blocked by the account.
+	 *
+	 * The upstream sends an empty list when nothing is blocked and the shape
+	 * of an entry is not described anywhere in this repository, so the entries
+	 * stay `unknown`.
+	 */
+	blocked_users: z.array(z.unknown()),
 	bio: z.string().nullish(),
+	/**
+	 * The interests selected on the account.
+	 *
+	 * The upstream sends the object, or nothing at all when no interest was
+	 * ever selected.
+	 */
 	interests: z
 		.object({
-			selected: z.array(z.string()),
+			selected: z.array(z.string()).nullish(),
 		})
-		.or(z.any()),
+		.nullish(),
 });
 
 export type UserDetail = z.infer<typeof UserDetailSchema>;

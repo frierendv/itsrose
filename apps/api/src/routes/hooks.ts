@@ -11,7 +11,14 @@ const routes: FastifyPluginAsync = async (fastify): Promise<void> => {
 		schema: {
 			tags: ["General"],
 			description: "Receive a webhook from an external service",
-			body: z.record(z.string(), z.any()).describe("Webhook payload"),
+			/**
+			 * The webhook payload.
+			 *
+			 * The external service decides the shape of the body, so the
+			 * payload is a free-form map of unknown values: the route hands it
+			 * to the consumer, which is the place that knows what it means.
+			 */
+			body: z.record(z.string(), z.unknown()).describe("Webhook payload"),
 			response: {
 				200: z.object({ ok: z.boolean() }).describe("Empty response"),
 			},

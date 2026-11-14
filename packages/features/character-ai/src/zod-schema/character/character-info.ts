@@ -35,7 +35,18 @@ export const CharacterInfoSchema = z
 			.describe("Is this character have professional license."),
 		creator: z
 			.object({
-				user_id: z.any().describe("Creator user id.").optional(),
+				/**
+				 * The id of the user who created the character.
+				 *
+				 * Character.ai reports the creator id either as a number (the
+				 * shape the `/user/` payload uses for `user.id`) or as a
+				 * string, so both are accepted. Anything else is not an id
+				 * and is dropped by the reader instead of being passed on.
+				 */
+				user_id: z
+					.union([z.string(), z.number()])
+					.describe("Creator user id.")
+					.nullish(),
 				user__username: z
 					.string()
 					.describe("Creator username.")

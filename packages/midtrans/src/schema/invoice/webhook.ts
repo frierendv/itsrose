@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { PaymentTypeSchema, QrisAcquirerSchema } from "../core";
 import {
 	BankCodeSchema,
+	PaymentAmountSchema,
 	SignedAmountSchema,
 	TransactionFraudStatusSchema,
 	TransactionStatusSchema,
@@ -25,7 +26,15 @@ export const InvoiceWebhookBankTransferSchema = z.object({
 			va_number: z.string(),
 		})
 		.array(),
-	payment_amounts: z.array(z.record(z.string(), z.any())).nullish(),
+	/**
+	 * The partial payments that made up the transfer.
+	 *
+	 * Midtrans sends one entry per payment chunk, each with the amount that
+	 * was paid and when it was paid. The shape is the one the package already
+	 * models for the same upstream field in the transaction notification and
+	 * in the transaction status response.
+	 */
+	payment_amounts: z.array(PaymentAmountSchema).nullish(),
 });
 export type InvoiceWebhookBankTransfer = z.infer<
 	typeof InvoiceWebhookBankTransferSchema

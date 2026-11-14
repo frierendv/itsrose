@@ -11,6 +11,23 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
+ * Narrows an unknown creator id to the shapes Character.ai sends.
+ *
+ * The upstream body reports the creator id either as a number (the shape the
+ * `/user/` payload uses for `user.id`) or as a string. A value that is
+ * neither is not an id, so it is dropped instead of being passed on as an
+ * opaque value the schema would reject.
+ *
+ * @param value Unknown creator id.
+ * @returns The id when it is a string or a number, otherwise `undefined`.
+ */
+function toCreatorId(value: unknown): string | number | undefined {
+	return typeof value === "string" || typeof value === "number"
+		? value
+		: undefined;
+}
+
+/**
  * Transforms raw Character.ai character API data into a normalized `CharacterInfo` object,
  * assembling avatar URLs, creator information, and interaction metrics.
  *
@@ -21,7 +38,7 @@ export function parseCharacterInfo(character: unknown): CharacterInfo {
 	const raw = isRecord(character) ? character : {};
 
 	const creator = {
-		user_id: raw.user_id,
+		user_id: toCreatorId(raw.user_id),
 		user__username: raw.user__username,
 		participant__name: raw.participant__name,
 	};
