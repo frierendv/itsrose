@@ -1,5 +1,5 @@
 import type { Invoice } from "@itsrose/auth-billing";
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it } from "vitest";
 import {
 	formatDateID,
 	formatIDR,

@@ -1,4 +1,5 @@
 import { render, renderHook, screen } from "@testing-library/react";
+import { vi } from "vitest";
 import { createContext } from "../../src/core/create-context";
 
 describe("core/create-context", () => {
@@ -36,7 +37,7 @@ describe("core/create-context", () => {
 			return null;
 		};
 
-		const consoleSpy = jest
+		const consoleSpy = vi
 			.spyOn(console, "error")
 			.mockImplementation(() => {});
 
@@ -55,7 +56,7 @@ describe("core/create-context", () => {
 			return null;
 		};
 
-		const consoleSpy = jest
+		const consoleSpy = vi
 			.spyOn(console, "error")
 			.mockImplementation(() => {});
 
@@ -76,7 +77,7 @@ describe("core/create-context", () => {
 			return null;
 		};
 
-		const consoleSpy = jest
+		const consoleSpy = vi
 			.spyOn(console, "error")
 			.mockImplementation(() => {});
 

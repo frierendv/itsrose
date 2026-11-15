@@ -1,19 +1,23 @@
 import * as systemModule from "@itsrose/system";
+import { vi, type Mock } from "vitest";
 import { Client } from "../src/client/client";
 
-jest.mock("@itsrose/system", () => {
-	const actual = jest.requireActual("@itsrose/system");
+vi.mock("@itsrose/system", async () => {
+	const actual =
+		await vi.importActual<typeof import("@itsrose/system")>(
+			"@itsrose/system"
+		);
 	return {
 		...actual,
-		getEnv: jest.fn(),
+		getEnv: vi.fn(),
 	};
 });
 
 describe("Client", () => {
-	const mockGetEnv = systemModule.getEnv as jest.Mock;
+	const mockGetEnv = systemModule.getEnv as Mock;
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	it("should initialize correctly when environment variables are set", () => {

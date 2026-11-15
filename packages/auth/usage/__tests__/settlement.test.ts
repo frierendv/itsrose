@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { settleUsagePeriod } from "../src/application/settlement";
 import type {
 	UsageInvoicePort,
@@ -124,7 +125,7 @@ describe("auth/usage settlement", () => {
 	});
 
 	it("resolves the rate as of the start of the period", async () => {
-		const resolveAt = jest.fn(async () => rate());
+		const resolveAt = vi.fn(async () => rate());
 
 		await settleUsagePeriod({
 			ledger: ledger(),
@@ -264,7 +265,7 @@ describe("auth/usage settlement", () => {
 	});
 
 	it("is a dry run unless invoices are requested", async () => {
-		const create = jest.fn(async () => ({ invoice_id: "inv_1" }));
+		const create = vi.fn(async () => ({ invoice_id: "inv_1" }));
 
 		const result = await settleUsagePeriod({
 			ledger: ledger(),
@@ -280,8 +281,8 @@ describe("auth/usage settlement", () => {
 	});
 
 	it("creates an invoice with a stable idempotency key and records it", async () => {
-		const create = jest.fn(async () => ({ invoice_id: "inv_1" }));
-		const updateSettlementInvoice = jest.fn(async () => {});
+		const create = vi.fn(async () => ({ invoice_id: "inv_1" }));
+		const updateSettlementInvoice = vi.fn(async () => {});
 
 		const result = await settleUsagePeriod({
 			ledger: ledger({ updateSettlementInvoice }),
@@ -322,7 +323,7 @@ describe("auth/usage settlement", () => {
 	});
 
 	it("issues the missing invoice on a retry, but never a second one", async () => {
-		const create = jest.fn(async () => ({ invoice_id: "inv_retry" }));
+		const create = vi.fn(async () => ({ invoice_id: "inv_retry" }));
 
 		const retry = await settleUsagePeriod({
 			ledger: ledger({

@@ -1,5 +1,6 @@
 import type { MidtransClient } from "@itsrose/midtrans";
 import type { GenericEndpointContext } from "better-auth";
+import { vi } from "vitest";
 import {
 	createBillingContext,
 	createBillingServices,
@@ -7,11 +8,11 @@ import {
 } from "../src/plugin/bindings";
 
 const adapter = {
-	findOne: jest.fn(),
-	findMany: jest.fn(async () => []),
-	create: jest.fn(),
-	update: jest.fn(),
-	delete: jest.fn(),
+	findOne: vi.fn(),
+	findMany: vi.fn(async () => []),
+	create: vi.fn(),
+	update: vi.fn(),
+	delete: vi.fn(),
 };
 
 function createCtx() {

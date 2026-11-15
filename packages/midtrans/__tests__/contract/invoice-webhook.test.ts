@@ -5,7 +5,7 @@ import {
 	InvoiceWebhookSchema,
 } from "../../src/schema";
 
-const FIXTURES_DIR = join(__dirname, "..", "..", "fixtures");
+const FIXTURES_DIR = join(import.meta.dirname, "..", "..", "fixtures");
 
 function loadFixture(name: string): { body: Record<string, unknown> } {
 	return JSON.parse(

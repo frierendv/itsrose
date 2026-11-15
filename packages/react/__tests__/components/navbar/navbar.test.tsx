@@ -6,6 +6,7 @@ import {
 	screen,
 } from "@testing-library/react";
 import { createRef } from "react";
+import { vi } from "vitest";
 import {
 	Navbar,
 	NavbarBrand,
@@ -347,7 +348,7 @@ describe("components/navbar", () => {
 		});
 
 		it("handles controlled open state with onMenuOpenChange callback", () => {
-			const onMenuOpenChange = jest.fn();
+			const onMenuOpenChange = vi.fn();
 			const { result } = renderHook(() =>
 				useNavbar({
 					isMenuOpen: false,

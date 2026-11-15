@@ -2,7 +2,7 @@
 	"extends": "@itsrose/standard/typescript/react-library.json",
 	"include": ["src", "__tests__"],
 	"compilerOptions": {
-		"types": ["@testing-library/jest-dom", "jest", "node"],
+		"types": ["@testing-library/jest-dom/vitest", "vitest/globals", "node"],
 		"jsx": "react-jsx"
 	},
 	"exclude": ["node_modules", "dist"]

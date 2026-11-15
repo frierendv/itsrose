@@ -5,6 +5,7 @@ import {
 } from "node:http";
 import type { AddressInfo } from "node:net";
 import { UpstreamApiError } from "@itsrose/upstream-client";
+import { vi } from "vitest";
 
 // The client reads its key from the environment when it is imported, so the
 // environment has to be in place before the package is loaded.
@@ -217,7 +218,7 @@ describe("features/elevenlabs getVoices redaction", () => {
 		const { httpClient } = await import("../src/client/client");
 		const { getVoices } = await import("../src/elevenlabs/voices");
 
-		const spy = jest.spyOn(httpClient, "send").mockResolvedValue({
+		const spy = vi.spyOn(httpClient, "send").mockResolvedValue({
 			voices: [
 				{
 					...VOICE,

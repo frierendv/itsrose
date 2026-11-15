@@ -1,4 +1,5 @@
 import { createTransactionSignature } from "@itsrose/midtrans";
+import { vi } from "vitest";
 import { createBillingRepositories } from "../src/adapter";
 import { resolveUserSubscription } from "../src/application";
 import {
@@ -25,12 +26,12 @@ describe("Downgrade Scheduling and Renewal Execution", () => {
 	const client = createMockMidtransClient(serverKey);
 
 	beforeEach(() => {
-		jest.useFakeTimers();
-		jest.setSystemTime(new Date("2026-10-15T00:00:00.000Z"));
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date("2026-10-15T00:00:00.000Z"));
 	});
 
 	afterEach(() => {
-		jest.useRealTimers();
+		vi.useRealTimers();
 	});
 
 	test("Downgrade endpoint sets scheduled_tier, issues NO payment requests, and retains current tier access", async () => {

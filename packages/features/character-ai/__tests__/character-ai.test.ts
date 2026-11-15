@@ -1,4 +1,5 @@
 import { ThirdPartyApiError } from "@itsrose/system";
+import { vi, type Mock } from "vitest";
 import {
 	searchCharacter,
 	searchCharacterSchema,
@@ -7,15 +8,15 @@ import {
 } from "../src/character-ai";
 import { client } from "../src/client";
 
-jest.mock("../src/client", () => {
+vi.mock("../src/client", () => {
 	return {
 		client: {
 			character: {
-				search: jest.fn(),
+				search: vi.fn(),
 			},
 			chat: {
-				sendMessage: jest.fn(),
-				clearHistory: jest.fn(),
+				sendMessage: vi.fn(),
+				clearHistory: vi.fn(),
 			},
 		},
 	};
@@ -23,7 +24,7 @@ jest.mock("../src/client", () => {
 
 describe("character-ai entry module", () => {
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	describe("searchCharacter", () => {
@@ -38,7 +39,7 @@ describe("character-ai entry module", () => {
 				],
 			};
 
-			(client.character.search as jest.Mock).mockResolvedValueOnce(
+			(client.character.search as Mock).mockResolvedValueOnce(
 				mockResponse
 			);
 
@@ -60,7 +61,7 @@ describe("character-ai entry module", () => {
 				],
 			};
 
-			(client.chat.sendMessage as jest.Mock).mockResolvedValueOnce(
+			(client.chat.sendMessage as Mock).mockResolvedValueOnce(
 				mockSendMessageResponse
 			);
 
@@ -87,7 +88,7 @@ describe("character-ai entry module", () => {
 				],
 			};
 
-			(client.chat.sendMessage as jest.Mock).mockResolvedValueOnce(
+			(client.chat.sendMessage as Mock).mockResolvedValueOnce(
 				mockSendMessageResponse
 			);
 
@@ -101,7 +102,7 @@ describe("character-ai entry module", () => {
 		});
 
 		it("should throw ThirdPartyApiError if client.chat.sendMessage returns null", async () => {
-			(client.chat.sendMessage as jest.Mock).mockResolvedValueOnce(null);
+			(client.chat.sendMessage as Mock).mockResolvedValueOnce(null);
 
 			await expect(
 				sendMessage({

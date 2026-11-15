@@ -1,11 +1,12 @@
 import { ThirdPartyApiError } from "@itsrose/system";
+import { vi, type Mock } from "vitest";
 import type { Client } from "../src/client/client";
 import { User } from "../src/client/user";
 import type { UserDetail } from "../src/zod-schema";
 
 describe("User", () => {
 	let mockClient: Client;
-	let mockHttpSend: jest.Mock;
+	let mockHttpSend: Mock;
 
 	/**
 	 * The user detail as the upstream sends it, with every field the
@@ -48,7 +49,7 @@ describe("User", () => {
 	} satisfies UserDetail;
 
 	beforeEach(() => {
-		mockHttpSend = jest.fn();
+		mockHttpSend = vi.fn();
 		mockClient = {
 			http: {
 				send: mockHttpSend,

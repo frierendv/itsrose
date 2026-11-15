@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import {
 	decodeTokenizedUri,
 	decodeUrlSafeBase64,
@@ -64,7 +65,7 @@ describe("features/instagram", () => {
 			expect(isVideoUrl(badTokenUrl)).toBe(false);
 
 			// Token payload throwing error inside isVideoUrl catch block (lines 131-132)
-			const toStringSpy = jest
+			const toStringSpy = vi
 				.spyOn(Buffer.prototype, "toString")
 				.mockImplementationOnce(() => {
 					throw new Error("Decode failed");

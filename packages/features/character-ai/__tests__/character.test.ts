@@ -1,3 +1,4 @@
+import { vi, type Mock } from "vitest";
 import { Character } from "../src/client/character";
 import type { Client } from "../src/client/client";
 
@@ -23,10 +24,10 @@ const RAW_CHARACTER = {
 
 describe("Character", () => {
 	let mockClient: Client;
-	let mockHttpSend: jest.Mock;
+	let mockHttpSend: Mock;
 
 	beforeEach(() => {
-		mockHttpSend = jest.fn();
+		mockHttpSend = vi.fn();
 		mockClient = {
 			http: {
 				send: mockHttpSend,

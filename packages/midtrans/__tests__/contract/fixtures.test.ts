@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { FIXTURES } from "../../tools/fixture-manifest";
 import { verifyFixtures } from "../../tools/fixture-verify";
 
-const FIXTURES_DIR = join(__dirname, "..", "..", "fixtures");
+const FIXTURES_DIR = join(import.meta.dirname, "..", "..", "fixtures");
 
 describe("sandbox fixture contracts", () => {
 	it("validates every fixture against its registered schema", () => {

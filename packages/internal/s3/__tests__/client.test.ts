@@ -9,6 +9,7 @@ import {
 import type { GetObjectCommandOutput } from "@aws-sdk/client-s3";
 import { mockClient } from "aws-sdk-client-mock";
 import { fileTypeFromBuffer } from "file-type";
+import { vi } from "vitest";
 import {
 	detectMimeType,
 	resolveKey,
@@ -20,11 +21,11 @@ import {
 } from "../src";
 import type { StorageClientConfig } from "../src";
 
-jest.mock("file-type", () => ({
-	fileTypeFromBuffer: jest.fn(),
+vi.mock("file-type", () => ({
+	fileTypeFromBuffer: vi.fn(),
 }));
 
-const mockedFileTypeFromBuffer = jest.mocked(fileTypeFromBuffer);
+const mockedFileTypeFromBuffer = vi.mocked(fileTypeFromBuffer);
 
 const s3Mock = mockClient(S3Client);
 

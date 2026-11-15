@@ -1,16 +1,17 @@
-/** @jest-environment node */
+// @vitest-environment node
 import { NextRequest } from "next/server";
+import { vi, type Mock } from "vitest";
 import { authClient } from "../lib/auth/auth-client";
 import { proxy } from "../proxy";
 
-jest.mock("../lib/auth/auth-client", () => ({
-	authClient: { getSession: jest.fn() },
+vi.mock("../lib/auth/auth-client", () => ({
+	authClient: { getSession: vi.fn() },
 }));
-jest.mock("next/headers", () => ({
+vi.mock("next/headers", () => ({
 	headers: async () => new Headers(),
 }));
 
-const getSession = authClient.getSession as jest.Mock;
+const getSession = authClient.getSession as Mock;
 
 function requestFor(pathname: string) {
 	return new NextRequest(new URL(pathname, "http://localhost:3000"));

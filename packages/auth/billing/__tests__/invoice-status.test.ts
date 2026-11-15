@@ -309,7 +309,7 @@ describe("webhook settlement", () => {
 });
 
 describe("the domain never sees a provider status", () => {
-	const sourceDirectory = join(__dirname, "..", "src");
+	const sourceDirectory = join(import.meta.dirname, "..", "src");
 
 	function collectSourceFiles(directory: string): string[] {
 		return readdirSync(directory, { withFileTypes: true }).flatMap(

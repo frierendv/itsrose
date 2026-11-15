@@ -134,7 +134,7 @@ describe("notification contract from captured fixtures", () => {
 		const fixture = JSON.parse(
 			readFileSync(
 				join(
-					__dirname,
+					import.meta.dirname,
 					"..",
 					"..",
 					"fixtures",

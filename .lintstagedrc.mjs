@@ -3,7 +3,7 @@ import { defineConfig } from "lint-staged/config";
 
 export default defineConfig({
 	"*.{md,html,css,json,yml,yaml}": ["prettier --write"],
-	"*.{js,ts,tsx,jsx}": ["eslint --fix", "prettier --write"],
+	"*.{js,ts,tsx,jsx,mts,cts,mjs,cjs}": ["eslint --fix", "prettier --write"],
 	"*.sh": [
 		"shfmt --language-dialect auto",
 		"shellcheck --check-sourced --severity=error",

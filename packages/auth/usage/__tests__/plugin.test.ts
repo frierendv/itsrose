@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { tenantIdForUser } from "../src/keys";
 import { usagePlugin } from "../src/plugin/plugin-server";
 import type {
@@ -84,7 +85,7 @@ describe("getQuota endpoint", () => {
 			string,
 			(context: unknown) => Promise<unknown>
 		>;
-		const setHeader = jest.fn();
+		const setHeader = vi.fn();
 		const context = {
 			context: { session: { user: { id: "usr_1" } } },
 			setHeader,
@@ -112,15 +113,15 @@ describe("getQuota endpoint", () => {
 
 describe("seeded rate defaults", () => {
 	function createRates() {
-		const ensureDefaults = jest.fn(async () => {});
+		const ensureDefaults = vi.fn(async () => {});
 		const rates = {
 			ensureDefaults,
-			listOpen: jest.fn(async () => []),
-			resolveAt: jest.fn(async () => null),
-			setRate: jest.fn(async () => {
+			listOpen: vi.fn(async () => []),
+			resolveAt: vi.fn(async () => null),
+			setRate: vi.fn(async () => {
 				throw new Error("not used");
 			}),
-			listWeights: jest.fn(async () => []),
+			listWeights: vi.fn(async () => []),
 		};
 		return { rates, ensureDefaults };
 	}
