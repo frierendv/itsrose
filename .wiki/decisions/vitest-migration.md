@@ -497,6 +497,23 @@ on purpose; the cap replaced `--runInBand` in `da1ab94`.
    [ESM only, CommonJS dropped](esm-only-runtime.md). The Jest-ESM step
    between them is now done by this migration.
 
+### One environment note
+
+Changing the root dependencies and then running a plain `pnpm install` left
+`packages/auth/billing/node_modules/@itsrose/midtrans` and
+`apps/api/node_modules/@itsrose/midtrans` pointing at an injected copy that
+was never written, so typecheck failed with
+`Cannot find module '@itsrose/midtrans'`. It is the dangling-symlink
+problem AGENTS.md §6.1 describes, and the recovery in §6.3 fixes it.
+
+What is new is that the recovery has to be the _whole_ protocol. A plain
+`pnpm install` after the purge reproduced the same broken link, while
+`pnpm purge` followed by `pnpm install --frozen-lockfile` — what CI does —
+left zero dangling links. The difference is that a non-frozen install
+re-resolves and can name an injected copy it never materialises.
+
+**Use the frozen install after changing dependencies.**
+
 ## Related
 
 - [ESM only, CommonJS dropped](esm-only-runtime.md)
