@@ -47,7 +47,7 @@ Landed at `7ff8fba`. See
 - **`ClockPort` is declared but is not a seam.** `plugin/bindings.ts` hard-wires
   `systemClock`, and several domain functions keep a `new Date()` fallback, so
   the injected clock cannot reach them. Tests have to monkey-patch the global
-  clock with `jest.setSystemTime` to control time. The sibling usage package
+  clock with `vi.setSystemTime` to control time. The sibling usage package
   gets this right — do not "fix" billing the way usage would be broken.
 - **The domain has no interface.** There is no `src/domain/index.ts`, so every
   export is ambiently importable. Routes and the adapter both reach past the

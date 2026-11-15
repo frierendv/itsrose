@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { MidtransClient } from "../../src/client/client";
 import { payCstore, payVirtualAccount } from "../../tools/sandbox-simulator";
 
-const ENV_FILE = join(__dirname, "..", "..", ".env.dev");
+const ENV_FILE = join(import.meta.dirname, "..", "..", ".env.dev");
 
 if (existsSync(ENV_FILE)) {
 	for (const line of readFileSync(ENV_FILE, "utf8").split("\n")) {

@@ -28,6 +28,10 @@ to read `index.md` and know where to look.
   packages cut because nothing called them.
 - [A shared HTTP retry contract](decisions/http-retry-contract.md) — what the
   client promised, and what it now actually does.
+- [ESM only, CommonJS dropped](decisions/esm-only-runtime.md) — what CommonJS
+  is actually left, why nothing reads it, and the five steps that remove it.
+- [Moving from Jest to Vitest](decisions/vitest-migration.md) — why the test
+  runner was the piece worth replacing, and what the move cost.
 
 ## Subsystems
 

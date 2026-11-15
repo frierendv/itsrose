@@ -1,8 +1,9 @@
+import { vi, type Mock } from "vitest";
 import { Chat } from "../src/chat/chat";
 import { ChatSocket } from "../src/chat/chat-socket";
 import type { Client } from "../src/client/client";
 
-jest.mock("../src/chat/chat-socket");
+vi.mock("../src/chat/chat-socket");
 
 /**
  * Minimal double for the `Client.user` sub-client.
@@ -12,7 +13,7 @@ jest.mock("../src/chat/chat-socket");
  */
 type MockUser = {
 	detail: unknown;
-	get: jest.Mock;
+	get: Mock;
 };
 
 /**
@@ -22,24 +23,24 @@ type MockUser = {
  * and `waitForOutput`, and reads back the accumulated `output`.
  */
 type MockChatSocket = {
-	create: jest.Mock;
-	waitForOpen: jest.Mock;
-	send: jest.Mock;
-	waitForOutput: jest.Mock;
+	create: Mock;
+	waitForOpen: Mock;
+	send: Mock;
+	waitForOutput: Mock;
 	output: unknown;
 };
 
 describe("Chat", () => {
 	let mockClient: Client;
-	let mockHttpSend: jest.Mock;
-	let mockUserGet: jest.Mock;
+	let mockHttpSend: Mock;
+	let mockUserGet: Mock;
 	let mockUser: MockUser;
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 
-		mockHttpSend = jest.fn();
-		mockUserGet = jest.fn().mockResolvedValue({
+		mockHttpSend = vi.fn();
+		mockUserGet = vi.fn().mockResolvedValue({
 			user: { id: "123", account: { name: "Test" } },
 		});
 
@@ -87,10 +88,10 @@ describe("Chat", () => {
 			mockUser.detail = undefined;
 
 			const mockSocketInstance: MockChatSocket = {
-				create: jest.fn(),
-				waitForOpen: jest.fn().mockResolvedValue(undefined),
-				send: jest.fn().mockResolvedValue(undefined),
-				waitForOutput: jest.fn().mockImplementation(async () => {
+				create: vi.fn(),
+				waitForOpen: vi.fn().mockResolvedValue(undefined),
+				send: vi.fn().mockResolvedValue(undefined),
+				waitForOutput: vi.fn().mockImplementation(async () => {
 					mockSocketInstance.output = {
 						chat_id: "chat-999",
 						candidates: [
@@ -103,9 +104,12 @@ describe("Chat", () => {
 				output: null,
 			};
 
-			(ChatSocket as jest.Mock).mockImplementation(
-				() => mockSocketInstance
-			);
+			// Vitest constructs the mock with `Reflect.construct`, so the
+			// implementation has to be a `function` - an arrow function
+			// cannot be constructed.
+			(ChatSocket as Mock).mockImplementation(function () {
+				return mockSocketInstance;
+			});
 
 			const chat = new Chat(mockClient);
 			const result = await chat.sendMessage({

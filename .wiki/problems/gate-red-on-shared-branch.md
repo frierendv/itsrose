@@ -93,3 +93,20 @@ The CI step order was also corrected to match AGENTS.md §5.5 exactly:
 `format:check` → `lint` → `build` → `typecheck` → `test`. It had been
 `lint` → `format:check`, so the hook and the workflow were mirrors that
 disagreed.
+
+## Update, 2026-11-15: the runner changed, the shape of the fix held
+
+The Vitest migration (`refactor/vitest-migration`, `059bd53`) replaced the
+Jest script with `vitest run --coverage --maxWorkers=2`. The reasoning above
+survives the change: one script for both environments, and a pinned worker
+count rather than a derived one.
+
+Two of the three points above are now historical. The `--passWithNoTests`
+point has no Vitest equivalent to remove — Vitest has no such flag — but the
+per-project assertion it called for is still open, and it now belongs in
+`vitest.config.mts`.
+
+The worker count still earns its pin, and now more visibly: under
+`forks` and two workers the suite takes 25 seconds, because the `jsdom`
+environment is built once per file. `pool: "vmThreads"` brings that to 10.6
+seconds without touching the pin.

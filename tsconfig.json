@@ -54,6 +54,9 @@
 			"path": "packages/internal/s3"
 		},
 		{
+			"path": "packages/internal/upstream-client"
+		},
+		{
 			"path": "packages/midtrans"
 		},
 		{

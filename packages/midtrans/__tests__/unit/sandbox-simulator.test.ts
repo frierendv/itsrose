@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import {
 	payCstore,
 	payVirtualAccount,
@@ -46,7 +47,7 @@ describe("sandbox-simulator tooling", () => {
 		`;
 
 		let step = 0;
-		globalThis.fetch = jest.fn().mockImplementation(async () => {
+		globalThis.fetch = vi.fn().mockImplementation(async () => {
 			step++;
 			if (step === 1) {
 				return {
@@ -82,7 +83,7 @@ describe("sandbox-simulator tooling", () => {
 		`;
 
 		let step = 0;
-		globalThis.fetch = jest.fn().mockImplementation(async () => {
+		globalThis.fetch = vi.fn().mockImplementation(async () => {
 			step++;
 			if (step === 1) {
 				return {

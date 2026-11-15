@@ -8,7 +8,7 @@ import {
 import { MidtransMerchant } from "../../src/client/merchant";
 import { createTransport } from "../../src/client/transport";
 
-const FIXTURES_DIR = join(__dirname, "..", "..", "fixtures");
+const FIXTURES_DIR = join(import.meta.dirname, "..", "..", "fixtures");
 
 interface FixtureFile {
 	_meta: {

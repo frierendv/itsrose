@@ -39,6 +39,21 @@ functions / 90.11% lines and closed two of the gaps above.
 
 Lowering the threshold would have been the cheaper fix and the dishonest one.
 
+## Update, 2026-11-15: there is no threshold at all
+
+The Vitest migration (`refactor/vitest-migration`, `059bd53`) removed the
+coverage thresholds rather than porting them — the floors were measured against
+Jest's numbers and Vitest counts glob-matched files into the global threshold,
+so carrying them across would have made the gate assert something false.
+
+The state this page describes is therefore not "a global threshold that hides
+holes" any more. It is **no threshold**, which hides the same holes more
+quietly: a module can lose all its coverage and the gate stays green.
+
+Re-measuring the twelve per-path floors against Vitest and adding them back is
+the outstanding work. See
+[Moving from Jest to Vitest](../decisions/vitest-migration.md).
+
 ## Related
 
 - [The environment does not fail loudly](environment-does-not-fail-loudly.md)

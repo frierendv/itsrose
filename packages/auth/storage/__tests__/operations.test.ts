@@ -1,4 +1,5 @@
 import type { StorageClient } from "@itsrose/s3";
+import { vi } from "vitest";
 import {
 	createPresignedUpload,
 	deleteEphemeralFile,
@@ -9,24 +10,24 @@ import {
 
 describe("packages/auth/storage/operations", () => {
 	const mockS3 = {
-		upload: jest.fn().mockResolvedValue({
+		upload: vi.fn().mockResolvedValue({
 			key: "t/users/u123/exports/report.csv",
 			url: "https://pub-cdn.itsrose.net/t/users/u123/exports/report.csv",
 			etag: '"abc123etag"',
 		}),
-		getPublicUrl: jest
+		getPublicUrl: vi
 			.fn()
 			.mockImplementation(
 				(key: string) => `https://pub-cdn.itsrose.net/${key}`
 			),
-		getPresignedUrl: jest
+		getPresignedUrl: vi
 			.fn()
 			.mockResolvedValue("https://s3.signed.download.url"),
-		getPresignedUploadUrl: jest
+		getPresignedUploadUrl: vi
 			.fn()
 			.mockResolvedValue("https://s3.signed.upload.url"),
-		delete: jest.fn().mockResolvedValue(undefined),
-		purgePrefix: jest.fn().mockResolvedValue({
+		delete: vi.fn().mockResolvedValue(undefined),
+		purgePrefix: vi.fn().mockResolvedValue({
 			deleted: [
 				"t/users/u123/exports/1.csv",
 				"t/users/u123/exports/2.csv",
@@ -36,7 +37,7 @@ describe("packages/auth/storage/operations", () => {
 	} as unknown as StorageClient;
 
 	beforeEach(() => {
-		jest.clearAllMocks();
+		vi.clearAllMocks();
 	});
 
 	describe("saveEphemeralFile", () => {

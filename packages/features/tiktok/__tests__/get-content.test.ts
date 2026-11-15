@@ -4,6 +4,7 @@ import {
 	type ServerResponse,
 } from "node:http";
 import type { AddressInfo } from "node:net";
+import { vi } from "vitest";
 
 interface RecordedRequest {
 	method: string;
@@ -169,7 +170,7 @@ describe("features/tiktok getContent", () => {
 			process.env.TIKTOK_TIKWM_BASE_URL = drift.baseURL;
 			// eslint-disable-next-line turbo/no-undeclared-env-vars
 			process.env.TIKTOK_TIKWM_APIKEY = "test-key";
-			jest.resetModules();
+			vi.resetModules();
 			const { getContent: drifted } =
 				await import("../src/tiktok/get-content");
 

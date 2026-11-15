@@ -6,6 +6,7 @@ import {
 import type { AddressInfo } from "node:net";
 import { USER_AGENT } from "@itsrose/system";
 import axios, { AxiosError, AxiosHeaders } from "axios";
+import { vi, type MockInstance } from "vitest";
 import {
 	createHttpClient,
 	DEFAULT_RETRY_CONFIG,
@@ -138,10 +139,10 @@ describe("internal/http-client", () => {
 	});
 
 	describe("callable execution & HTTP methods", () => {
-		let requestSpy: jest.SpyInstance;
+		let requestSpy: MockInstance;
 
 		beforeEach(() => {
-			requestSpy = jest.spyOn(axios.Axios.prototype, "request");
+			requestSpy = vi.spyOn(axios.Axios.prototype, "request");
 		});
 
 		afterEach(() => {
@@ -247,10 +248,10 @@ describe("internal/http-client", () => {
 	});
 
 	describe("HttpRequestPromise & unwrapping", () => {
-		let requestSpy: jest.SpyInstance;
+		let requestSpy: MockInstance;
 
 		beforeEach(() => {
-			requestSpy = jest.spyOn(axios.Axios.prototype, "request");
+			requestSpy = vi.spyOn(axios.Axios.prototype, "request");
 		});
 
 		afterEach(() => {

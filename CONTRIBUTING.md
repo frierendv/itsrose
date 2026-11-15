@@ -76,7 +76,7 @@ Before you begin development, make sure you have the following installed:
     pnpm lint
     pnpm build
     pnpm typecheck
-    pnpm test --coverage
+    pnpm test
     ```
 
 ---
@@ -214,8 +214,8 @@ pnpm lint
 # 3. Run TypeScript typecheck
 pnpm typecheck
 
-# 4. Run Jest test suite
-pnpm test --coverage
+# 4. Run the Vitest suite (with coverage)
+pnpm test
 
 # 5. Format code automatically
 pnpm format

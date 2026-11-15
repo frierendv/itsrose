@@ -1,10 +1,11 @@
 import { EventEmitter } from "node:events";
 import { ThirdPartyApiError } from "@itsrose/system";
+import { vi, type Mock } from "vitest";
 import WebSocket from "ws";
 import { ChatSocket } from "../src/chat/chat-socket";
 import type { Client as CAIClient } from "../src/client";
 
-jest.mock("ws");
+vi.mock("ws");
 
 /**
  * Invokes a private method on the object under test.
@@ -27,10 +28,10 @@ const invokePrivate = (
 
 class MockWebSocket extends EventEmitter {
 	public readyState: number = WebSocket.CONNECTING;
-	public send = jest.fn(
+	public send = vi.fn(
 		(_data: unknown, _callback?: (error?: Error) => void): void => undefined
 	);
-	public close = jest.fn();
+	public close = vi.fn();
 }
 
 describe("ChatSocket", () => {
@@ -38,23 +39,27 @@ describe("ChatSocket", () => {
 	let mockWs: MockWebSocket;
 
 	beforeEach(() => {
-		jest.clearAllMocks();
-		jest.useRealTimers();
+		vi.clearAllMocks();
+		vi.useRealTimers();
 
 		// Invariant: `ChatSocket` only reads `client.neoWssUrl` and
 		// `client.getHeaders()` from the client it is constructed with.
 		mockClient = {
 			neoWssUrl: "wss://example.com/ws",
-			getHeaders: jest
+			getHeaders: vi
 				.fn()
 				.mockReturnValue({ Authorization: "Bearer token" }),
 		} as unknown as CAIClient;
 
 		mockWs = new MockWebSocket();
-		// Invariant: `jest.mock("ws")` replaces the class with an automock;
+		// Invariant: `vi.mock("ws")` replaces the class with an automock;
 		// this implementation makes every `new WebSocket(...)` return the
-		// local `mockWs` double used by the tests.
-		(WebSocket as unknown as jest.Mock).mockImplementation(() => mockWs);
+		// local `mockWs` double used by the tests. Vitest constructs the
+		// mock with `Reflect.construct`, so the implementation has to be a
+		// `function` - an arrow function cannot be constructed.
+		(WebSocket as unknown as Mock).mockImplementation(function () {
+			return mockWs;
+		});
 	});
 
 	it("should reject send() when socket is not created", async () => {
@@ -119,12 +124,12 @@ describe("ChatSocket", () => {
 	});
 
 	it("should reject waitForOpen() when timeout fires", async () => {
-		jest.useFakeTimers();
+		vi.useFakeTimers();
 		const chatSocket = new ChatSocket(mockClient);
 		chatSocket.create();
 
 		const waitPromise = chatSocket.waitForOpen();
-		jest.advanceTimersByTime(30_000);
+		vi.advanceTimersByTime(30_000);
 
 		await expect(waitPromise).rejects.toThrow("Chat timed out.");
 	});
@@ -179,12 +184,12 @@ describe("ChatSocket", () => {
 	});
 
 	it("should reject waitForOutput() on timeout", async () => {
-		jest.useFakeTimers();
+		vi.useFakeTimers();
 		const chatSocket = new ChatSocket(mockClient);
 		chatSocket.create();
 
 		const outputPromise = chatSocket.waitForOutput();
-		jest.advanceTimersByTime(30_000);
+		vi.advanceTimersByTime(30_000);
 
 		await expect(outputPromise).rejects.toThrow("Chat timed out.");
 	});
@@ -352,7 +357,7 @@ describe("ChatSocket", () => {
 	});
 
 	it("should handle startTimeoutTimer default callback and resetTimeoutTimer when timeout is missing", async () => {
-		jest.useFakeTimers();
+		vi.useFakeTimers();
 		const chatSocket = new ChatSocket(mockClient);
 		chatSocket.create();
 
@@ -360,7 +365,7 @@ describe("ChatSocket", () => {
 		invokePrivate(chatSocket, "startTimeoutTimer");
 		invokePrivate(chatSocket, "resetTimeoutTimer");
 
-		jest.advanceTimersByTime(30_000);
+		vi.advanceTimersByTime(30_000);
 		await expect(waitPromise).rejects.toThrow("Chat timed out.");
 
 		invokePrivate(chatSocket, "resetTimeoutTimer");

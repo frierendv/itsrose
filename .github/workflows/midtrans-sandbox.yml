@@ -94,4 +94,4 @@ jobs:
 
       - name: Run sandbox integration tests
         working-directory: .
-        run: pnpm exec jest --runInBand packages/midtrans/__tests__/integration
+        run: pnpm exec vitest run --project packages/midtrans --no-file-parallelism packages/midtrans/__tests__/integration

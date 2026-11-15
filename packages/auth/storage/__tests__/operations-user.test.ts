@@ -1,4 +1,5 @@
 import type { StorageClient } from "@itsrose/s3";
+import { vi } from "vitest";
 import {
 	createUserPresignedUpload,
 	deleteUserFile,
@@ -11,15 +12,13 @@ import {
 
 function createS3() {
 	return {
-		upload: jest.fn(async () => ({ etag: "etag-1" })),
-		getPublicUrl: jest.fn((key: string) => `https://cdn.example/${key}`),
-		getPresignedUrl: jest.fn(async () => "https://signed.example/get"),
-		getPresignedUploadUrl: jest.fn(
-			async () => "https://signed.example/put"
-		),
-		delete: jest.fn(async () => {}),
-		purgePrefix: jest.fn(async () => ({ deleted: 2, errors: 0 })),
-		listObjects: jest.fn(async () => [
+		upload: vi.fn(async () => ({ etag: "etag-1" })),
+		getPublicUrl: vi.fn((key: string) => `https://cdn.example/${key}`),
+		getPresignedUrl: vi.fn(async () => "https://signed.example/get"),
+		getPresignedUploadUrl: vi.fn(async () => "https://signed.example/put"),
+		delete: vi.fn(async () => {}),
+		purgePrefix: vi.fn(async () => ({ deleted: 2, errors: 0 })),
+		listObjects: vi.fn(async () => [
 			{
 				key: "t/users/user-1/images/pic.png",
 				size: 10,

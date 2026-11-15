@@ -1,10 +1,11 @@
+import { vi } from "vitest";
 import { createBillingRepositories } from "../src/adapter/repository";
 import { ensureAllPersonalTenants } from "../src/application/tenancy.service";
 
 function createAdapterStub(seed: Record<string, unknown>[] = []) {
 	const rows = [...seed];
 	const adapter = {
-		create: jest.fn(
+		create: vi.fn(
 			async ({
 				data,
 			}: {
@@ -16,11 +17,11 @@ function createAdapterStub(seed: Record<string, unknown>[] = []) {
 				return row;
 			}
 		),
-		delete: jest.fn(async () => {}),
-		findMany: jest.fn(async ({ model }: { model: string }) =>
+		delete: vi.fn(async () => {}),
+		findMany: vi.fn(async ({ model }: { model: string }) =>
 			model === "user" ? [{ id: "user-1" }] : rows
 		),
-		findOne: jest.fn(
+		findOne: vi.fn(
 			async ({
 				where,
 			}: {
@@ -33,7 +34,7 @@ function createAdapterStub(seed: Record<string, unknown>[] = []) {
 				return match ?? null;
 			}
 		),
-		update: jest.fn(
+		update: vi.fn(
 			async ({
 				where,
 				update,

@@ -144,6 +144,17 @@ every project that did not run.
 - **`packages/types` and `packages/standard` are excluded** — zero-runtime
   type-only package, and tooling presets.
 
+## Update, 2026-11-15: the configuration moved, the shape did not
+
+`jest.config.ts` is gone; `vitest.config.mts` replaces it. The finding on this
+page still stands in its new form: `coverage.include` lists the whole source
+tree, so the denominator is the codebase rather than the files a test happened
+to load.
+
+What changed is the missing thresholds. Vitest reports the coverage but
+enforces nothing, so the denominator is correct and the floor is absent. See
+[A global coverage threshold hides holes](global-coverage-threshold.md).
+
 ## Related
 
 - [The environment does not fail loudly](environment-does-not-fail-loudly.md)

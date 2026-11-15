@@ -17,7 +17,7 @@ pnpm format:check
 pnpm lint
 pnpm build
 pnpm typecheck
-pnpm test --coverage
+pnpm test
 ```
 
 ## Sequencing over picking

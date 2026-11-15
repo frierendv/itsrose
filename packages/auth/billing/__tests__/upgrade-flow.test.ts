@@ -1,4 +1,5 @@
 import { createTransactionSignature } from "@itsrose/midtrans";
+import { vi } from "vitest";
 import {
 	BILLING_PERIOD_MS,
 	INVOICE_TABLE_NAME,
@@ -42,8 +43,8 @@ describe("Mid-Cycle Upgrade Flow", () => {
 		});
 
 		// Mock Date.now to be Day 10
-		jest.useFakeTimers();
-		jest.setSystemTime(now);
+		vi.useFakeTimers();
+		vi.setSystemTime(now);
 
 		const endpoint = upgradeSubscriptionEndpoint(client);
 		const ctx = createMockEndpointContext({
@@ -76,7 +77,7 @@ describe("Mid-Cycle Upgrade Flow", () => {
 		expect(prorationDetails.payable_amount).toBe(66_667);
 		expect(prorationDetails.is_cycle_reset).toBe(false);
 
-		jest.useRealTimers();
+		vi.useRealTimers();
 	});
 
 	test("Upgrade endpoint rejects target tier that is a downgrade", async () => {

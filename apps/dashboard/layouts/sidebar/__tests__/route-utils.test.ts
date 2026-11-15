@@ -1,5 +1,5 @@
 import type { SidebarItem } from "@/types/sidebar";
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it } from "vitest";
 import {
 	getAllDescendantUrls,
 	hasActiveDescendant,

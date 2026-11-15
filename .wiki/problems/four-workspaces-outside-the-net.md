@@ -52,6 +52,14 @@ differs _between_ packages for no stated reason.
 - Make the local and CI test invocations identical, so a class of flake cannot
   manifest in only one environment.
 
+## Update, 2026-11-15: the projects moved to Vitest
+
+`vitest.config.mts` defines the same ten projects as the old `jest.config.ts`,
+under the same names, so the gaps this page lists are unchanged. The two
+outstanding items — the five missing projects and the per-project "no tests
+found" assertion — are still open, and the per-project assertion now belongs
+in `vitest.config.mts`.
+
 ## Related
 
 - [The gate cannot see most of the codebase](the-gate-cannot-see-most-of-the-codebase.md)

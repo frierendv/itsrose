@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { vi } from "vitest";
 import { Core } from "../../src/api/core";
 import { Payment } from "../../src/api/core/payment";
 import { Subscription } from "../../src/api/core/subscription";
@@ -17,11 +18,11 @@ import {
 
 function createContext() {
 	const http = {
-		get: jest.fn(),
-		post: jest.fn(),
-		patch: jest.fn(),
-		put: jest.fn(),
-		delete: jest.fn(),
+		get: vi.fn(),
+		post: vi.fn(),
+		patch: vi.fn(),
+		put: vi.fn(),
+		delete: vi.fn(),
 	};
 	const merchant = new MidtransMerchant({
 		serverKey: "server-secret",

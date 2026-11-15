@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { WebhookPayloadSchema } from "../../src/schema";
 
-const FIXTURES_DIR = join(__dirname, "..", "..", "fixtures");
+const FIXTURES_DIR = join(import.meta.dirname, "..", "..", "fixtures");
 
 function loadFixture(name: string): { body: unknown } {
 	return JSON.parse(

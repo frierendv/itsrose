@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import {
 	createCardToken,
 	createTestCardToken,
@@ -21,7 +22,7 @@ describe("card-sandbox tooling", () => {
 	});
 
 	it("tokenizes card successfully when sandbox returns token_id", async () => {
-		globalThis.fetch = jest.fn().mockResolvedValue({
+		globalThis.fetch = vi.fn().mockResolvedValue({
 			json: async () => ({
 				status_code: "200",
 				token_id: "token-test-12345",
@@ -43,7 +44,7 @@ describe("card-sandbox tooling", () => {
 	});
 
 	it("throws when token_id is missing from response", async () => {
-		globalThis.fetch = jest.fn().mockResolvedValue({
+		globalThis.fetch = vi.fn().mockResolvedValue({
 			statusText: "Bad Request",
 			json: async () => ({
 				status_code: "400",
@@ -62,7 +63,7 @@ describe("card-sandbox tooling", () => {
 	});
 
 	it("createTestCardToken delegates with correct card number", async () => {
-		globalThis.fetch = jest.fn().mockResolvedValue({
+		globalThis.fetch = vi.fn().mockResolvedValue({
 			json: async () => ({
 				status_code: "200",
 				token_id: "visa-token",

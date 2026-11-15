@@ -1,3 +1,4 @@
+import { vi, type Mock } from "vitest";
 import type { Client } from "../src/client/client";
 import { extractImageMetadata } from "../src/utils/extract-image-metadata";
 import { ReminiRequestSchema } from "../src/zod-schema/request";
@@ -9,7 +10,7 @@ import { ReminiRequestSchema } from "../src/zod-schema/request";
  * double implements exactly that surface. The real `Client` additionally owns
  * environment-bound private state, which cannot be expressed structurally.
  */
-const mockClientDouble = (create: jest.Mock): Client =>
+const mockClientDouble = (create: Mock): Client =>
 	({
 		task: { create },
 	}) as unknown as Client;
@@ -19,14 +20,19 @@ process.env.REMINI_API_BASE_URL = "https://remini.example.com";
 // eslint-disable-next-line turbo/no-undeclared-env-vars
 process.env.REMINI_WSS_BASE_URL = "wss://remini.example.com";
 
-jest.mock("image-size", () => ({
-	imageSize: (buf: Buffer) => {
-		if (buf.toString().includes("no-type")) {
-			return { width: 10, height: 10, type: undefined };
-		}
-		return jest.requireActual("image-size").imageSize(buf);
-	},
-}));
+vi.mock("image-size", async () => {
+	const actual =
+		await vi.importActual<typeof import("image-size")>("image-size");
+	return {
+		...actual,
+		imageSize: (buf: Buffer) => {
+			if (buf.toString().includes("no-type")) {
+				return { width: 10, height: 10, type: undefined };
+			}
+			return actual.imageSize(buf);
+		},
+	};
+});
 
 describe("features/remini", () => {
 	describe("extractImageMetadata", () => {
@@ -90,7 +96,7 @@ describe("features/remini", () => {
 				"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
 			const mockClient = mockClientDouble(
-				jest.fn().mockResolvedValue({
+				vi.fn().mockResolvedValue({
 					status: "completed",
 					result: {
 						outputs: [{ url: "https://example.com/out.jpg" }],
@@ -120,10 +126,10 @@ describe("features/remini", () => {
 				"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 			const buffer = Buffer.from(base64Png, "base64");
 
-			jest.spyOn(assetClient, "send").mockResolvedValue(buffer);
+			vi.spyOn(assetClient, "send").mockResolvedValue(buffer);
 
 			const mockClient = mockClientDouble(
-				jest.fn().mockResolvedValue({
+				vi.fn().mockResolvedValue({
 					status: "completed",
 					result: {
 						outputs: [{ url: "https://example.com/url_out.jpg" }],
@@ -152,7 +158,7 @@ describe("features/remini", () => {
 			const { createTask } = await import("../src/remini/create-task");
 
 			const mockClient = mockClientDouble(
-				jest.fn().mockResolvedValue({
+				vi.fn().mockResolvedValue({
 					status: "failed",
 					result: null,
 					error: {
@@ -184,7 +190,7 @@ describe("features/remini", () => {
 			const { createTask } = await import("../src/remini/create-task");
 
 			const mockClient = mockClientDouble(
-				jest.fn().mockResolvedValue({
+				vi.fn().mockResolvedValue({
 					status: "failed",
 					result: null,
 					error: null,
@@ -214,7 +220,7 @@ describe("features/remini", () => {
 
 			const { Task } = await import("../src/client/task");
 
-			jest.spyOn(Task.prototype, "create").mockResolvedValue({
+			vi.spyOn(Task.prototype, "create").mockResolvedValue({
 				status: "completed",
 				result: {
 					input_url: "in",

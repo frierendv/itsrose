@@ -18,7 +18,7 @@ const FIXTURE_BODY = (
 	JSON.parse(
 		readFileSync(
 			join(
-				__dirname,
+				import.meta.dirname,
 				"..",
 				"..",
 				"fixtures",
