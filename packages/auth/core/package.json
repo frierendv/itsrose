@@ -55,10 +55,10 @@
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*",
-		"@types/jest": "^30.0.0",
 		"@types/node": "catalog:",
 		"@types/pg": "^8.23.1",
-		"dotenv": "^18.0.10"
+		"dotenv": "^18.0.10",
+		"vitest": "^5.1.0"
 	},
 	"publishConfig": {
 		"exports": {

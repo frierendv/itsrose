@@ -13,15 +13,15 @@ is visible.
 
 ## The gate's own blindness
 
-| #   | Item                                                                                          | Status   | Note                                                                                                                                           |
-| --- | --------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `collectCoverageFrom` — the coverage number measured only files a test had loaded             | **Done** | `9f24292`. The denominator went from 294 files to 754; global coverage from a flattering 90.30% to an honest 41.65%                            |
-| 2   | Per-package coverage thresholds                                                               | **Done** | `9f24292`. Nine path floors, each set at the package's real number so the gate is green today and red on the first regression                  |
-| 3   | CI runs on pushes to `development`                                                            | **Done** | `ci.yml` triggered `push: [main]` only — this is how `8216c89` reached the shared branch unobserved                                            |
-| 4   | Local and CI test invocations agree                                                           | **Done** | One script, `--maxWorkers=2` pinned; local and CI now enforce the same coverage threshold                                                      |
-| 4b  | A jest project that loses all its tests still passes                                          | Todo     | `--passWithNoTests` is gone, but jest's "no tests found" check is aggregate across projects. Needs a per-project assertion in `jest.config.ts` |
-| 5   | Five missing jest projects; `apps/waf-page` and `packages/standard` have no lint or typecheck | Todo     | `packages/standard` defines the preset every other package consumes                                                                            |
-| 6   | `testMatch` breadth — a test outside `__tests__/` is silently never run                       | Todo     | `--passWithNoTests` is gone, but the loss is still silent                                                                                      |
+| #   | Item                                                                                     | Status   | Note                                                                                                                                              |
+| --- | ---------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `collectCoverageFrom` — the coverage number measured only files a test had loaded        | **Done** | `9f24292`. The denominator went from 294 files to 754; global coverage from a flattering 90.30% to an honest 41.65%                               |
+| 2   | Per-package coverage thresholds                                                          | **Done** | `9f24292`. Nine path floors, each set at the package's real number so the gate is green today and red on the first regression                     |
+| 3   | CI runs on pushes to `development`                                                       | **Done** | `ci.yml` triggered `push: [main]` only — this is how `8216c89` reached the shared branch unobserved                                               |
+| 4   | Local and CI test invocations agree                                                      | **Done** | One script, `--maxWorkers=2` pinned; local and CI now enforce the same coverage threshold                                                         |
+| 4b  | A project that loses all its tests still passes                                          | Todo     | Jest is gone (2026-11-15). Vitest's "no tests found" check is aggregate across projects too. Needs a per-project assertion in `vitest.config.mts` |
+| 5   | Five missing projects; `apps/waf-page` and `packages/standard` have no lint or typecheck | Todo     | `packages/standard` defines the preset every other package consumes                                                                               |
+| 6   | `include` breadth — a test outside `__tests__/` is silently never run                    | Todo     | Jest is gone (2026-11-15). The loss is still silent                                                                                               |
 
 ## Rules that are written but not enforced
 

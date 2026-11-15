@@ -38,7 +38,6 @@
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*",
-		"@jest/globals": "^30.5.2",
 		"@tailwindcss/turbopack": "^4.3.5",
 		"@tanstack/react-query-devtools": "^5.107.1",
 		"@types/node": "catalog:",
@@ -47,6 +46,7 @@
 		"babel-plugin-react-compiler": "^1.0.0",
 		"eslint": "^10.14.0",
 		"tailwindcss": "^4.3.5",
-		"typescript": "catalog:"
+		"typescript": "catalog:",
+		"vitest": "^5.1.0"
 	}
 }

@@ -31,7 +31,7 @@
 
 <!-- Tick only what applies. These are the repo's mandatory rules. -->
 
-- [ ] The full gate passes locally: `pnpm format:check && pnpm lint && pnpm build && pnpm typecheck && pnpm test --coverage`
+- [ ] The full gate passes locally: `pnpm format:check && pnpm lint && pnpm build && pnpm typecheck && pnpm test`
 - [ ] `pnpm sync:package` was run if any `package.json` `exports` changed (never hand-edit `exports` — tsdown owns it)
 - [ ] No new `any` — `unknown` plus narrowing, or a Zod parse
 - [ ] No manual TypeScript interface beside a Zod schema — types are inferred from the schema

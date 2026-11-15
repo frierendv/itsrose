@@ -203,12 +203,14 @@ assumed:
 
 ### Step 4 — Make the test runtime genuinely ESM
 
-> **Superseded on 2026-11-15.** The recommended route is no longer to fix
-> Jest but to replace it: [Moving from Jest to Vitest](vitest-migration.md).
-> Vitest is ESM-native, so the port deletes this step rather than performing
-> it — the nine `__dirname` sites below have to change anyway during the
-> rewrite. The Jest-based route remains recorded here for the case where the
-> Vitest migration is deferred.
+> **Done 2026-11-15.** [Moving from Jest to Vitest](vitest-migration.md)
+> landed on the same day. Vitest is ESM-native, so the step was deleted
+> rather than performed — the port rewrote the nine `__dirname` sites
+> anyway. There is no Jest and no `--experimental-vm-modules` flag left in
+> the repository.
+>
+> The Jest-based route remains recorded here for the case where the Vitest
+> migration is ever reverted.
 
 Add `--experimental-vm-modules` to the Jest invocation, then convert the nine
 `__dirname` sites in nine test files to `import.meta.dirname`:

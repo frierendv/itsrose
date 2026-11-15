@@ -56,8 +56,8 @@
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*",
-		"@types/jest": "^30.0.0",
-		"@types/node": "catalog:"
+		"@types/node": "catalog:",
+		"vitest": "^5.1.0"
 	},
 	"publishConfig": {
 		"exports": {

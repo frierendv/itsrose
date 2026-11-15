@@ -474,7 +474,7 @@ Shared dependency versions are pinned centrally in `pnpm-workspace.yaml` under t
     pnpm lint
     pnpm build
     pnpm typecheck
-    pnpm test --coverage
+    pnpm test
     ```
 4. **The Gate Runs Before a Push**:
    A `pre-push` hook (`.husky/pre-push`) runs the same five steps, so a red gate cannot reach a shared branch. It is deliberately the _full_ gate rather than a fast subset — the point is that "the gate is green" means something. `git push --no-verify` skips it.

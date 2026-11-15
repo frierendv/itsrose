@@ -228,6 +228,13 @@ export default defineConfig({
 		globals: true,
 		environment: "node",
 		/**
+		 * The `vmThreads` pool creates the environment once per worker
+		 * instead of once per file, and keeps the per-file isolation the
+		 * `forks` pool gives. Under the two-worker cap the test script
+		 * sets, that is the difference between 10 seconds and 25.
+		 */
+		pool: "vmThreads",
+		/**
 		 * Jest does not clear mock history between tests. Vitest 5 does.
 		 * The suite keeps the Jest behaviour, because a handful of tests
 		 * assert on calls recorded outside the test body.

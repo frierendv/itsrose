@@ -1,7 +1,10 @@
 # Moving from Jest to Vitest
 
-**Analysed 2026-11-15 on branch `refactor/esm-only-migration`.** The analysis
-is recorded here; the migration itself is not yet implemented.
+**Analysed and landed 2026-11-15 on branch `refactor/vitest-migration`.**
+
+The suite now runs on Vitest 5. The analysis below is kept as the record of
+what the move was based on; the sections marked _Landed_ describe what
+actually happened.
 
 ## The verdict
 
@@ -203,6 +206,24 @@ The conditional logic that reads `--selectProjects` from `process.argv` and
 drops the floors of projects that did not run becomes the same logic reading
 `--project`.
 
+### Decided 2026-11-15: the thresholds are not ported
+
+The coverage floors are **out of scope for this migration**. The suite runs,
+the coverage report is still produced, and the thresholds are absent from
+`vitest.config.mts` with a comment saying why.
+
+This is a deliberate deferral, not an oversight. The floors were measured
+against Jest's numbers; Vitest counts glob-matched files into the global
+threshold; and carrying the old numbers across would make the gate assert
+something false — a floor that fails for the wrong reason is worse than no
+floor, because it teaches the team to ignore the gate.
+
+**What is lost until the floors come back:** the per-path guard that
+[A global coverage threshold hides holes](../problems/global-coverage-threshold.md)
+was built to provide. The global number alone cannot replace it — that is the
+whole point of the page. Re-measuring the twelve floors is the outstanding
+work, and it is listed under _What is still open_.
+
 ## The behavioural differences that will bite
 
 Ranked by how likely they are to cost time.
@@ -400,6 +421,81 @@ Two things to settle before starting:
 - **The coverage floor re-baseline.** It needs a deliberate session with the
   numbers in front of you, the way the original floors were set. It should
   not be delegated to `autoUpdate`.
+
+## Landed
+
+**2026-11-15, branch `refactor/vitest-migration`, commit `059bd53`.**
+
+The migration is done. `globals: true` was chosen, the coverage thresholds
+were left out, and the suite runs on Vitest 5.1.0.
+
+### The equivalence
+
+The Jest baseline was measured on the pre-migration tree, not assumed:
+
+|            | Jest 30.5.2                 | Vitest 5.1.0                |
+| ---------- | --------------------------- | --------------------------- |
+| Test files | 105 passed, 2 skipped (107) | 105 passed, 2 skipped (107) |
+| Tests      | 910 passed, 5 skipped (915) | 910 passed, 5 skipped (915) |
+| Wall clock | 5.4 s                       | 10.6 s                      |
+
+The two skipped files are the Midtrans sandbox tests, which are gated on
+`MIDTRANS_INTEGRATION=1` and credentials. Every test that ran under Jest
+runs under Vitest, and every one that passed still passes.
+
+### The four things that were not a rename
+
+**A mock used as a constructor needs a constructible implementation.**
+Vitest constructs a mock with `Reflect.construct(implementation, …)`, so an
+arrow function cannot be constructed — `mockImplementation(() => mockWs)`
+fails with _"() => mockWs is not a constructor"_. The implementation has to
+be a `function` expression. Two sites: the `ws` automock and the
+`ChatSocket` automock in `packages/features/character-ai`.
+
+**`vi.importActual` is async, and the factory with it.** The two factories
+that reached for `jest.requireActual` became async factories. The `image-size`
+one also had to spread the real module, because the original replaced a
+single export and the port now spreads the namespace.
+
+**Vite's alias plugin matches a string exactly or as a path prefix.** The
+`@/` prefix therefore never matched: `"@/"` plus a slash is `"@//"`. The
+dashboard and API aliases use the regular expression `/^@\//` instead.
+
+**Opting out of project inheritance loses the root settings.** The
+`api-routes` project sets `extends: false`, because its stubs have to come
+before the workspace aliases and inherited aliases are merged ahead of the
+project's own. That also cost it `globals: true`, `clearMocks` and
+`sequence.hooks`, so they are repeated on the project.
+
+### The pool matters more than the worker count
+
+The first working run took 25 seconds — five times the Jest baseline. The
+cause was not the tests: `jsdom was created 15 times`, once per file, and
+that was 89% of the tracked time.
+
+The `vmThreads` pool creates the environment once per worker and keeps the
+per-file isolation. Under the two-worker cap the test script sets:
+
+| Pool                  | Workers   | Wall clock |
+| --------------------- | --------- | ---------- |
+| `forks` (the default) | 2         | 25.0 s     |
+| `vmThreads`           | 2         | 10.6 s     |
+| `forks`               | unlimited | 5.2 s      |
+| `vmThreads`           | unlimited | 6.9 s      |
+
+`pool: "vmThreads"` is the right choice under the cap, because a CI runner
+has few cores and the environment cost dominates. On a many-core machine the
+default pool with unlimited workers wins — but the script caps the workers
+on purpose; the cap replaced `--runInBand` in `da1ab94`.
+
+### What is still open
+
+1. **The coverage floors.** Twelve per-path floors plus a global floor, to be
+   re-measured against Vitest's numbers and re-added to `vitest.config.mts`.
+   Until then the gate has no coverage teeth.
+2. **The ESM-only build flip.** Steps 1, 2, 3 and 5 of
+   [ESM only, CommonJS dropped](esm-only-runtime.md). The Jest-ESM step
+   between them is now done by this migration.
 
 ## Related
 

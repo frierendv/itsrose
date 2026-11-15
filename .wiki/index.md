@@ -31,7 +31,7 @@ to read `index.md` and know where to look.
 - [ESM only, CommonJS dropped](decisions/esm-only-runtime.md) — what CommonJS
   is actually left, why nothing reads it, and the five steps that remove it.
 - [Moving from Jest to Vitest](decisions/vitest-migration.md) — why the test
-  runner is the piece worth replacing, and what it costs to do so.
+  runner was the piece worth replacing, and what the move cost.
 
 ## Subsystems
 
