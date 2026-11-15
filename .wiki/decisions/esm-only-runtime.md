@@ -118,6 +118,11 @@ No CommonJS is _published_ because of this, and no source file depends on it.
 But it is the one place where the test environment's module semantics differ
 from Node's, and it is why the nine `__dirname` sites in step 4 exist.
 
+> **Updated 2026-11-15.** This surface is better removed than fixed. Vitest
+> is ESM-native by construction, so
+> [Moving from Jest to Vitest](vitest-migration.md) deletes the problem
+> instead of solving it.
+
 ## Why it is safe — the consumer map
 
 | Consumer            | Module system              | `@itsrose/*` packages it consumes                                                           | Format today        |
@@ -198,6 +203,13 @@ assumed:
 
 ### Step 4 — Make the test runtime genuinely ESM
 
+> **Superseded on 2026-11-15.** The recommended route is no longer to fix
+> Jest but to replace it: [Moving from Jest to Vitest](vitest-migration.md).
+> Vitest is ESM-native, so the port deletes this step rather than performing
+> it — the nine `__dirname` sites below have to change anyway during the
+> rewrite. The Jest-based route remains recorded here for the case where the
+> Vitest migration is deferred.
+
 Add `--experimental-vm-modules` to the Jest invocation, then convert the nine
 `__dirname` sites in nine test files to `import.meta.dirname`:
 
@@ -219,9 +231,11 @@ repository rather than only of its output.
 regenerates all three during step 2; the hand-written values simply stop
 being the source of truth.
 
-Note: `ts-node` stays. Jest loads `jest.config.ts` through it
+Note: `ts-node` stays _unless_ the Vitest migration lands, in which case
+Jest goes and `ts-node` goes with it. Today it is load-bearing: Jest loads
+`jest.config.ts` through it
 (`jest-config/build/readConfigFileAndSetRootDir.js`, `loader === "ts-node"`),
-so it is load-bearing even though no script names it.
+even though no script names it.
 
 ## The trap that decides step 1: keep `legacy: true`
 
@@ -266,7 +280,8 @@ Four focused pull requests, in the order above:
 1. Preset flip + rebuild — one line changed, one branch deleted.
 2. Next.js `"type": "module"` — two lines, plus a dashboard build and a
    Docker smoke test.
-3. Jest ESM — nine sites, one flag.
+3. Jest ESM — nine sites, one flag. **Or skip this: the Vitest migration
+   replaces it** (see below).
 4. Verification through the full gate: `pnpm format:check`, `pnpm lint`,
    `pnpm build`, `pnpm typecheck`, `pnpm test --coverage`.
 
@@ -282,6 +297,24 @@ consumer of the private registry — is answerable with a single query against
 the registry's download log.
 
 Sequence it so the risky part lands first: make the Next.js applications ESM
-(step 3) and the test runtime ESM (step 4) _before_ flipping the preset
-(step 1). If an external consumer turns up, only the preset flip has to be
-revisited, and the rest of the work stands.
+(step 3) before flipping the preset (step 1). If an external consumer turns
+up, only the preset flip has to be revisited, and the rest of the work
+stands.
+
+**Updated 2026-11-15.** [Moving from Jest to Vitest](vitest-migration.md)
+changes the sequencing. Vitest is ESM-native, so step 4 above is better
+spent as a Vitest port than as a Jest flag — the port deletes step 4 rather
+than performing it. The recommended order becomes:
+
+1. **Vitest migration.** Larger, and it removes the Jest-ESM step entirely.
+2. **Then the ESM-only build flip** (steps 1, 2 and 5 here). By then the
+   suite already runs on a native ESM runner, so the ESM-only story is
+   complete with no Jest flag anywhere.
+
+Running the ESM flip first would mean paying for the `__dirname` conversion
+twice.
+
+## Related
+
+- [Moving from Jest to Vitest](vitest-migration.md)
+- [The gate was red on the shared branch](../problems/gate-red-on-shared-branch.md)
