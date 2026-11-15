@@ -1,24 +1,3 @@
-/**
- * Vitest configuration for the ItsRose monorepo.
- *
- * Replaces the Jest configuration that used to live here. The shape is the
- * same — ten projects, one per package group — but the mechanics differ:
- *
- * - Jest's `moduleNameMapper` became `resolve.alias`. Vite's alias plugin
- *   matches a string exactly or as a path prefix, so a pattern that used to
- *   point at an array of candidate roots became one explicit entry per
- *   package.
- * - Every `@itsrose/*` package is aliased to its `src` directory so the
- *   suite always runs against source, never against a built `dist`. The
- *   `devExports` mechanism would already point `exports` at source, but the
- *   alias keeps that guarantee even after a production build has rewritten
- *   the export maps.
- * - The coverage thresholds are deliberately absent. The floors that used to
- *   live in `jest.config.ts` were measured against Jest's coverage numbers,
- *   and Vitest counts glob-matched files into the global threshold, so
- *   copying them across would assert something false. They have to be
- *   re-measured and re-added. See `.wiki/decisions/vitest-migration.md`.
- */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
@@ -169,7 +148,6 @@ const workspaceAliases = [
 	},
 	{ find: "@itsrose/system", replacement: repo("packages/core/system/src") },
 	{ find: "@itsrose/types", replacement: repo("packages/types/src") },
-
 	{
 		find: "better-auth/api",
 		replacement: repo("packages/auth/core/__mocks__/better-auth-api.ts"),
@@ -183,32 +161,38 @@ const workspaceAliases = [
  * answered, so the feature clients are replaced by stubs. The stubs come
  * first: the alias plugin takes the first match, and the workspace aliases
  * would otherwise resolve the real clients.
+ *
+ * The stub aliases match the package root exactly. A string alias also
+ * matches every subpath of the package, which would send `@itsrose/<pkg>/env`
+ * — the environment variable names each package publishes — into the stub
+ * file. The subpaths are not clients, so they keep resolving to the real
+ * source through the workspace aliases.
  */
 const apiRoutesAliases = [
 	{
-		find: "@itsrose/character-ai",
+		find: /^@itsrose\/character-ai$/,
 		replacement: repo(
 			"packages/api-routes/__tests__/mocks/character-ai.ts"
 		),
 	},
 	{
-		find: "@itsrose/elevenlabs",
+		find: /^@itsrose\/elevenlabs$/,
 		replacement: repo("packages/api-routes/__tests__/mocks/elevenlabs.ts"),
 	},
 	{
-		find: "@itsrose/instagram",
+		find: /^@itsrose\/instagram$/,
 		replacement: repo("packages/api-routes/__tests__/mocks/instagram.ts"),
 	},
 	{
-		find: "@itsrose/mtxx",
+		find: /^@itsrose\/mtxx$/,
 		replacement: repo("packages/api-routes/__tests__/mocks/mtxx.ts"),
 	},
 	{
-		find: "@itsrose/remini",
+		find: /^@itsrose\/remini$/,
 		replacement: repo("packages/api-routes/__tests__/mocks/remini.ts"),
 	},
 	{
-		find: "@itsrose/tiktok",
+		find: /^@itsrose\/tiktok$/,
 		replacement: repo("packages/api-routes/__tests__/mocks/tiktok.ts"),
 	},
 	{
@@ -223,6 +207,7 @@ const apiRoutesAliases = [
 export default defineConfig({
 	resolve: {
 		alias: workspaceAliases,
+		tsconfigPaths: true,
 	},
 	test: {
 		globals: true,
@@ -316,6 +301,7 @@ export default defineConfig({
 				extends: false,
 				resolve: {
 					alias: apiRoutesAliases,
+					tsconfigPaths: true,
 				},
 				test: {
 					name: "packages/api-routes",
@@ -347,6 +333,7 @@ export default defineConfig({
 						},
 						...workspaceAliases,
 					],
+					tsconfigPaths: true,
 				},
 				test: {
 					name: "apps/api",
@@ -368,6 +355,7 @@ export default defineConfig({
 						},
 						...workspaceAliases,
 					],
+					tsconfigPaths: true,
 				},
 				test: {
 					name: "apps/dashboard",
