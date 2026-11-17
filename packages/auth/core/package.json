@@ -22,8 +22,8 @@
 	],
 	"keywords": [
 		"auth",
-		"itsrose",
-		"better-auth"
+		"better-auth",
+		"itsrose"
 	],
 	"exports": {
 		".": "./src/index.ts",
@@ -55,7 +55,6 @@
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*",
-		"@types/node": "catalog:",
 		"@types/pg": "^8.23.1",
 		"dotenv": "^18.0.10",
 		"vitest": "^5.1.0"

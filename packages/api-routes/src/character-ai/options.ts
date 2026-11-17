@@ -1,5 +1,10 @@
+import { CHARACTER_AI_ENV_KEYS } from "@itsrose/character-ai/env";
 import { ROUTE_MODULE_PREFIXES, type RouteModuleOptions } from "../options";
 
+/**
+ * A environment variable needed by this route.
+ */
+export { CHARACTER_AI_ENV_KEYS };
 /**
  * Every route of the character.ai surface, keyed by the route it belongs to.
  */

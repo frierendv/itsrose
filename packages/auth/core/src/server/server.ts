@@ -1,12 +1,12 @@
 import { betterAuth, type BetterAuthOptions } from "better-auth";
-import type { SharedEnv } from "../shared";
+import type { AuthEnv } from "../shared";
 import { getAuthOptions } from "./options";
 import getBetterAuthPlugins from "./plugins";
 
 export default function (
 	overrides: BetterAuthOptions = {} as BetterAuthOptions
 ) {
-	const env = process.env as unknown as SharedEnv & Record<string, unknown>;
+	const env = process.env as unknown as AuthEnv & Record<string, unknown>;
 	const baseOptions = getAuthOptions(env);
 	const plugins = [
 		...getBetterAuthPlugins(env),

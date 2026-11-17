@@ -7,9 +7,9 @@ import {
 	createDatabasePool,
 	type AuthServer,
 } from "./server";
-import { readEnvs, SHARED_ENV_KEYS } from "./shared/env";
+import { AUTH_ENV_KEYS, readEnvs } from "./shared/env";
 
-const env = readEnvs(SHARED_ENV_KEYS);
+const env = readEnvs(AUTH_ENV_KEYS);
 const database = createDatabasePool({
 	database: env.DB_NAME,
 	user: env.DB_USER,

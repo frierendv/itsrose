@@ -32,6 +32,7 @@
 		".": "./src/index.ts",
 		"./audio": "./src/audio/index.ts",
 		"./character-ai": "./src/character-ai/index.ts",
+		"./env": "./src/env.ts",
 		"./instagram": "./src/instagram/index.ts",
 		"./mtxx": "./src/mtxx/index.ts",
 		"./remini": "./src/remini/index.ts",
@@ -80,6 +81,10 @@
 			"./character-ai": {
 				"import": "./dist/character-ai/index.mjs",
 				"require": "./dist/character-ai/index.js"
+			},
+			"./env": {
+				"import": "./dist/env.mjs",
+				"require": "./dist/env.js"
 			},
 			"./instagram": {
 				"import": "./dist/instagram/index.mjs",

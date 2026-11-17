@@ -1,10 +1,10 @@
-import { ENVS, PACKAGE_ENV_KEYS } from "@/lib/env";
+import { ENVS } from "../src/lib/env";
 import {
 	assertApiEnv,
 	BOOT_REQUIRED_KEYS,
 	formatEnvProblems,
 	validateApiEnv,
-} from "@/lib/env-check";
+} from "../src/lib/env-check";
 
 const VALID_ENV: Record<string, string> = {
 	DB_NAME: "itsrose",
@@ -14,7 +14,10 @@ const VALID_ENV: Record<string, string> = {
 	DB_PORT: "5432",
 	REDIS_URL: "redis://127.0.0.1:6379",
 	BETTER_AUTH_SECRET: "a".repeat(32),
+	MIDTRANS_ENVIRONMENT: "development",
+	MIDTRANS_MERCHANT_ID: "12345",
 	MIDTRANS_SERVER_KEY: "server-key",
+	MIDTRANS_CLIENT_KEY: "client-key",
 	S3_ACCOUNT_ID: "account",
 	S3_ACCESS_KEY: "access",
 	S3_SECRET_KEY: "secret",
@@ -52,13 +55,9 @@ describe("validateApiEnv", () => {
 				"REDIS_URL",
 				"BETTER_AUTH_SECRET",
 				"MIDTRANS_SERVER_KEY",
-				"ELEVENLABS_API_KEY",
-				"MTXX_KEY",
-				"CAI_USER_TOKEN",
 				"S3_BUCKET",
 			])
 		);
-		expect(result.warnings.length).toBeGreaterThan(0);
 	});
 
 	it("flags malformed values", () => {
@@ -100,17 +99,6 @@ describe("validateApiEnv", () => {
 		});
 		expect(result.warnings.join("\n")).not.toMatch(/Google OAuth/);
 	});
-
-	it("warns when optional integrations are unset", () => {
-		const result = validateApiEnv({
-			...VALID_ENV,
-			REMINI_API_BASE_URL: "",
-			REMINI_WSS_BASE_URL: "",
-			BILLING_CRON_SECRET: "",
-		});
-		expect(result.warnings.join("\n")).toMatch(/Remini endpoints/);
-		expect(result.warnings.join("\n")).toMatch(/BILLING_CRON_SECRET/);
-	});
 });
 
 describe("assertApiEnv", () => {
@@ -134,14 +122,6 @@ describe("env allowlist", () => {
 	it("covers every boot-required key", () => {
 		for (const key of BOOT_REQUIRED_KEYS) {
 			expect(ENVS).toContain(key);
-		}
-	});
-
-	it("covers every package-owned key group", () => {
-		for (const keys of Object.values(PACKAGE_ENV_KEYS)) {
-			for (const key of keys) {
-				expect(ENVS).toContain(key);
-			}
 		}
 	});
 

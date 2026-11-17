@@ -88,12 +88,13 @@ describe("the audio routes", () => {
 			declareAudioResponseHeader: true,
 		});
 
-		await app.inject({
+		const rsp = await app.inject({
 			method: "POST",
 			url: "/audio/text_to_speech",
 			headers: { "response-audio-format": "base64" },
 			payload: VOICE,
 		});
+		expect(rsp.statusCode).toBe(200);
 		expect(uploaded).toEqual([]);
 
 		await app.inject({

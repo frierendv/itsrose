@@ -22,13 +22,16 @@ async function buildServer(): Promise<FastifyInstance> {
 	fastify.decorateRequest("apikey", null);
 	fastify.decorateRequest("subscription", null);
 	fastify.addHook("onRequest", async (request) => {
+		// @ts-expect-error ignore ApiKey type in test
 		request.apikey = API_KEY;
+		// @ts-expect-error ignore UserSubscription type in test
 		request.subscription = SUBSCRIPTION;
 	});
 
 	await fastify.register(hooks);
 	await fastify.register(status);
 
+	afterAll(() => fastify.close());
 	return fastify;
 }
 

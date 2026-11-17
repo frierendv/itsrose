@@ -1,5 +1,10 @@
+import { MTXX_ENV_KEYS } from "@itsrose/mtxx/env";
 import { ROUTE_MODULE_PREFIXES, type RouteModuleOptions } from "../options";
 
+/**
+ * A environment variable needed by this route.
+ */
+export { MTXX_ENV_KEYS };
 /**
  * Every route of the mtxx surface, keyed by the route it belongs to.
  */

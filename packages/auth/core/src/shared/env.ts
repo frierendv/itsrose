@@ -1,6 +1,9 @@
+import { BILLING_ENV_KEYS } from "@itsrose/auth-billing/env";
+import { MAILER_ENV_KEYS } from "@itsrose/auth-mailer/env";
+import { STORAGE_ENV_KEYS } from "@itsrose/auth-storage/env";
 import { getEnv, type ResolvedEnvValue } from "@itsrose/system";
 
-export const SHARED_ENV_KEYS = [
+export const AUTH_ENV_KEYS = [
 	// Database
 	"DB_NAME",
 	"DB_USER",
@@ -33,25 +36,22 @@ export const SHARED_ENV_KEYS = [
 	"BETTER_AUTH_GITHUB_ID",
 	"BETTER_AUTH_GITHUB_SECRET",
 
-	// S3 Storage
-	"S3_ACCOUNT_ID",
-	"S3_ACCESS_KEY",
-	"S3_SECRET_KEY",
-	"S3_BUCKET",
-	"S3_PUBLIC_DOMAIN",
+	...BILLING_ENV_KEYS,
+	...MAILER_ENV_KEYS,
+	...STORAGE_ENV_KEYS,
 ] as const;
 
-export type SharedEnvKey = typeof SHARED_ENV_KEYS;
+export type AuthEnvKey = typeof AUTH_ENV_KEYS;
 
-export type SharedEnv<T extends readonly string[] = SharedEnvKey> = {
+export type AuthEnv<T extends readonly string[] = AuthEnvKey> = {
 	[K in T[number]]: ResolvedEnvValue<{ allowEmpty: true }>;
 } & NodeJS.ProcessEnv;
 
 /**
  * Reads specified environment variables using @itsrose/system.
  */
-export function readEnvs<T extends readonly string[]>(keys: T): SharedEnv<T> {
-	const env = {} as SharedEnv<T>;
+export function readEnvs<T extends readonly string[]>(keys: T): AuthEnv<T> {
+	const env = {} as AuthEnv<T>;
 	for (const envKey of keys) {
 		Object.assign(env, { [envKey]: getEnv(envKey, { allowEmpty: true }) });
 	}

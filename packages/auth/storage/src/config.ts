@@ -1,4 +1,5 @@
 import { getEnv } from "@itsrose/system";
+import { STORAGE_ENV as ENV } from "./env";
 
 export const MUTABLE_CACHE_CONTROL = "public, max-age=3600, must-revalidate";
 export const EPHEMERAL_CACHE_CONTROL = "public, max-age=86400, s-maxage=86400";
@@ -24,21 +25,20 @@ export function resolveStorageConfig(
 	overrides: Partial<StorageConfig> = {}
 ): StorageConfig {
 	const accountId =
-		overrides.accountId ?? getEnv("S3_ACCOUNT_ID", { allowEmpty: true });
+		overrides.accountId ?? getEnv(ENV.accountId, { allowEmpty: true });
 
 	const accessKeyId =
-		overrides.accessKeyId ?? getEnv("S3_ACCESS_KEY", { allowEmpty: true });
+		overrides.accessKeyId ?? getEnv(ENV.accessKeyId, { allowEmpty: true });
 
 	const secretAccessKey =
 		overrides.secretAccessKey ??
-		getEnv("S3_SECRET_KEY", { allowEmpty: true });
+		getEnv(ENV.secretAccessKey, { allowEmpty: true });
 
-	const bucket =
-		overrides.bucket ?? getEnv("S3_BUCKET", { allowEmpty: true });
+	const bucket = overrides.bucket ?? getEnv(ENV.bucket, { allowEmpty: true });
 
 	const publicDomain =
 		overrides.publicDomain ??
-		getEnv("S3_PUBLIC_DOMAIN", { allowEmpty: true });
+		getEnv(ENV.publicDomain, { allowEmpty: true });
 
 	return {
 		accountId: accountId || undefined,

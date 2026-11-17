@@ -1,6 +1,10 @@
 import { ROUTE_MODULE_PREFIXES, type RouteModuleOptions } from "../options";
 
 /**
+ * A environment variable needed by this route.
+ */
+export const INSTAGRAM_ENV_KEYS = [] as const;
+/**
  * Every route of the instagram surface, keyed by the route it belongs to.
  */
 export const INSTAGRAM_ROUTE_KEYS = ["getMedia"] as const;

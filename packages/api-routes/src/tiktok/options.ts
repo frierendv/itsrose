@@ -1,5 +1,10 @@
+import { TIKTOK_ENV_KEYS } from "@itsrose/tiktok/env";
 import { ROUTE_MODULE_PREFIXES, type RouteModuleOptions } from "../options";
 
+/**
+ * A environment variable needed by this route.
+ */
+export { TIKTOK_ENV_KEYS };
 /**
  * Every route of the tiktok surface, keyed by the route it belongs to.
  */

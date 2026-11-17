@@ -1,16 +1,16 @@
 import { getAuthOptions } from "../src/server/options";
-import type { SharedEnv } from "../src/shared";
+import type { AuthEnv } from "../src/shared";
 
 type AuthOptionsEnv = Parameters<typeof getAuthOptions>[0];
 
 /**
  * Baseline environment where every shared key is present but empty.
  *
- * `SharedEnv` requires all of its keys to be defined (their value may still be
+ * `AuthEnv` requires all of its keys to be defined (their value may still be
  * `undefined`), so the baseline is spelled out explicitly instead of being
  * cast from a partial object.
  */
-const BASE_ENV: SharedEnv = {
+const BASE_ENV: AuthEnv = {
 	DB_NAME: undefined,
 	DB_USER: undefined,
 	DB_PASS: undefined,
@@ -36,6 +36,9 @@ const BASE_ENV: SharedEnv = {
 	S3_SECRET_KEY: undefined,
 	S3_BUCKET: undefined,
 	S3_PUBLIC_DOMAIN: undefined,
+	BILLING_CRON_SECRET: undefined,
+	EUSEND_API_KEY: undefined,
+	EUSEND_FROM: undefined,
 };
 
 /**

@@ -5,6 +5,7 @@ export default defineConfig({
 	...config,
 	entry: [
 		"src/index.ts",
+		"src/env.ts",
 		"src/audio/index.ts",
 		"src/character-ai/index.ts",
 		"src/instagram/index.ts",

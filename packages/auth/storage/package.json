@@ -21,16 +21,17 @@
 		"src"
 	],
 	"keywords": [
-		"itsrose",
 		"auth",
-		"storage",
+		"better-auth",
+		"itsrose",
 		"s3",
-		"better-auth"
+		"storage"
 	],
 	"exports": {
 		".": "./src/index.ts",
 		"./client": "./src/client.ts",
 		"./config": "./src/config.ts",
+		"./env": "./src/env.ts",
 		"./keys": "./src/keys.ts",
 		"./operations": "./src/operations.ts",
 		"./plugin-server": "./src/plugin-server.ts",
@@ -53,15 +54,14 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"@itsrose/standard": "workspace:*",
-		"@types/node": "catalog:",
-		"vitest": "^5.1.0"
+		"@itsrose/standard": "workspace:*"
 	},
 	"publishConfig": {
 		"exports": {
 			".": "./dist/index.mjs",
 			"./client": "./dist/client.mjs",
 			"./config": "./dist/config.mjs",
+			"./env": "./dist/env.mjs",
 			"./keys": "./dist/keys.mjs",
 			"./operations": "./dist/operations.mjs",
 			"./plugin-server": "./dist/plugin-server.mjs",

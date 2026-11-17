@@ -13,10 +13,10 @@ import {
 	oauthPopup,
 	openAPI,
 } from "better-auth/plugins";
-import type { SharedEnv } from "../shared";
+import type { AuthEnv } from "../shared";
 import { LAST_LOGIN_METHOD_COOKIE, WEBAUTHN_CHALLENGE_COOKIE } from "../shared";
 
-export default function (env = process.env as SharedEnv) {
+export default function (env = process.env as AuthEnv) {
 	const appName = typeof env.APP_NAME === "string" ? env.APP_NAME : undefined;
 	const appDomain =
 		typeof env.APP_DOMAIN === "string" ? env.APP_DOMAIN : undefined;

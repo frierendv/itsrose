@@ -40,7 +40,10 @@ export default fp(
 			fastify.env.BETTER_AUTH_BASE_URL ?? fastify.env.APP_BASE_URL;
 
 		const auth = createBetterAuthServer({
-			baseURL: { allowedHosts, fallback: fallbackHost },
+			baseURL:
+				allowedHosts.length > 1
+					? { allowedHosts, fallback: fallbackHost }
+					: fallbackHost,
 			trustedOrigins,
 			basePath: "/auth",
 			database: fastify.database,

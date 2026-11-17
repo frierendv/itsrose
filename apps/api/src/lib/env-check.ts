@@ -1,5 +1,5 @@
 import { SystemError } from "@itsrose/system";
-import { ENVS, PACKAGE_ENV, PACKAGE_ENV_KEYS } from "./env";
+import { ENVS, MIDTRANS_ENV_KEYS } from "./env";
 
 type EnvRecord = Record<string, string | undefined>;
 
@@ -28,29 +28,14 @@ export const BOOT_REQUIRED_KEYS = [
 	"DB_PORT",
 	"REDIS_URL",
 	"BETTER_AUTH_SECRET",
-	PACKAGE_ENV.midtrans.serverKey,
+	...MIDTRANS_ENV_KEYS,
 	"S3_ACCOUNT_ID",
 	"S3_ACCESS_KEY",
 	"S3_SECRET_KEY",
 	"S3_BUCKET",
-	...PACKAGE_ENV_KEYS.elevenlabs,
-	...PACKAGE_ENV_KEYS.tiktok,
-	PACKAGE_ENV.mtxx.sdkBaseUrl,
-	PACKAGE_ENV.mtxx.openapiBaseUrl,
-	PACKAGE_ENV.mtxx.key,
-	PACKAGE_ENV.mtxx.secret,
-	...PACKAGE_ENV_KEYS.characterAi,
 ] as const;
 
-const URL_KEYS = [
-	"APP_BASE_URL",
-	"BETTER_AUTH_BASE_URL",
-	PACKAGE_ENV.tiktok.baseUrl,
-	PACKAGE_ENV.mtxx.sdkBaseUrl,
-	PACKAGE_ENV.mtxx.openapiBaseUrl,
-	PACKAGE_ENV.characterAi.neoBaseUrl,
-	PACKAGE_ENV.remini.apiBaseUrl,
-] as const;
+const URL_KEYS = ["APP_BASE_URL", "BETTER_AUTH_BASE_URL"] as const;
 
 function isPresent(env: EnvRecord, key: string): boolean {
 	const value = env[key];
@@ -134,31 +119,6 @@ export function validateApiEnv(env: EnvRecord = process.env): EnvValidation {
 	if (Boolean(githubId) !== Boolean(githubSecret)) {
 		warnings.push(
 			"GitHub OAuth is partially configured: set both the client id and secret or neither."
-		);
-	}
-
-	if (
-		env[PACKAGE_ENV.mailer.apiKey] &&
-		!env[PACKAGE_ENV.mailer.from] &&
-		!env.APP_DOMAIN
-	) {
-		warnings.push(
-			"Mailer has an API key but no sender: set EUSEND_FROM or APP_DOMAIN."
-		);
-	}
-
-	if (!env[PACKAGE_ENV.billing.cronSecret]) {
-		warnings.push(
-			"BILLING_CRON_SECRET is unset: the billing cron endpoint then requires an admin session."
-		);
-	}
-
-	if (
-		!env[PACKAGE_ENV.remini.apiBaseUrl] ||
-		!env[PACKAGE_ENV.remini.wssBaseUrl]
-	) {
-		warnings.push(
-			"Remini endpoints are not configured; those routes will fail on first call."
 		);
 	}
 

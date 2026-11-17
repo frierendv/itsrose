@@ -1,9 +1,14 @@
+import { ELEVENLABS_ENV, ELEVENLABS_ENV_KEYS } from "@itsrose/elevenlabs/env";
 import {
 	ROUTE_MODULE_PREFIXES,
 	type AudioStorageOptions,
 	type RouteModuleOptions,
 } from "../options";
 
+/**
+ * A environment variable needed by this route.
+ */
+export { ELEVENLABS_ENV, ELEVENLABS_ENV_KEYS as AUDIO_ENV_KEYS };
 /**
  * Every route of the audio surface, keyed by the route it belongs to.
  *

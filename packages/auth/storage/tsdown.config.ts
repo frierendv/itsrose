@@ -20,6 +20,7 @@ export default defineConfig({
 	entry: [
 		"src/index.ts",
 		"src/client.ts",
+		"src/env.ts",
 		"src/config.ts",
 		"src/keys.ts",
 		"src/operations.ts",

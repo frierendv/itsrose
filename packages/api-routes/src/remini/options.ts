@@ -1,5 +1,10 @@
+import { REMINI_ENV_KEYS } from "@itsrose/remini/env";
 import { ROUTE_MODULE_PREFIXES, type RouteModuleOptions } from "../options";
 
+/**
+ * A environment variable needed by this route.
+ */
+export { REMINI_ENV_KEYS };
 /**
  * Every route of the remini surface, keyed by the route it belongs to.
  */
