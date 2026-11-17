@@ -51,5 +51,8 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Check for unused dependencies
+        run: pnpm check:deps
+
       - name: Test with coverage
         run: pnpm test --reporter=dot
