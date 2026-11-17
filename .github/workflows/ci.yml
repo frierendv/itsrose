@@ -2,8 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [main, development]
+    # ci only run in main branch direct push.
+    branches: [main]
   pull_request:
+    # required ci to passed in PR; branch development and main.
     branches: [development, main]
   workflow_dispatch:
 
