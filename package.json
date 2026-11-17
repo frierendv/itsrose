@@ -13,6 +13,7 @@
 	"scripts": {
 		"build": "turbo run build",
 		"build:no-cache": "turbo run build --no-cache",
+		"check:deps": "tsx check-unused-deps.ts",
 		"clean": "turbo run clean",
 		"commitlint": "commitlint --edit",
 		"dev": "turbo run dev",

@@ -46,7 +46,9 @@ export function mergeConfig(base, overrides = {}) {
 
 /** @returns {import("tsdown").UserConfig} */
 export function getProdConfig() {
-	if (!IS_PRODUCTION) return {};
+	if (!IS_PRODUCTION) {
+		return {};
+	}
 	return {
 		sourcemap: true,
 		minify: true,
@@ -81,7 +83,7 @@ const baseConfig = {
 	cjsDefault: true,
 	unused: {
 		enabled: true,
-		level: "warning",
+		level: "error",
 		depKinds: ["dependencies", "peerDependencies"],
 	},
 	exports: {
