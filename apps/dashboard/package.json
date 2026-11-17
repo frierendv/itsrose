@@ -14,7 +14,7 @@
 	"dependencies": {
 		"@better-auth-ui/core": "^1.7.33",
 		"@better-auth-ui/heroui": "^1.7.33",
-		"@better-auth-ui/react": "^1.7.33",
+		"@better-auth-ui/react": "^1.7.34",
 		"@bprogress/next": "^3.2.12",
 		"@gravity-ui/icons": "^2.23.1",
 		"@heroui/react": "^3.2.7",
@@ -44,7 +44,7 @@
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
 		"babel-plugin-react-compiler": "^1.0.0",
-		"eslint": "^10.14.0",
+		"eslint": "^10.15.0",
 		"tailwindcss": "^4.3.5",
 		"typescript": "catalog:",
 		"vitest": "^5.1.0"

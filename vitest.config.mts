@@ -210,6 +210,8 @@ export default defineConfig({
 		tsconfigPaths: true,
 	},
 	test: {
+		/** disable cache; resolve fake test failure on local development */
+		cache: false,
 		globals: true,
 		environment: "node",
 		/**
@@ -236,26 +238,6 @@ export default defineConfig({
 		coverage: {
 			provider: "v8",
 			reporter: ["text", "html", "json"],
-			include: [
-				"packages/*/src/**/*.{ts,tsx,js,jsx}",
-				"packages/*/*/src/**/*.{ts,tsx,js,jsx}",
-				"packages/*/tools/**/*.{ts,tsx,js,jsx}",
-				"apps/*/src/**/*.{ts,tsx,js,jsx}",
-				"apps/*/{app,components,config,constants,features,hooks,layouts,lib,providers,server,shared,types}/**/*.{ts,tsx,js,jsx}",
-				"apps/*/proxy.{ts,tsx,js,jsx}",
-				"apps/*/mdx-components.{ts,tsx,js,jsx}",
-			],
-			exclude: [
-				"packages/types/**",
-				"packages/standard/**",
-				"**/__tests__/**",
-				"**/__mocks__/**",
-				"**/next.config.{ts,tsx,js,jsx}",
-				"**/eslint.config.{ts,tsx,js,jsx}",
-				"**/tsdown.config.{ts,tsx,js,jsx}",
-				"**/*.d.ts",
-			],
-			// The thresholds are missing on purpose — see the file header.
 		},
 		projects: [
 			{
