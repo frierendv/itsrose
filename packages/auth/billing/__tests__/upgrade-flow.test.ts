@@ -101,7 +101,6 @@ describe("Mid-Cycle Upgrade Flow", () => {
 			adapter,
 			body: { target_tier: "pro" },
 		});
-
 		await expect(endpoint(ctx)).rejects.toThrow(
 			/Target tier 'Pro' is a downgrade/
 		);

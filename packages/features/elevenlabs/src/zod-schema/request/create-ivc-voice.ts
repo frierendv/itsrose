@@ -21,8 +21,8 @@ export const ElevenLabsCreateIVCVoiceSchema = z
 > [!note]
 > Any personal information you include will be automatically redacted.`.trim()
 			),
-		remove_background_noise: z.coerce
-			.boolean()
+		remove_background_noise: z
+			.stringbool()
 			.optional()
 			.describe(
 				"Whether to remove background noise from the audio files. Defaults to false."

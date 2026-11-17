@@ -83,7 +83,7 @@ export const MusicCompositionPromptSchema = z
 		id: "ElevenLabsMusicCompostionPromptSchema",
 	});
 
-export const MusicCompositionGenerationChunk = z
+export const MusicCompositionGenerationChunkSchema = z
 	.object({
 		text: z
 			.string()
@@ -118,8 +118,7 @@ export const MusicCompositionGenerationChunk = z
 				"How much the model adheres to the context of its surrounding chunks. " +
 					"Low adherence means the model can deviate from the context and be more creative. " +
 					"High adherence means the model will be more consistent with the context."
-			)
-			.optional(),
+			),
 		conditioning_ref: z
 			.object(MusicAudioRefSchema.shape)
 			.describe(
@@ -147,7 +146,10 @@ export const MusicCompositionGenerationChunk = z
 export const MusicCompositionPlanSchema = z
 	.object({
 		chunks: z.array(
-			z.union([MusicCompositionGenerationChunk, MusicAudioRefSchema])
+			z.union([
+				MusicCompositionGenerationChunkSchema,
+				MusicAudioRefSchema,
+			])
 		),
 	})
 	.meta({

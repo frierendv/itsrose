@@ -7,8 +7,7 @@ export const ElevenLabsListVoicesSchema = z
 	.object({
 		next_page_token: z
 			.string()
-			.nullable()
-			.optional()
+			.nullish()
 			.describe(
 				"The next page token to use for pagination. Returned from the previous request. " +
 					"Use this in combination with the `has_more` flag for reliable pagination."

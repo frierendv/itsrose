@@ -10,9 +10,7 @@
 		"url": "git+https://github.com/frierendv/itsrose.git",
 		"directory": "packages/internal/upstream-client"
 	},
-	"bugs": {
-		"url": "https://github.com/frierendv/itsrose/issues"
-	},
+	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",

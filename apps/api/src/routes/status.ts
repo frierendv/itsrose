@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
-import z from "zod/v4";
+import { z } from "zod/v4";
 
 const status: FastifyPluginAsync = async (fastify): Promise<void> => {
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
@@ -28,7 +28,7 @@ const status: FastifyPluginAsync = async (fastify): Promise<void> => {
 		url: "/me",
 		schema: {
 			tags: ["General"],
-			description: "Check if the service is up and running",
+			description: "Get your information.",
 			response: {
 				/**
 				 * The API key and the subscription of the caller.
@@ -37,13 +37,16 @@ const status: FastifyPluginAsync = async (fastify): Promise<void> => {
 				 * free-form map of unknown values here: the route hands the
 				 * two values over untouched.
 				 */
-				200: z.record(z.string(), z.unknown()),
+				200: z.object({
+					apikey: z.record(z.string(), z.unknown()),
+					subscription: z.record(z.string(), z.unknown()),
+				}),
 			},
 		},
 		handler: async (request) => {
 			return {
-				apikey: request.apikey,
-				subscription: request.subscription,
+				apikey: request.apikey as Record<string, unknown>,
+				subscription: request.subscription as Record<string, unknown>,
 			};
 		},
 	});

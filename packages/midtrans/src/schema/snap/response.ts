@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import {
-	SnapPreferenceBrand,
+	SnapPreferenceBrandSchema,
 	SnapPreferenceCustomerFeeSchema,
 	SnapPreferencePaymentChannelSchema,
 } from "./shared";
@@ -42,7 +42,7 @@ export const SnapPreferenceResponseSchema = z
 		other_va_processor: z.string(),
 		allow_retry: z.boolean().nullish(),
 		hide_order_id: z.boolean(),
-		brand: SnapPreferenceBrand,
+		brand: SnapPreferenceBrandSchema,
 		payment_channels: z.array(SnapPreferencePaymentChannelSchema),
 		customer_imposed_payment_fee: SnapPreferenceCustomerFeeSchema,
 		feature_types: z.array(z.string()),

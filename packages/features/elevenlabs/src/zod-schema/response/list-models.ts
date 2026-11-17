@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 // ── Sub-schemas ──────────────────────────────────────────────────────────────
 
@@ -53,13 +53,13 @@ const ModelSchema = z.object({
 	requires_alpha_access: z.boolean(),
 
 	/** Max characters per request for free-tier users */
-	max_characters_request_free_user: z.number().int(),
+	max_characters_request_free_user: z.int(),
 
 	/** Max characters per request for subscribed users */
-	max_characters_request_subscribed_user: z.number().int(),
+	max_characters_request_subscribed_user: z.int(),
 
 	/** Hard cap on text length accepted by this model */
-	maximum_text_length_per_request: z.number().int(),
+	maximum_text_length_per_request: z.int(),
 
 	/** Languages this model supports */
 	languages: z.array(LanguageSchema),

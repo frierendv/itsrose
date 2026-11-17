@@ -50,7 +50,7 @@ export const MusicComposeDetailedResponseSchema = z.object({
 	 * with the stereo channels mixed down to one. The list is absent unless
 	 * the request asked for it.
 	 */
-	waveform_visual: z.array(z.number().int()).nullish(),
+	waveform_visual: z.array(z.int()).nullish(),
 });
 
 export type MusicComposePlanResponse = z.infer<

@@ -48,7 +48,7 @@ const FALLBACK_ERROR_STATUS = 500;
  */
 const ErrorBaseShape = {
 	/** HTTP-style status code, normalized to the `400`–`599` range. */
-	status_code: z.number().int().min(400).max(599),
+	status_code: z.int().min(400).max(599),
 	/** Original Midtrans `status_code` value, if present. */
 	status_code_raw: z.string().optional(),
 	/** Human-readable message. */
@@ -69,26 +69,26 @@ const ErrorBaseShape = {
  * Subscription API errors share this shape (`status_message` without a
  * `status_code` is still a core error).
  */
-const CoreErrorVariant = z.object({
+const CoreErrorVariantSchema = z.object({
 	...ErrorBaseShape,
 	kind: z.literal("core"),
 });
 
 /** Legacy envelope: `{ error_messages: string[] }` (Snap, Invoice, Payment Link). */
-const LegacyErrorVariant = z.object({
+const LegacyErrorVariantSchema = z.object({
 	...ErrorBaseShape,
 	kind: z.literal("legacy"),
 	error_messages: z.array(z.string()),
 });
 
 /** HTTP 401 body: `{ error: "Unauthorized" }`. */
-const UnauthorizedErrorVariant = z.object({
+const UnauthorizedErrorVariantSchema = z.object({
 	...ErrorBaseShape,
 	kind: z.literal("unauthorized"),
 });
 
 /** Transport failure: empty, plain-text, or network-level failure. */
-const TransportErrorVariant = z.object({
+const TransportErrorVariantSchema = z.object({
 	...ErrorBaseShape,
 	kind: z.literal("transport"),
 });
@@ -99,10 +99,10 @@ const TransportErrorVariant = z.object({
  * This is the schema the {@link MidtransApiError} type is inferred from.
  */
 export const MidtransApiErrorSchema = z.discriminatedUnion("kind", [
-	CoreErrorVariant,
-	LegacyErrorVariant,
-	UnauthorizedErrorVariant,
-	TransportErrorVariant,
+	CoreErrorVariantSchema,
+	LegacyErrorVariantSchema,
+	UnauthorizedErrorVariantSchema,
+	TransportErrorVariantSchema,
 ]);
 
 /**
@@ -117,10 +117,12 @@ export type MidtransApiError = z.infer<typeof MidtransApiErrorSchema>;
 /** Category of a normalized Midtrans error. */
 export type MidtransErrorKind = MidtransApiError["kind"];
 
-type CoreErrorCandidate = z.input<typeof CoreErrorVariant>;
-type LegacyErrorCandidate = z.input<typeof LegacyErrorVariant>;
-type UnauthorizedErrorCandidate = z.input<typeof UnauthorizedErrorVariant>;
-type TransportErrorCandidate = z.input<typeof TransportErrorVariant>;
+type CoreErrorCandidate = z.input<typeof CoreErrorVariantSchema>;
+type LegacyErrorCandidate = z.input<typeof LegacyErrorVariantSchema>;
+type UnauthorizedErrorCandidate = z.input<
+	typeof UnauthorizedErrorVariantSchema
+>;
+type TransportErrorCandidate = z.input<typeof TransportErrorVariantSchema>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -350,21 +352,21 @@ export function createMidtransErrorModel(
 	httpStatus?: number,
 	httpMessage?: string
 ) {
-	const legacy = z.preprocess(
+	const legacyPreprocessSchema = z.preprocess(
 		(value) => classifyLegacy(value, httpStatus, httpMessage),
-		LegacyErrorVariant
+		LegacyErrorVariantSchema
 	);
-	const unauthorized = z.preprocess(
+	const unauthorizedPreprocessSchema = z.preprocess(
 		(value) => classifyUnauthorized(value, httpStatus),
-		UnauthorizedErrorVariant
+		UnauthorizedErrorVariantSchema
 	);
-	const core = z.preprocess(
+	const corePreprocessSchema = z.preprocess(
 		(value) => classifyCore(value, httpStatus, httpMessage),
-		CoreErrorVariant
+		CoreErrorVariantSchema
 	);
-	const transport = z.preprocess(
+	const transportPreprocessSchema = z.preprocess(
 		(value) => classifyTransport(value, httpStatus, httpMessage),
-		TransportErrorVariant
+		TransportErrorVariantSchema
 	);
 
 	return {
@@ -374,11 +376,16 @@ export function createMidtransErrorModel(
 		 * The order is the classification precedence: legacy, unauthorized,
 		 * core, transport.
 		 */
-		apiError: z.union([legacy, unauthorized, core, transport]),
-		legacy,
-		unauthorized,
-		core,
-		transport,
+		apiError: z.union([
+			legacyPreprocessSchema,
+			unauthorizedPreprocessSchema,
+			corePreprocessSchema,
+			transportPreprocessSchema,
+		]),
+		legacy: legacyPreprocessSchema,
+		unauthorized: unauthorizedPreprocessSchema,
+		core: corePreprocessSchema,
+		transport: transportPreprocessSchema,
 	};
 }
 

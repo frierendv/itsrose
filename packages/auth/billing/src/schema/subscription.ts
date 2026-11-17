@@ -13,7 +13,7 @@ const subscriptionStatusSchema = z.enum([
 export const createSubscriptionSchema = z.object({
 	user_id: z.string().optional(),
 	plan_id: z.string(),
-	interval: z.enum(["month", "year"]).optional().default("month"),
+	interval: z.enum(["month", "year"]).default("month"),
 	period_start: z.iso.datetime().optional(),
 	period_end: z.iso.datetime().optional(),
 	status: subscriptionStatusSchema.optional().default("active"),
@@ -27,7 +27,7 @@ export const updateSubscriptionSchema = z.object({
 	status: subscriptionStatusSchema.optional(),
 	period_start: z.string().optional(),
 	period_end: z.string().optional(),
-	scheduled_tier: z.string().nullable().optional(),
+	scheduled_tier: z.string().nullish(),
 	cancel_at_period_end: z.boolean().optional(),
 });
 
@@ -37,7 +37,7 @@ export const upgradeSubscriptionSchema = z.object({
 	customer: z
 		.object({
 			name: z.string().optional(),
-			email: z.string().email().optional(),
+			email: z.email().optional(),
 		})
 		.optional(),
 });
@@ -48,7 +48,7 @@ export const downgradeSubscriptionSchema = z.object({
 
 export const cancelSubscriptionSchema = z.object({
 	subscription_id: z.string().optional(),
-	cancel_at_period_end: z.boolean().optional().default(true),
+	cancel_at_period_end: z.boolean().default(true),
 });
 
 export const restoreSubscriptionSchema = z.object({
@@ -68,14 +68,14 @@ export const getSubscriptionSchema = z.object({
 export const listSubscriptionSchema = z.object({
 	user_id: z.string().optional(),
 	status: z.string().optional(),
-	limit: z.coerce.number().min(1).max(100).default(50).optional(),
-	offset: z.coerce.number().min(0).default(0).optional(),
+	limit: z.coerce.number().min(1).max(100).default(50),
+	offset: z.coerce.number().min(0).default(0),
 });
 
 export const billingCronSchema = z.object({
 	secret: z.string().optional(),
-	lead_days: z.number().int().min(1).max(14).optional(),
-	grace_days: z.number().int().min(1).max(14).optional(),
+	lead_days: z.int().min(1).max(14).optional(),
+	grace_days: z.int().min(1).max(14).optional(),
 });
 
 export const subscriptionSchema = {

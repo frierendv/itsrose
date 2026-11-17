@@ -13,12 +13,12 @@ import { parseJson } from "./json";
 
 export const createInvoiceSchema = z.object({
 	plan_id: z.string().min(1),
-	due_in_days: z.number().int().min(1).max(30).optional(),
+	due_in_days: z.int().min(1).max(30).optional(),
 	notes: z.string().max(1000).optional(),
 	customer: z
 		.object({
 			name: z.string().optional(),
-			email: z.string().email().optional(),
+			email: z.email().optional(),
 		})
 		.optional(),
 });
@@ -29,15 +29,15 @@ export const getInvoiceSchema = z.object({
 
 export const listInvoiceSchema = z.object({
 	status: z.string().optional(),
-	limit: z.coerce.number().min(1).max(100).default(50).optional(),
-	offset: z.coerce.number().min(0).default(0).optional(),
+	limit: z.coerce.number().min(1).max(100).default(50),
+	offset: z.coerce.number().min(0).default(0),
 	user_id: z.string().optional(),
 	invoice_type: z.string().optional(),
 });
 
 export const listEventsSchema = z.object({
-	limit: z.coerce.number().min(1).max(100).default(50).optional(),
-	offset: z.coerce.number().min(0).default(0).optional(),
+	limit: z.coerce.number().min(1).max(100).default(50),
+	offset: z.coerce.number().min(0).default(0),
 	event_name: z.string().optional(),
 });
 

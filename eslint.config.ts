@@ -6,4 +6,4 @@
  * otherwise have no lint coverage at all — and which the lint-staged
  * pre-commit hook cannot lint, because ESLint needs a config to start from.
  */
-export { config as default } from "@itsrose/standard/eslint/base";
+export { config as default } from "./packages/standard/eslint/base";

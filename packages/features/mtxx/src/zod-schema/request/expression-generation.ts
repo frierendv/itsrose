@@ -4,7 +4,6 @@ import { SharedRequestSchema } from "../shared";
 export const ExpressionGenerationRequestSchema = z
 	.object({
 		smile_mode: z
-			.number()
 			.int()
 			.min(0)
 			.max(5)
@@ -19,14 +18,12 @@ export const ExpressionGenerationRequestSchema = z
 - 5: Dimples secondary effect`.trim()
 			),
 		mtxx_mz_kl_flag: z
-			.number()
 			.int()
 			.min(0)
 			.max(1)
 			.optional()
 			.describe("Lips cooler interface flag (0: Default, 1: Enabled)"),
 		wb_flag: z
-			.number()
 			.int()
 			.min(0)
 			.max(1)

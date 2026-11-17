@@ -1,5 +1,5 @@
 import { ThirdPartyApiError } from "@itsrose/system";
-import { vi, type Mock } from "vitest";
+import type { Mock } from "vitest";
 import type { Client } from "../src/client/client";
 import { User } from "../src/client/user";
 import type { UserDetail } from "../src/zod-schema";

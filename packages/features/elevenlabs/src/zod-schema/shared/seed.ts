@@ -4,7 +4,6 @@ import { z } from "zod/v4";
  * {@link https://elevenlabs.io/docs/api-reference/text-to-speech/convert#request.body.seed}
  */
 export const ElevenLabsSeedSchema = z
-	.number()
 	.int()
 	.min(0)
 	.max(2147483647)

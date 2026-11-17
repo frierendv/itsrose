@@ -7,7 +7,7 @@ import {
 	CustomFieldsSchema,
 	ExpirySchema,
 	ItemDetailsSchema,
-	PaymentChannels,
+	PaymentChannelsSchema,
 	TransactionDetailsSchema,
 } from "../primitives";
 import { SnapRecurringSchema, SnapSendEmailSchema } from "./shared";
@@ -25,7 +25,7 @@ export const SnapTransactionRequestSchema = z
 		customer_details: CustomerDetailsSchema.omit({ id: true })
 			.partial()
 			.optional(),
-		enabled_payments: z.array(PaymentChannels).optional(),
+		enabled_payments: z.array(PaymentChannelsSchema).optional(),
 		credit_card: z
 			.object({
 				secure: z.boolean().optional(),

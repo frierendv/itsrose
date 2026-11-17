@@ -9,7 +9,8 @@ const SharedResponseBaseSchema = z.object({
 
 // Export the raw object schema separately so it stays extendable
 export const SharedResponseSchema = z
-	.looseObject(SharedResponseBaseSchema.shape)
+	.object(SharedResponseBaseSchema.shape)
+	.loose()
 	.meta({
 		id: "MTXxResponse",
 		description: "The response schema for MTXx API.",

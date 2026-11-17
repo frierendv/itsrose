@@ -8,9 +8,9 @@ import {
 	DefaultErrorSchema,
 	InvoiceResponseSchema,
 	InvoiceVoidResponseSchema,
-	PaymentLinkDeleteResponse,
+	PaymentLinkDeleteResponseSchema,
 	PaymentLinkDetailResponseSchema,
-	PaymentLinkResponse,
+	PaymentLinkResponseSchema,
 	SnapPreferenceResponseSchema,
 	SnapTransactionResponseSchema,
 	SubscriptionActionResponseSchema,
@@ -152,7 +152,7 @@ export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 
 	// --- Payment Link ------------------------------------------------------
 	"payment-link/create": {
-		schema: PaymentLinkResponse,
+		schema: PaymentLinkResponseSchema,
 		expectation: "mustPass",
 	},
 	"payment-link/get": {
@@ -160,7 +160,7 @@ export const FIXTURES: Readonly<Record<string, FixtureDefinition>> = {
 		expectation: "mustPass",
 	},
 	"payment-link/delete": {
-		schema: PaymentLinkDeleteResponse,
+		schema: PaymentLinkDeleteResponseSchema,
 		expectation: "mustPass",
 	},
 	"payment-link/error-not-found": {

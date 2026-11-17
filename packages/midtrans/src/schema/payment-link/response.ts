@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { PaymentChannels } from "../primitives";
+import { PaymentChannelsSchema } from "../primitives";
 import { PaymentLinkExpirySchema } from "./shared";
 
 /* ----------------------------- Create Response ---------------------------- */
@@ -9,7 +9,7 @@ import { PaymentLinkExpirySchema } from "./shared";
  *
  * `POST /v1/payment-links`
  */
-export const PaymentLinkResponse = z
+export const PaymentLinkResponseSchema = z
 	.object({
 		order_id: z.string(),
 		payment_url: z.url(),
@@ -21,7 +21,7 @@ export const PaymentLinkResponse = z
 	});
 
 export type PaymentLinkResponse<T = unknown> = z.infer<
-	typeof PaymentLinkResponse
+	typeof PaymentLinkResponseSchema
 > &
 	(T extends { enabled_payments: (infer Element)[] }
 		? Extract<Element, "other_qris"> extends never
@@ -36,7 +36,7 @@ export type PaymentLinkResponse<T = unknown> = z.infer<
  *
  * `DELETE /v1/payment-links/{orderId}`
  */
-export const PaymentLinkDeleteResponse = z
+export const PaymentLinkDeleteResponseSchema = z
 	.object({
 		message: z.string().optional(),
 		status_code: z.string().optional(),
@@ -46,7 +46,7 @@ export const PaymentLinkDeleteResponse = z
 	});
 
 export type PaymentLinkDeleteResponse = z.infer<
-	typeof PaymentLinkDeleteResponse
+	typeof PaymentLinkDeleteResponseSchema
 >;
 
 /* ------------------------- Detail / Get Response -------------------------- */
@@ -130,9 +130,10 @@ export const PaymentLinkResponseItemSchema = z.object({
 	merchant_name: z.string().nullish(),
 	item_id: z.string().nullish(),
 	payment_link_id: z.union([z.string(), z.number()]),
-	createdAt: z.string(),
-	updatedAt: z.string(),
-	PaymentLinkId: z.union([z.string(), z.number()]).optional(),
+	/** Payment link creation date. */
+	// createdAt: z.string(),
+	/** Payment link updated date. */
+	// updatedAt: z.string(),
 });
 
 export type PaymentLinkResponseItem = z.infer<
@@ -180,7 +181,7 @@ export const PaymentLinkPurchaseSchema = z
 		payment_method: z.string(),
 		payment_link_id: z.union([z.string(), z.number()]),
 		acquirer: z.string(),
-		amount_value: z.number().int(),
+		amount_value: z.int(),
 		amount_currency: z.string(),
 		expiry_time: z.string(),
 		created_at: z.string().optional(),
@@ -210,7 +211,7 @@ export const PaymentLinkDetailResponseSchema = z
 		usage: z.number(),
 		gross_amount: z.number(),
 		currency: z.string(),
-		enabled_payments: z.array(PaymentChannels),
+		enabled_payments: z.array(PaymentChannelsSchema),
 		enabled_payments_raw: z.string(),
 		item_details: z.array(PaymentLinkResponseItemSchema),
 		customer_details: PaymentLinkCustomerDetailsSchema,
@@ -288,9 +289,9 @@ export const PaymentLinkDetailResponseSchema = z
 		deleted_at: z.string().nullish(),
 		canceled_at: z.string().nullish(),
 		epoch_deleted_at: z.number().optional(),
-		createdAt: z.string().optional(),
-		updatedAt: z.string().optional(),
-		deletedAt: z.string().nullish(),
+		// createdAt: z.string().optional(),
+		// updatedAt: z.string().optional(),
+		// deletedAt: z.string().nullish(),
 	})
 	.meta({ id: "MidtransPaymentLinkDetailResponse" });
 

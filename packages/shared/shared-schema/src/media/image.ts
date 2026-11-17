@@ -31,7 +31,7 @@ export const SharedImageSchema = z
 	.meta({
 		id: "SharedImageSchema",
 		example:
-			"https://assets.itsrose.net/public-resource/girl-in-red-dress.jpg",
+			"https://assets.itsrose.my.id/public-resource/girl-in-red-dress.jpg",
 	});
 
 /**

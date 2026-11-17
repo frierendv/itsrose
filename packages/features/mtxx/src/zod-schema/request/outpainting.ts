@@ -5,7 +5,6 @@ const RatioFloatSchema = z.number().min(0.0).max(1.0).multipleOf(0.1);
 
 const OptionalOutpaintingSchema = z.object({
 	seed: z
-		.number()
 		.int()
 		.min(-1)
 		.max(65535)
@@ -98,7 +97,6 @@ const FreeExpandPixelSchema = z
 		free_expand_pixel: z
 			.object({
 				left: z
-					.number()
 					.int()
 					.min(0)
 					.max(2048)
@@ -106,7 +104,6 @@ const FreeExpandPixelSchema = z
 						"Pixels to add to the left side. Range: `0` – `2048`."
 					),
 				right: z
-					.number()
 					.int()
 					.min(0)
 					.max(2048)
@@ -114,7 +111,6 @@ const FreeExpandPixelSchema = z
 						"Pixels to add to the right side. Range: `0` – `2048`."
 					),
 				top: z
-					.number()
 					.int()
 					.min(0)
 					.max(2048)
@@ -122,7 +118,6 @@ const FreeExpandPixelSchema = z
 						"Pixels to add to the top side. Range: `0` – `2048`."
 					),
 				bottom: z
-					.number()
 					.int()
 					.min(0)
 					.max(2048)

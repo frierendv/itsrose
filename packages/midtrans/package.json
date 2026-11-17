@@ -42,6 +42,9 @@
 		"./typings": "./src/typings/index.ts",
 		"./package.json": "./package.json"
 	},
+	"engines": {
+		"node": ">=24"
+	},
 	"scripts": {
 		"build": "tsdown",
 		"build:fast": "tsdown src",
@@ -75,8 +78,5 @@
 			"./typings": "./dist/typings.mjs",
 			"./package.json": "./package.json"
 		}
-	},
-	"engines": {
-		"node": ">=24"
 	}
 }

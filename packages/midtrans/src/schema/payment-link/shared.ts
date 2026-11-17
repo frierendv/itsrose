@@ -1,25 +1,20 @@
 import { z } from "zod/v4";
 import { BCAExclusiveFreeTextSchema } from "../core";
 import {
-	CallbacksSchema,
-	CustomFieldsSchema,
-	ItemDetailsSchema,
-	PaymentChannels,
-	PaymentLinkSupportedBank,
-	TimestampFieldsSchema,
+	PaymentLinkSupportedBankSchema,
 	TransactionDetailsSchema,
 } from "../primitives";
 
-export const PaymentLinkBankDetail = z.object({ number: z.string() });
-export const PaymentLinkBank = z
+export const PaymentLinkBankDetailSchema = z.object({ number: z.string() });
+export const PaymentLinkBankSchema = z
 	.partialRecord(
-		PaymentLinkSupportedBank.exclude(["bca_va", "permata_va"]),
-		PaymentLinkBankDetail
+		PaymentLinkSupportedBankSchema.exclude(["bca_va", "permata_va"]),
+		PaymentLinkBankDetailSchema
 	)
 	.and(
 		z.partialRecord(
-			PaymentLinkSupportedBank.extract(["bca_va"]),
-			PaymentLinkBankDetail.extend({
+			PaymentLinkSupportedBankSchema.extract(["bca_va"]),
+			PaymentLinkBankDetailSchema.extend({
 				/** `bca_va` exclusive field */
 				free_text: BCAExclusiveFreeTextSchema.optional(),
 			})
@@ -27,15 +22,15 @@ export const PaymentLinkBank = z
 	)
 	.and(
 		z.partialRecord(
-			PaymentLinkSupportedBank.extract(["permata_va"]),
-			PaymentLinkBankDetail.extend({
+			PaymentLinkSupportedBankSchema.extract(["permata_va"]),
+			PaymentLinkBankDetailSchema.extend({
 				/** `permata_va` exclusive field */
 				recipient_name: z.string().max(25).optional(),
 			})
 		)
 	);
 
-export const PaymentLinkCustomerDetail = z
+export const PaymentLinkCustomerDetailSchema = z
 	.object({
 		first_name: z.string().max(50),
 		last_name: z.string().max(50),
@@ -104,26 +99,3 @@ export const PaymentLinkExpirySchema = z
 		unit: PaymentLinkExpiryUnitSchema,
 	})
 	.meta({ id: "MidtransPaymentLinkExpiry" });
-
-export type PaymentLinkExpiry = z.infer<typeof PaymentLinkExpirySchema>;
-
-/**
- * @deprecated Use {@link PaymentLinkExpirySchema}.
- */
-export const PaymentLinkExpiry = PaymentLinkExpirySchema;
-
-export const PaymentLinkItemDetail = ItemDetailsSchema;
-export const PaymentLinkCallback = CallbacksSchema;
-export const PaymentLinkCustomFields = CustomFieldsSchema;
-export const PaymentLinkPaymentChannels = PaymentChannels;
-export const PaymentLinkTimestampFields = TimestampFieldsSchema;
-
-// ---- types f
-export type PaymentLinkBank = z.infer<typeof PaymentLinkBank>;
-export type PaymentLinkCustomerDetail = z.infer<
-	typeof PaymentLinkCustomerDetail
->;
-export type PaymentLinkTransactionDetail = z.infer<
-	typeof PaymentLinkTransactionDetail
->;
-export type PaymentLinkItemDetail = z.infer<typeof PaymentLinkItemDetail>;

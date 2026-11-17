@@ -61,7 +61,7 @@ export const TransactionDetailsSchema = z
 					"Only alphanumeric characters and the symbols -, _, ~, and . are allowed.",
 			}),
 		/** Total payment amount Customer expected to pay. */
-		gross_amount: z.number().int().positive(),
+		gross_amount: z.int().positive(),
 	})
 	.meta({
 		id: "MidtransTransactionDetails",
@@ -96,10 +96,7 @@ export const PaymentActionSchema = z
 				"Action identifier (e.g. 'generate-qr-code', 'deeplink-redirect')"
 			),
 		method: z.string().describe("HTTP method (e.g. 'GET')"),
-		url: z
-			.string()
-			.url()
-			.describe("Target URL to execute action or redirect"),
+		url: z.url().describe("Target URL to execute action or redirect"),
 	})
 	.meta({
 		id: "MidtransPaymentAction",

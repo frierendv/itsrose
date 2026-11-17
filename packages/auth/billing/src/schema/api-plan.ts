@@ -11,7 +11,7 @@ export const planPriceInputSchema = z.object({
 	 * Zero is a legitimate price: the free tier is priced at 0, and the seed
 	 * path writes it. The schema must accept what the system itself creates.
 	 */
-	amount: z.number().int().nonnegative(),
+	amount: z.int().nonnegative(),
 	currency: z.literal("IDR").default("IDR"),
 	interval: z.enum(["month", "year"]),
 });
@@ -19,12 +19,12 @@ export const planPriceInputSchema = z.object({
 export const createPlanSchema = z.object({
 	plan_id: z.string().min(1),
 	name: z.string().min(1),
-	description: z.string().optional().default(""),
+	description: z.string().default(""),
 	prices: z.array(planPriceInputSchema).default([]),
 	price: planPriceInputSchema.optional(),
 	features: z.array(z.string()).default([]),
 	/** Monthly billable request allowance; `null` means unlimited. */
-	quota_requests: z.number().int().min(0).nullable().optional(),
+	quota_requests: z.int().min(0).nullish(),
 	highlighted: z.boolean().default(false),
 });
 
@@ -35,7 +35,7 @@ export const updatePlanSchema = z.object({
 	prices: z.array(planPriceInputSchema).optional(),
 	price: planPriceInputSchema.optional(),
 	features: z.array(z.string()).optional(),
-	quota_requests: z.number().int().min(0).nullable().optional(),
+	quota_requests: z.int().min(0).nullish(),
 	highlighted: z.boolean().optional(),
 	/** Accepted for dashboard compatibility; not persisted by the catalog schema. */
 	seat_based: z.boolean().optional(),
@@ -46,7 +46,7 @@ export const deletePlanSchema = z.object({
 });
 
 export const seedPlansSchema = z.object({
-	force: z.boolean().optional().default(false),
+	force: z.boolean().default(false),
 });
 
 export const getPlanSchema = z.object({

@@ -86,10 +86,7 @@ export function usageReadEndpoints(options: ResolvedUsageOptions) {
 				method: "GET",
 				use: [sessionMiddleware],
 				query: z.object({
-					by: z
-						.enum(["endpoint", "api_key"])
-						.optional()
-						.default("endpoint"),
+					by: z.enum(["endpoint", "api_key"]).default("endpoint"),
 					days: windowSchema.optional().default(USAGE_DAILY_BUCKETS),
 				}),
 			},

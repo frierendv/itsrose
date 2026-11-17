@@ -78,7 +78,7 @@ export function usageAdminEndpoints(options: ResolvedUsageOptions) {
 				use: [sessionMiddleware],
 				body: z.object({
 					plan_tier: z.string().min(1),
-					amount: z.number().int().min(0),
+					amount: z.int().min(0),
 					unit: z.string().min(1).optional(),
 					effective_from: z.iso.datetime().optional(),
 					note: z.string().max(500).optional(),
@@ -111,12 +111,7 @@ export function usageAdminEndpoints(options: ResolvedUsageOptions) {
 				method: "POST",
 				use: [sessionMiddleware],
 				body: z.object({
-					days: z
-						.number()
-						.int()
-						.min(1)
-						.max(USAGE_MAX_WINDOW_DAYS)
-						.optional(),
+					days: z.int().min(1).max(USAGE_MAX_WINDOW_DAYS).optional(),
 					from: daySchema.optional(),
 					to: daySchema.optional(),
 				}),
@@ -151,7 +146,7 @@ export function usageAdminEndpoints(options: ResolvedUsageOptions) {
 				use: [sessionMiddleware],
 				body: z.object({
 					period: periodSchema.optional(),
-					create_invoices: z.boolean().optional().default(false),
+					create_invoices: z.boolean().default(false),
 				}),
 			},
 			async (ctx) => {
@@ -183,13 +178,7 @@ export function usageAdminEndpoints(options: ResolvedUsageOptions) {
 				query: z.object({
 					tenant_id: z.string().optional(),
 					period: periodSchema.optional(),
-					limit: z.coerce
-						.number()
-						.int()
-						.min(1)
-						.max(500)
-						.optional()
-						.default(100),
+					limit: z.coerce.number().min(1).max(500).default(100),
 				}),
 			},
 			async (ctx) => {

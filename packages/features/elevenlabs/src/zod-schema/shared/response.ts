@@ -8,7 +8,11 @@ export const ElevenLabsSharedResponseSchema = z
 		/**
 		 * The generated audio.
 		 */
-		audio: z.string().describe("Base64-encoded audio data"),
+		audio: z
+			.string()
+			.describe(
+				"Base64-encoded audio data or url; depends on `response-audio-format` header."
+			),
 	})
 	.meta({
 		id: "ElevenLabsData",
@@ -19,7 +23,7 @@ export const ElevenLabsSharedResponseAudioSchema = z.object({
 	 */
 	"response-audio-format": z
 		.enum(["url", "base64"])
-		.optional()
+		.default("base64")
 		.describe("By default the audio response format is base64"),
 });
 export type IElevenLabsSharedResponse = z.infer<

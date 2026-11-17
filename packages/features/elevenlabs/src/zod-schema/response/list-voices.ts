@@ -47,7 +47,6 @@ const VoiceSampleSchema = z
 			.optional()
 			.describe("The MIME type of the sample file."),
 		size_bytes: z
-			.number()
 			.int()
 			.optional()
 			.describe("The size of the sample file in bytes."),
@@ -72,12 +71,10 @@ const VoiceSampleSchema = z
 			"The speaker separation of the sample."
 		),
 		trim_start: z
-			.number()
 			.int()
 			.nullish()
 			.describe("The start of the trimmed range, in milliseconds."),
 		trim_end: z
-			.number()
 			.int()
 			.nullish()
 			.describe("The end of the trimmed range, in milliseconds."),
@@ -88,7 +85,6 @@ const VoiceVerificationAttemptSchema = z
 	.object({
 		text: z.string().optional().describe("The text of the attempt."),
 		date_unix: z
-			.number()
 			.int()
 			.optional()
 			.describe("The date of the attempt in Unix time."),
@@ -126,7 +122,6 @@ const VoiceVerificationSchema = z
 			.optional()
 			.describe("The verification failures of the voice."),
 		verification_attempts_count: z
-			.number()
 			.int()
 			.optional()
 			.describe("The number of verification attempts."),
@@ -166,7 +161,6 @@ const VoiceFineTuningSchema = z
 			.optional()
 			.describe("The verification failures of the fine-tuning."),
 		verification_attempts_count: z
-			.number()
 			.int()
 			.optional()
 			.describe("The number of verification attempts."),
@@ -205,7 +199,6 @@ const VoiceFineTuningSchema = z
 					.optional()
 					.describe("The extra text of the manual verification."),
 				request_time_unix: z
-					.number()
 					.int()
 					.optional()
 					.describe(
@@ -220,12 +213,10 @@ const VoiceFineTuningSchema = z
 			.nullish()
 			.describe("The manual verification of the fine-tuning."),
 		max_verification_attempts: z
-			.number()
 			.int()
 			.nullish()
 			.describe("The maximum number of verification attempts."),
 		next_max_verification_attempts_reset_unix_ms: z
-			.number()
 			.int()
 			.nullish()
 			.describe(
@@ -260,7 +251,6 @@ const VoiceSettingsSchema = z
 const VoiceSharingModerationCheckSchema = z
 	.object({
 		date_checked_unix: z
-			.number()
 			.int()
 			.nullish()
 			.describe("When the moderation check ran, in Unix time."),
@@ -310,7 +300,6 @@ const VoiceSharingSchema = z
 			.nullish()
 			.describe("The sample ID of the sharing history item."),
 		date_unix: z
-			.number()
 			.int()
 			.optional()
 			.describe("When the voice was shared, in Unix time."),
@@ -344,12 +333,10 @@ const VoiceSharingSchema = z
 			.nullish()
 			.describe("The rate of the sharing in USD per 1000 credits."),
 		notice_period: z
-			.number()
 			.int()
 			.optional()
 			.describe("The notice period of the sharing, in days."),
 		disable_at_unix: z
-			.number()
 			.int()
 			.nullish()
 			.describe("When the voice leaves the library, in Unix time."),
@@ -372,12 +359,10 @@ const VoiceSharingSchema = z
 			.nullish()
 			.describe("The ban reason of the voice."),
 		liked_by_count: z
-			.number()
 			.int()
 			.optional()
 			.describe("The number of likes of the voice."),
 		cloned_by_count: z
-			.number()
 			.int()
 			.optional()
 			.describe("The number of clones of the voice."),
@@ -530,12 +515,10 @@ const VoiceSchema = z.object({
 		.nullable()
 		.describe("Whether this voice was created by mixing other voices."),
 	favorited_at_unix: z
-		.number()
 		.int()
 		.nullish()
 		.describe("Unix timestamp of when the user favorited this voice."),
 	created_at_unix: z
-		.number()
 		.int()
 		.nullish()
 		.describe("Unix timestamp of when the voice was created."),
@@ -571,7 +554,6 @@ export const ElevenLabsListVoicesResponseSchema = z
 			)
 			.nullish(),
 		total_count: z
-			.number()
 			.int()
 			.describe(
 				"Total number of voices matching the query. This is a live snapshot and may change between requests; prefer has_more for pagination."

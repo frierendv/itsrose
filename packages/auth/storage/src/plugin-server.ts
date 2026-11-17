@@ -20,7 +20,7 @@ export const presignedUploadSchema = z.object({
 	category: z.string().default("uploads"),
 	filename: z.string().min(1, "Filename is required."),
 	content_type: z.string().optional(),
-	expires_in: z.number().int().min(60).max(86400).optional(),
+	expires_in: z.int().min(60).max(86400).optional(),
 });
 
 export const listFilesSchema = z.object({

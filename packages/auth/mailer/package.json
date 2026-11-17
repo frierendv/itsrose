@@ -21,12 +21,12 @@
 		"src"
 	],
 	"keywords": [
-		"itsrose",
 		"auth",
-		"mailer",
+		"better-auth",
 		"email",
 		"eusend",
-		"better-auth"
+		"itsrose",
+		"mailer"
 	],
 	"exports": {
 		".": "./src/index.ts",
@@ -49,16 +49,16 @@
 	},
 	"dependencies": {
 		"@better-auth-ui/heroui": "^1.7.33",
+		"@better-auth-ui/react": "^1.7.34",
 		"@eusend_dev/sdk": "^0.19.0",
 		"@react-email/render": "^2.3.1",
 		"better-auth": "catalog:",
-		"react": "catalog:"
+		"react": "catalog:",
+		"react-email": "^6.11.13"
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*",
-		"@types/node": "catalog:",
-		"@types/react": "catalog:",
-		"vitest": "^5.1.0"
+		"@types/react": "catalog:"
 	},
 	"publishConfig": {
 		"exports": {

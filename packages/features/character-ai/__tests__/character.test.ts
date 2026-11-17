@@ -1,4 +1,4 @@
-import { vi, type Mock } from "vitest";
+import type { Mock } from "vitest";
 import { Character } from "../src/client/character";
 import type { Client } from "../src/client/client";
 

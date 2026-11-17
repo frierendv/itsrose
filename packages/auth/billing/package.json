@@ -21,16 +21,17 @@
 		"src"
 	],
 	"keywords": [
-		"itsrose",
 		"auth",
+		"better-auth",
 		"billing",
-		"subscription",
+		"itsrose",
 		"midtrans",
-		"better-auth"
+		"subscription"
 	],
 	"exports": {
 		".": "./src/index.ts",
 		"./client": "./src/client/index.ts",
+		"./env": "./src/env.ts",
 		"./plugin/plugin-client": "./src/plugin/plugin-client.ts",
 		"./plugin/plugin-server": "./src/plugin/plugin-server.ts",
 		"./schema": "./src/schema/index.ts",
@@ -55,14 +56,13 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"@itsrose/standard": "workspace:*",
-		"@types/node": "catalog:",
-		"vitest": "^5.1.0"
+		"@itsrose/standard": "workspace:*"
 	},
 	"publishConfig": {
 		"exports": {
 			".": "./dist/index.mjs",
 			"./client": "./dist/client/index.mjs",
+			"./env": "./dist/env.mjs",
 			"./plugin/plugin-client": "./dist/plugin/plugin-client.mjs",
 			"./plugin/plugin-server": "./dist/plugin/plugin-server.mjs",
 			"./schema": "./dist/schema/index.mjs",

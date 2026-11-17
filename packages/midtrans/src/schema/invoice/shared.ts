@@ -2,8 +2,8 @@ import { z } from "zod/v4";
 import {
 	CallbacksSchema,
 	ExpirySchema,
-	PaymentChannelBank,
-	PaymentChannels,
+	PaymentChannelBankSchema,
+	PaymentChannelsSchema,
 } from "../primitives";
 
 /* -------------------------------- Status -------------------------------- */
@@ -96,7 +96,7 @@ export const InvoiceItemDetailsSchema = z
 		z.object({
 			item_id: z.string().optional(),
 			description: z.string().max(150).optional(),
-			quantity: z.number().positive().min(1).max(99999999),
+			quantity: z.number().positive().max(99999999),
 			price: z.number().positive().max(99999999),
 			discount_percentage: z.number().positive().max(100).optional(),
 			discount_amount: z.union([z.number(), z.string()]).nullish(),
@@ -171,7 +171,7 @@ export const InvoicePaymentLinkSchema = z.object({
 		.object({
 			is_custom_expiry: z.boolean(),
 			expiry: ExpirySchema,
-			enabled_payments: z.array(PaymentChannels),
+			enabled_payments: z.array(PaymentChannelsSchema),
 			callbacks: CallbacksSchema.pick({ finish: true }),
 		})
 		.partial()
@@ -188,7 +188,7 @@ export const InvoicePaymentVirtualAccountSchema = z.object({
 	virtual_accounts: z.array(
 		z.object({
 			name: z.enum([
-				...PaymentChannelBank.extract([
+				...PaymentChannelBankSchema.extract([
 					"bca_va",
 					"bni_va",
 					"bri_va",

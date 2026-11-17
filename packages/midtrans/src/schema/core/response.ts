@@ -55,7 +55,7 @@ const channelFields = {
 	three_ds_version: z.string().optional(),
 	challenge_completion: z.boolean().optional(),
 	on_us: z.boolean().optional(),
-	installment_term: z.number().int().optional(),
+	installment_term: z.int().optional(),
 	/**
 	 * 3D Secure challenge URL.
 	 *

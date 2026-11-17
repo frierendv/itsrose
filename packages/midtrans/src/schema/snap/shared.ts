@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { ExpirySchema, PaymentChannels } from "../primitives";
+import { ExpirySchema, PaymentChannelsSchema } from "../primitives";
 import { SubscriptionScheduleSchema } from "../subscription";
 
 /* ------------------------------- Page Expiry ------------------------------ */
@@ -41,7 +41,7 @@ export const SnapSendEmailSchema = z.object({
 		 * Reminder delay in minutes, measured from the time the Snap token is created.
 		 * Notes: Must be between 10 and 60 minutes, inclusive.
 		 */
-		delay: z.int().positive().min(10).max(60),
+		delay: z.int().min(10).max(60),
 	}),
 });
 export type SnapSendEmail = z.infer<typeof SnapSendEmailSchema>;
@@ -51,7 +51,7 @@ export type SnapSendEmail = z.infer<typeof SnapSendEmailSchema>;
 /**
  * Snap merchant fee configuration for a single payment channel.
  */
-export const SnapPreferenceFeeConfig = z.object({
+export const SnapPreferenceFeeConfigSchema = z.object({
 	enable: z.boolean(),
 	payment_type: z.string(),
 	customer_percentage: z.number(),
@@ -61,7 +61,7 @@ export const SnapPreferenceFeeConfig = z.object({
 /**
  * Snap checkout appearance settings.
  */
-export const SnapPreferenceBrand = z.object({
+export const SnapPreferenceBrandSchema = z.object({
 	typography: z.string(),
 	header_color: z.string(),
 	button_color: z.string(),
@@ -74,7 +74,7 @@ export const SnapPreferenceBrand = z.object({
  * A payment channel and whether it is enabled in Snap.
  */
 export const SnapPreferencePaymentChannelSchema = z.object({
-	name: PaymentChannels,
+	name: PaymentChannelsSchema,
 	enabled: z.boolean(),
 });
 
@@ -83,7 +83,7 @@ export const SnapPreferencePaymentChannelSchema = z.object({
  */
 export const SnapPreferenceCustomerFeeSchema = z.object({
 	enable: z.boolean(),
-	payment_fee_configs: z.array(SnapPreferenceFeeConfig),
+	payment_fee_configs: z.array(SnapPreferenceFeeConfigSchema),
 });
 
 /**
@@ -98,7 +98,7 @@ export const SnapPreferenceSchema = z
 		other_va_processor: z.string().optional(),
 		allow_retry: z.boolean().nullish(),
 		hide_order_id: z.boolean().optional(),
-		brand: SnapPreferenceBrand.partial().optional(),
+		brand: SnapPreferenceBrandSchema.partial().optional(),
 		payment_channels: z
 			.array(SnapPreferencePaymentChannelSchema)
 			.optional(),

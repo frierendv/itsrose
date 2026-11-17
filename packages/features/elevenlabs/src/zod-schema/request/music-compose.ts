@@ -27,8 +27,7 @@ export const BaseMusicComposeSchema = z.object({
 				.meta({ title: "auto" }),
 			ElevenLabsOutputFormatSchema,
 		])
-		.default("auto")
-		.optional(),
+		.default("auto"),
 
 	// finetune_id: z
 	// 	.string()
@@ -53,14 +52,12 @@ export const BaseMusicComposeSchema = z.object({
 	with_timestamps: z
 		.boolean()
 		.default(false)
-		.optional()
 		.describe(
 			"Whether to return the timestamps of the words in the generated song."
 		),
 	with_waveform_visual: z
 		.boolean()
 		.default(false)
-		.optional()
 		.describe(
 			"Whether to return the visual waveform of the generated song."
 		),
@@ -132,7 +129,7 @@ export type MusicCompose = z.infer<typeof MusicComposeSchema>;
 //
 // ------- https://elevenlabs.io/docs/api-reference/music/create-composition-plan -------
 //
-export const BaseMusicComposePlanScema = z.object({
+export const BaseMusicComposePlanSchema = z.object({
 	prompt: z.string().describe("A simple text prompt to compose a plan from."),
 	music_length_ms: MusicDurationMsSchema.describe(
 		"The length of the composition plan to generate in milliseconds. \n" +
@@ -141,7 +138,7 @@ export const BaseMusicComposePlanScema = z.object({
 		.nullish()
 		.optional(),
 });
-export const MusicComposePlanSchema = BaseMusicComposePlanScema.and(
+export const MusicComposePlanSchema = BaseMusicComposePlanSchema.and(
 	z.discriminatedUnion("model_id", [
 		z
 			.object({

@@ -20,7 +20,7 @@ export const CustomExpirySchema = z
 		/**
 		 * Duration of expiry based on unit.
 		 */
-		expiry_duration: z.number().int().positive(),
+		expiry_duration: z.int().positive(),
 		/**
 		 * Unit of time for duration.
 		 */

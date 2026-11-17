@@ -54,13 +54,14 @@ export const TEST_CARDS = {
 	/** Visa declined by the acquiring bank. */
 	visaDenied: {
 		label: "Visa denied by bank",
-		number: "4111111111111111",
+		// declined card number changed
+		number: "4911111111111113",
 		outcome: "deny",
 	},
 	/** Visa declined by the acquiring bank (alternate). */
 	visaDeniedAlt: {
 		label: "Visa denied by bank (4911)",
-		number: "4911111111111113",
+		number: "4711111111111115",
 		outcome: "deny",
 	},
 } as const satisfies Record<string, TestCard>;

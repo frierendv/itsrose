@@ -21,11 +21,11 @@
 		"src"
 	],
 	"keywords": [
-		"itsrose",
-		"auth",
-		"usage",
 		"analytics",
-		"better-auth"
+		"auth",
+		"better-auth",
+		"itsrose",
+		"usage"
 	],
 	"exports": {
 		".": "./src/index.ts",
@@ -52,8 +52,7 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
-		"@itsrose/standard": "workspace:*",
-		"@types/node": "catalog:"
+		"@itsrose/standard": "workspace:*"
 	},
 	"publishConfig": {
 		"exports": {

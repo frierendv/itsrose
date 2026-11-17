@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 /**
  * {@link https://elevenlabs.io/docs/api-reference/text-to-speech/convert#request.path.model_id}

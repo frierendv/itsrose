@@ -1,7 +1,8 @@
-import { config } from "@itsrose/standard/eslint/base";
+import { config, schemaConfig } from "@itsrose/standard/eslint/base";
 
 export default [
 	...config,
+	...schemaConfig,
 	{
 		rules: {
 			// Sandbox credentials are read directly by the fixture tooling and
