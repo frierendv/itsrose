@@ -7,7 +7,6 @@ import {
 	createSerializerCompiler,
 	validatorCompiler,
 } from "fastify-zod-openapi";
-import { registerApiRouteModules } from "./lib/route-modules";
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const __filename = fileURLToPath(import.meta.url);
@@ -74,11 +73,6 @@ const app: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 		dir: join(__dirname, "plugins/tracking"),
 		options: { ...opts },
 	});
-
-	/**
-	 * Register the route modules this application serves
-	 */
-	await registerApiRouteModules(fastify);
 
 	/**
 	 * Register routes
