@@ -370,6 +370,21 @@ When injecting packages, pnpm respects each package's `"files"` field. Two rules
 
 ---
 
+## 4.5. Unused Dependencies
+
+Two checks guard against a dependency that a workspace declares but never uses.
+
+1. **The tsdown preset** (`packages/standard/tsdown/tsdown.config.mjs`) enables tsdown's `unused` option, which runs `unplugin-unused` over the source of every package that builds with the shared preset. It runs at `level: "error"`, so an unused dependency **fails the build**. It covers `dependencies` and `peerDependencies` only.
+2. **`pnpm check:deps`** (`check-unused-deps.ts` at the repository root) covers the whole workspace, including `devDependencies`, `packages/types` (which has its own tsdown config), and the workspaces that never build with tsdown (`packages/standard`, `apps/dashboard`, `apps/web`, `apps/waf-page`). It runs in CI.
+
+A dependency is reachable when the workspace imports it, a stylesheet `@import`s it, a config file names it as a string, a `tsconfig.json` `types` array names it, a script invokes its binary, or it is a required peer of something reachable.
+
+**When a dependency must stay despite being unreachable**, list it in `unused.ignore` in the package's `tsdown.config.ts`, with a comment saying why — the way `packages/auth/mailer` does for `@better-auth-ui/react` and `react-email`, which a third-party package imports at runtime.
+
+**Do not delete a `@types/*` package on the strength of a scan alone.** A type package is often the only source of the types for a library that another package imports at runtime: removing `@types/ws` from `apps/api` does not fail the typecheck — `skipLibCheck` swallows the error and the affected type degrades to `any`.
+
+---
+
 ## 5. Coding Conventions & Best Practices
 
 ### 5.1. CRITICAL: Mandatory `snake_case` in API Responses & Schemas
@@ -474,10 +489,11 @@ Shared dependency versions are pinned centrally in `pnpm-workspace.yaml` under t
     pnpm lint
     pnpm build
     pnpm typecheck
+    pnpm check:deps
     pnpm test
     ```
 4. **The Gate Runs Before a Push**:
-   A `pre-push` hook (`.husky/pre-push`) runs the same five steps, so a red gate cannot reach a shared branch. It is deliberately the _full_ gate rather than a fast subset — the point is that "the gate is green" means something. `git push --no-verify` skips it.
+   The `pre-commit` hook (`.husky/pre-commit`) runs `lint-staged` and `gitleaks`, but not the full gate. The full gate runs in CI, on every pull request to `development` and `main`. `pnpm check:deps` fails the build when a workspace declares a dependency it never uses — see [§4.5](#45-unused-dependencies).
 
 ---
 

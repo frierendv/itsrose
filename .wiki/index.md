@@ -51,6 +51,15 @@ to read `index.md` and know where to look.
 - [The gate was red on the shared branch](problems/gate-red-on-shared-branch.md)
   — a broken verification gate shipped to `origin/development` and nobody
   noticed for a day.
+- [Unused dependencies were nobody's job](problems/unused-dependencies-were-nobody-s-job.md)
+  — nine dead dependencies, and a check that reported them on every build
+  without ever failing one.
+- [A duplicate JSON key silently replaced a types array](problems/a-duplicate-json-key-silently-replaced-a-types-array.md)
+  — a `types` array in `apps/dashboard` that only half of it was ever in
+  effect.
+- [The shared ESLint preset had no Node globals](problems/the-shared-eslint-preset-had-no-node-globals.md)
+  — the preset that lints every package could not lint the repository's own
+  JavaScript.
 - [A global coverage threshold hides holes](problems/global-coverage-threshold.md)
   — 80% globally, while a 478-line module sat at 20%.
 - [The gate cannot see most of the codebase](problems/the-gate-cannot-see-most-of-the-codebase.md)
