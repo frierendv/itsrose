@@ -119,7 +119,6 @@ RUN dsh plugin --profile web add \
     dshmarket \
     dsh-better-sidebar \
     dsh-context \
-    dsh-tool-antigravity \
     @michengai/dsh-skills-manager \
     dsh-mcp-connector \
     dsh-plugin-wallpaper-engine
