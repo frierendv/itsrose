@@ -4,6 +4,7 @@ import gitignore from "eslint-config-flat-gitignore";
 import eslintConfigPrettier from "eslint-config-prettier";
 import turboPlugin from "eslint-plugin-turbo";
 import eslintPluginZod from "eslint-plugin-zod";
+import globals from "globals";
 import tseslint from "typescript-eslint";
 
 /**
@@ -22,6 +23,14 @@ export const config = [
 		},
 		languageOptions: {
 			ecmaVersion: "latest",
+			globals: {
+				// `no-undef` comes from `js.configs.recommended` and stays on for
+				// plain JavaScript; `typescript-eslint` turns it off for
+				// TypeScript. The repository's JavaScript files are the Node
+				// tooling — the tsdown preset, the Astro config — so they need
+				// the Node globals to be declared.
+				...globals.node,
+			},
 			parserOptions: {
 				tsconfigRootDir: import.meta.dirname,
 			},

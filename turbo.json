@@ -3,7 +3,16 @@
 	"ui": "tui",
 	"cacheMaxAge": "30s",
 	"globalDependencies": [".env"],
-	"globalEnv": ["IS_DEV", "LOG_LEVEL", "NODE_*"],
+	"globalEnv": [
+		"IS_DEV",
+		"LOG_LEVEL",
+		"NODE_*",
+		// Read by the shared tsdown preset to decide whether it emits
+		// development exports or production bundles.
+		"BUILDING",
+		"NEXT_PHASE",
+		"CI"
+	],
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
