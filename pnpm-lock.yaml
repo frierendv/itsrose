@@ -207,9 +207,6 @@ importers:
       '@itsrose/auth-billing':
         specifier: workspace:*
         version: link:../../packages/auth/billing
-      '@itsrose/auth-mailer':
-        specifier: workspace:*
-        version: link:../../packages/auth/mailer
       '@itsrose/auth-usage':
         specifier: workspace:*
         version: link:../../packages/auth/usage
@@ -247,9 +244,6 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@itsrose/http-code':
-        specifier: workspace:*
-        version: link:../../packages/internal/http-code
       '@itsrose/standard':
         specifier: workspace:*
         version: link:../../packages/standard
@@ -259,9 +253,6 @@ importers:
       '@types/ws':
         specifier: ^8.18.2
         version: 8.18.2
-      openapi-types:
-        specifier: ^12.1.3
-        version: 12.1.3
 
   apps/api-internal:
     dependencies:
@@ -323,12 +314,6 @@ importers:
       '@scalar/fastify-api-reference':
         specifier: ^1.78.0
         version: 1.78.1
-      '@types/ws':
-        specifier: ^8.18.2
-        version: 8.18.2
-      openapi-types:
-        specifier: ^12.1.3
-        version: 12.1.3
 
   apps/dashboard:
     dependencies:
@@ -420,9 +405,6 @@ importers:
       '@types/react-dom':
         specifier: 'catalog:'
         version: 19.3.0(@types/react@19.3.0)
-      babel-plugin-react-compiler:
-        specifier: ^1.0.0
-        version: 1.0.0
       eslint:
         specifier: ^10.15.0
         version: 10.15.0(jiti@2.7.0)(supports-color@8.1.1)
@@ -468,9 +450,6 @@ importers:
       '@next/mdx':
         specifier: ^16.4.6
         version: 16.4.6(@mdx-js/loader@3.1.1(supports-color@8.1.1))(@mdx-js/react@3.1.1(@types/react@19.3.0)(react@19.3.1))
-      clsx:
-        specifier: ^2.1.1
-        version: 2.1.1
       motion:
         specifier: ^14.12.0
         version: 14.14.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -498,9 +477,6 @@ importers:
       remark-toc:
         specifier: ^9.0.0
         version: 9.0.0
-      tailwind-merge:
-        specifier: ^3.7.0
-        version: 3.7.0
     devDependencies:
       '@itsrose/standard':
         specifier: workspace:*
@@ -520,9 +496,6 @@ importers:
       '@types/react-dom':
         specifier: 'catalog:'
         version: 19.3.0(@types/react@19.3.0)
-      babel-plugin-react-compiler:
-        specifier: ^1.0.0
-        version: 1.0.0
       eslint:
         specifier: ^10.15.0
         version: 10.15.0(jiti@2.7.0)(supports-color@8.1.1)
@@ -706,9 +679,6 @@ importers:
 
   packages/features/character-ai:
     dependencies:
-      '@itsrose/http-client':
-        specifier: workspace:*
-        version: file:packages/internal/http-client(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
       '@itsrose/system':
         specifier: workspace:*
         version: link:../../core/system
@@ -731,9 +701,6 @@ importers:
 
   packages/features/elevenlabs:
     dependencies:
-      '@itsrose/http-client':
-        specifier: workspace:*
-        version: file:packages/internal/http-client(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
       '@itsrose/shared-schema':
         specifier: workspace:*
         version: link:../../shared/shared-schema
@@ -756,12 +723,6 @@ importers:
 
   packages/features/instagram:
     dependencies:
-      '@itsrose/http-client':
-        specifier: workspace:*
-        version: file:packages/internal/http-client(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
-      '@itsrose/system':
-        specifier: workspace:*
-        version: link:../../core/system
       '@itsrose/upstream-client':
         specifier: workspace:*
         version: link:../../internal/upstream-client
@@ -775,9 +736,6 @@ importers:
 
   packages/features/mtxx:
     dependencies:
-      '@itsrose/http-client':
-        specifier: workspace:*
-        version: file:packages/internal/http-client(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
       '@itsrose/shared-schema':
         specifier: workspace:*
         version: link:../../shared/shared-schema
@@ -800,9 +758,6 @@ importers:
 
   packages/features/remini:
     dependencies:
-      '@itsrose/http-client':
-        specifier: workspace:*
-        version: file:packages/internal/http-client(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
       '@itsrose/shared-schema':
         specifier: workspace:*
         version: link:../../shared/shared-schema
@@ -831,9 +786,6 @@ importers:
 
   packages/features/tiktok:
     dependencies:
-      '@itsrose/http-client':
-        specifier: workspace:*
-        version: file:packages/internal/http-client(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
       '@itsrose/system':
         specifier: workspace:*
         version: link:../../core/system
@@ -1004,9 +956,6 @@ importers:
       eslint-config-prettier:
         specifier: ^10.1.8
         version: 10.1.8(eslint@10.15.0(jiti@2.7.0)(supports-color@8.1.1))
-      eslint-plugin-only-warn:
-        specifier: ^1.2.1
-        version: 1.2.1
       eslint-plugin-react-hooks:
         specifier: ^7.1.1
         version: 7.1.1(eslint@10.15.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)
@@ -4604,9 +4553,6 @@ packages:
     hasBin: true
     peerDependencies:
       eslint: '>=7.0.0'
-
-  eslint-plugin-only-warn@1.2.1:
-    resolution: {integrity: sha512-j37hwfaQDEOfkZ1Dpvu/HnWLavlzQxQxfbrU/9Jb4R9qzrE1eTYuRJyrxq7LzLRI8miG5FOV6veoUVhx7AI84w==}
 
   eslint-plugin-react-hooks@7.1.1:
     resolution: {integrity: sha512-f2I7Gw6JbvCexzIInuSbZpfdQ44D7iqdWX01FKLvrPgqxoE7oMj8clOfto8U6vYiz4yd5oKu39rRSVOe1zRu0g==}
@@ -10991,8 +10937,6 @@ snapshots:
     dependencies:
       eslint: 10.15.0(jiti@2.7.0)(supports-color@8.1.1)
 
-  eslint-plugin-only-warn@1.2.1: {}
-
   eslint-plugin-react-hooks@7.1.1(eslint@10.15.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1):
     dependencies:
       '@babel/core': 7.29.13(supports-color@8.1.1)
@@ -13532,7 +13476,8 @@ snapshots:
 
   tagged-tag@1.0.0: {}
 
-  tailwind-merge@3.7.0: {}
+  tailwind-merge@3.7.0:
+    optional: true
 
   tailwind-variants@3.3.1(tailwind-merge@3.7.0)(tailwindcss@4.3.5):
     optionalDependencies:

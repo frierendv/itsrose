@@ -38,8 +38,6 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@itsrose/http-client": "workspace:*",
-		"@itsrose/system": "workspace:*",
 		"@itsrose/upstream-client": "workspace:*",
 		"zod": "catalog:"
 	},

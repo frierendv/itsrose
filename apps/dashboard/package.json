@@ -43,7 +43,6 @@
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
-		"babel-plugin-react-compiler": "^1.0.0",
 		"eslint": "^10.15.0",
 		"tailwindcss": "^4.3.5",
 		"typescript": "catalog:",
