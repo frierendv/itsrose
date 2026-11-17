@@ -12,7 +12,7 @@ Custom Docker deployment for DeepSeek Harness (`@deepseek-ai/dsh`) designed to r
     - Direct API requests (`/api/...`) from inside the container without a session cookie are rejected with `401 Unauthorized`.
     - Caddy admin API (`localhost:2019`) and persistent autosave are disabled.
     - Process launch token is redacted in logs after acquisition.
-- **Toolchain & Plugins**: Bundles `bwrap`, `gh`, `cloudflared`, `gitleaks`, `shfmt`, `dockerfmt`, `shellcheck`, and 7 pre-installed plugins (`dshmarket`, `dsh-better-sidebar`, `dsh-context`, `dsh-tool-antigravity`, `@michengai/dsh-skills-manager`, `dsh-mcp-connector`, `dsh-plugin-wallpaper-engine`).
+- **Toolchain & Plugins**: Bundles `bwrap`, `gh`, `cloudflared`, `gitleaks`, `shfmt`, `dockerfmt`, `shellcheck`, and 7 pre-installed plugins (`dshmarket`, `dsh-better-sidebar`, `dsh-context`, `@michengai/dsh-skills-manager`, `dsh-mcp-connector`, `dsh-plugin-wallpaper-engine`).
 
 ## Running with Docker Compose (Recommended)
 
