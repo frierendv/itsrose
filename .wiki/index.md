@@ -89,6 +89,21 @@ See [the programme](programme.md) for the wave order and what each commit
 did, and [the environment backlog](backlogs/environment-backlog.md) for what
 is still open.
 
+## Update, 2026-11-17: the dependency graph is now checked
+
+A dependency audit removed nine dependencies that no workspace imported, and
+changed what the gate can see. The tsdown `unused` check now runs at
+`level: "error"`, so an unused dependency fails the build instead of
+printing a report after the build has succeeded — see [unused dependencies
+were nobody's job](problems/unused-dependencies-were-nobody-s-job.md).
+
+Two latent defects surfaced in the same session and were fixed: a duplicate
+`types` key in the dashboard tsconfig that silently dropped three entries,
+and a shared ESLint preset with no Node globals that could not lint the
+repository's own JavaScript. Both are pages above.
+
+The gate stands at 107 suites and 913 tests, all green.
+
 ## Backlogs
 
 - [The environment backlog](backlogs/environment-backlog.md) — the ranked list
