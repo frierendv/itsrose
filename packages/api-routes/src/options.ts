@@ -12,6 +12,7 @@ export const ROUTE_MODULE_PREFIXES = {
 	"character-ai": "/character_ai",
 	instagram: "/instagram",
 	mtxx: "/mtxx",
+	pixverse: "/pixverse",
 	remini: "/remini",
 	tiktok: "/tiktok",
 } as const;

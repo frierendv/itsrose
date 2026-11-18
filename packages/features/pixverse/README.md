@@ -13,6 +13,7 @@ Typed client for the PixVerse video generation platform API.
 - Every request carries a fresh `Ai-trace-id`; you never supply one.
 - Success is decided by `ErrCode === 0`, not by the HTTP status — PixVerse answers `HTTP 200` for a failed operation, and a non-zero `ErrCode` is raised as a failure.
 - Generation requests are never retried (they would create a second task). Status queries are safe to repeat.
+- Every payload is published in **our** vocabulary, not the upstream's: `status` is `not_started | in_progress | completed | failed` (the same `SyncState` vocabulary `@itsrose/mtxx` publishes), `task_id` is a string, and the output is in `media_list`.
 
 ## Usage
 
@@ -20,20 +21,22 @@ Typed client for the PixVerse video generation platform API.
 import { createTextToVideo, getTask, waitForTask } from "@itsrose/pixverse";
 
 // 1. Create a task. This does not render the video.
-const { video_id, credits } = await createTextToVideo({
+const { task_id, status, credits } = await createTextToVideo({
 	model: "v6-max",
 	prompt: "A blue glass marble rolls across a clean white table",
 	duration: 5,
 	quality: "720p",
 	aspect_ratio: "16:9",
 });
+// status === "in_progress"
 
 // 2. Wait for it. Polls every 3 s and stops on any terminal state.
-const task = await waitForTask(video_id, { timeout_ms: 300_000 });
-console.log(task.url);
+const task = await waitForTask(task_id, { timeout_ms: 300_000 });
+console.log(task.status, task.media_list); // "completed" ["https://…"]
 
 // or poll once and decide yourself
-const state = await getTask(video_id); // state.status: 1 | 5 | 7 | 8
+const state = await getTask({ task_id });
+// state.status: "in_progress" | "completed" | "failed"
 ```
 
 ### Image-to-video

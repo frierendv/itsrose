@@ -47,7 +47,11 @@ describe("createImageToVideo", () => {
 		expect(request.method).toBe("POST");
 		expect(request.url).toBe("/openapi/v2/video/img/generate");
 		expect(JSON.parse(request.body)).toStrictEqual(REQUEST);
-		expect(result).toStrictEqual({ video_id: 9, credits: 30 });
+		expect(result).toStrictEqual({
+			status: "in_progress",
+			task_id: "9",
+			credits: 30,
+		});
 	});
 
 	it("accepts a template task without an img_id", async () => {
@@ -63,7 +67,7 @@ describe("createImageToVideo", () => {
 				template_id: 519,
 				img_ids: [1, 2],
 			})
-		).resolves.toMatchObject({ video_id: 9 });
+		).resolves.toMatchObject({ task_id: "9", status: "in_progress" });
 	});
 
 	it("refuses a task that is neither an image nor a template", async () => {

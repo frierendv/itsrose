@@ -7,6 +7,8 @@ import {
 import {
 	isTerminalTaskStatus,
 	PIXVERSE_TASK_STATUS,
+	PixverseSyncState,
+	toSyncState,
 } from "../src/constants/task-status";
 import { PIXVERSE_ENV, PIXVERSE_ENV_KEYS } from "../src/env";
 
@@ -61,6 +63,33 @@ describe("features/pixverse", () => {
 				false
 			);
 		});
+
+		it("translates every upstream status into the shared vocabulary", () => {
+			expect(toSyncState(PIXVERSE_TASK_STATUS.completed)).toBe(
+				"completed"
+			);
+			expect(toSyncState(PIXVERSE_TASK_STATUS.generating)).toBe(
+				"in_progress"
+			);
+			expect(toSyncState(PIXVERSE_TASK_STATUS.moderation_failed)).toBe(
+				"failed"
+			);
+			expect(toSyncState(PIXVERSE_TASK_STATUS.failed)).toBe("failed");
+		});
+
+		it("never reports an unknown status as terminal", () => {
+			expect(toSyncState(42)).toBe("in_progress");
+			expect(isTerminalTaskStatus(42)).toBe(false);
+		});
+
+		it("uses the same vocabulary as the rest of the surface", () => {
+			expect(Object.values(PixverseSyncState).sort()).toStrictEqual([
+				"completed",
+				"failed",
+				"in_progress",
+				"not_started",
+			]);
+		});
 	});
 
 	describe("error mapping", () => {
@@ -101,6 +130,21 @@ describe("features/pixverse", () => {
 			expect(typeof api.uploadImage).toBe("function");
 			expect(typeof api.getAccountBalance).toBe("function");
 			expect(typeof api.verifyWebhookSignature).toBe("function");
+			expect(typeof api.toSyncState).toBe("function");
+			expect(typeof api.toTaskResponse).toBe("function");
+		});
+
+		it("publishes a request and response schema per operation", async () => {
+			const api = await import("../src/index");
+
+			for (const schema of [
+				api.textToVideoSchema,
+				api.imageToVideoSchema,
+				api.getTaskSchema,
+			]) {
+				expect(schema.request).toBeDefined();
+				expect(schema.response).toBeDefined();
+			}
 			expect(typeof api.PixverseTaskError).toBe("function");
 		});
 	});

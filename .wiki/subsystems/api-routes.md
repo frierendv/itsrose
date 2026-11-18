@@ -15,6 +15,7 @@ its URL namespace, and is mounted under a prefix the application chooses.
 | `@itsrose/api-routes/character-ai` | `characterAiRoutes` | `/character_ai` | 2      |
 | `@itsrose/api-routes/instagram`    | `instagramRoutes`   | `/instagram`    | 1      |
 | `@itsrose/api-routes/mtxx`         | `mtxxRoutes`        | `/mtxx`         | 7      |
+| `@itsrose/api-routes/pixverse`     | `pixverseRoutes`    | `/pixverse`     | 3      |
 | `@itsrose/api-routes/remini`       | `reminiRoutes`      | `/remini`       | 1      |
 | `@itsrose/api-routes/tiktok`       | `tiktokRoutes`      | `/tiktok`       | 1      |
 
@@ -46,6 +47,14 @@ The modules are the fix for both: an application registers the modules it
 serves, and a module it does not register is never imported.
 
 ## The prefix is the module's own
+
+**Added 2026-11-18.** `@itsrose/api-routes/pixverse` — the first module that
+answers in the shared `SyncState` vocabulary (`not_started` / `in_progress` /
+`completed` / `failed`) for an upstream that reports numeric codes. The
+translation lives in the feature package
+(`packages/features/pixverse/src/utils/translate-task.ts`), not in the route,
+so the module stays a thin controller and any other consumer of the package
+gets the translated payload too.
 
 **Recorded 2026-11-14.** Fastify does not apply a register-time `prefix` to
 a `fastify-plugin`-wrapped plugin — the prefix is silently dropped, and the

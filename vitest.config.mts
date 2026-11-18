@@ -192,6 +192,10 @@ const apiRoutesAliases = [
 		replacement: repo("packages/api-routes/__tests__/mocks/mtxx.ts"),
 	},
 	{
+		find: /^@itsrose\/pixverse$/,
+		replacement: repo("packages/api-routes/__tests__/mocks/pixverse.ts"),
+	},
+	{
 		find: /^@itsrose\/remini$/,
 		replacement: repo("packages/api-routes/__tests__/mocks/remini.ts"),
 	},

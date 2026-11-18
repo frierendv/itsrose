@@ -10,6 +10,7 @@ export default defineConfig({
 		"src/character-ai/index.ts",
 		"src/instagram/index.ts",
 		"src/mtxx/index.ts",
+		"src/pixverse/index.ts",
 		"src/remini/index.ts",
 		"src/tiktok/index.ts",
 	],

@@ -48,7 +48,13 @@ describe("createTextToVideo", () => {
 		expect(request.method).toBe("POST");
 		expect(request.url).toBe("/openapi/v2/video/text/generate");
 		expect(JSON.parse(request.body)).toStrictEqual(REQUEST);
-		expect(result).toStrictEqual({ video_id: 123, credits: 10 });
+		// the upstream answers `video_id`; the package publishes `task_id`
+		// and the shared status vocabulary
+		expect(result).toStrictEqual({
+			status: "in_progress",
+			task_id: "123",
+			credits: 10,
+		});
 	});
 
 	it("sends the api key and a trace id", async () => {

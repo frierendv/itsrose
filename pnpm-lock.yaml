@@ -523,6 +523,9 @@ importers:
       '@itsrose/mtxx':
         specifier: workspace:*
         version: link:../features/mtxx
+      '@itsrose/pixverse':
+        specifier: workspace:*
+        version: link:../features/pixverse
       '@itsrose/remini':
         specifier: workspace:*
         version: link:../features/remini

@@ -11,6 +11,7 @@ import {
 } from "../src/character-ai";
 import { INSTAGRAM_ROUTE_KEYS, instagramRoutes } from "../src/instagram";
 import { MTXX_ROUTE_KEYS, mtxxRoutes } from "../src/mtxx";
+import { PIXVERSE_ROUTE_KEYS, pixverseRoutes } from "../src/pixverse";
 import { REMINI_ROUTE_KEYS, reminiRoutes } from "../src/remini";
 import { TIKTOK_ROUTE_KEYS, tiktokRoutes } from "../src/tiktok";
 
@@ -125,6 +126,12 @@ const MTXX_TABLE: Array<[string, string]> = [
 	["POST", "/mtxx/versatile_hairstyle"],
 ];
 
+const PIXVERSE_TABLE: Array<[string, string]> = [
+	["POST", "/pixverse/text_to_video"],
+	["POST", "/pixverse/image_to_video"],
+	["GET", "/pixverse/get_task"],
+];
+
 const REMINI_TABLE: Array<[string, string]> = [["POST", "/remini/create_task"]];
 
 const TIKTOK_TABLE: Array<[string, string]> = [["GET", "/tiktok/get_content"]];
@@ -164,6 +171,15 @@ describe("the route modules", () => {
 
 		expect(table(routes)).toEqual(MTXX_TABLE);
 		expect(routes).toHaveLength(MTXX_ROUTE_KEYS.length);
+	});
+
+	it("serves the pixverse routes under the prefix of the package", async () => {
+		const routes = await capture(async (app) => {
+			await app.register(pixverseRoutes, {});
+		});
+
+		expect(table(routes)).toEqual(PIXVERSE_TABLE);
+		expect(routes).toHaveLength(PIXVERSE_ROUTE_KEYS.length);
 	});
 
 	it("serves the remini routes under the prefix of the package", async () => {

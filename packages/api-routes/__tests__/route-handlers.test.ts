@@ -8,6 +8,7 @@ import { audioRoutes } from "../src/audio";
 import { characterAiRoutes } from "../src/character-ai";
 import { instagramRoutes } from "../src/instagram";
 import { mtxxRoutes } from "../src/mtxx";
+import { pixverseRoutes } from "../src/pixverse";
 import { reminiRoutes } from "../src/remini";
 import { tiktokRoutes } from "../src/tiktok";
 
@@ -41,6 +42,7 @@ const build = async (): Promise<FastifyInstance> => {
 	await app.register(characterAiRoutes, {});
 	await app.register(instagramRoutes, {});
 	await app.register(mtxxRoutes, {});
+	await app.register(pixverseRoutes, {});
 	await app.register(reminiRoutes, {});
 	await app.register(tiktokRoutes, {});
 	await app.ready();
@@ -168,6 +170,36 @@ describe("the route handlers", () => {
 			url: "/mtxx/get_task?task_id=task",
 		},
 		{
+			name: "a text-to-video task of the pixverse surface",
+			method: "POST",
+			url: "/pixverse/text_to_video",
+			payload: {
+				model: "v6-max",
+				prompt: "A blue glass marble rolls across a clean white table",
+				duration: 1,
+				quality: "360p",
+				aspect_ratio: "1:1",
+			},
+		},
+		{
+			name: "an image-to-video task of the pixverse surface",
+			method: "POST",
+			url: "/pixverse/image_to_video",
+			payload: {
+				model: "v6",
+				prompt: "The cup begins to steam",
+				duration: 5,
+				quality: "720p",
+				aspect_ratio: "16:9",
+				img_id: 123456,
+			},
+		},
+		{
+			name: "the task of the pixverse surface",
+			method: "GET",
+			url: "/pixverse/get_task?task_id=1000000000000003",
+		},
+		{
 			name: "the task of the remini surface",
 			method: "POST",
 			url: "/remini/create_task",
@@ -187,5 +219,83 @@ describe("the route handlers", () => {
 			200,
 			expect.any(String),
 		]);
+	});
+});
+
+describe("the pixverse surface", () => {
+	let app: FastifyInstance;
+
+	beforeAll(async () => {
+		app = await build();
+	});
+
+	afterAll(async () => {
+		await app.close();
+	});
+
+	it("answers a created task in the translated vocabulary", async () => {
+		const response = await app.inject({
+			method: "POST",
+			url: "/pixverse/text_to_video",
+			payload: {
+				model: "v6-max",
+				prompt: "A blue glass marble rolls across a clean white table",
+				duration: 1,
+				quality: "360p",
+				aspect_ratio: "1:1",
+			},
+		});
+
+		expect(response.statusCode).toBe(200);
+		expect(response.json()).toStrictEqual({
+			ok: true,
+			code: expect.any(Number) as number,
+			message: expect.any(String) as string,
+			data: {
+				status: "in_progress",
+				task_id: "1000000000000003",
+				credits: 10,
+			},
+			errors: null,
+			meta: {},
+		});
+	});
+
+	it("answers a completed task with media and no upstream fields", async () => {
+		const response = await app.inject({
+			method: "GET",
+			url: "/pixverse/get_task?task_id=1000000000000003",
+		});
+
+		expect(response.statusCode).toBe(200);
+
+		const body = response.json();
+		expect(body.data.status).toBe("completed");
+		expect(body.data.media_list).toStrictEqual([
+			"https://pixverse.test/result.mp4",
+		]);
+		// the upstream numeric status and its camelCase dimensions never
+		// reach the wire
+		expect(body.data).not.toHaveProperty("video_id");
+		expect(body.data).not.toHaveProperty("outputWidth");
+		expect(typeof body.data.status).toBe("string");
+	});
+
+	it("refuses a request the upstream contract cannot accept", async () => {
+		const response = await app.inject({
+			method: "POST",
+			url: "/pixverse/text_to_video",
+			payload: {
+				model: "v6-max",
+				prompt: "a prompt",
+				duration: 1,
+				quality: "4k",
+				aspect_ratio: "1:1",
+			},
+		});
+
+		// the request never reaches PixVerse: the published contract is
+		// enforced at the route
+		expect(response.statusCode).toBe(400);
 	});
 });

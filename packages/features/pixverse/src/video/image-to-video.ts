@@ -1,8 +1,14 @@
 import { neverRetry } from "@itsrose/upstream-client";
 import { requestPixverse } from "../client/send";
-import type { ImageToVideoRequest, PixverseTaskCreated } from "../zod-schema";
+import { toTaskCreatedResponse } from "../utils/translate-task";
+import type {
+	ImageToVideoRequest,
+	PixverseTaskCreated,
+	PixverseTaskCreatedResponse,
+} from "../zod-schema";
 import {
 	ImageToVideoRequestSchema,
+	PixverseTaskCreatedResponseSchema,
 	PixverseTaskCreatedSchema,
 } from "../zod-schema";
 
@@ -15,16 +21,16 @@ import {
  * refused locally instead of upstream.
  *
  * @param input The generation request.
- * @returns The identifier of the accepted task and the credits it is
- * expected to consume.
+ * @returns The accepted task, in the status vocabulary this package
+ * publishes.
  * @throws {UpstreamApiError} When PixVerse refused the request.
  */
 export async function createImageToVideo(
 	input: ImageToVideoRequest
-): Promise<PixverseTaskCreated> {
+): Promise<PixverseTaskCreatedResponse> {
 	const body = ImageToVideoRequestSchema.parse(input);
 
-	return requestPixverse({
+	const created = await requestPixverse<PixverseTaskCreated>({
 		url: "/openapi/v2/video/img/generate",
 		method: "POST",
 		data: body,
@@ -33,4 +39,14 @@ export async function createImageToVideo(
 		// The call creates a task upstream: it must not be replayed.
 		retry: { retryCondition: neverRetry },
 	});
+
+	return toTaskCreatedResponse(created);
 }
+
+/**
+ * The request and response schemas of {@linkcode createImageToVideo}.
+ */
+export const imageToVideoSchema = {
+	request: ImageToVideoRequestSchema,
+	response: PixverseTaskCreatedResponseSchema,
+} as const;

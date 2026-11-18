@@ -1,7 +1,10 @@
 import { UpstreamApiError } from "@itsrose/upstream-client";
-import { isTerminalTaskStatus, PIXVERSE_TASK_STATUS } from "../constants";
+import {
+	PixverseSyncState,
+	PixverseTaskFailure,
+} from "../constants/task-status";
 import { getTask } from "../video/get-task";
-import type { PixverseTaskResult } from "../zod-schema";
+import type { PixverseTaskResponse } from "../zod-schema";
 
 /**
  * Options of {@linkcode waitForTask}.
@@ -25,7 +28,7 @@ export interface WaitForTaskOptions {
 	 * Called with every state the task is seen in, including the terminal
 	 * one. Useful for progress reporting.
 	 */
-	on_poll?: (result: PixverseTaskResult) => void;
+	on_poll?: (task: PixverseTaskResponse) => void;
 }
 
 /**
@@ -35,7 +38,7 @@ export class PixverseTaskError extends UpstreamApiError {
 	/**
 	 * The last state the task was seen in.
 	 */
-	public readonly task?: PixverseTaskResult;
+	public readonly task?: PixverseTaskResponse;
 
 	/**
 	 * Creates a new {@linkcode PixverseTaskError}.
@@ -47,7 +50,7 @@ export class PixverseTaskError extends UpstreamApiError {
 	constructor(
 		message: string,
 		statusCode: number,
-		task?: PixverseTaskResult
+		task?: PixverseTaskResponse
 	) {
 		super(message, statusCode, {
 			service: "pixverse",
@@ -63,50 +66,48 @@ export class PixverseTaskError extends UpstreamApiError {
 /**
  * Polls a generation task until it is terminal.
  *
- * A task is only complete when PixVerse answers `status=1` and the output
- * URL is there; `7` (moderation failed) and `8` (generation failed) are
- * terminal failures and are raised. Polling is stopped on any terminal
- * state - a duplicate creation is never sent, and the same task is never
- * queried after it can no longer change.
+ * A task is only complete when it publishes `completed` together with its
+ * media; `failed` is terminal and is raised, carrying the reason. Polling
+ * stops on any terminal state - a duplicate creation is never sent, and the
+ * same task is never queried after it can no longer change.
  *
- * @param video_id The identifier a creation endpoint returned.
+ * @param task_id The identifier a creation endpoint returned.
  * @param options Polling policy.
- * @returns The completed task.
+ * @returns The completed task, in the status vocabulary this package
+ * publishes.
  * @throws {PixverseTaskError} When the task failed, failed moderation, or
  * did not finish within `timeout_ms`.
  * @throws {UpstreamApiError} When a query was refused by PixVerse.
  */
 export async function waitForTask(
-	video_id: number | string,
+	task_id: string,
 	options: WaitForTaskOptions = {}
-): Promise<PixverseTaskResult> {
+): Promise<PixverseTaskResponse> {
 	const { interval_ms = 3000, timeout_ms = 600000, on_poll } = options;
 
 	const deadline = Date.now() + timeout_ms;
-	let last: PixverseTaskResult | undefined;
+	let last: PixverseTaskResponse | undefined;
 
 	for (;;) {
-		const result = await getTask(video_id);
-		last = result;
-		on_poll?.(result);
+		const task = await getTask({ task_id });
+		last = task;
+		on_poll?.(task);
 
-		if (result.status === PIXVERSE_TASK_STATUS.completed) {
-			return result;
+		if (task.status === PixverseSyncState.COMPLETED) {
+			return task;
 		}
 
-		if (isTerminalTaskStatus(result.status)) {
+		if (task.status === PixverseSyncState.FAILED) {
 			throw new PixverseTaskError(
-				result.status === PIXVERSE_TASK_STATUS.moderation_failed
-					? `PixVerse refused task ${video_id}: content moderation failed.`
-					: `PixVerse task ${video_id} failed.`,
-				422,
-				result
+				task.error?.message ?? `PixVerse task ${task_id} failed.`,
+				task.error?.type === PixverseTaskFailure.MODERATION ? 422 : 500,
+				task
 			);
 		}
 
 		if (Date.now() + interval_ms > deadline) {
 			throw new PixverseTaskError(
-				`PixVerse task ${video_id} did not finish within ${timeout_ms}ms.`,
+				`PixVerse task ${task_id} did not finish within ${timeout_ms}ms.`,
 				504,
 				last
 			);
