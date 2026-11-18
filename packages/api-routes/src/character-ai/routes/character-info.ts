@@ -5,12 +5,12 @@ import { joinUrl, type RoutePrefix } from "../../prefix";
 import type { CharacterAiRoutesOptions } from "../options";
 
 const DESCRIPTION =
-	"Search for Character.AI characters by name or query keyword";
+	"Retrieve Character.AI character information by external ID";
 
 /**
- * Registers `GET /search_character` under the prefix of the module.
+ * Registers `GET /character_info` under the prefix of the module.
  */
-export const registerSearchInfoRoute = (
+export const registerCharacterInfoRoute = (
 	fastify: FastifyInstance,
 	options: CharacterAiRoutesOptions,
 	prefix: RoutePrefix
@@ -21,7 +21,7 @@ export const registerSearchInfoRoute = (
 		schema: {
 			tags: ["Character.ai"],
 			summary: "Character information",
-			description: options.descriptions?.searchCharacter ?? DESCRIPTION,
+			description: options.descriptions?.characterInfo ?? DESCRIPTION,
 			querystring: characterInfoSchema.request,
 			response: {
 				200: characterInfoSchema.response,
