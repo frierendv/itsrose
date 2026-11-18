@@ -1,5 +1,5 @@
 import { getEnv } from "@itsrose/system";
-import { createUpstreamClient } from "@itsrose/upstream-client";
+import { createUpstreamClient, UpstreamClient } from "@itsrose/upstream-client";
 import { Chat } from "../chat";
 import { CHARACTER_AI_ENV } from "../env";
 import { Character } from "./character";
@@ -81,7 +81,7 @@ export class Client {
 	/**
 	 * The client the package reaches the Character.ai HTTP services with.
 	 */
-	public http: ReturnType<typeof createUpstreamClient>;
+	public http: UpstreamClient;
 
 	/**
 	 * Sub-client for fetching and managing user profile details.

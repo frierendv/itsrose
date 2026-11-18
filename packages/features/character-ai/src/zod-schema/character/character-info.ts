@@ -75,3 +75,8 @@ export const CharacterInfoSchema = z
 	});
 
 export type CharacterInfo = z.infer<typeof CharacterInfoSchema>;
+
+export const CharacterInfoRequestSchema = CharacterInfoSchema.pick({
+	external_id: true,
+});
+export type CharacterInfoRequest = z.infer<typeof CharacterInfoRequestSchema>;

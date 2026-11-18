@@ -4,6 +4,7 @@ import {
 	CharacterInfoSchema,
 	SearchCharacterResponseSchema,
 	type CharacterInfo,
+	type CharacterInfoRequest,
 	type SearchCharacter,
 } from "../zod-schema";
 import type { Client } from "./client";
@@ -32,9 +33,7 @@ export class Character {
 	 * console.log(info.title, info.avatar_url);
 	 * ```
 	 */
-	public async info(
-		options: Pick<CharacterInfo, "external_id">
-	): Promise<CharacterInfo> {
+	public async info(options: CharacterInfoRequest): Promise<CharacterInfo> {
 		const data = await this.client.http.send<{ character: unknown }>({
 			url: "/character/v1/get_character_info",
 			method: "post",

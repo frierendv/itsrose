@@ -5,6 +5,7 @@ import {
 	CHARACTER_AI_ROUTE_PREFIX,
 	type CharacterAiRoutesOptions,
 } from "./options";
+import { registerSearchInfoRoute } from "./routes/character-info";
 import { registerSearchCharacterRoute } from "./routes/search-character";
 import { registerSendMessageRoute } from "./routes/send-message";
 
@@ -33,6 +34,7 @@ export const characterAiRoutes: FastifyPluginAsync<CharacterAiRoutesOptions> =
 
 			registerSearchCharacterRoute(fastify, options, prefix);
 			registerSendMessageRoute(fastify, options, prefix);
+			registerSearchInfoRoute(fastify, options, prefix);
 		},
 		{ name: "api-routes-character-ai" }
 	);
