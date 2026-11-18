@@ -110,6 +110,7 @@ const AUDIO_TABLE: Array<[string, string]> = [
 const CHARACTER_AI_TABLE: Array<[string, string]> = [
 	["GET", "/character_ai/search_character"],
 	["POST", "/character_ai/send_message"],
+	["GET", "/character_ai/character_info"],
 ];
 
 const INSTAGRAM_TABLE: Array<[string, string]> = [
