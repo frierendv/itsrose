@@ -1,0 +1,62 @@
+{
+	"name": "@itsrose/pixverse",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"type": "module",
+	"license": "MIT",
+	"description": "Typed client for the PixVerse video generation platform API.",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/features/pixverse"
+	},
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"keywords": [
+		"api",
+		"itsrose",
+		"pixverse",
+		"typescript",
+		"video"
+	],
+	"exports": {
+		".": "./src/index.ts",
+		"./env": "./src/env.ts",
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"build": "tsdown",
+		"build:fast": "tsdown src",
+		"clean": "rimraf dist .sonda",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@itsrose/system": "workspace:*",
+		"@itsrose/upstream-client": "workspace:*",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@itsrose/standard": "workspace:*"
+	},
+	"publishConfig": {
+		"exports": {
+			".": {
+				"import": "./dist/index.mjs",
+				"require": "./dist/index.js"
+			},
+			"./env": {
+				"import": "./dist/env.mjs",
+				"require": "./dist/env.js"
+			},
+			"./package.json": "./package.json"
+		}
+	}
+}

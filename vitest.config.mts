@@ -111,6 +111,10 @@ const workspaceAliases = [
 	},
 	{ find: "@itsrose/mtxx", replacement: repo("packages/features/mtxx/src") },
 	{
+		find: "@itsrose/pixverse",
+		replacement: repo("packages/features/pixverse/src"),
+	},
+	{
 		find: "@itsrose/remini",
 		replacement: repo("packages/features/remini/src"),
 	},
@@ -186,6 +190,10 @@ const apiRoutesAliases = [
 	{
 		find: /^@itsrose\/mtxx$/,
 		replacement: repo("packages/api-routes/__tests__/mocks/mtxx.ts"),
+	},
+	{
+		find: /^@itsrose\/pixverse$/,
+		replacement: repo("packages/api-routes/__tests__/mocks/pixverse.ts"),
 	},
 	{
 		find: /^@itsrose\/remini$/,

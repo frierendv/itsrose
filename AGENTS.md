@@ -44,12 +44,14 @@ flowchart TD
         ELEVEN["@itsrose/elevenlabs"]
         IG["@itsrose/instagram"]
         MTXX["@itsrose/mtxx"]
+        PIXVERSE["@itsrose/pixverse"]
         REMINI["@itsrose/remini"]
         TIKTOK["@itsrose/tiktok"]
     end
 
     subgraph InternalInfra ["Infrastructure Adapters (packages/internal/*)"]
         HTTP_CLIENT["@itsrose/http-client (Axios-based Resilient Client)"]
+        UPSTREAM["@itsrose/upstream-client (Seam to Upstream Services)"]
         API_RESP["@itsrose/api-response (Standard Envelopes)"]
         HTTP_CODE["@itsrose/http-code (Status Enums)"]
         S3["@itsrose/s3 (Cloudflare R2 / AWS S3 v3)"]
@@ -116,6 +118,8 @@ flowchart TD
     MTXX --> SYSTEM
     REMINI --> SYSTEM
     TIKTOK --> SYSTEM
+    PIXVERSE --> UPSTREAM
+    PIXVERSE --> SYSTEM
 
     API_RESP --> HTTP_CODE
     HTTP_CLIENT --> SYSTEM
@@ -152,6 +156,7 @@ Feature packages provide isolated, typed client wrappers around upstream AI and 
 - `packages/features/elevenlabs` (`@itsrose/elevenlabs`): Voice synthesis and audio generation client with Zod validation.
 - `packages/features/instagram` (`@itsrose/instagram`): Scrapers and media extraction clients.
 - `packages/features/mtxx` (`@itsrose/mtxx`): Meitu/MTXX AI image processing, inpainting, and clothes segmentation client.
+- `packages/features/pixverse` (`@itsrose/pixverse`): PixVerse video generation client — text-to-video, image-to-video, task polling (published in the shared `SyncState` vocabulary), uploads, balance, and webhook signature verification. Served at `/pixverse` by `@itsrose/api-routes/pixverse`.
 - `packages/features/remini` (`@itsrose/remini`): Remini image enhancement and super-resolution client with WebSocket protocol.
 - `packages/features/tiktok` (`@itsrose/tiktok`): TikWM media fetcher with strict schema validation.
 

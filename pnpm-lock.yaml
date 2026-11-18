@@ -523,6 +523,9 @@ importers:
       '@itsrose/mtxx':
         specifier: workspace:*
         version: link:../features/mtxx
+      '@itsrose/pixverse':
+        specifier: workspace:*
+        version: link:../features/pixverse
       '@itsrose/remini':
         specifier: workspace:*
         version: link:../features/remini
@@ -748,6 +751,22 @@ importers:
       moment:
         specifier: ^2.31.0
         version: 2.31.0
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.7
+    devDependencies:
+      '@itsrose/standard':
+        specifier: workspace:*
+        version: link:../../standard
+
+  packages/features/pixverse:
+    dependencies:
+      '@itsrose/system':
+        specifier: workspace:*
+        version: link:../../core/system
+      '@itsrose/upstream-client':
+        specifier: workspace:*
+        version: link:../../internal/upstream-client
       zod:
         specifier: 'catalog:'
         version: 4.6.7

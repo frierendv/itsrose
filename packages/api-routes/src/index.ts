@@ -36,5 +36,9 @@ export type {
 	InstagramRoutesOptions,
 } from "./instagram/options";
 export type { MtxxRouteKey, MtxxRoutesOptions } from "./mtxx/options";
+export type {
+	PixverseRouteKey,
+	PixverseRoutesOptions,
+} from "./pixverse/options";
 export type { ReminiRouteKey, ReminiRoutesOptions } from "./remini/options";
 export type { TiktokRouteKey, TiktokRoutesOptions } from "./tiktok/options";

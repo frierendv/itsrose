@@ -1,0 +1,219 @@
+/* eslint-disable turbo/no-undeclared-env-vars */
+import { envelope, json, startServer, type TestServer } from "./support/server";
+
+/**
+ * A task result as PixVerse documents it.
+ */
+const TASK = {
+	id: 1000000000000003,
+	prompt: "A small blue ceramic cup on a plain wooden table.",
+	negative_prompt: "",
+	resolution_ratio: 0,
+	url: "https://media.example.com/example.mp4",
+	path: "pixverse/mp4/media/web/ori/example.mp4",
+	size: 1,
+	seed: 1892644351,
+	status: 1,
+	style: "",
+	create_time: "2026-10-23T04:03:03Z",
+	modify_time: "2026-10-23T04:03:22Z",
+	outputWidth: 640,
+	outputHeight: 640,
+	quality: "360p",
+	duration: 1,
+	aspect_ratio: "1:1",
+	has_audio: false,
+	credits: 5,
+	customer_paths: {
+		ext_info: null,
+		agent_info: null,
+		cameo_id_list: null,
+		duration_type: "",
+		thinking_type: "auto",
+		caption_switch: false,
+		fusion_id_list: null,
+		model_evaluator: "",
+		use_api_gen_image: false,
+	},
+};
+
+describe("getTask", () => {
+	let server: TestServer;
+	let answer: (res: Parameters<typeof json>[0]) => void;
+	let getTask: (typeof import("../src/video/get-task"))["getTask"];
+
+	beforeAll(async () => {
+		server = await startServer((_req, res) => {
+			answer(res);
+		});
+
+		process.env.PIXVERSE_BASE_URL = server.baseURL;
+		process.env.PIXVERSE_API_KEY = "test_key";
+
+		({ getTask } = await import("../src/video/get-task"));
+	});
+
+	afterAll(async () => {
+		await server.close();
+	});
+
+	beforeEach(() => {
+		server.requests.length = 0;
+	});
+
+	it("queries the documented result endpoint", async () => {
+		answer = (res) => json(res, envelope(TASK));
+
+		await getTask({ task_id: "1000000000000003" });
+
+		const request = server.requests[0]!;
+
+		expect(request.method).toBe("GET");
+		expect(request.url).toBe("/openapi/v2/video/result/1000000000000003");
+	});
+
+	it("translates a completed task into the published payload", async () => {
+		answer = (res) => json(res, envelope(TASK));
+
+		const result = await getTask({ task_id: "1000000000000003" });
+
+		expect(result).toStrictEqual({
+			status: "completed",
+			task_id: "1000000000000003",
+			media_list: ["https://media.example.com/example.mp4"],
+			prompt: TASK.prompt,
+			negative_prompt: "",
+			quality: "360p",
+			duration: 1,
+			aspect_ratio: "1:1",
+			seed: 1892644351,
+			has_audio: false,
+			credits: 5,
+			created_at: "2026-10-23T04:03:03Z",
+			modified_at: "2026-10-23T04:03:22Z",
+		});
+	});
+
+	it("never publishes the upstream numeric status", async () => {
+		answer = (res) => json(res, envelope({ ...TASK, status: 5 }));
+
+		const result = await getTask({ task_id: "1" });
+
+		expect(result.status).toBe("in_progress");
+		expect(typeof result.status).toBe("string");
+		expect(result).not.toHaveProperty("video_id");
+		expect(result).not.toHaveProperty("outputWidth");
+	});
+
+	it("keeps the media empty while the task is still generating", async () => {
+		answer = (res) => json(res, envelope({ ...TASK, status: 5 }));
+
+		const result = await getTask({ task_id: "1" });
+
+		expect(result.status).toBe("in_progress");
+		expect(result.media_list).toStrictEqual([]);
+	});
+
+	it("translates a moderation failure and says why", async () => {
+		answer = (res) => json(res, envelope({ ...TASK, status: 7 }));
+
+		const result = await getTask({ task_id: "1" });
+
+		expect(result.status).toBe("failed");
+		expect(result.media_list).toStrictEqual([]);
+		expect(result.error).toStrictEqual({
+			type: "moderation",
+			message: expect.stringContaining("moderation") as string,
+		});
+	});
+
+	it("translates a generation failure and says why", async () => {
+		answer = (res) => json(res, envelope({ ...TASK, status: 8 }));
+
+		const result = await getTask({ task_id: "1" });
+
+		expect(result.status).toBe("failed");
+		expect(result.error?.type).toBe("generation");
+	});
+
+	it("publishes an unknown upstream status as in progress", async () => {
+		answer = (res) => json(res, envelope({ ...TASK, status: 42 }));
+
+		const result = await getTask({ task_id: "1" });
+
+		expect(result.status).toBe("in_progress");
+	});
+
+	it("defaults a missing negative prompt and audio flag", async () => {
+		const withoutOptional: Record<string, unknown> = { ...TASK };
+		delete withoutOptional.negative_prompt;
+		delete withoutOptional.has_audio;
+		answer = (res) => json(res, envelope(withoutOptional));
+
+		const result = await getTask({ task_id: "1" });
+
+		expect(result.negative_prompt).toBe("");
+		expect(result.has_audio).toBe(false);
+	});
+
+	it("keeps fields PixVerse adds later out of the published payload", async () => {
+		answer = (res) =>
+			json(res, envelope({ ...TASK, some_new_field: "kept" }));
+
+		const result = await getTask({ task_id: "1" });
+
+		expect(result).not.toHaveProperty("some_new_field");
+	});
+
+	it("reports a query for another account's content", async () => {
+		answer = (res) =>
+			json(res, {
+				ErrCode: 500085,
+				ErrMsg: "You can only query content generated by your account.",
+				Resp: null,
+			});
+
+		await expect(getTask({ task_id: "1" })).rejects.toMatchObject({
+			statusCode: 403,
+		});
+	});
+
+	it("reports a task that does not exist", async () => {
+		answer = (res) =>
+			json(res, {
+				ErrCode: 500008,
+				ErrMsg: "Requested data not found",
+				Resp: null,
+			});
+
+		await expect(getTask({ task_id: "1" })).rejects.toMatchObject({
+			statusCode: 404,
+		});
+	});
+
+	it("refuses an empty task id before calling upstream", async () => {
+		answer = (res) => json(res, envelope(TASK));
+
+		await expect(getTask({ task_id: "" })).rejects.toThrow();
+
+		expect(server.requests).toHaveLength(0);
+	});
+
+	it("retries a GET because a query is safe to repeat", async () => {
+		let dispatches = 0;
+
+		answer = (res) => {
+			dispatches += 1;
+			json(
+				res,
+				dispatches === 1 ? { message: "boom" } : envelope(TASK),
+				dispatches === 1 ? 500 : 200
+			);
+		};
+
+		const result = await getTask({ task_id: "1" });
+
+		expect(result.status).toBe("completed");
+		expect(server.requests.length).toBeGreaterThan(1);
+	});
+});

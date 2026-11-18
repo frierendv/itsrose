@@ -35,6 +35,7 @@
 		"./env": "./src/env.ts",
 		"./instagram": "./src/instagram/index.ts",
 		"./mtxx": "./src/mtxx/index.ts",
+		"./pixverse": "./src/pixverse/index.ts",
 		"./remini": "./src/remini/index.ts",
 		"./tiktok": "./src/tiktok/index.ts",
 		"./package.json": "./package.json"
@@ -58,6 +59,7 @@
 		"@itsrose/elevenlabs": "workspace:*",
 		"@itsrose/instagram": "workspace:*",
 		"@itsrose/mtxx": "workspace:*",
+		"@itsrose/pixverse": "workspace:*",
 		"@itsrose/remini": "workspace:*",
 		"@itsrose/system": "workspace:*",
 		"@itsrose/tiktok": "workspace:*"
@@ -93,6 +95,10 @@
 			"./mtxx": {
 				"import": "./dist/mtxx/index.mjs",
 				"require": "./dist/mtxx/index.js"
+			},
+			"./pixverse": {
+				"import": "./dist/pixverse/index.mjs",
+				"require": "./dist/pixverse/index.js"
 			},
 			"./remini": {
 				"import": "./dist/remini/index.mjs",
