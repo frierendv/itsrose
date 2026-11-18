@@ -112,6 +112,11 @@ describe("the route handlers", () => {
 			url: "/character_ai/search_character?query=Eula",
 		},
 		{
+			name: "the character info of the character.ai surface",
+			method: "GET",
+			url: "/character_ai/character_info?external_id=char-1",
+		},
+		{
 			name: "the message of the character.ai surface",
 			method: "POST",
 			url: "/character_ai/send_message",

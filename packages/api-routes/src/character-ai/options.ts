@@ -9,6 +9,7 @@ export { CHARACTER_AI_ENV_KEYS };
  * Every route of the character.ai surface, keyed by the route it belongs to.
  */
 export const CHARACTER_AI_ROUTE_KEYS = [
+	"characterInfo",
 	"searchCharacter",
 	"sendMessage",
 ] as const;
