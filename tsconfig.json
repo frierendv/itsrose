@@ -36,6 +36,9 @@
 			"path": "packages/features/mtxx"
 		},
 		{
+			"path": "packages/features/pixverse"
+		},
+		{
 			"path": "packages/features/remini"
 		},
 		{

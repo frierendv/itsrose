@@ -111,6 +111,10 @@ const workspaceAliases = [
 	},
 	{ find: "@itsrose/mtxx", replacement: repo("packages/features/mtxx/src") },
 	{
+		find: "@itsrose/pixverse",
+		replacement: repo("packages/features/pixverse/src"),
+	},
+	{
 		find: "@itsrose/remini",
 		replacement: repo("packages/features/remini/src"),
 	},
