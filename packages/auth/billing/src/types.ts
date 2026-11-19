@@ -28,12 +28,32 @@ export type PlanLimits = {
 	readonly timeWindow: number;
 };
 
+/**
+ * Typed, machine-readable allowances attached to a plan.
+ *
+ * `null` always means unlimited. `storage_bytes` counts only durable assets —
+ * the ones that live in the permanent root — never temporary or generated
+ * output. `features` stays human-facing copy and is never parsed for these
+ * limits.
+ *
+ * Values are non-negative integers once resolved; the stored column is a JSON
+ * string, so persistence code always goes through `resolvePlanEntitlements`.
+ */
+export type PlanEntitlements = {
+	/** Durable storage allowance in bytes; `null` means unlimited. */
+	storage_bytes: number | null;
+	/** Durable asset count allowance; `null` means unlimited. */
+	storage_assets: number | null;
+};
+
 export type ApiPlan<OmitId extends boolean = false> = {
 	plan_id: PlanTier | (string & {});
 	name: string;
 	price: PlanPrice;
 	description: string | null;
 	features: string[];
+	/** Machine-readable allowances; see {@link PlanEntitlements}. */
+	entitlements: PlanEntitlements;
 	limits: PlanLimits;
 	/** Monthly billable request allowance; `null` means unlimited. */
 	quota_requests: number | null;

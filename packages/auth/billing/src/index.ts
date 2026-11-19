@@ -17,4 +17,8 @@ export {
 	STANDARD_TIER_RATES,
 	STANDARD_TIER_RPM,
 } from "./domain/constants";
+export {
+	DEFAULT_PLAN_ENTITLEMENTS,
+	resolvePlanEntitlements,
+} from "./domain/entitlements";
 export type * from "./types";
