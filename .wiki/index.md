@@ -123,3 +123,10 @@ The gate stands at 107 suites and 913 tests, all green.
   full gate on every PR, sequencing over picking.
 - [Working agreements](preferences/working-agreements.md) — what was asked
   for, and what was asked of me.
+
+## Specs & Archives
+
+- [Asset storage policy spec](specs/asset-storage-policy.md) — the decision
+  brief for the asset storage policy.
+- [Route surface v2 implementation plan](archive/plan-api-routes-refactor-v2.md)
+  — the completed implementation plan for the public route surface.

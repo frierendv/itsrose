@@ -8,7 +8,7 @@ import { API_VERSION, registerVersionedRoutes } from "../src/lib/routes";
 /**
  * The public route table: `/{version}/{module}/{route}`.
  *
- * This is the table from `plan-api-routes-refactor-v2.md` §3.1 (25 routes).
+ * This is the table from `.wiki/archive/plan-api-routes-refactor-v2.md` §3.1 (25 routes).
  * It is written out here, independently of the application's table, so that a
  * wiring change cannot move a public URL unnoticed.
  */

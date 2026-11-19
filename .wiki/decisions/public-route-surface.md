@@ -3,7 +3,8 @@
 **Decided 2026-11-19**, on `development` @ `60f6dbc`. Supersedes the "the
 prefix is the module's own" mechanism recorded in
 [the shared route surface](../subsystems/api-routes.md) on 2026-11-14. The
-implementation follows in `plan-api-routes-refactor-v2.md` (repository root).
+implementation follows in
+[the route surface plan](../archive/plan-api-routes-refactor-v2.md).
 
 ## The URL shape
 

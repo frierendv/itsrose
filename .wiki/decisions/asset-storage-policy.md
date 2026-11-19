@@ -1,7 +1,7 @@
 # The asset storage policy
 
 **Decided 2026-11-19.** The brief is
-[specs/asset-storage-policy.md](../../specs/asset-storage-policy.md) at
+[specs/asset-storage-policy.md](../specs/asset-storage-policy.md) at
 `0780e44`; it carries the evidence and the rejected alternatives.
 
 ## The decisions

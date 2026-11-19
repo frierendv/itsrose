@@ -3,7 +3,7 @@
 **Date:** 2026-11-19
 **Base:** `development` @ `60f6dbc`
 **Supersedes:** `plan-api-routes-refactor.md` (attachment, `sha256:b702ba79`) where §7 says so. The rest of it is adopted.
-**Decision record:** [.wiki/decisions/public-route-surface.md](.wiki/decisions/public-route-surface.md)
+**Decision record:** [../decisions/public-route-surface.md](../decisions/public-route-surface.md)
 
 **Status 2026-11-19:** all four commits landed. C1 at `b80b6ee`, C3 at
 `81a9d4f`, C4 at `506da65`, C2 at `fa8c1b6` (wiki claim `58118bb`). C2 was
