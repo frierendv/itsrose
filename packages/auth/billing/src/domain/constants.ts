@@ -1,4 +1,5 @@
 import type { ApiPlan, RateLimit } from "../types";
+import { DEFAULT_PLAN_ENTITLEMENTS } from "./entitlements";
 
 /**
  * Public plugin id. Kept as `itsrose` so existing `/itsrose/*` routes and
@@ -100,6 +101,7 @@ export const FREE_PLAN = {
 		"Basic Analytics",
 		"Community Support",
 	],
+	entitlements: DEFAULT_PLAN_ENTITLEMENTS,
 	limits: { max: 10, timeWindow: 60_000 },
 	quota_requests: 10_000,
 	highlighted: false,
@@ -121,6 +123,7 @@ export const HOBBY_PLAN = {
 		"Webhooks",
 		"Email Support",
 	],
+	entitlements: DEFAULT_PLAN_ENTITLEMENTS,
 	limits: { max: 60, timeWindow: 60_000 },
 	quota_requests: 500_000,
 	highlighted: false,
@@ -142,6 +145,7 @@ export const PRO_PLAN = {
 		"Webhooks",
 		"Priority Support",
 	],
+	entitlements: DEFAULT_PLAN_ENTITLEMENTS,
 	limits: { max: 300, timeWindow: 60_000 },
 	quota_requests: 2_000_000,
 	highlighted: true,
@@ -163,6 +167,7 @@ export const BUSINESS_PLAN = {
 		"Webhooks",
 		"Priority Support",
 	],
+	entitlements: DEFAULT_PLAN_ENTITLEMENTS,
 	limits: { max: 1000, timeWindow: 60_000 },
 	/** `null` = unlimited monthly requests (enterprise contract). */
 	quota_requests: null,

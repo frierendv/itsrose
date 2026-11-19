@@ -1,10 +1,17 @@
-import type { ApiPlan, BillingInterval, PlanLimits, PlanPrice } from "../types";
+import type {
+	ApiPlan,
+	BillingInterval,
+	PlanEntitlements,
+	PlanLimits,
+	PlanPrice,
+} from "../types";
 import {
 	BILLING_PLANS,
 	FREE_PLAN,
 	RATE_LIMIT,
 	STANDARD_TIER_QUOTA,
 } from "./constants";
+import { resolvePlanEntitlements } from "./entitlements";
 
 const DEFAULT_PLAN_PRICE: PlanPrice = {
 	amount: 0,
@@ -27,6 +34,8 @@ export type PlanWriteInput = {
 	prices?: PlanPriceInput[];
 	price?: PlanPriceInput;
 	features?: string[];
+	/** Machine-readable allowances; omitted keys resolve to unlimited. */
+	entitlements?: PlanEntitlements;
 	quota_requests?: number | null;
 	highlighted?: boolean;
 };
@@ -65,6 +74,7 @@ export function normalizePlan(plan: Record<string, unknown>): ApiPlan {
 		description: (plan.description as string | null) ?? null,
 		price: normalizePrice(rawPrice),
 		features,
+		entitlements: resolvePlanEntitlements(plan.entitlements),
 		limits,
 		quota_requests: normalizeQuota(plan.quota_requests, planId),
 		highlighted,
@@ -148,6 +158,7 @@ export function buildCreatePlanData(
 		description: input.description ?? "",
 		price: normalizePrice(input.price ?? input.prices),
 		features: input.features ?? [],
+		entitlements: resolvePlanEntitlements(input.entitlements),
 		quota_requests: input.quota_requests ?? null,
 		highlighted: String(Boolean(input.highlighted)),
 	};
@@ -173,6 +184,9 @@ export function buildPlanUpdateData(
 	if (input.features !== undefined) {
 		update.features = input.features;
 	}
+	if (input.entitlements !== undefined) {
+		update.entitlements = resolvePlanEntitlements(input.entitlements);
+	}
 	if (input.quota_requests !== undefined) {
 		update.quota_requests = input.quota_requests;
 	}
@@ -195,6 +209,7 @@ export function buildSeedPlanData(
 		description: plan.description ?? "",
 		price: normalizePrice(plan.price),
 		features: plan.features ?? [],
+		entitlements: resolvePlanEntitlements(plan.entitlements),
 		quota_requests: plan.quota_requests,
 		highlighted: String(Boolean(plan.highlighted)),
 	};

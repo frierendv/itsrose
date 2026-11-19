@@ -158,6 +158,7 @@ describe("buildOverviewMetrics", () => {
 			interval: "month" as const,
 		},
 		features: [],
+		entitlements: { storage_bytes: null, storage_assets: null },
 		limits: { max: 300, timeWindow: 60_000 },
 		quota_requests: 2_000_000,
 		highlighted: false,

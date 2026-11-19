@@ -8,4 +8,5 @@ export * from "./client";
 export * from "./config";
 export * from "./keys";
 export * from "./operations";
+export * from "./policy";
 export type * from "./types";

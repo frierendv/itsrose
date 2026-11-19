@@ -33,6 +33,7 @@ function plan(
 		price: { amount, currency: "IDR", interval: "month" },
 		description: null,
 		features: [],
+		entitlements: { storage_bytes: null, storage_assets: null },
 		limits: { max: 60, timeWindow: 60 },
 		quota_requests: null,
 		highlighted: false,
