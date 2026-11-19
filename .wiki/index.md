@@ -24,6 +24,9 @@ to read `index.md` and know where to look.
   subscription that goes unsettled when they are not.
 - [One proration rule](decisions/proration-single-rule.md) — the server's rule
   is the only rule; the browser is a view over it.
+- [The asset storage policy](decisions/asset-storage-policy.md) —
+  durable assets under `assets/`, API-mediated uploads, signed reads,
+  promotion, and storage as an entitlement.
 - [The public route surface](decisions/public-route-surface.md) — the
   `/{version}/{module}/{route}` shape, why route documentation lives in the
   routes, and what the shared route package is allowed to be.

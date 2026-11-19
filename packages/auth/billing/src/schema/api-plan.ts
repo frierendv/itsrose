@@ -1,6 +1,7 @@
 import type { BetterAuthPluginDBSchema } from "better-auth";
 import { z } from "zod/v4";
 import { API_PLAN_TABLE_NAME } from "../domain/constants";
+import { resolvePlanEntitlements } from "../domain/entitlements";
 import type { PlanPrice } from "../types";
 import { parseJson } from "./json";
 
@@ -16,6 +17,17 @@ export const planPriceInputSchema = z.object({
 	interval: z.enum(["month", "year"]),
 });
 
+/**
+ * Machine-readable plan allowances. `null` means unlimited for that key;
+ * omitting the whole object keeps the stored defaults.
+ */
+export const planEntitlementsInputSchema = z.object({
+	/** Durable storage allowance in bytes; `null` means unlimited. */
+	storage_bytes: z.int().nonnegative().nullable(),
+	/** Durable asset count allowance; `null` means unlimited. */
+	storage_assets: z.int().nonnegative().nullable(),
+});
+
 export const createPlanSchema = z.object({
 	plan_id: z.string().min(1),
 	name: z.string().min(1),
@@ -23,6 +35,7 @@ export const createPlanSchema = z.object({
 	prices: z.array(planPriceInputSchema).default([]),
 	price: planPriceInputSchema.optional(),
 	features: z.array(z.string()).default([]),
+	entitlements: planEntitlementsInputSchema.optional(),
 	/** Monthly billable request allowance; `null` means unlimited. */
 	quota_requests: z.int().min(0).nullish(),
 	highlighted: z.boolean().default(false),
@@ -35,6 +48,7 @@ export const updatePlanSchema = z.object({
 	prices: z.array(planPriceInputSchema).optional(),
 	price: planPriceInputSchema.optional(),
 	features: z.array(z.string()).optional(),
+	entitlements: planEntitlementsInputSchema.optional(),
 	quota_requests: z.int().min(0).nullish(),
 	highlighted: z.boolean().optional(),
 	/** Accepted for dashboard compatibility; not persisted by the catalog schema. */
@@ -95,6 +109,25 @@ export const apiPlanSchema = {
 						return typeof value === "string"
 							? parseJson<string[]>(value)
 							: (value as string[]);
+					},
+				},
+			},
+			/**
+			 * JSON string of the plan's typed entitlements. Optional so
+			 * existing rows keep working; the output transform resolves them
+			 * to the defaults instead of surfacing a raw or missing value.
+			 */
+			entitlements: {
+				type: "string",
+				required: false,
+				transform: {
+					input(value) {
+						return typeof value === "string"
+							? value
+							: JSON.stringify(value);
+					},
+					output(value) {
+						return resolvePlanEntitlements(value);
 					},
 				},
 			},
