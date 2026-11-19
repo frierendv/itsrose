@@ -207,6 +207,9 @@ importers:
       '@itsrose/auth-billing':
         specifier: workspace:*
         version: link:../../packages/auth/billing
+      '@itsrose/auth-storage':
+        specifier: workspace:*
+        version: link:../../packages/auth/storage
       '@itsrose/auth-usage':
         specifier: workspace:*
         version: link:../../packages/auth/usage

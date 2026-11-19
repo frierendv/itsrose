@@ -6,9 +6,11 @@ export default defineConfig({
 	failOnWarn: false,
 	exports: {
 		...(typeof config.exports === "object" ? config.exports : {}),
-		// The application service is grouped under `src/application/`, but its
-		// public subpath is the short `@itsrose/auth-storage/assets`.
-		exclude: ["application/assets"],
+		// The application service and the Postgres adapter are grouped under
+		// `src/application/` and `src/adapter/`, but their public subpaths are
+		// the short `@itsrose/auth-storage/assets` and
+		// `@itsrose/auth-storage/registry`.
+		exclude: ["application/assets", "adapter/postgres"],
 		customExports: (exports, { isPublish }) => ({
 			...exports,
 			"./assets": isPublish
@@ -20,6 +22,9 @@ export default defineConfig({
 			"./plugin-server": isPublish
 				? "./dist/plugin-server.mjs"
 				: "./src/plugin-server.ts",
+			"./registry": isPublish
+				? "./dist/adapter/postgres.mjs"
+				: "./src/adapter/postgres.ts",
 			"./schema": isPublish
 				? "./dist/schema/index.mjs"
 				: "./src/schema/index.ts",
@@ -29,6 +34,7 @@ export default defineConfig({
 	entry: [
 		"src/index.ts",
 		"src/application/assets.ts",
+		"src/adapter/postgres.ts",
 		"src/client.ts",
 		"src/env.ts",
 		"src/config.ts",

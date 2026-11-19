@@ -37,6 +37,7 @@
 		"@itsrose/api-routes": "workspace:*",
 		"@itsrose/auth": "workspace:*",
 		"@itsrose/auth-billing": "workspace:*",
+		"@itsrose/auth-storage": "workspace:*",
 		"@itsrose/auth-usage": "workspace:*",
 		"@itsrose/midtrans": "workspace:*",
 		"@itsrose/system": "workspace:*",
