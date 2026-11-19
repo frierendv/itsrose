@@ -73,6 +73,14 @@ These were always true. The gate just could not report them.
 | `apps/dashboard`                                        |                               11.88% | no component or hook test              |
 | `apps/api-internal`, `apps/web`                         |                                   0% | no test project at all                 |
 
+## Added 2026-11-19
+
+| #   | Item                                                        | Status   | Note                                                                                                                                                                 |
+| --- | ----------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 19  | The public route table is asserted                          | **Done** | `fa8c1b6`. `apps/api/__tests__/route-table.test.ts` asserts the 25 `/v1/...` paths and that none stays under `/audio/v1/` — the regression test for `15eaa26`        |
+| 20  | `apps/api-internal` has no route-table test                 | Todo     | Its 19 unversioned routes were verified during the C2 review only by a throwaway `tsx` probe; the app has no vitest project, so nothing fails when one of them moves |
+| 21  | Route-module tests hand-stub the feature-client environment | Todo     | `apps/api/__tests__/route-env.ts` exists because the `apps/api` vitest project has no `setupFiles`; a project setup file would remove the per-test stub              |
+
 ## Deliberately not done, and why
 
 - **Lowering the coverage threshold** to make a red gate green. The honest

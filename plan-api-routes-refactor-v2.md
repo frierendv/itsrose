@@ -5,7 +5,10 @@
 **Supersedes:** `plan-api-routes-refactor.md` (attachment, `sha256:b702ba79`) where §7 says so. The rest of it is adopted.
 **Decision record:** [.wiki/decisions/public-route-surface.md](.wiki/decisions/public-route-surface.md)
 
-**Status 2026-11-19:** C1, C3 and C4 are implemented in the working tree (see §4). C2 — the only breaking commit — is pending; the three others change no URL.
+**Status 2026-11-19:** all four commits landed. C1 at `b80b6ee`, C3 at
+`81a9d4f`, C4 at `506da65`, C2 at `fa8c1b6` (wiki claim `58118bb`). C2 was
+the only breaking change: the public surface moved from the accidental
+`/audio/v1/*` to `/{version}/{module}/{route}`.
 
 ---
 
@@ -177,7 +180,7 @@ Tests:
 - `route-modules.test.ts`: assert `schema.description` of `/audio/text_to_dialogue` contains `text_to_dialogue-output.wav`; `/mtxx/clothes_segmentation` contains `Segmentation Mask`; `versatile_hairstyle` contains the hair-type table; `schema.consumes` of `/audio/create_clone_voice` is `["multipart/form-data"]`.
 - New `apps/api/__tests__/openapi.test.ts`: Fastify + `@fastify/swagger` + zod compilers, register the modules, assert the generated document has `requestBody.content["multipart/form-data"]` for `create_clone_voice` and the restored descriptions. (Verified 2026-11-19: `fastify-zod-openapi` honours `consumes`; `@fastify/swagger` alone does not.)
 
-### C2 — native prefixes, `/v1/<module>`, explicit table (pending, breaking once)
+### C2 — native prefixes, `/v1/<module>`, explicit table (landed at `fa8c1b6`, breaking once)
 
 Package: delete `prefix.ts`, `compose.ts`; drop `RouteModuleOptions`/`descriptions`/`consumes`; every module becomes a plain `FastifyPluginAsync` with relative URLs; audio keeps `(fastify, options)`.
 
