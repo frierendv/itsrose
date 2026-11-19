@@ -1,4 +1,5 @@
-import { buildUserAssetKey } from "../keys";
+import { StorageValidationError } from "@itsrose/s3";
+import { buildUserAssetKey, parseStorageKey } from "../keys";
 import { assetPolicyFor, SIGNED_READ_TTL_SECONDS } from "../policy";
 import type { AssetKind } from "../policy";
 import type {
@@ -41,6 +42,13 @@ export type AssetObjectPutInput = {
 export interface AssetObjectStorePort {
 	/** Writes one object; resolving means the bytes are stored. */
 	put(input: AssetObjectPutInput): Promise<void>;
+	/**
+	 * Reads one object's bytes.
+	 *
+	 * Promotion uses this to copy a generated object into the durable root; it
+	 * never modifies or removes the source object.
+	 */
+	download(key: string): Promise<Buffer>;
 	/** Removes one object; resolving means it is gone. */
 	remove(key: string): Promise<void>;
 	/** Mints a signed GET URL for `key`, valid for `ttlSeconds`. */
@@ -102,6 +110,25 @@ export type UploadAssetInput = {
 	contentType: string;
 };
 
+/**
+ * Copies one generated object into the durable library.
+ *
+ * The source is named by its storage key rather than by bytes: a generated
+ * object already lives in the bucket, so promotion downloads it, writes the
+ * durable copy and registers that copy. The source is left where it is and
+ * keeps expiring under the lifecycle rule.
+ */
+export type PromoteAssetInput = {
+	userId: string;
+	tenantId: string;
+	/** Requested asset kind; checked against the closed policy table. */
+	kind: string;
+	/** Filename of the durable copy; the client chooses it on promotion. */
+	filename: string;
+	/** Generated object key under `t/users/{userId}/generated/`. */
+	sourceKey: string;
+};
+
 export type ListAssetsInput = AssetListOptions & {
 	userId: string;
 };
@@ -135,6 +162,8 @@ export type AssetServiceDependencies = {
 
 export interface AssetService {
 	upload(input: UploadAssetInput): Promise<AssetRecord>;
+	/** Copies a generated object into the library; the source object stays. */
+	promote(input: PromoteAssetInput): Promise<AssetRecord>;
 	list(input: ListAssetsInput): Promise<AssetRecord[]>;
 	readUrl(input: ReadAssetUrlInput): Promise<AssetReadUrl>;
 	remove(input: RemoveAssetInput): Promise<boolean>;
@@ -173,6 +202,125 @@ async function findOwnedAsset(
 	return record;
 }
 
+/**
+ * The ephemeral category API-generated output is written under.
+ *
+ * It is the `generated` storage class: rooted at `t/`, readable through its
+ * public URL, expired after one day and not counted against the storage
+ * allowance until a copy is promoted into `assets/`.
+ */
+const GENERATED_CATEGORY = "generated";
+
+/**
+ * The media type recorded for a promoted asset.
+ *
+ * Promotion names a storage key, not a multipart part, and the object-store
+ * port returns bytes only, so the source's content type cannot be recovered
+ * here. The generic binary type keeps the required column honest instead of
+ * guessing one from the filename or the kind.
+ */
+const PROMOTED_CONTENT_TYPE = "application/octet-stream";
+
+/** The write a cap check guards; only the error message differs. */
+type StorageWriteAction = "Uploading" | "Promoting";
+
+/**
+ * Enforces the tenant-wide storage allowance for one new object.
+ *
+ * Upload and promotion both add one object and its bytes, so both pass through
+ * this single check once the size is known and before anything is written; a
+ * rejected write leaves no object and no row.
+ */
+async function assertWithinAllowance(
+	entitlements: AssetEntitlementPort,
+	registry: AssetRegistryPort,
+	input: {
+		userId: string;
+		tenantId: string;
+		size: number;
+		action: StorageWriteAction;
+	}
+): Promise<void> {
+	// The cap is a tenant allowance, so usage is summed across the whole
+	// tenant while the object and the row stay user-scoped.
+	const allowance = await entitlements.forUser(input.userId);
+	const usage = await registry.sumUsage(input.tenantId);
+
+	if (
+		allowance.storage_bytes !== null &&
+		usage.bytes + input.size > allowance.storage_bytes
+	) {
+		throw new AssetCapExceededError(
+			"bytes",
+			`${input.action} ${input.size} bytes would exceed the ${allowance.storage_bytes}-byte storage allowance.`
+		);
+	}
+
+	if (
+		allowance.storage_assets !== null &&
+		usage.assets + 1 > allowance.storage_assets
+	) {
+		throw new AssetCapExceededError(
+			"assets",
+			`${input.action} another asset would exceed the ${allowance.storage_assets}-asset storage allowance.`
+		);
+	}
+}
+
+/** The fields a durable write supplies to {@link buildAssetRecord}. */
+type AssetRecordInput = {
+	assetId: string;
+	userId: string;
+	tenantId: string;
+	kind: AssetKind;
+	key: string;
+	filename: string;
+	size: number;
+	contentType: string;
+	createdAt: Date;
+};
+
+/**
+ * Builds the registry row a durable write stores.
+ *
+ * Upload and promotion write the same row shape; only the object and its
+ * content type differ.
+ */
+function buildAssetRecord(input: AssetRecordInput): AssetRecord {
+	return {
+		asset_id: input.assetId,
+		user_id: input.userId,
+		tenant_id: input.tenantId,
+		kind: input.kind,
+		key: input.key,
+		filename: input.filename,
+		size_bytes: input.size,
+		content_type: input.contentType,
+		status: "ready",
+		created_at: input.createdAt,
+		deleted_at: null,
+	};
+}
+
+/**
+ * Inserts the row and removes the durable object when the insert fails.
+ *
+ * A row that was never written must not leave its object behind. Only the new
+ * durable object is removed; a promotion's generated source is untouched.
+ */
+async function insertWithCompensation(
+	registry: AssetRegistryPort,
+	objects: AssetObjectStorePort,
+	record: AssetRecord
+): Promise<AssetRecord> {
+	try {
+		return await registry.insert(record);
+	} catch (error) {
+		await objects.remove(record.key);
+		throw error;
+	}
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                  Service                                   */
 /* -------------------------------------------------------------------------- */
@@ -180,8 +328,8 @@ async function findOwnedAsset(
 /**
  * Builds the durable asset application service.
  *
- * The service owns the upload, read and delete rules; persistence, object
- * storage, entitlements, time and ids all arrive as ports or injected
+ * The service owns the upload, promotion, read and delete rules; persistence,
+ * object storage, entitlements, time and ids all arrive as ports or injected
  * functions, so this module has no SDK, database or transport dependency.
  */
 export function createAssetService({
@@ -200,31 +348,14 @@ export function createAssetService({
 			// before any allowance, usage or object work happens.
 			const assetKind = toAssetKind(kind);
 
-			// The cap is a tenant allowance, so usage is summed across the whole
-			// tenant while the object and the row stay user-scoped.
-			const allowance = await entitlements.forUser(userId);
-			const usage = await registry.sumUsage(tenantId);
 			const size = Buffer.byteLength(body);
 
-			if (
-				allowance.storage_bytes !== null &&
-				usage.bytes + size > allowance.storage_bytes
-			) {
-				throw new AssetCapExceededError(
-					"bytes",
-					`Uploading ${size} bytes would exceed the ${allowance.storage_bytes}-byte storage allowance.`
-				);
-			}
-
-			if (
-				allowance.storage_assets !== null &&
-				usage.assets + 1 > allowance.storage_assets
-			) {
-				throw new AssetCapExceededError(
-					"assets",
-					`Uploading another asset would exceed the ${allowance.storage_assets}-asset storage allowance.`
-				);
-			}
+			await assertWithinAllowance(entitlements, registry, {
+				userId,
+				tenantId,
+				size,
+				action: "Uploading",
+			});
 
 			const assetId = newId();
 			const key = buildUserAssetKey({
@@ -236,27 +367,90 @@ export function createAssetService({
 
 			await objects.put({ key, body, contentType });
 
-			const record: AssetRecord = {
-				asset_id: assetId,
-				user_id: userId,
-				tenant_id: tenantId,
-				kind: assetKind,
-				key,
-				filename,
-				size_bytes: size,
-				content_type: contentType,
-				status: "ready",
-				created_at: clock(),
-				deleted_at: null,
-			};
+			return insertWithCompensation(
+				registry,
+				objects,
+				buildAssetRecord({
+					assetId,
+					userId,
+					tenantId,
+					kind: assetKind,
+					key,
+					filename,
+					size,
+					contentType,
+					createdAt: clock(),
+				})
+			);
+		},
 
-			try {
-				return await registry.insert(record);
-			} catch (error) {
-				// A row that was never written must not leave its object behind.
-				await objects.remove(key);
-				throw error;
+		async promote(input: PromoteAssetInput): Promise<AssetRecord> {
+			const { userId, tenantId, kind, filename, sourceKey } = input;
+
+			// A promoted row is a durable asset, so it resolves through the
+			// same kind check as an upload.
+			const assetKind = toAssetKind(kind);
+
+			const source = parseStorageKey(sourceKey);
+
+			// One rejection for every malformed, foreign or wrong-class key:
+			// the caller must not learn whether the object exists.
+			if (
+				!source ||
+				source.root !== "ephemeral" ||
+				source.type !== "user" ||
+				source.userId !== userId ||
+				source.category !== GENERATED_CATEGORY
+			) {
+				throw new StorageValidationError(
+					"The source key does not name a generated object owned by the caller."
+				);
 			}
+
+			// Promotion copies the bytes, so the size comes from the object
+			// itself rather than from a client-declared value.
+			const bytes = await objects.download(sourceKey);
+			const size = bytes.length;
+
+			await assertWithinAllowance(entitlements, registry, {
+				userId,
+				tenantId,
+				size,
+				action: "Promoting",
+			});
+
+			const assetId = newId();
+			const key = buildUserAssetKey({
+				userId,
+				kind: assetKind,
+				assetId,
+				filename,
+			});
+
+			// The copy is what the library owns and what the cap counts; the
+			// generated source stays in place and keeps expiring under the
+			// lifecycle rule, so it is deliberately not removed here.
+			await objects.put({
+				key,
+				body: bytes,
+				contentType: PROMOTED_CONTENT_TYPE,
+			});
+
+			return insertWithCompensation(
+				registry,
+				objects,
+				buildAssetRecord({
+					assetId,
+					userId,
+					tenantId,
+					kind: assetKind,
+					key,
+					filename,
+					size,
+					contentType: PROMOTED_CONTENT_TYPE,
+					createdAt: clock(),
+				})
+			);
 		},
 
 		async list({ userId, limit, offset }: ListAssetsInput) {

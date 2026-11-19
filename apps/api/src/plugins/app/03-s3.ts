@@ -30,6 +30,20 @@ interface S3Plugin {
 		options?: Options<TData>
 	) => Promise<string>;
 
+	/**
+	 * Stores API-generated output and returns its public URL.
+	 *
+	 * The `generated` storage class is fixed here rather than chosen by the
+	 * caller: the object lands under `t/users/{userId}/generated/…`, is read
+	 * through its public URL and expires under the 1-day lifecycle rule. It is
+	 * not counted against the storage entitlement until it is promoted.
+	 */
+	uploadGeneratedFileUrl: <TData>(
+		request: FastifyRequest,
+		data: TData,
+		options?: Options<TData>
+	) => Promise<string>;
+
 	deleteUserFile: (
 		request: FastifyRequest,
 		options: Required<Pick<Options, "category" | "filename">>
@@ -100,6 +114,33 @@ const uploadUserFileUrl = async <TData>(
 	return publicUrl;
 };
 
+/**
+ * The category API-generated output is stored under.
+ *
+ * It selects the `generated` storage class: rooted at `t/`, readable through
+ * its public URL, expired after one day and never counted against the storage
+ * entitlement until a copy is promoted into the library.
+ */
+const GENERATED_CATEGORY = "generated";
+
+/**
+ * Stores API-generated output under the generated class.
+ *
+ * Delegates to {@link uploadUserFileUrl} so the no-user and no-public-URL
+ * failure modes stay identical, and applies the category after the caller's
+ * options so a caller cannot override it.
+ */
+const uploadGeneratedFileUrl = <TData>(
+	auth: AuthServer,
+	request: FastifyRequest,
+	data: TData,
+	options: Options<TData> = {}
+): Promise<string> =>
+	uploadUserFileUrl(auth, request, data, {
+		...options,
+		category: GENERATED_CATEGORY,
+	});
+
 const deleteUserFile = async (
 	auth: AuthServer,
 	request: FastifyRequest,
@@ -128,6 +169,11 @@ export default fp(
 						"Object storage is not configured for this application."
 					);
 				},
+				uploadGeneratedFileUrl: async () => {
+					throw new SystemError(
+						"Object storage is not configured for this application."
+					);
+				},
 				deleteUserFile: async (_request, _options) => false,
 			} satisfies S3Plugin);
 
@@ -139,6 +185,8 @@ export default fp(
 				uploadUserFile(fastify.auth, request, data, options),
 			uploadUserFileUrl: (request, data, options) =>
 				uploadUserFileUrl(fastify.auth, request, data, options),
+			uploadGeneratedFileUrl: (request, data, options) =>
+				uploadGeneratedFileUrl(fastify.auth, request, data, options),
 			deleteUserFile: (request, options) =>
 				deleteUserFile(fastify.auth, request, options),
 		} satisfies S3Plugin);

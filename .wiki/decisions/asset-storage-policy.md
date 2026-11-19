@@ -73,6 +73,10 @@
 
 ## Amendments
 
+- **2026-11-19 — promotion input.** Promotion copies a generated object
+  identified by its storage key (`promote({ sourceKey })` in
+  `packages/auth/storage/src/application/assets.ts`); the studio generation
+  endpoint that surfaces that key to the dashboard is not built yet.
 - **2026-11-19 — deletion order.** The shipped service
   (`packages/auth/storage/src/application/assets.ts`, `4880603`) deletes the
   object first and soft-deletes the row second, not the row-first order above.
