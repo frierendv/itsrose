@@ -13,7 +13,7 @@ export const autoConfig: AudioRoutesOptions = {
 export default fp(async (fastify, options) => {
 	const audioStorage: AudioStoragePort = {
 		uploadBase64Audio: async (request, base64Audio) =>
-			fastify.s3.uploadUserFile(request, base64Audio, {
+			fastify.s3.uploadUserFileUrl(request, base64Audio, {
 				preprocess: (data) => Buffer.from(data, "base64"),
 			}),
 	};
