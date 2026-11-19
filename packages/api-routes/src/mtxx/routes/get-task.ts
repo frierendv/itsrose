@@ -17,6 +17,12 @@ export const registerGetTaskRoute = (
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "GET",
 		url: joinUrl(prefix, "/get_task"),
+		config: {
+			// Polling is free: it never consumes plan quota, but it stays
+			// bounded so one key cannot hammer the upstream.
+			billable: false,
+			rateLimit: { max: 600, timeWindow: 60_000 },
+		},
 		schema: {
 			tags: ["Mtxx"],
 			summary: "Get task",

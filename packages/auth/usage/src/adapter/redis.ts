@@ -224,7 +224,10 @@ export function createRedisUsageCounter(
 				.sadd(keys.endpoints, event.endpoint)
 				.expire(keys.endpoints, dayTtl);
 
-			if (isBillableStatus(event.status_class)) {
+			if (
+				event.billable !== false &&
+				isBillableStatus(event.status_class)
+			) {
 				const apiKeyId = event.api_key_id ?? USAGE_EMPTY_API_KEY;
 				const quotaKey = usageMonthQuotaKey(event.tenant_id, period);
 				const endpointKey = usageEndpointKey(

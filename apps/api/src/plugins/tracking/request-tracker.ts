@@ -51,6 +51,9 @@ export default fp(
 					}),
 					status_class: statusClassOf(reply.statusCode),
 					latency_ms: reply.elapsedTime,
+					// Free routes (task polling) stay in the analytics buckets
+					// but never consume quota.
+					billable: request.routeOptions.config?.billable !== false,
 				})
 				.catch((err: unknown) => {
 					fastify.log.warn(

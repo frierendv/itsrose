@@ -264,5 +264,12 @@ declare module "fastify" {
 	interface FastifyContextConfig {
 		authGuard?: boolean;
 		requireSubscription?: boolean;
+		/**
+		 * Whether the request counts against the plan quota.
+		 *
+		 * Defaults to `true`. A free route (task polling) still counts as
+		 * traffic in the usage analytics, but never consumes quota.
+		 */
+		billable?: boolean;
 	}
 }

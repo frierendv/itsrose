@@ -18,6 +18,14 @@ export type UsageRecord = {
 	status_class: UsageStatusClass;
 	/** Response time in milliseconds. */
 	latency_ms: number;
+	/**
+	 * Whether the request counts against the plan quota.
+	 *
+	 * Defaults to `true`. A route that is free by product decision (task
+	 * polling, for example) still counts as traffic in the analytics buckets,
+	 * but not in the billable counters or the monthly quota.
+	 */
+	billable?: boolean;
 	/** When the request completed. Defaults to `new Date()`. */
 	at?: Date;
 };
