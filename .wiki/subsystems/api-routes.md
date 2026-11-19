@@ -2,17 +2,18 @@
 
 `packages/api-routes` — `@itsrose/api-routes`. The Fastify routes and the
 error envelope that `apps/api` and `apps/api-internal` share. As of
-`2026-11-14`, on `development` of `frierendv/itsrose`.
+`2026-11-14`, on `development` of `frierendv/itsrose`; updated `2026-11-19`
+at `fa8c1b6` — see [Native prefixes](#native-prefixes-2026-11-19).
 
 ## What it is
 
-**One route module per package.** Each module is registered on its own, owns
-its URL namespace, and is mounted under a prefix the application chooses.
+**One route module per package.** Each module is registered on its own and
+is mounted under a prefix the application chooses.
 
-| Subpath                            | Plugin              | Default prefix  | Routes |
+| Subpath                            | Plugin              | Namespace       | Routes |
 | ---------------------------------- | ------------------- | --------------- | ------ |
 | `@itsrose/api-routes/audio`        | `audioRoutes`       | `/audio`        | 9      |
-| `@itsrose/api-routes/character-ai` | `characterAiRoutes` | `/character_ai` | 2      |
+| `@itsrose/api-routes/character-ai` | `characterAiRoutes` | `/character_ai` | 3      |
 | `@itsrose/api-routes/instagram`    | `instagramRoutes`   | `/instagram`    | 1      |
 | `@itsrose/api-routes/mtxx`         | `mtxxRoutes`        | `/mtxx`         | 7      |
 | `@itsrose/api-routes/pixverse`     | `pixverseRoutes`    | `/pixverse`     | 3      |
@@ -46,7 +47,10 @@ module per package. Two things were wrong with the single surface:
 The modules are the fix for both: an application registers the modules it
 serves, and a module it does not register is never imported.
 
-## The prefix is the module's own
+## The prefix is the module's own — superseded
+
+**Superseded 2026-11-19 at `fa8c1b6`** — see
+[Native prefixes](#native-prefixes-2026-11-19).
 
 **Added 2026-11-18.** `@itsrose/api-routes/pixverse` — the first module that
 answers in the shared `SyncState` vocabulary (`not_started` / `in_progress` /
@@ -103,7 +107,11 @@ documentation lives in the route definitions, and the mechanism below
 (`resolvePrefix`, `joinUrl`, `claimRoutePrefix`) is removed in favour of
 native Fastify prefixes plus an explicit, testable route table in `apps/api`.
 
-## What is still data, not structure
+## What is still data, not structure — superseded
+
+**Superseded 2026-11-19 at `fa8c1b6`** — the option axes below are deleted;
+the audio capabilities survive, see
+[Native prefixes](#native-prefixes-2026-11-19).
 
 The four difference axes survived the split, because they are data:
 
@@ -119,7 +127,11 @@ The four difference axes survived the split, because they are data:
 differs: `/music_compose` uploads unless the caller asked for the inline
 payload, the three speech routes upload only when a URL was asked for.
 
-## The breaking change
+## The breaking change — superseded
+
+**Superseded 2026-11-19 at `fa8c1b6`** — the public paths are now
+`/{version}/{module}/{route}`; see
+[Native prefixes](#native-prefixes-2026-11-19).
 
 The default prefix is the package name, so the public URLs moved:
 
@@ -150,3 +162,36 @@ application's own mappers, a Fastify error that carries a 4xx status to
 
 The application mappers run _before_ the 4xx branch, so `apps/api`'s
 better-auth mapper still wins.
+
+## Native prefixes, 2026-11-19
+
+**Recorded 2026-11-19 at `fa8c1b6`** (_refactor(api-routes): serve the
+public surface at /v1/<module>_). This supersedes "The prefix is the
+module's own" and the option axes in "What is still data, not structure".
+
+- `src/prefix.ts` and `src/compose.ts` are deleted: `resolvePrefix`,
+  `joinUrl`, `claimRoutePrefix` and `registerRouteModule` no longer exist.
+  Fastify's own duplicate-route error covers the collision that mattered.
+- Each module is a plain `FastifyPluginAsync` with relative route URLs, not
+  a `fastify-plugin` wrapper. The mounting application passes Fastify's
+  native `{ prefix }`, which now applies because the plugin is not wrapped.
+- `ROUTE_MODULE_PREFIXES` survives as the namespace registry the
+  applications mount with; a module no longer reads it and has no default
+  prefix.
+- `apps/api` registers the public surface from one explicit table,
+  `apps/api/src/lib/routes.ts`, under `API_VERSION = "/v1"`, so the public
+  paths are `/{version}/{module}/{route}`: `/v1/audio/text_to_speech`,
+  `/v1/mtxx/remove_bg`, `/v1/pixverse/get_task`. The table is 25 routes;
+  `apps/api/src/routes/v1/` is deleted.
+- `apps/api/__tests__/route-table.test.ts` asserts all 25 paths and that no
+  path stays under `/audio/v1/` — the regression test for `15eaa26`.
+- `apps/api-internal` keeps the unversioned `/audio/*`, `/instagram/*`,
+  `/mtxx/*`, `/remini/*` and `/tiktok/*` paths (19 routes); it registers the
+  same modules directly with the same namespaces.
+- The `prefix`, `descriptions` and `consumes` options are deleted. Route
+  documentation is owned by the route definition (restored at `b80b6ee`),
+  and the namespace is owned by the application's table.
+- `AudioRoutesOptions` is `declareAudioResponseHeader` plus an optional
+  `audioStorage` port. Without the port the routes return the payload
+  inline; `uploadAudioToStorage` and the port-presence union are gone.
+  `apps/api` wires `fastify.s3.uploadUserFileUrl` as its port.
