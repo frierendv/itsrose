@@ -1,30 +1,19 @@
 import type { FastifyInstance, FastifyPluginAsync } from "fastify";
-import fp from "fastify-plugin";
-import { claimRoutePrefix, resolvePrefix } from "../prefix";
-import { INSTAGRAM_ROUTE_PREFIX, type InstagramRoutesOptions } from "./options";
 import { registerGetMediaRoute } from "./routes/get-media";
 
 /**
  * The instagram routes of the shared surface.
  *
+ * The routes are relative: they live under whatever prefix the mounting
+ * application registers the module with.
+ *
  * @param fastify - The Fastify instance the routes are registered on.
- * @param options - The options of the application.
  */
-export const instagramRoutes: FastifyPluginAsync<InstagramRoutesOptions> = fp(
-	async (
-		fastify: FastifyInstance,
-		options: InstagramRoutesOptions
-	): Promise<void> => {
-		const prefix = claimRoutePrefix(
-			fastify,
-			resolvePrefix(options.prefix, INSTAGRAM_ROUTE_PREFIX),
-			"instagram"
-		);
-
-		registerGetMediaRoute(fastify, options, prefix);
-	},
-	{ name: "api-routes-instagram" }
-);
+export const instagramRoutes: FastifyPluginAsync = async (
+	fastify: FastifyInstance
+): Promise<void> => {
+	registerGetMediaRoute(fastify);
+};
 
 export { INSTAGRAM_ROUTE_KEYS, INSTAGRAM_ROUTE_PREFIX } from "./options";
-export type { InstagramRouteKey, InstagramRoutesOptions } from "./options";
+export type { InstagramRouteKey } from "./options";

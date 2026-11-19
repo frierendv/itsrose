@@ -4,16 +4,37 @@ import {
 	createSerializerCompiler,
 	validatorCompiler,
 } from "fastify-zod-openapi";
-import { AUDIO_ROUTE_KEYS, audioRoutes } from "../src/audio";
+import {
+	AUDIO_ROUTE_KEYS,
+	AUDIO_ROUTE_PREFIX,
+	audioRoutes,
+} from "../src/audio";
 import {
 	CHARACTER_AI_ROUTE_KEYS,
+	CHARACTER_AI_ROUTE_PREFIX,
 	characterAiRoutes,
 } from "../src/character-ai";
-import { INSTAGRAM_ROUTE_KEYS, instagramRoutes } from "../src/instagram";
-import { MTXX_ROUTE_KEYS, mtxxRoutes } from "../src/mtxx";
-import { PIXVERSE_ROUTE_KEYS, pixverseRoutes } from "../src/pixverse";
-import { REMINI_ROUTE_KEYS, reminiRoutes } from "../src/remini";
-import { TIKTOK_ROUTE_KEYS, tiktokRoutes } from "../src/tiktok";
+import {
+	INSTAGRAM_ROUTE_KEYS,
+	INSTAGRAM_ROUTE_PREFIX,
+	instagramRoutes,
+} from "../src/instagram";
+import { MTXX_ROUTE_KEYS, MTXX_ROUTE_PREFIX, mtxxRoutes } from "../src/mtxx";
+import {
+	PIXVERSE_ROUTE_KEYS,
+	PIXVERSE_ROUTE_PREFIX,
+	pixverseRoutes,
+} from "../src/pixverse";
+import {
+	REMINI_ROUTE_KEYS,
+	REMINI_ROUTE_PREFIX,
+	reminiRoutes,
+} from "../src/remini";
+import {
+	TIKTOK_ROUTE_KEYS,
+	TIKTOK_ROUTE_PREFIX,
+	tiktokRoutes,
+} from "../src/tiktok";
 
 interface CapturedRoute {
 	method: string;
@@ -91,7 +112,6 @@ const find = (routes: CapturedRoute[], url: string): CapturedRoute => {
 };
 
 const AUDIO_OPTIONS = {
-	uploadAudioToStorage: false,
 	declareAudioResponseHeader: false,
 } as const;
 
@@ -138,63 +158,72 @@ const REMINI_TABLE: Array<[string, string]> = [["POST", "/remini/create_task"]];
 const TIKTOK_TABLE: Array<[string, string]> = [["GET", "/tiktok/get_content"]];
 
 describe("the route modules", () => {
-	it("serves the audio routes under the prefix of the package", async () => {
+	it("serves the audio routes under the prefix the app registers", async () => {
 		const routes = await capture(async (app) => {
-			await app.register(audioRoutes, AUDIO_OPTIONS);
+			await app.register(audioRoutes, {
+				prefix: AUDIO_ROUTE_PREFIX,
+				...AUDIO_OPTIONS,
+			});
 		});
 
 		expect(table(routes)).toEqual(AUDIO_TABLE);
 		expect(routes).toHaveLength(AUDIO_ROUTE_KEYS.length);
 	});
 
-	it("serves the character.ai routes under the prefix of the package", async () => {
+	it("serves the character.ai routes under the prefix the app registers", async () => {
 		const routes = await capture(async (app) => {
-			await app.register(characterAiRoutes, {});
+			await app.register(characterAiRoutes, {
+				prefix: CHARACTER_AI_ROUTE_PREFIX,
+			});
 		});
 
 		expect(table(routes)).toEqual(CHARACTER_AI_TABLE);
 		expect(routes).toHaveLength(CHARACTER_AI_ROUTE_KEYS.length);
 	});
 
-	it("serves the instagram routes under the prefix of the package", async () => {
+	it("serves the instagram routes under the prefix the app registers", async () => {
 		const routes = await capture(async (app) => {
-			await app.register(instagramRoutes, {});
+			await app.register(instagramRoutes, {
+				prefix: INSTAGRAM_ROUTE_PREFIX,
+			});
 		});
 
 		expect(table(routes)).toEqual(INSTAGRAM_TABLE);
 		expect(routes).toHaveLength(INSTAGRAM_ROUTE_KEYS.length);
 	});
 
-	it("serves the mtxx routes under the prefix of the package", async () => {
+	it("serves the mtxx routes under the prefix the app registers", async () => {
 		const routes = await capture(async (app) => {
-			await app.register(mtxxRoutes, {});
+			await app.register(mtxxRoutes, { prefix: MTXX_ROUTE_PREFIX });
 		});
 
 		expect(table(routes)).toEqual(MTXX_TABLE);
 		expect(routes).toHaveLength(MTXX_ROUTE_KEYS.length);
 	});
 
-	it("serves the pixverse routes under the prefix of the package", async () => {
+	it("serves the pixverse routes under the prefix the app registers", async () => {
 		const routes = await capture(async (app) => {
-			await app.register(pixverseRoutes, {});
+			await app.register(pixverseRoutes, {
+				prefix: PIXVERSE_ROUTE_PREFIX,
+			});
 		});
 
 		expect(table(routes)).toEqual(PIXVERSE_TABLE);
 		expect(routes).toHaveLength(PIXVERSE_ROUTE_KEYS.length);
 	});
 
-	it("serves the remini routes under the prefix of the package", async () => {
+	it("serves the remini routes under the prefix the app registers", async () => {
 		const routes = await capture(async (app) => {
-			await app.register(reminiRoutes, {});
+			await app.register(reminiRoutes, { prefix: REMINI_ROUTE_PREFIX });
 		});
 
 		expect(table(routes)).toEqual(REMINI_TABLE);
 		expect(routes).toHaveLength(REMINI_ROUTE_KEYS.length);
 	});
 
-	it("serves the tiktok routes under the prefix of the package", async () => {
+	it("serves the tiktok routes under the prefix the app registers", async () => {
 		const routes = await capture(async (app) => {
-			await app.register(tiktokRoutes, {});
+			await app.register(tiktokRoutes, { prefix: TIKTOK_ROUTE_PREFIX });
 		});
 
 		expect(table(routes)).toEqual(TIKTOK_TABLE);
@@ -219,8 +248,11 @@ describe("the route modules", () => {
 
 	it("serves only the modules the app registered", async () => {
 		const routes = await capture(async (app) => {
-			await app.register(audioRoutes, AUDIO_OPTIONS);
-			await app.register(mtxxRoutes, {});
+			await app.register(audioRoutes, {
+				prefix: AUDIO_ROUTE_PREFIX,
+				...AUDIO_OPTIONS,
+			});
+			await app.register(mtxxRoutes, { prefix: MTXX_ROUTE_PREFIX });
 		});
 
 		const urls = routes.map((route) => route.url);
@@ -233,40 +265,30 @@ describe("the route modules", () => {
 		expect(urls).not.toContain("/remini/create_task");
 	});
 
-	it("refuses two modules that claim the same prefix", async () => {
+	it("refuses the same route twice, letting Fastify enforce it", async () => {
 		const app = Fastify();
 
 		await expect(
 			(async () => {
 				await app.register(tiktokRoutes, { prefix: "/shared" });
-				await app.register(mtxxRoutes, { prefix: "/shared" });
+				await app.register(tiktokRoutes, { prefix: "/shared" });
 				await app.ready();
 			})()
-		).rejects.toThrow(/\/shared/);
-
-		await app.close();
-	});
-
-	it("refuses the same module twice", async () => {
-		const app = Fastify();
-
-		await expect(
-			(async () => {
-				await app.register(tiktokRoutes, {});
-				await app.register(tiktokRoutes, {});
-				await app.ready();
-			})()
-		).rejects.toThrow(/tiktok/);
+		).rejects.toThrow(/already declared/);
 
 		await app.close();
 	});
 
 	it("declares the audio format header only when the app asks for it", async () => {
 		const without = await capture(async (app) => {
-			await app.register(audioRoutes, AUDIO_OPTIONS);
+			await app.register(audioRoutes, {
+				prefix: AUDIO_ROUTE_PREFIX,
+				...AUDIO_OPTIONS,
+			});
 		});
 		const declared = await capture(async (app) => {
 			await app.register(audioRoutes, {
+				prefix: AUDIO_ROUTE_PREFIX,
 				...AUDIO_OPTIONS,
 				declareAudioResponseHeader: true,
 			});
@@ -294,66 +316,57 @@ describe("the route modules", () => {
 		}
 	});
 
-	it("keeps the consumes of a route in the options", async () => {
-		const defaults = await capture(async (app) => {
-			await app.register(audioRoutes, AUDIO_OPTIONS);
-		});
-		expect(
-			find(defaults, "/audio/create_clone_voice").schema.consumes
-		).toEqual(["application/json"]);
-
-		const multipart = await capture(async (app) => {
+	it("publishes the consumes of a route from its definition", async () => {
+		const routes = await capture(async (app) => {
 			await app.register(audioRoutes, {
+				prefix: AUDIO_ROUTE_PREFIX,
 				...AUDIO_OPTIONS,
-				consumes: { createIvcVoice: ["multipart/form-data"] },
 			});
 		});
-		expect(
-			find(multipart, "/audio/create_clone_voice").schema.consumes
-		).toEqual(["multipart/form-data"]);
 
-		expect(find(defaults, "/audio/music_compose").schema.consumes).toEqual([
+		expect(
+			find(routes, "/audio/create_clone_voice").schema.consumes
+		).toEqual(["multipart/form-data"]);
+		expect(find(routes, "/audio/music_compose").schema.consumes).toEqual([
 			"application/json",
 		]);
-		expect(
-			find(defaults, "/audio/speech_to_speech").schema.consumes
-		).toEqual(["application/json", "multipart/form-data"]);
-	});
-
-	it("keeps the description of a route in the options", async () => {
-		const defaults = await capture(async (app) => {
-			await app.register(audioRoutes, AUDIO_OPTIONS);
-		});
-		expect(
-			find(defaults, "/audio/text_to_dialogue").schema.description
-		).toBe("Convert text to dialogue.");
-		expect(find(defaults, "/audio/get_models").schema.description).toBe(
-			"Get available models"
-		);
-
-		const described = await capture(async (app) => {
-			await app.register(audioRoutes, {
-				...AUDIO_OPTIONS,
-				descriptions: { textToDialogue: "A richer description." },
-			});
-		});
-		expect(
-			find(described, "/audio/text_to_dialogue").schema.description
-		).toBe("A richer description.");
-		expect(find(described, "/audio/get_models").schema.description).toBe(
-			"Get available models"
+		expect(find(routes, "/audio/speech_to_speech").schema.consumes).toEqual(
+			["application/json", "multipart/form-data"]
 		);
 	});
 
-	it("keeps the description of a route of another package out of reach", async () => {
+	it("publishes the description of a route from its definition", async () => {
 		const routes = await capture(async (app) => {
-			await app.register(tiktokRoutes, {
-				descriptions: { getContent: "Fetch a video." },
+			await app.register(audioRoutes, {
+				prefix: AUDIO_ROUTE_PREFIX,
+				...AUDIO_OPTIONS,
 			});
 		});
 
-		expect(find(routes, "/tiktok/get_content").schema.description).toBe(
-			"Fetch a video."
+		expect(
+			find(routes, "/audio/text_to_dialogue").schema.description
+		).toContain("text_to_dialogue-output.wav");
+		expect(find(routes, "/audio/get_models").schema.description).toBe(
+			"Get available models"
 		);
+	});
+
+	it("publishes the mtxx examples without an app override", async () => {
+		const routes = await capture(async (app) => {
+			await app.register(mtxxRoutes, { prefix: MTXX_ROUTE_PREFIX });
+		});
+
+		expect(
+			find(routes, "/mtxx/clothes_segmentation").schema.description
+		).toContain("Segmentation Mask");
+		expect(
+			find(routes, "/mtxx/expression_generation").schema.description
+		).toContain("Smile mode 0");
+		expect(find(routes, "/mtxx/outpainting").schema.description).toContain(
+			"120% of original"
+		);
+		expect(
+			find(routes, "/mtxx/versatile_hairstyle").schema.description
+		).toContain("Hair types");
 	});
 });

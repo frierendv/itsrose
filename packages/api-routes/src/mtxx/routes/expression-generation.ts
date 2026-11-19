@@ -4,28 +4,34 @@ import {
 } from "@itsrose/mtxx";
 import type { FastifyInstance } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
-import { joinUrl, type RoutePrefix } from "../../prefix";
-import type { MtxxRoutesOptions } from "../options";
 
-const DESCRIPTION =
-	"This interface is used to process requests generated for smile expressions in the cloud.";
+const DESCRIPTION = `
+This interface is used to process requests generated for smile expressions in the cloud.
+
+<details>
+	<summary>Example</summary>
+
+| Original Image | Result Image |
+|----------------|--------------------|
+| ![Original Image](https://assets.itsrose.net/public-resource/girl-in-red-dress.jpg "Original Image") | ![Expression generation 0](https://assets.itsrose.net/public-resource/girl-in-red-dress_expression_generation_0.jpg "Smile mode 0") |
+| **Original** | **Smile Mode 0** |
+
+</details>
+`;
 
 /**
- * Registers `POST /expression_generation` under the prefix of the module.
+ * Registers `POST /expression_generation`.
  */
 export const registerExpressionGenerationRoute = (
-	fastify: FastifyInstance,
-	options: MtxxRoutesOptions,
-	prefix: RoutePrefix
+	fastify: FastifyInstance
 ): void => {
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "POST",
-		url: joinUrl(prefix, "/expression_generation"),
+		url: "/expression_generation",
 		schema: {
 			tags: ["Mtxx"],
 			summary: "Expression Generation",
-			description:
-				options.descriptions?.expressionGeneration ?? DESCRIPTION,
+			description: DESCRIPTION,
 			body: expressionGenerationSchema.request,
 			response: {
 				200: expressionGenerationSchema.response,

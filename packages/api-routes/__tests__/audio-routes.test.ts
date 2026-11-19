@@ -4,7 +4,7 @@ import {
 	createSerializerCompiler,
 	validatorCompiler,
 } from "fastify-zod-openapi";
-import { audioRoutes } from "../src/audio";
+import { AUDIO_ROUTE_PREFIX, audioRoutes } from "../src/audio";
 import type { AudioRoutesOptions } from "../src/audio/options";
 
 const build = async (options: AudioRoutesOptions) => {
@@ -27,7 +27,10 @@ const build = async (options: AudioRoutesOptions) => {
 		})
 	);
 
-	await app.register(audioRoutes, options);
+	await app.register(audioRoutes, {
+		prefix: AUDIO_ROUTE_PREFIX,
+		...options,
+	});
 	await app.ready();
 
 	return app;
@@ -46,7 +49,6 @@ describe("the audio routes", () => {
 	it("uploads the audio of /music_compose unless base64 was asked for", async () => {
 		const uploaded: string[] = [];
 		const app = await build({
-			uploadAudioToStorage: true,
 			audioStorage: {
 				uploadBase64Audio: async (_request, audio) => {
 					uploaded.push(audio);
@@ -78,7 +80,6 @@ describe("the audio routes", () => {
 	it("uploads the audio of /text_to_speech only when a url was asked for", async () => {
 		const uploaded: string[] = [];
 		const app = await build({
-			uploadAudioToStorage: true,
 			audioStorage: {
 				uploadBase64Audio: async (_request, audio) => {
 					uploaded.push(audio);
@@ -108,10 +109,9 @@ describe("the audio routes", () => {
 		await app.close();
 	});
 
-	it("returns the audio inline when the app does not upload", async () => {
+	it("returns the audio inline when the app does not provide a port", async () => {
 		const uploaded: string[] = [];
 		const app = await build({
-			uploadAudioToStorage: false,
 			declareAudioResponseHeader: false,
 		});
 
@@ -126,9 +126,8 @@ describe("the audio routes", () => {
 		await app.close();
 	});
 
-	it("does not serve the routes of another module", async () => {
+	it("does not serve its routes outside the prefix it is registered under", async () => {
 		const app = await build({
-			uploadAudioToStorage: false,
 			declareAudioResponseHeader: false,
 		});
 

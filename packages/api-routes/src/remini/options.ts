@@ -1,5 +1,5 @@
 import { REMINI_ENV_KEYS } from "@itsrose/remini/env";
-import { ROUTE_MODULE_PREFIXES, type RouteModuleOptions } from "../options";
+import { ROUTE_MODULE_PREFIXES } from "../options";
 
 /**
  * A environment variable needed by this route.
@@ -16,11 +16,9 @@ export const REMINI_ROUTE_KEYS = ["createTask"] as const;
 export type ReminiRouteKey = (typeof REMINI_ROUTE_KEYS)[number];
 
 /**
- * The default URL namespace of the remini routes.
+ * The URL namespace of the remini routes.
+ *
+ * The module itself does not read it: the mounting application registers the
+ * module under this prefix.
  */
 export const REMINI_ROUTE_PREFIX = ROUTE_MODULE_PREFIXES["remini"];
-
-/**
- * The options the remini route module is registered with.
- */
-export type ReminiRoutesOptions = RouteModuleOptions<ReminiRouteKey>;

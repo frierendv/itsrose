@@ -1,26 +1,20 @@
 import { removeBg, removeBgSchema } from "@itsrose/mtxx";
 import type { FastifyInstance } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
-import { joinUrl, type RoutePrefix } from "../../prefix";
-import type { MtxxRoutesOptions } from "../options";
 
 const DESCRIPTION = "Remove background from an image.";
 
 /**
- * Registers `POST /remove_bg` under the prefix of the module.
+ * Registers `POST /remove_bg`.
  */
-export const registerRemoveBgRoute = (
-	fastify: FastifyInstance,
-	options: MtxxRoutesOptions,
-	prefix: RoutePrefix
-): void => {
+export const registerRemoveBgRoute = (fastify: FastifyInstance): void => {
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "POST",
-		url: joinUrl(prefix, "/remove_bg"),
+		url: "/remove_bg",
 		schema: {
 			tags: ["Mtxx"],
 			summary: "Remove BG",
-			description: options.descriptions?.removeBg ?? DESCRIPTION,
+			description: DESCRIPTION,
 			body: removeBgSchema.request,
 			response: {
 				200: removeBgSchema.response,

@@ -24,6 +24,9 @@ to read `index.md` and know where to look.
   subscription that goes unsettled when they are not.
 - [One proration rule](decisions/proration-single-rule.md) — the server's rule
   is the only rule; the browser is a view over it.
+- [The public route surface](decisions/public-route-surface.md) — the
+  `/{version}/{module}/{route}` shape, why route documentation lives in the
+  routes, and what the shared route package is allowed to be.
 - [The deletion test applied](decisions/deletion-test-applied.md) — three
   packages cut because nothing called them.
 - [A shared HTTP retry contract](decisions/http-retry-contract.md) — what the
@@ -42,7 +45,8 @@ to read `index.md` and know where to look.
 - [Shared HTTP client](subsystems/http-client.md) — the transport every
   upstream call goes through.
 - [Shared route surface](subsystems/api-routes.md) — the route modules
-  `apps/api` and `apps/api-internal` share, and the prefixes they live under.
+  `apps/api` and `apps/api-internal` share, the native prefixes they are
+  mounted under, and the explicit `/v1/<module>` public table.
 - [Dashboard](subsystems/dashboard.md) — the Next.js app, its feature slices,
   and its data seam.
 

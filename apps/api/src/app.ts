@@ -7,6 +7,7 @@ import {
 	createSerializerCompiler,
 	validatorCompiler,
 } from "fastify-zod-openapi";
+import { registerVersionedRoutes } from "./lib/routes";
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const __filename = fileURLToPath(import.meta.url);
@@ -75,12 +76,18 @@ const app: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 	});
 
 	/**
-	 * Register routes
+	 * Register the routes that stay unversioned: `/auth/*` (Better Auth's
+	 * base path), `/hooks` and operational endpoints.
 	 */
 	void fastify.register(AutoLoad, {
 		dir: join(__dirname, "routes"),
 		options: { ...opts },
 	});
+
+	/**
+	 * Register the public REST surface at `/{version}/{module}/{route}`.
+	 */
+	await registerVersionedRoutes(fastify);
 };
 
 export default app;

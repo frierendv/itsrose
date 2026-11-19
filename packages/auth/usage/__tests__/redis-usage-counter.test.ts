@@ -328,6 +328,38 @@ describe("redis usage counter", () => {
 			);
 		});
 
+		it("does not write the billable counters when the route is free", async () => {
+			const fake = createFakeRedis();
+			const counter = createRedisUsageCounter(fake.client);
+
+			await counter.record({
+				tenant_id: TENANT,
+				user_id: USER,
+				api_key_id: API_KEY,
+				endpoint: ENDPOINT,
+				status_class: "2xx",
+				latency_ms: 10,
+				billable: false,
+				at: AT,
+			});
+
+			const dayKeys = usageDayKeys(TENANT, DAY);
+			const written = fake.pipelines[0]?.map((op) => op.key) ?? [];
+			expect(written).not.toContain(dayKeys.requestsOk);
+			expect(written).not.toContain(usageMonthQuotaKey(TENANT, PERIOD));
+			expect(written).not.toContain(
+				usageEndpointKey(TENANT, DAY, ENDPOINT)
+			);
+			expect(written).not.toContain(usageApiKeyKey(TENANT, DAY, API_KEY));
+
+			// Free traffic is still traffic: analytics and latency keep counting.
+			expect(written).toContain(dayKeys.requests);
+			expect(written).toContain(
+				usageEndpointTotalKey(TENANT, DAY, ENDPOINT)
+			);
+			expect(written).toContain(dayKeys.latencyMs);
+		});
+
 		it("buckets a request without an api key under the empty sentinel", async () => {
 			const fake = createFakeRedis();
 			const counter = createRedisUsageCounter(fake.client);

@@ -1,26 +1,20 @@
 import { createTextToVideo, textToVideoSchema } from "@itsrose/pixverse";
 import type { FastifyInstance } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
-import { joinUrl, type RoutePrefix } from "../../prefix";
-import type { PixverseRoutesOptions } from "../options";
 
 const DESCRIPTION = "Create a video from a text prompt.";
 
 /**
- * Registers `POST /text_to_video` under the prefix of the module.
+ * Registers `POST /text_to_video`.
  */
-export const registerTextToVideoRoute = (
-	fastify: FastifyInstance,
-	options: PixverseRoutesOptions,
-	prefix: RoutePrefix
-): void => {
+export const registerTextToVideoRoute = (fastify: FastifyInstance): void => {
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "POST",
-		url: joinUrl(prefix, "/text_to_video"),
+		url: "/text_to_video",
 		schema: {
 			tags: ["Pixverse"],
 			summary: "Text to Video",
-			description: options.descriptions?.textToVideo ?? DESCRIPTION,
+			description: DESCRIPTION,
 			body: textToVideoSchema.request,
 			response: {
 				200: textToVideoSchema.response,

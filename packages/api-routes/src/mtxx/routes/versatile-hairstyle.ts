@@ -1,28 +1,42 @@
-import { versatileHairstyle, versatileHairstyleSchema } from "@itsrose/mtxx";
+import {
+	versatileHairstyle,
+	versatileHairstyleCreateDescription,
+	versatileHairstyleSchema,
+} from "@itsrose/mtxx";
 import type { FastifyInstance } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
-import { joinUrl, type RoutePrefix } from "../../prefix";
-import type { MtxxRoutesOptions } from "../options";
 
-const DESCRIPTION =
-	"Versatile Hairstyle is a hairstyle that can be adapted to different occasions and styles.";
+const DESCRIPTION = `
+Versatile Hairstyle is a hairstyle that can be adapted to different occasions and styles.
+
+<details>
+	<summary>Example</summary>
+
+| Original Image | Result Image |
+|----------------|--------------------|
+| ![Original Image](https://assets.itsrose.net/public-resource/girl-in-red-dress.jpg) | ![Versatile Hairstyle](https://assets.itsrose.net/public-resource/girl-in-red-dress_hair_type_0.jpg) |
+| **Original** | **Hair type 0** |
+
+</details>
+
+<details>
+	<summary>Hair types</summary>
+${versatileHairstyleCreateDescription()}
+</details>`;
 
 /**
- * Registers `POST /versatile_hairstyle` under the prefix of the module.
+ * Registers `POST /versatile_hairstyle`.
  */
 export const registerVersatileHairstyleRoute = (
-	fastify: FastifyInstance,
-	options: MtxxRoutesOptions,
-	prefix: RoutePrefix
+	fastify: FastifyInstance
 ): void => {
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "POST",
-		url: joinUrl(prefix, "/versatile_hairstyle"),
+		url: "/versatile_hairstyle",
 		schema: {
 			tags: ["Mtxx"],
 			summary: "Versatile Hairstyle",
-			description:
-				options.descriptions?.versatileHairstyle ?? DESCRIPTION,
+			description: DESCRIPTION,
 			body: versatileHairstyleSchema.request,
 			response: {
 				200: versatileHairstyleSchema.response,

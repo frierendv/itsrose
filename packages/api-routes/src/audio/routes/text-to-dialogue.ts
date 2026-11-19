@@ -5,30 +5,33 @@ import {
 } from "@itsrose/elevenlabs";
 import type { FastifyInstance } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
-import { joinUrl, type RoutePrefix } from "../../prefix";
 import { withAudioResponseHeader } from "../../schema";
 import type { AudioRoutesOptions } from "../options";
 import { uploadAudio, uploadWhenUrlRequested } from "../upload";
 
-const DESCRIPTION = "Convert text to dialogue.";
+const DESCRIPTION = `Convert text to dialogue.
+
+Example Output:
+
+- [English](https://assets.itsrose.net/public-resource/text_to_dialogue-output.wav) Three people talking
+- [Indonesian](https://assets.itsrose.net/public-resource/text_to_dialogue-output-ID.wav) Two people talking
+`;
 
 /**
- * Registers `POST /text_to_dialogue` under the prefix of the module.
+ * Registers `POST /text_to_dialogue`.
  */
 export const registerTextToDialogueRoute = (
 	fastify: FastifyInstance,
-	options: AudioRoutesOptions,
-	prefix: RoutePrefix
+	options: AudioRoutesOptions
 ): void => {
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "POST",
-		url: joinUrl(prefix, "/text_to_dialogue"),
+		url: "/text_to_dialogue",
 		schema: withAudioResponseHeader(
 			{
 				tags: ["Audio"],
 				summary: "Text to Dialogue",
-				description:
-					options.descriptions?.textToDialogue ?? DESCRIPTION,
+				description: DESCRIPTION,
 				body: textToDialogueSchema.request,
 				headers: ElevenLabsSharedResponseAudioSchema,
 				response: {

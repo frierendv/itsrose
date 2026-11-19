@@ -30,8 +30,9 @@ export const uploadWhenUrlRequested: AudioUploadCondition = (audioFormat) =>
 /**
  * Hands the generated audio to the storage port of the mounting app.
  *
- * The port is only consulted when the app asked for uploads, so an app
- * without object storage never touches it - and never needs to provide it.
+ * The port is only consulted when the app provided one and the route uploads
+ * for the requested format, so an app without object storage never touches it
+ * - and never needs to provide it.
  *
  * @param request - The request the audio was produced for.
  * @param audio - The base64 encoded audio.
@@ -47,7 +48,7 @@ export const uploadAudio = async (
 	shouldUpload: AudioUploadCondition,
 	options: AudioRoutesOptions
 ): Promise<string> => {
-	if (!options.uploadAudioToStorage) {
+	if (!options.audioStorage) {
 		return audio;
 	}
 

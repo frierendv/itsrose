@@ -1,48 +1,12 @@
-import { registerRouteModule } from "@itsrose/api-routes";
-import type {
-	AudioRoutesOptions,
-	InstagramRoutesOptions,
-	MtxxRoutesOptions,
-	ReminiRoutesOptions,
-	TiktokRoutesOptions,
-} from "@itsrose/api-routes";
-import { audioRoutes } from "@itsrose/api-routes/audio";
-import { instagramRoutes } from "@itsrose/api-routes/instagram";
-import { mtxxRoutes } from "@itsrose/api-routes/mtxx";
-import { reminiRoutes } from "@itsrose/api-routes/remini";
-import { tiktokRoutes } from "@itsrose/api-routes/tiktok";
+import { AUDIO_ROUTE_PREFIX, audioRoutes } from "@itsrose/api-routes/audio";
+import {
+	INSTAGRAM_ROUTE_PREFIX,
+	instagramRoutes,
+} from "@itsrose/api-routes/instagram";
+import { MTXX_ROUTE_PREFIX, mtxxRoutes } from "@itsrose/api-routes/mtxx";
+import { REMINI_ROUTE_PREFIX, reminiRoutes } from "@itsrose/api-routes/remini";
+import { TIKTOK_ROUTE_PREFIX, tiktokRoutes } from "@itsrose/api-routes/tiktok";
 import type { FastifyInstance } from "fastify";
-
-/**
- * The options the internal API mounts the audio routes with.
- *
- * The internal API returns the audio inline and does not publish the audio
- * format header.
- */
-const audioRoutesOptions: AudioRoutesOptions = {
-	uploadAudioToStorage: false,
-	declareAudioResponseHeader: false,
-};
-
-/**
- * The options the internal API mounts the instagram routes with.
- */
-const instagramRoutesOptions: InstagramRoutesOptions = {};
-
-/**
- * The options the internal API mounts the mtxx routes with.
- */
-const mtxxRoutesOptions: MtxxRoutesOptions = {};
-
-/**
- * The options the internal API mounts the remini routes with.
- */
-const reminiRoutesOptions: ReminiRoutesOptions = {};
-
-/**
- * The options the internal API mounts the tiktok routes with.
- */
-const tiktokRoutesOptions: TiktokRoutesOptions = {};
 
 /**
  * Registers the route modules the internal API serves.
@@ -51,14 +15,24 @@ const tiktokRoutesOptions: TiktokRoutesOptions = {};
  * registered here, so the character.ai client - and the credentials it needs
  * - are never loaded by this application.
  *
+ * The paths stay unversioned and independent of the public API: the facade's
+ * URLs are JojApi's decision, not a version of this surface. The internal API
+ * returns the generated audio inline and does not publish the audio format
+ * header, so it mounts the audio module without a storage port.
+ *
  * @param fastify - The Fastify instance the routes are registered on.
  */
 export const registerApiRouteModules = async (
 	fastify: FastifyInstance
 ): Promise<void> => {
-	await registerRouteModule(fastify, audioRoutes, audioRoutesOptions);
-	await registerRouteModule(fastify, instagramRoutes, instagramRoutesOptions);
-	await registerRouteModule(fastify, mtxxRoutes, mtxxRoutesOptions);
-	await registerRouteModule(fastify, reminiRoutes, reminiRoutesOptions);
-	await registerRouteModule(fastify, tiktokRoutes, tiktokRoutesOptions);
+	await fastify.register(audioRoutes, {
+		prefix: AUDIO_ROUTE_PREFIX,
+		declareAudioResponseHeader: false,
+	});
+	await fastify.register(instagramRoutes, {
+		prefix: INSTAGRAM_ROUTE_PREFIX,
+	});
+	await fastify.register(mtxxRoutes, { prefix: MTXX_ROUTE_PREFIX });
+	await fastify.register(reminiRoutes, { prefix: REMINI_ROUTE_PREFIX });
+	await fastify.register(tiktokRoutes, { prefix: TIKTOK_ROUTE_PREFIX });
 };

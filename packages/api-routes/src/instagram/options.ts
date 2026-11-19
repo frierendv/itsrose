@@ -1,4 +1,4 @@
-import { ROUTE_MODULE_PREFIXES, type RouteModuleOptions } from "../options";
+import { ROUTE_MODULE_PREFIXES } from "../options";
 
 /**
  * A environment variable needed by this route.
@@ -15,11 +15,9 @@ export const INSTAGRAM_ROUTE_KEYS = ["getMedia"] as const;
 export type InstagramRouteKey = (typeof INSTAGRAM_ROUTE_KEYS)[number];
 
 /**
- * The default URL namespace of the instagram routes.
+ * The URL namespace of the instagram routes.
+ *
+ * The module itself does not read it: the mounting application registers the
+ * module under this prefix.
  */
 export const INSTAGRAM_ROUTE_PREFIX = ROUTE_MODULE_PREFIXES["instagram"];
-
-/**
- * The options the instagram route module is registered with.
- */
-export type InstagramRoutesOptions = RouteModuleOptions<InstagramRouteKey>;

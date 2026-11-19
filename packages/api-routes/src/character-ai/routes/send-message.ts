@@ -1,27 +1,21 @@
 import { sendMessage, sendMessageSchema } from "@itsrose/character-ai";
 import type { FastifyInstance } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
-import { joinUrl, type RoutePrefix } from "../../prefix";
-import type { CharacterAiRoutesOptions } from "../options";
 
 const DESCRIPTION =
 	"Send a message to a Character.AI character and receive a response";
 
 /**
- * Registers `POST /send_message` under the prefix of the module.
+ * Registers `POST /send_message`.
  */
-export const registerSendMessageRoute = (
-	fastify: FastifyInstance,
-	options: CharacterAiRoutesOptions,
-	prefix: RoutePrefix
-): void => {
+export const registerSendMessageRoute = (fastify: FastifyInstance): void => {
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "POST",
-		url: joinUrl(prefix, "/send_message"),
+		url: "/send_message",
 		schema: {
 			tags: ["Character.ai"],
 			summary: "Send Message",
-			description: options.descriptions?.sendMessage ?? DESCRIPTION,
+			description: DESCRIPTION,
 			body: sendMessageSchema.request,
 			response: {
 				200: sendMessageSchema.response,
