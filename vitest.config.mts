@@ -328,6 +328,7 @@ export default defineConfig({
 				test: {
 					name: "apps/api",
 					include: testsIn("apps/api"),
+					setupFiles: [repo("apps/api/__tests__/setup-env.ts")],
 				},
 			},
 			{

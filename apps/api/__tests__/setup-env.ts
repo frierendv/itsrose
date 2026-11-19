@@ -1,13 +1,16 @@
 import { vi } from "vitest";
 
 /**
- * The environment the route modules need.
+ * The environment the public route modules need.
  *
  * The feature clients read their credentials from the environment when they
  * are imported, and the route modules import them. The values are never used;
  * stubbing them keeps the tests off the real environment.
+ *
+ * This is a setup file, so the environment is in place before a test module -
+ * and the static imports it holds - is evaluated.
  */
-export const ROUTE_ENV: Record<string, string> = {
+const ROUTE_ENV: Record<string, string> = {
 	CAI_USER_TOKEN: "test-cai-user-token",
 	CAI_NEO_BASE_URL: "https://character-ai.test",
 	ELEVENLABS_API_KEY: "test-elevenlabs-key",
@@ -24,21 +27,6 @@ export const ROUTE_ENV: Record<string, string> = {
 	TIKTOK_TIKWM_APIKEY: "test-tikwm-key",
 };
 
-/**
- * Stubs the environment the route modules read when they are imported.
- *
- * Import the route modules dynamically after this call: a static import runs
- * before the test body, and the client would read the unstubbed environment.
- */
-export const stubRouteEnv = (): void => {
-	for (const [key, value] of Object.entries(ROUTE_ENV)) {
-		vi.stubEnv(key, value);
-	}
-};
-
-/**
- * Restores the real environment after a test stubbed it.
- */
-export const unstubRouteEnv = (): void => {
-	vi.unstubAllEnvs();
-};
+for (const [key, value] of Object.entries(ROUTE_ENV)) {
+	vi.stubEnv(key, value);
+}

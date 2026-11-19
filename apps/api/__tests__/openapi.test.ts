@@ -1,10 +1,11 @@
 import swagger from "@fastify/swagger";
+import { audioRoutes } from "@itsrose/api-routes/audio";
+import { mtxxRoutes } from "@itsrose/api-routes/mtxx";
 import Fastify from "fastify";
 import {
 	createSerializerCompiler,
 	validatorCompiler,
 } from "fastify-zod-openapi";
-import { stubRouteEnv, unstubRouteEnv } from "./route-env";
 
 interface OperationObject {
 	description?: string;
@@ -26,11 +27,6 @@ const operation = (
 
 describe("the public OpenAPI document", () => {
 	it("publishes the restored examples and the multipart clone voice", async () => {
-		stubRouteEnv();
-
-		const { audioRoutes } = await import("@itsrose/api-routes/audio");
-		const { mtxxRoutes } = await import("@itsrose/api-routes/mtxx");
-
 		const app = Fastify();
 		await app.register(swagger, {
 			openapi: {
@@ -71,6 +67,5 @@ describe("the public OpenAPI document", () => {
 		).toContain("Hair types");
 
 		await app.close();
-		unstubRouteEnv();
 	});
 });

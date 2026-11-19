@@ -3,7 +3,7 @@ import {
 	createSerializerCompiler,
 	validatorCompiler,
 } from "fastify-zod-openapi";
-import { stubRouteEnv, unstubRouteEnv } from "./route-env";
+import { API_VERSION, registerVersionedRoutes } from "../src/lib/routes";
 
 /**
  * The public route table: `/{version}/{module}/{route}`.
@@ -42,12 +42,6 @@ const PUBLIC_ROUTES = [
 
 describe("the public route table", () => {
 	it("serves the whole public surface at /v1/<module> and nothing else", async () => {
-		stubRouteEnv();
-
-		// The route modules import their feature clients, which read the
-		// environment when they are imported: stub it, then import.
-		const { API_VERSION, registerVersionedRoutes } =
-			await import("../src/lib/routes");
 		expect(API_VERSION).toBe("/v1");
 
 		const urls: string[] = [];
@@ -74,7 +68,6 @@ describe("the public route table", () => {
 		await registerVersionedRoutes(app);
 		await app.ready();
 		await app.close();
-		unstubRouteEnv();
 
 		expect(urls).toHaveLength(PUBLIC_ROUTES.length);
 		expect([...urls].sort()).toEqual([...PUBLIC_ROUTES].sort());
