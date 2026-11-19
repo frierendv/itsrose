@@ -6,8 +6,14 @@ export default defineConfig({
 	failOnWarn: false,
 	exports: {
 		...(typeof config.exports === "object" ? config.exports : {}),
+		// The application service is grouped under `src/application/`, but its
+		// public subpath is the short `@itsrose/auth-storage/assets`.
+		exclude: ["application/assets"],
 		customExports: (exports, { isPublish }) => ({
 			...exports,
+			"./assets": isPublish
+				? "./dist/application/assets.mjs"
+				: "./src/application/assets.ts",
 			"./plugin": isPublish
 				? "./dist/plugin-server.mjs"
 				: "./src/plugin-server.ts",
@@ -22,6 +28,7 @@ export default defineConfig({
 	format: ["esm"],
 	entry: [
 		"src/index.ts",
+		"src/application/assets.ts",
 		"src/client.ts",
 		"src/env.ts",
 		"src/config.ts",
