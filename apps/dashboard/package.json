@@ -34,6 +34,7 @@
 		"react-dom": "catalog:",
 		"react-theme-switch-animation": "^1.3.0",
 		"use-debounce": "^10.1.1",
+		"zod": "catalog:",
 		"zustand": "^5.1.0"
 	},
 	"devDependencies": {
