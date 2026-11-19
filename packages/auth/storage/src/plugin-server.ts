@@ -14,6 +14,7 @@ import {
 	listUserFiles,
 	uploadUserFile,
 } from "./operations";
+import { purgeAccountStorageOnDelete } from "./purge";
 import type { PresignedUploadOptions, StoragePluginOptions } from "./types";
 
 export const presignedUploadSchema = z.object({
@@ -151,19 +152,18 @@ export function storagePlugin(options: StoragePluginOptions = {}) {
 						);
 					},
 					handler: createAuthMiddleware(async (ctx) => {
-						if (options.autoPurgeOnAccountDelete !== false) {
-							const userId = ctx.context.session?.user?.id;
-							if (userId) {
-								void deleteUserTempFiles(userId, s3).catch(
-									(err) => {
-										ctx.context.logger?.error?.(
-											`[storagePlugin] Failed to purge storage for deleted user "${userId}"`,
-											err
-										);
-									}
-								);
-							}
+						const userId = ctx.context.session?.user?.id;
+						if (!userId) {
+							return;
 						}
+
+						await purgeAccountStorageOnDelete(userId, {
+							s3,
+							adapter: ctx.context.adapter,
+							logger: ctx.context.logger,
+							autoPurgeOnAccountDelete:
+								options.autoPurgeOnAccountDelete,
+						});
 					}),
 				},
 			],

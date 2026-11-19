@@ -5,6 +5,7 @@ import {
 	buildArtifactPrefix,
 	buildEphemeralKey,
 	buildUserAssetKey,
+	buildUserAssetPrefix,
 	buildUserEphemeralKey,
 	buildUserFileKey,
 	buildUserPrefix,
@@ -196,6 +197,24 @@ describe("packages/auth/storage/keys", () => {
 			assetId: "01J8Z4Q7Y3N9V5K2M6P0R1S8T4",
 			filename: "sample.wav",
 		} as const;
+
+		it("builds a durable user prefix rooted in assets/ with trailing slash", () => {
+			expect(buildUserAssetPrefix("user-42")).toBe(
+				"assets/users/user-42/"
+			);
+			expect(buildUserAssetPrefix("user-42").startsWith(ASSET_ROOT)).toBe(
+				true
+			);
+		});
+
+		it("rejects unsafe user ids in the durable prefix", () => {
+			expect(() => buildUserAssetPrefix("../admin")).toThrow(
+				StorageValidationError
+			);
+			expect(() => buildUserAssetPrefix("")).toThrow(
+				StorageValidationError
+			);
+		});
 
 		it("builds a durable key rooted in assets/", () => {
 			const key = buildUserAssetKey(assetParams);

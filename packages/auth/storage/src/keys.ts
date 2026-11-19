@@ -100,6 +100,15 @@ export function buildUserPrefix(userId: string): string {
 }
 
 /**
+ * Builds the root prefix for all durable assets belonging to a user under the
+ * `assets/` root, which carries no lifecycle rule:
+ * `assets/users/{userId}/`.
+ */
+export function buildUserAssetPrefix(userId: string): string {
+	return `${ASSET_ROOT}/users/${sanitizeUserId(userId)}/`;
+}
+
+/**
  * Builds the prefix for all API-generated artifacts belonging to a job: `t/artifacts/{jobId}/`.
  */
 export function buildArtifactPrefix(jobId: string): string {
