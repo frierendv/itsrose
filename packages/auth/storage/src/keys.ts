@@ -1,6 +1,8 @@
 import { StorageValidationError } from "@itsrose/s3";
+import type { AssetKind } from "./policy";
 
 export const EPHEMERAL_ROOT = "t" as const;
+export const ASSET_ROOT = "assets" as const;
 
 const USER_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
 const CATEGORY_PATTERN = /^[a-zA-Z0-9_-]+$/;
@@ -190,6 +192,34 @@ export function buildEphemeralKey(category: string, filename: string): string {
 	return `${EPHEMERAL_ROOT}/${validCategory}/${validFilename}`;
 }
 
+export interface BuildUserAssetKeyParams {
+	userId: string;
+	kind: AssetKind;
+	/**
+	 * Server-generated asset identifier. It keeps two uploads of the same file
+	 * name from colliding, so the client never names the object path.
+	 */
+	assetId: string;
+	filename: string;
+}
+
+/**
+ * Builds a durable user asset key rooted in `assets/`, which carries no
+ * lifecycle rule:
+ * `assets/users/{userId}/{kind}/{assetId}/{filename}`.
+ *
+ * The kind is the policy carrier, so it is a closed `AssetKind` rather
+ * than a free-form category. Every segment passes through a sanitizer.
+ */
+export function buildUserAssetKey(params: BuildUserAssetKeyParams): string {
+	const validUserId = sanitizeUserId(params.userId);
+	const validKind = sanitizeCategory(params.kind);
+	const validAssetId = sanitizeJobId(params.assetId);
+	const validFilename = sanitizeFilename(params.filename);
+
+	return `${ASSET_ROOT}/users/${validUserId}/${validKind}/${validAssetId}/${validFilename}`;
+}
+
 export type ParsedEphemeralKey =
 	| { type: "user"; userId: string; category: string; filename: string }
 	| { type: "artifact"; jobId: string; filename: string }
@@ -249,22 +279,125 @@ export function parseEphemeralKey(key: string): ParsedEphemeralKey | null {
 	return null;
 }
 
+export interface ParsedAssetKey {
+	root: "asset";
+	type: "asset";
+	userId: string;
+	kind: string;
+	assetId: string;
+	filename: string;
+}
+
+/**
+ * Parses a durable asset key rooted in `assets/`:
+ * `assets/users/{userId}/{kind}/{assetId}/{filename}`.
+ *
+ * The kind segment is returned as written (after sanitization); a caller that
+ * acts on it must pass it to `assetPolicyFor`, which rejects an unknown kind.
+ * Returning `null` here means the key is not a well-formed asset key.
+ */
+function parseAssetKey(key: string): ParsedAssetKey | null {
+	const parts = key.split("/");
+
+	if (parts.length < 6 || parts[0] !== ASSET_ROOT || parts[1] !== "users") {
+		return null;
+	}
+
+	try {
+		return {
+			root: "asset",
+			type: "asset",
+			userId: sanitizeUserId(parts[2] ?? ""),
+			kind: sanitizeCategory(parts[3] ?? ""),
+			assetId: sanitizeJobId(parts[4] ?? ""),
+			filename: sanitizeFilename(parts.slice(5).join("/")),
+		};
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * A key classified by its root. `root` names the storage class; durable keys
+ * live under `assets/`, everything else under `t/`.
+ */
+export type ParsedStorageKey =
+	({ root: "ephemeral" } & ParsedEphemeralKey) | ParsedAssetKey;
+
+/**
+ * Parses a storage key from either root and tags it with that root.
+ *
+ * `parseEphemeralKey` stays `t/`-only for its existing callers; this is the
+ * entry point that also recognises durable `assets/` keys. Returns `null` for
+ * a key outside both roots or with a malformed shape.
+ */
+export function parseStorageKey(key: string): ParsedStorageKey | null {
+	const clean = (key || "").replace(/^\/+|\/+$/g, "");
+
+	const asset = parseAssetKey(clean);
+	if (asset) {
+		return asset;
+	}
+
+	const ephemeral = parseEphemeralKey(clean);
+	if (!ephemeral) {
+		return null;
+	}
+
+	return { root: "ephemeral", ...ephemeral };
+}
+
+/**
+ * The parts of a key scoped to one user. `category` is the ephemeral category
+ * for `t/` keys and the asset kind for durable `assets/` keys.
+ */
+export type ParsedUserStorageKey =
+	| {
+			userId: string;
+			category: string;
+			filename: string;
+	  }
+	| {
+			root: "asset";
+			userId: string;
+			category: string;
+			kind: string;
+			assetId: string;
+			filename: string;
+	  };
+
 /**
  * Parses a user storage key into its constituent parts.
- * Handles both `t/users/{userId}/{category}/{filename}` and `users/{userId}/{category}/{filename}`.
+ * Handles both `t/users/{userId}/{category}/{filename}` and
+ * `assets/users/{userId}/{kind}/{assetId}/{filename}`.
+ *
+ * A `t/` key keeps its historical three-field result; a durable key also
+ * reports `root`, `kind` and `assetId`, with `category` carrying the kind.
  */
-export function parseUserStorageKey(key: string): {
-	userId: string;
-	category: string;
-	filename: string;
-} | null {
-	const parsed = parseEphemeralKey(key);
-	if (parsed && parsed.type === "user") {
+export function parseUserStorageKey(key: string): ParsedUserStorageKey | null {
+	const parsed = parseStorageKey(key);
+	if (!parsed) {
+		return null;
+	}
+
+	if (parsed.root === "asset") {
 		return {
+			root: "asset",
 			userId: parsed.userId,
-			category: parsed.category,
+			category: parsed.kind,
+			kind: parsed.kind,
+			assetId: parsed.assetId,
 			filename: parsed.filename,
 		};
 	}
-	return null;
+
+	if (parsed.type !== "user") {
+		return null;
+	}
+
+	return {
+		userId: parsed.userId,
+		category: parsed.category,
+		filename: parsed.filename,
+	};
 }

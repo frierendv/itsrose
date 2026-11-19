@@ -1,13 +1,16 @@
 import { StorageValidationError } from "@itsrose/s3";
 import {
+	ASSET_ROOT,
 	buildArtifactKey,
 	buildArtifactPrefix,
 	buildEphemeralKey,
+	buildUserAssetKey,
 	buildUserEphemeralKey,
 	buildUserFileKey,
 	buildUserPrefix,
 	EPHEMERAL_ROOT,
 	parseEphemeralKey,
+	parseStorageKey,
 	parseUserStorageKey,
 	sanitizeCategory,
 	sanitizeFilename,
@@ -178,6 +181,111 @@ describe("packages/auth/storage/keys", () => {
 		it("returns null for non-ephemeral or invalid keys", () => {
 			expect(parseEphemeralKey("")).toBeNull();
 			expect(parseEphemeralKey("public/logo.png")).toBeNull();
+			expect(
+				parseEphemeralKey(
+					"assets/users/u123/voice_sample/asset-1/sample.wav"
+				)
+			).toBeNull();
+		});
+	});
+
+	describe("durable asset keys", () => {
+		const assetParams = {
+			userId: "user-42",
+			kind: "voice_sample",
+			assetId: "01J8Z4Q7Y3N9V5K2M6P0R1S8T4",
+			filename: "sample.wav",
+		} as const;
+
+		it("builds a durable key rooted in assets/", () => {
+			const key = buildUserAssetKey(assetParams);
+			expect(key).toBe(
+				"assets/users/user-42/voice_sample/01J8Z4Q7Y3N9V5K2M6P0R1S8T4/sample.wav"
+			);
+			expect(key.startsWith(`${ASSET_ROOT}/`)).toBe(true);
+		});
+
+		it("round-trips the builder through parseStorageKey", () => {
+			const key = buildUserAssetKey(assetParams);
+			expect(parseStorageKey(key)).toEqual({
+				root: "asset",
+				type: "asset",
+				userId: "user-42",
+				kind: "voice_sample",
+				assetId: "01J8Z4Q7Y3N9V5K2M6P0R1S8T4",
+				filename: "sample.wav",
+			});
+		});
+
+		it("sanitizes the user id, asset id and filename", () => {
+			const key = buildUserAssetKey({
+				userId: " user-42 ",
+				kind: "voice_sample",
+				assetId: " asset_01 ",
+				filename: "my voice  sample.wav",
+			});
+			expect(key).toBe(
+				"assets/users/user-42/voice_sample/asset_01/my-voice-sample.wav"
+			);
+		});
+
+		it("rejects unsafe asset key segments", () => {
+			expect(() =>
+				buildUserAssetKey({ ...assetParams, userId: "../admin" })
+			).toThrow(StorageValidationError);
+			expect(() =>
+				buildUserAssetKey({ ...assetParams, assetId: "a/b" })
+			).toThrow(StorageValidationError);
+			expect(() =>
+				buildUserAssetKey({ ...assetParams, filename: ".." })
+			).toThrow(StorageValidationError);
+		});
+
+		it("parses both roots with parseStorageKey", () => {
+			expect(
+				parseStorageKey("t/users/u123/documents/report.pdf")
+			).toEqual({
+				root: "ephemeral",
+				type: "user",
+				userId: "u123",
+				category: "documents",
+				filename: "report.pdf",
+			});
+			expect(
+				parseStorageKey(
+					"assets/users/u123/voice_sample/asset-1/sample.wav"
+				)
+			).toEqual({
+				root: "asset",
+				type: "asset",
+				userId: "u123",
+				kind: "voice_sample",
+				assetId: "asset-1",
+				filename: "sample.wav",
+			});
+		});
+
+		it("returns null for a key outside both roots or a malformed asset key", () => {
+			expect(parseStorageKey("")).toBeNull();
+			expect(parseStorageKey("public/logo.png")).toBeNull();
+			expect(
+				parseStorageKey("assets/users/u123/voice_sample/asset-1")
+			).toBeNull();
+			expect(
+				parseStorageKey("assets/artifacts/job-1/output.mp4")
+			).toBeNull();
+		});
+
+		it("parses a durable asset with parseUserStorageKey", () => {
+			const key = buildUserAssetKey(assetParams);
+			expect(parseUserStorageKey(key)).toEqual({
+				root: "asset",
+				userId: "user-42",
+				category: "voice_sample",
+				kind: "voice_sample",
+				assetId: "01J8Z4Q7Y3N9V5K2M6P0R1S8T4",
+				filename: "sample.wav",
+			});
 		});
 	});
 });

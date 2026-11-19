@@ -176,6 +176,19 @@ Whether returned media is delivered inline as base64 or uploaded and
 referenced by URL.
 _Avoid_: Response Mode
 
+**Asset**:
+A durable object a user owns — an uploaded voice sample or image, or a
+generated output promoted into the library. Its bytes live under the `assets/`
+root and are described by a registry row; the row, not the key path, is what
+grants ownership.
+_Avoid_: File, Object, Media
+
+**Storage Entitlement**:
+The plan-granted allowance for durable assets, expressed as typed entitlements
+(`storage_bytes`, `storage_assets`) that code reads — not dedicated plan
+columns, and not the human-facing `features` list.
+_Avoid_: Storage Quota, Limit
+
 **Route Module**:
 The set of routes one package contributes to an API, mounted under its own
 URL namespace and registered on its own. An application registers the modules
@@ -183,6 +196,7 @@ it serves; a module it does not register is never loaded.
 _Avoid_: Shared Routes, Route Group, Plugin
 
 **Route Prefix**:
-The URL namespace a Route Module's routes live under — `/audio`, `/mtxx`.
-It is the module's own, and the application may choose another.
+The URL namespace an application mounts a Route Module under — `/v1/audio`,
+`/mtxx`. The application owns it and passes it as Fastify's native `prefix`;
+a module declares no prefix of its own.
 _Avoid_: Base Path, Namespace, Mount Point
