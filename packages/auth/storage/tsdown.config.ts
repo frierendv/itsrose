@@ -14,6 +14,9 @@ export default defineConfig({
 			"./plugin-server": isPublish
 				? "./dist/plugin-server.mjs"
 				: "./src/plugin-server.ts",
+			"./schema": isPublish
+				? "./dist/schema/index.mjs"
+				: "./src/schema/index.ts",
 		}),
 	},
 	format: ["esm"],
@@ -25,6 +28,7 @@ export default defineConfig({
 		"src/keys.ts",
 		"src/operations.ts",
 		"src/plugin-server.ts",
+		"src/schema/index.ts",
 		"src/types.ts",
 	],
 });
