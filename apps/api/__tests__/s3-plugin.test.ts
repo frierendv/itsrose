@@ -95,6 +95,56 @@ describe("the s3 plugin", () => {
 		await app.close();
 	});
 
+	it("keeps uploadUserFileUrl generic: the default temp category and the caller's category", async () => {
+		const { app, calls } = await buildApp(async () => ({
+			publicUrl: "https://cdn.test/file",
+		}));
+
+		await app.s3.uploadUserFileUrl(REQUEST, "payload");
+		expect(calls[0]?.category).toBe("temp");
+
+		await app.s3.uploadUserFileUrl(REQUEST, "payload", {
+			category: "audio",
+		});
+		expect(calls[1]?.category).toBe("audio");
+
+		await app.close();
+	});
+
+	it("stores generated output under the generated class and returns its public url", async () => {
+		const { app, calls } = await buildApp(async () => ({
+			publicUrl: "https://cdn.test/generated.wav",
+		}));
+
+		const url = await app.s3.uploadGeneratedFileUrl(REQUEST, "YXVkaW8=", {
+			// The generated class is hard-coded, so a caller's category
+			// must not decide where API output lands.
+			category: "audio",
+			preprocess: (data) => Buffer.from(data, "base64"),
+		});
+
+		expect(url).toBe("https://cdn.test/generated.wav");
+		expect(calls).toHaveLength(1);
+		expect(calls[0]?.category).toBe("generated");
+		expect(calls[0]?.userId).toBe("usr_1");
+		expect(Buffer.isBuffer(calls[0]?.file)).toBe(true);
+
+		await app.close();
+	});
+
+	it("fails a generated upload without a user instead of passing the payload off", async () => {
+		const { app, calls } = await buildApp(async () => ({
+			publicUrl: "https://cdn.test/generated.wav",
+		}));
+
+		await expect(
+			app.s3.uploadGeneratedFileUrl(ANONYMOUS, "payload")
+		).rejects.toThrow(/no user/);
+		expect(calls).toEqual([]);
+
+		await app.close();
+	});
+
 	it("keeps uploadUserFile inline for an unauthenticated request", async () => {
 		const { app } = await buildApp(async () => ({
 			publicUrl: "https://cdn.test/audio.wav",

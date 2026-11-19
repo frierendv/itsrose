@@ -53,6 +53,19 @@ const deleteResponseSchema = z.object({
 	deleted: z.boolean(),
 });
 
+/**
+ * The body of a promotion.
+ *
+ * The generated object is named by its storage key: the studio endpoint that
+ * produced it hands that key back, and the service validates the key's owner
+ * and class before it copies anything.
+ */
+const promoteBodySchema = z.object({
+	source_key: z.string().min(1),
+	kind: z.string().min(1),
+	filename: z.string().min(1),
+});
+
 type AssetResponse = z.infer<typeof assetSchema>;
 
 /* -------------------------------------------------------------------------- */
@@ -237,6 +250,42 @@ const assetsRoutes: FastifyPluginAsync = async (
 				filename: file.filename,
 				body: file.bytes,
 				contentType: file.mimetype,
+			});
+
+			return toAssetResponse(asset);
+		},
+	});
+
+	/**
+	 * Promotes a generated object into the durable library.
+	 *
+	 * The source object stays ephemeral and keeps expiring; the copy under
+	 * `assets/` is what the registry records and the storage cap counts.
+	 */
+	routes.route({
+		method: "POST",
+		url: "/assets/promote",
+		config: { authGuard: false },
+		preHandler: requireSession,
+		schema: {
+			hide: true,
+			body: promoteBodySchema,
+			response: { 200: assetSchema },
+		},
+		handler: async (request, reply) => {
+			const userId = request.userId;
+			if (!userId) {
+				return denySession(reply);
+			}
+
+			const { source_key, kind, filename } = request.body;
+
+			const asset = await fastify.assetService.promote({
+				userId,
+				tenantId: tenantIdForUser(userId),
+				kind,
+				filename,
+				sourceKey: source_key,
 			});
 
 			return toAssetResponse(asset);

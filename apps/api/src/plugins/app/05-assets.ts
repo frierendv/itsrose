@@ -32,6 +32,9 @@ export default fp(
 			async put({ key, body, contentType }) {
 				await getStorageClient().upload(key, body, { contentType });
 			},
+			download(key) {
+				return getStorageClient().download(key);
+			},
 			async remove(key) {
 				await getStorageClient().delete(key);
 			},

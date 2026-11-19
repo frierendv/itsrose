@@ -6,6 +6,7 @@ import {
 	type AssetEntitlementPort,
 	type AssetObjectPutInput,
 	type AssetObjectStorePort,
+	type PromoteAssetInput,
 	type StorageAllowance,
 	type UploadAssetInput,
 } from "../src/application/assets";
@@ -31,7 +32,8 @@ const UNLIMITED: StorageAllowance = {
 /*                               Fake harness                                 */
 /* -------------------------------------------------------------------------- */
 
-type Event = "put" | "insert" | "remove" | "softDelete" | "presignGet";
+type Event =
+	"put" | "download" | "insert" | "remove" | "softDelete" | "presignGet";
 
 type RegistryCalls = {
 	insert: AssetRecord[];
@@ -43,6 +45,7 @@ type RegistryCalls = {
 
 type ObjectCalls = {
 	put: AssetObjectPutInput[];
+	download: string[];
 	remove: string[];
 	presignGet: Array<{ key: string; ttlSeconds: number }>;
 };
@@ -53,6 +56,9 @@ type HarnessOptions = {
 	records?: AssetRecord[];
 	/** Canned result of `listForUser`; the service must pass it through. */
 	listResult?: AssetRecord[];
+	/** Bytes `download` resolves for a promotion. */
+	downloadBytes?: Buffer;
+	downloadError?: Error;
 	insertError?: Error;
 	removeObjectError?: Error;
 	softDeleteResult?: boolean;
@@ -85,7 +91,12 @@ function createHarness(options: HarnessOptions = {}): Harness {
 		softDelete: [],
 		sumUsage: [],
 	};
-	const objectCalls: ObjectCalls = { put: [], remove: [], presignGet: [] };
+	const objectCalls: ObjectCalls = {
+		put: [],
+		download: [],
+		remove: [],
+		presignGet: [],
+	};
 	const entitlementCalls: string[] = [];
 
 	const registry: AssetRegistryPort = {
@@ -133,6 +144,14 @@ function createHarness(options: HarnessOptions = {}): Harness {
 		async put(input) {
 			events.push("put");
 			objectCalls.put.push(input);
+		},
+		async download(key) {
+			events.push("download");
+			objectCalls.download.push(key);
+			if (options.downloadError) {
+				throw options.downloadError;
+			}
+			return options.downloadBytes ?? BODY;
 		},
 		async remove(key) {
 			events.push("remove");
@@ -183,6 +202,22 @@ function uploadInput(
 		filename: "sample.wav",
 		body: BODY,
 		contentType: "audio/wav",
+		...overrides,
+	};
+}
+
+/** A generated object's key, in the prefix the audio adapter writes to. */
+const SOURCE_KEY = "t/users/user-1/generated/abc123";
+
+function promoteInput(
+	overrides: Partial<PromoteAssetInput> = {}
+): PromoteAssetInput {
+	return {
+		userId: "user-1",
+		tenantId: "tenant-1",
+		kind: "voice_sample",
+		filename: "sample.wav",
+		sourceKey: SOURCE_KEY,
 		...overrides,
 	};
 }
@@ -330,6 +365,157 @@ describe("packages/auth/storage/application/assets", () => {
 			expect(error).toBe(failure);
 			expect(harness.events).toEqual(["put", "insert", "remove"]);
 			expect(harness.objectCalls.remove).toEqual([ASSET_KEY]);
+		});
+	});
+
+	/* ---------------------------------------------------------------------- */
+	/*                                Promotion                               */
+	/* ---------------------------------------------------------------------- */
+
+	describe("promote", () => {
+		it("downloads the generated object, copies it and registers the durable row", async () => {
+			const harness = createHarness();
+
+			const record = await harness.service.promote(promoteInput());
+
+			expect(record).toEqual({
+				asset_id: ASSET_ID,
+				user_id: "user-1",
+				tenant_id: "tenant-1",
+				kind: "voice_sample",
+				key: ASSET_KEY,
+				filename: "sample.wav",
+				size_bytes: BODY.length,
+				content_type: "application/octet-stream",
+				status: "ready",
+				created_at: CLOCK,
+				deleted_at: null,
+			});
+			expect(harness.events).toEqual(["download", "put", "insert"]);
+			expect(harness.objectCalls.download).toEqual([SOURCE_KEY]);
+			expect(harness.objectCalls.put).toEqual([
+				{
+					key: ASSET_KEY,
+					body: BODY,
+					contentType: "application/octet-stream",
+				},
+			]);
+			expect(harness.registryCalls.insert).toEqual([record]);
+			// The generated source keeps expiring on its own; promotion must
+			// not delete it.
+			expect(harness.objectCalls.remove).toEqual([]);
+			expect(harness.entitlementCalls).toEqual(["user-1"]);
+			expect(harness.registryCalls.sumUsage).toEqual(["tenant-1"]);
+		});
+
+		it("uses the downloaded object's size for the byte allowance", async () => {
+			const downloaded = Buffer.from("promoted audio bytes");
+			const harness = createHarness({
+				allowance: {
+					storage_bytes: downloaded.length - 1,
+					storage_assets: null,
+				},
+				usage: { bytes: 0, assets: 0 },
+				downloadBytes: downloaded,
+			});
+
+			const error = await rejection(
+				harness.service.promote(promoteInput())
+			);
+
+			expect(error).toBeInstanceOf(AssetCapExceededError);
+			expect(error).toMatchObject({ cap: "bytes" });
+			expect(harness.events).toEqual(["download"]);
+			expect(harness.objectCalls.put).toEqual([]);
+			expect(harness.registryCalls.insert).toEqual([]);
+		});
+
+		it("rejects a promotion that would exceed the asset-count allowance", async () => {
+			const harness = createHarness({
+				allowance: { storage_bytes: null, storage_assets: 1 },
+				usage: { bytes: 0, assets: 1 },
+			});
+
+			const error = await rejection(
+				harness.service.promote(promoteInput())
+			);
+
+			expect(error).toBeInstanceOf(AssetCapExceededError);
+			expect(error).toMatchObject({ cap: "assets" });
+			expect(harness.events).toEqual(["download"]);
+			expect(harness.objectCalls.put).toEqual([]);
+		});
+
+		it.each([
+			["another user's key", "t/users/user-2/generated/abc123"],
+			["a durable key", ASSET_KEY],
+			["a non-generated category", "t/users/user-1/temp/abc123"],
+			["an artifact key", "t/artifacts/job-1/abc123"],
+			["a malformed key", "not-a-storage-key"],
+		])(
+			"rejects %s without reading or writing anything",
+			async (_case, sourceKey) => {
+				const harness = createHarness();
+
+				const error = await rejection(
+					harness.service.promote(promoteInput({ sourceKey }))
+				);
+
+				expect(error).toBeInstanceOf(StorageValidationError);
+				// One message for every rejection, so a caller cannot tell a
+				// foreign object from a nonexistent one.
+				expect((error as Error).message).toBe(
+					"The source key does not name a generated object owned by the caller."
+				);
+				expect(harness.events).toEqual([]);
+				expect(harness.entitlementCalls).toEqual([]);
+				expect(harness.registryCalls.sumUsage).toEqual([]);
+			}
+		);
+
+		it("rejects an unknown kind before reading the source object", async () => {
+			const harness = createHarness();
+
+			const error = await rejection(
+				harness.service.promote(promoteInput({ kind: "recording" }))
+			);
+
+			expect(error).toBeInstanceOf(StorageValidationError);
+			expect(harness.events).toEqual([]);
+			expect(harness.objectCalls.download).toEqual([]);
+		});
+
+		it("writes nothing when the source cannot be downloaded", async () => {
+			const failure = new Error("object store unavailable");
+			const harness = createHarness({ downloadError: failure });
+
+			const error = await rejection(
+				harness.service.promote(promoteInput())
+			);
+
+			expect(error).toBe(failure);
+			expect(harness.events).toEqual(["download"]);
+			expect(harness.objectCalls.put).toEqual([]);
+			expect(harness.registryCalls.insert).toEqual([]);
+		});
+
+		it("removes the durable copy when the insert fails and leaves the source", async () => {
+			const failure = new Error("registry unavailable");
+			const harness = createHarness({ insertError: failure });
+
+			const error = await rejection(
+				harness.service.promote(promoteInput())
+			);
+
+			expect(error).toBe(failure);
+			expect(harness.events).toEqual([
+				"download",
+				"put",
+				"insert",
+				"remove",
+			]);
+			expect(harness.objectCalls.remove).toEqual([ASSET_KEY]);
+			expect(harness.objectCalls.remove).not.toContain(SOURCE_KEY);
 		});
 	});
 

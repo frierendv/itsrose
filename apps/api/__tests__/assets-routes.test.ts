@@ -5,6 +5,7 @@ import {
 	AssetNotFoundError,
 	type AssetService,
 	type ListAssetsInput,
+	type PromoteAssetInput,
 	type ReadAssetUrlInput,
 	type RemoveAssetInput,
 	type UploadAssetInput,
@@ -51,6 +52,7 @@ const EXPECTED_DTO = {
 
 type ServiceCalls = {
 	upload: UploadAssetInput[];
+	promote: PromoteAssetInput[];
 	list: ListAssetsInput[];
 	readUrl: ReadAssetUrlInput[];
 	remove: RemoveAssetInput[];
@@ -84,6 +86,7 @@ function createService(options: ServiceOptions = {}): {
 } {
 	const calls: ServiceCalls = {
 		upload: [],
+		promote: [],
 		list: [],
 		readUrl: [],
 		remove: [],
@@ -95,6 +98,10 @@ function createService(options: ServiceOptions = {}): {
 			if (options.uploadError) {
 				throw options.uploadError;
 			}
+			return RECORD;
+		},
+		async promote(input) {
+			calls.promote.push(input);
 			return RECORD;
 		},
 		async list(input) {
@@ -437,6 +444,68 @@ describe("POST /assets", () => {
 		expect(response.statusCode).toBe(400);
 		expect(response.json()).toMatchObject({ ok: false, code: 2002 });
 		expect(calls.upload).toHaveLength(1);
+
+		await app.close();
+	});
+});
+
+describe("POST /assets/promote", () => {
+	const PROMOTE_BODY = {
+		source_key: "t/users/user-1/generated/abc123",
+		kind: "voice_sample",
+		filename: "sample.wav",
+	};
+
+	it("passes the generated key to the service under the session user", async () => {
+		const { app, calls } = await buildApp();
+
+		const response = await app.inject({
+			method: "POST",
+			url: "/assets/promote",
+			payload: PROMOTE_BODY,
+		});
+
+		expect(response.statusCode).toBe(200);
+		expect(response.json()).toEqual(EXPECTED_DTO);
+		expect(calls.promote).toEqual([
+			{
+				userId: USER_ID,
+				tenantId: tenantIdForUser(USER_ID),
+				kind: "voice_sample",
+				filename: "sample.wav",
+				sourceKey: "t/users/user-1/generated/abc123",
+			},
+		]);
+
+		await app.close();
+	});
+
+	it("rejects a body that is missing the source key", async () => {
+		const { app, calls } = await buildApp();
+
+		const response = await app.inject({
+			method: "POST",
+			url: "/assets/promote",
+			payload: { kind: "voice_sample", filename: "sample.wav" },
+		});
+
+		expect(response.statusCode).toBe(400);
+		expect(calls.promote).toEqual([]);
+
+		await app.close();
+	});
+
+	it("answers 401 without a session", async () => {
+		const { app, calls } = await buildApp({ session: null });
+
+		const response = await app.inject({
+			method: "POST",
+			url: "/assets/promote",
+			payload: PROMOTE_BODY,
+		});
+
+		expect(response.statusCode).toBe(401);
+		expect(calls.promote).toEqual([]);
 
 		await app.close();
 	});
