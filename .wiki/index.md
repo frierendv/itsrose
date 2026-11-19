@@ -24,6 +24,9 @@ to read `index.md` and know where to look.
   subscription that goes unsettled when they are not.
 - [One proration rule](decisions/proration-single-rule.md) — the server's rule
   is the only rule; the browser is a view over it.
+- [The public route surface](decisions/public-route-surface.md) — the
+  `/{version}/{module}/{route}` shape, why route documentation lives in the
+  routes, and what the shared route package is allowed to be.
 - [The deletion test applied](decisions/deletion-test-applied.md) — three
   packages cut because nothing called them.
 - [A shared HTTP retry contract](decisions/http-retry-contract.md) — what the

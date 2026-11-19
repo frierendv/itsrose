@@ -73,6 +73,36 @@ keyed by the HTTP server, because the root instance and every encapsulated
 child share that server while two applications in the same process never do.
 Two modules may not share a namespace; the collision surfaces at boot.
 
+## Correction, 2026-11-19: what the app actually served
+
+**Corrected 2026-11-19.** The URL table in "The breaking change" was true at
+`2026-11-14` and stopped being true on `2026-11-17` with `15eaa26`
+(_refactor(routes): autoload v1 routes in api and remove route-modules
+helper_).
+
+`apps/api` autoloads `routes/v1/…` with `dirNameRoutePrefix: true`, and
+`@fastify/autoload@6.5.1` prepends `autoConfig.prefix` to the folder name
+(`pluginOptions.prefix = (pluginOptions.prefix || "") + prefix`). The modules
+passed `prefix: "/audio"`, so the app served `/audio/v1/text_to_speech` —
+not `/audio/text_to_speech`. Verified by autoloading the real route directory
+with `tsx`, and with a standalone autoload probe.
+
+No test noticed, because the package's tests register the modules directly
+and no test asserted the application's route table. `@fastify/autoload` also
+cannot be exercised under vitest: it dynamic-imports the files through Node,
+not Vite, so a TypeScript route file fails to load in `pnpm test`.
+
+The same commit dropped the public API's OpenAPI `descriptions` and
+`consumes` overrides — the `text_to_dialogue` sample links, four mtxx example
+tables, and `create_clone_voice` → `multipart/form-data`.
+
+**Decided 2026-11-19** — see
+[the public route surface](../decisions/public-route-surface.md): the public
+shape is `/{version}/{module}/{route}` (`/v1/audio/text_to_speech`),
+documentation lives in the route definitions, and the mechanism below
+(`resolvePrefix`, `joinUrl`, `claimRoutePrefix`) is removed in favour of
+native Fastify prefixes plus an explicit, testable route table in `apps/api`.
+
 ## What is still data, not structure
 
 The four difference axes survived the split, because they are data:
