@@ -8,6 +8,20 @@ answers §6 — not from this draft.
 **Blocks:** the first studio endpoint — the voice library, user-uploaded voice
 samples, image edits, video jobs.
 
+## 0. Decisions taken (2026-11-19)
+
+The owner answered §6. These answers override the options below where they
+differ.
+
+| #   | Decision                                                                                     | Consequence                                                                                                                                                                                         |
+| --- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | A durable asset belongs to the **user**: `assets/users/{userId}/{kind}/{assetId}/{filename}` | No organization layer is built. The registry row still stores `tenant_id` beside `user_id`, so a future organization model can attribute an asset without moving the object.                        |
+| 2   | If the Tenant becomes an organization, a member's upload belongs to the **Owner**            | Recorded for the future; not implemented.                                                                                                                                                           |
+| 3   | Storage is an **entitlement**, not dedicated Plan columns                                    | The plan carries typed entitlements (first keys: `storage_bytes`, `storage_assets`) resolved by an entitlement reader. `features: string[]` stays human-facing copy and is never parsed for limits. |
+| 4   | Generated outputs can be **promoted into the library**                                       | A promotion copies a generated object into `assets/` and registers its row. The generated object stays ephemeral until promoted.                                                                    |
+| 5   | Every upload **passes through the API**                                                      | No presigned direct-to-R2 upload. The API receives the bytes, checks size and magic bytes, writes the object and the row in one request. The presigned flow below is withdrawn.                     |
+| 6   | On downgrade or cancellation, existing assets are **unchanged**                              | The cap is enforced on new writes only: no sweeper, no read-only mode, no deletion when a plan shrinks.                                                                                             |
+
 ## 1. The question
 
 Before the first studio endpoint ships, five things have to be decided
@@ -282,10 +296,11 @@ The alternatives are worse in a way worth naming. **Count only** lets one
 ten thousand 1 KB files make every listing expensive. **Requests only** — today's
 model — cannot see storage at all, so a "storage quota" would be a fiction.
 
-Where the cap itself lives is open (§6.3): a new Plan column is a schema change
-across `packages/auth/billing`, while `features: string[]`
-(`packages/auth/billing/src/schema/api-plan.ts:25`) is a free-form string that no
-code enforces.
+The cap itself is an entitlement (§0.3): the plan carries typed entitlements —
+the first keys are `storage_bytes` and `storage_assets` — resolved by an
+entitlement reader. `features: string[]`
+(`packages/auth/billing/src/schema/api-plan.ts:25`) remains human-facing copy and
+is never parsed for limits.
 
 ### E. Deletion
 
@@ -330,24 +345,17 @@ policy cannot tell them apart.
 
 ### Request flow
 
-**Upload (presigned, any size).**
+**Upload (API-mediated).** Every upload passes through the API; there is no
+presigned direct-to-R2 path (§0.5).
 
-1. Dashboard calls a session endpoint with `kind`, `filename`, `content_type`,
-   `size_bytes`.
-2. The API checks the Plan's storage cap against the Tenant's `bytes_stored` +
-   `count`, then mints a presigned PUT (`expires_in` 900) and inserts a registry
-   row in state `pending` with `asset_id`, `key`, `size_bytes`.
-3. Dashboard PUTs the bytes directly to R2.
-4. Dashboard confirms; the API HEADs the object, checks the declared size and
-   the leading bytes, sets `content_type` and a private cache header, flips the
-   row to `ready`, increments the counter.
-
-**Upload (small, server-side).** A voice sample up to the existing 10 MB
-multipart limit (`packages/api-routes/src/audio/routes/create-ivc-voice.ts:24-31`)
-can skip steps 2–4: the API receives the bytes, detects the MIME from magic
-bytes (`packages/internal/s3/src/mime.ts:15-30`), writes the object, and
-records the row in one request. No confirm step, no trust in a client-declared
-size.
+1. Dashboard posts the bytes to a session endpoint with `kind`, `filename` and
+   `content_type`.
+2. The API checks the storage entitlement against the user's `bytes_stored` +
+   `asset_count`, detects the MIME from magic bytes
+   (`packages/internal/s3/src/mime.ts:15-30`), enforces the multipart limit
+   (`packages/api-routes/src/audio/routes/create-ivc-voice.ts:24-31`), writes
+   the object under `assets/`, and inserts the `ready` row — one request, no
+   confirm step, no client-declared size to trust.
 
 **Store.** Object at the key above; one row per asset with `asset_id`,
 `tenant_id`, `user_id`, `kind`, `key`, `size_bytes`, `content_type`,
@@ -365,17 +373,23 @@ voice-clone call can download it and hand the bytes upstream instead of fetching
 a caller-supplied URL (`create-ivc-voice.ts:10-23`). This closes the arbitrary-URL
 surface that D5 implicitly assumes away.
 
+**Promote.** A generated output becomes durable by copying it from
+`t/users/{userId}/generated/{assetId}` into the durable root and inserting a
+row with its real `size_bytes` (§0.4). The ephemeral object keeps its 1-day
+rule; the copy is what the library owns and what the cap counts.
+
 ### Tradeoff accepted
 
-Three URL modes, a registry table, a confirm round-trip, and one signing call
-per read. In exchange: access is revocable within 900 s, the storage cap is
+Three URL modes, a registry table, one signing call per read, and an upload
+that costs the API a byte copy. In exchange: access is revocable within 900 s, the storage cap is
 enforceable without a background job, account deletion can find every durable
 byte, and the 1-day lifecycle rule keeps exactly one job — it can never delete
 something the user was promised.
 
-## 6. Open questions for the owner
+## 6. Open questions for the owner — answered 2026-11-19
 
-Each answerable in one line. Only the first blocks the spec.
+Kept as the record of what was asked; the answers are in §0 and override the
+options above where they conflict.
 
 | #   | Question                                                                                                                                                                                        | Blocks? |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
@@ -401,16 +415,16 @@ here, and no tickets — these are boundaries, not estimates.
 2. **Registry and the storage cap.**
    A new `packages/auth/storage/src/schema.ts` modelled on
    `packages/auth/usage/src/schema/index.ts:11-19`, registered through the
-   existing plugin (`plugin-server.ts:172-209`); endpoints for mint, confirm,
-   list and read-URL; the cap check. If the cap is a Plan field:
-   `packages/auth/billing/src/schema/api-plan.ts` and
-   `packages/auth/billing/src/domain/constants.ts` move in the same change set
-   (`AGENTS.md:478-482` on atomic edits).
+   existing plugin (`plugin-server.ts:172-209`); endpoints for upload, list,
+   read-URL and delete; the cap check. The cap is an entitlement (§0.3):
+   `packages/auth/billing` gains the typed entitlement and its reader in the
+   same change set (`AGENTS.md:478-482` on atomic edits).
 
-3. **Split generated from uploaded.**
+3. **Split generated from uploaded, and add promotion.**
    `apps/api/src/plugins/app/03-s3.ts` (return a key and a policy, not a bare
    URL; take `kind`), `apps/api/src/lib/audio-routes.ts` (write to `generated`,
-   hand back the public URL the policy allows), extending
+   hand back the public URL the policy allows), and the promote operation that
+   copies a generated object into `assets/` and inserts its row (§0.4). Extend
    `apps/api/__tests__/s3-plugin.test.ts`. This is the slice that makes D5 true
    rather than aspirational.
 
