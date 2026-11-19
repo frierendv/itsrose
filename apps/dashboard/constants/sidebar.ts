@@ -1,10 +1,12 @@
 import { ADMIN_ROUTES } from "@/features/admin/routes";
+import { ASSETS_ROUTE } from "@/features/assets/constants";
 import type { SidebarItem } from "@/types/sidebar";
 import {
 	Archive,
 	ArrowRotateRight,
 	CreditCard,
 	FileDollar,
+	Folders,
 	FolderTree,
 	Gear,
 	House,
@@ -64,6 +66,12 @@ export const USER_SETTINGS_SIDEBAR_ITEMS = {
 			],
 		},
 	],
+} satisfies SidebarItem;
+
+export const USER_ASSETS_SIDEBAR_ITEMS = {
+	title: "Assets",
+	url: ASSETS_ROUTE,
+	icon: Folders,
 } satisfies SidebarItem;
 
 export const USER_LOGS_SIDEBAR_ITEMS = {

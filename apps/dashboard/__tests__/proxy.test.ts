@@ -2,7 +2,7 @@
 import { NextRequest } from "next/server";
 import { vi, type Mock } from "vitest";
 import { authClient } from "../lib/auth/auth-client";
-import { proxy } from "../proxy";
+import { config, proxy } from "../proxy";
 
 vi.mock("../lib/auth/auth-client", () => ({
 	authClient: { getSession: vi.fn() },
@@ -77,5 +77,33 @@ describe("session redirects", () => {
 		const response = await proxy(requestFor("/admin/usage/rates"));
 
 		expect(response.headers.get("location")).toBeNull();
+	});
+});
+
+describe("asset library session gate", () => {
+	it("sends guests from /assets to sign-in", async () => {
+		getSession.mockResolvedValue({ data: null });
+
+		const response = await proxy(requestFor("/assets"));
+
+		const location = response.headers.get("location");
+		expect(location).toContain("/sign-in");
+		expect(location).toContain("redirectTo=%2Fassets");
+	});
+
+	it("keeps /assets inside the matcher", () => {
+		// `assets` used to be skipped as if it were a static folder; it is a
+		// dashboard route now, so the proxy must see it.
+		const matcher = new RegExp(`^${config.matcher[0]}$`);
+
+		expect(matcher.test("/assets")).toBe(true);
+		expect(matcher.test("/server-components-static")).toBe(true);
+	});
+
+	it("still skips framework paths and the API", () => {
+		const matcher = new RegExp(`^${config.matcher[0]}$`);
+
+		expect(matcher.test("/_next/static/chunks/main.js")).toBe(false);
+		expect(matcher.test("/api/auth/session")).toBe(false);
 	});
 });

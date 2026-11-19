@@ -58,3 +58,37 @@ thunk, so deferral is structural.
 
 - [Invoice-status decision](../decisions/invoice-status-vocabulary.md)
 - [Proration decision](../decisions/proration-single-rule.md)
+
+## Update, 2026-11-19: the asset library
+
+**Recorded 2026-11-19 at `f25b2c5`** (_feat(dashboard): add the asset
+library_).
+
+- `features/assets/` is a fifth vertical slice: list, upload, open and delete
+  durable assets served by `apps/api` at `/assets`. It talks to the API origin
+  directly with `credentials: "include"` — the session cookie is shared across
+  the dashboard and API subdomains — and the server page forwards the incoming
+  `headers()` to the API so SSR carries the cookie as well. That blocking
+  prefetch is why the route sets `instant = false`.
+- Pagination is Prev/Next: the API returns `{ items, limit, offset }` and no
+  total, so the UI enables "Next" on a full page.
+- The library is the client half of
+  [the asset storage policy](../decisions/asset-storage-policy.md); promotion
+  has no UI because the studio generation endpoint that would surface a
+  `source_key` does not exist yet.
+
+**Superseded 2026-11-19 by `f25b2c5`.** Two statements above stopped being
+true with this slice:
+
+- "The dashboard has no zod dependency." It now depends on `zod` at runtime
+  (`catalog:` in `apps/dashboard/package.json`) so the asset envelope is
+  parsed, not asserted. The `import type` trick on billing schemas is still
+  used where it applies, but it is no longer the only option.
+- "There is no component or hook testing." `assets-page.test.tsx` renders the
+  page with `@testing-library/react` and a mocked `fetch`; the claim held for
+  the pre-asset slices, not for this one.
+
+A bug surfaced while adding the page: `proxy.ts` excluded `assets` from the
+middleware matcher since `90bca04`, when a `public/assets/` folder existed.
+That folder is gone, so the exclusion would have left `/assets` outside the
+session gate. The matcher now covers it and the proxy tests assert the gate.

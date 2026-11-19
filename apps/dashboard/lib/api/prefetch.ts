@@ -1,3 +1,6 @@
+import { listAssets } from "@/features/assets/api";
+import { ASSETS_PAGE_SIZE } from "@/features/assets/constants";
+import { assetQueryKeys } from "@/features/assets/query-keys";
 import { billingQueryKeys } from "@/features/billing/query-keys";
 import { authClient } from "@/lib/auth";
 import {
@@ -75,5 +78,36 @@ export async function prefetchBillingQueries(
 
 	// Prefetch failures are non-fatal: the corresponding queries stay
 	// unpopulated and the client hooks fetch them on mount.
+	void results;
+}
+
+/**
+ * Prefetches the first page of the asset library server-side.
+ *
+ * The asset routes live on the API origin, not on the dashboard's own Better
+ * Auth proxy, so the incoming `cookie` header is forwarded explicitly — the
+ * same way `proxy.ts` forwards `headers()` into the session lookup.
+ */
+export async function prefetchAssetsQueries(
+	queryClient: QueryClient
+): Promise<void> {
+	const requestHeaders = await headers();
+	const prefetchQuery = createPrefetchQueryFn(queryClient);
+
+	const results = await Promise.allSettled([
+		prefetchQuery({
+			queryKey: assetQueryKeys.list({
+				limit: ASSETS_PAGE_SIZE,
+				offset: 0,
+			}),
+			queryFn: () =>
+				listAssets(
+					{ limit: ASSETS_PAGE_SIZE, offset: 0 },
+					{ headers: requestHeaders }
+				),
+			staleTime: 30_000,
+		}),
+	]);
+
 	void results;
 }
