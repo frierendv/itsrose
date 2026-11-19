@@ -38,6 +38,7 @@
 		"./schema": "./src/schema/index.ts",
 		"./types": "./src/types.ts",
 		"./package.json": "./package.json",
+		"./assets": "./src/application/assets.ts",
 		"./plugin": "./src/plugin-server.ts"
 	},
 	"scripts": {
@@ -69,6 +70,7 @@
 			"./schema": "./dist/schema/index.mjs",
 			"./types": "./dist/types.mjs",
 			"./package.json": "./package.json",
+			"./assets": "./dist/application/assets.mjs",
 			"./plugin": "./dist/plugin-server.mjs"
 		}
 	}
