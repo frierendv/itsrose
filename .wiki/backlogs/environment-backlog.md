@@ -75,11 +75,11 @@ These were always true. The gate just could not report them.
 
 ## Added 2026-11-19
 
-| #   | Item                                                        | Status   | Note                                                                                                                                                                 |
-| --- | ----------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 19  | The public route table is asserted                          | **Done** | `fa8c1b6`. `apps/api/__tests__/route-table.test.ts` asserts the 25 `/v1/...` paths and that none stays under `/audio/v1/` — the regression test for `15eaa26`        |
-| 20  | `apps/api-internal` has no route-table test                 | Todo     | Its 19 unversioned routes were verified during the C2 review only by a throwaway `tsx` probe; the app has no vitest project, so nothing fails when one of them moves |
-| 21  | Route-module tests hand-stub the feature-client environment | Todo     | `apps/api/__tests__/route-env.ts` exists because the `apps/api` vitest project has no `setupFiles`; a project setup file would remove the per-test stub              |
+| #   | Item                                                        | Status   | Note                                                                                                                                                          |
+| --- | ----------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 19  | The public route table is asserted                          | **Done** | `fa8c1b6`. `apps/api/__tests__/route-table.test.ts` asserts the 25 `/v1/...` paths and that none stays under `/audio/v1/` — the regression test for `15eaa26` |
+| 20  | The internal facade's route table is asserted               | **Done** | `caf0302`. `apps/api-internal/__tests__/route-table.test.ts` asserts the 19 unversioned paths, that none is under `/v1/` (D6) and that none is character.ai   |
+| 21  | Route-module tests hand-stub the feature-client environment | Todo     | `apps/api/__tests__/route-env.ts` exists because the `apps/api` vitest project has no `setupFiles`; a project setup file would remove the per-test stub       |
 
 ## Deliberately not done, and why
 
