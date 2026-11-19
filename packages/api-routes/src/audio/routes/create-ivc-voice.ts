@@ -1,29 +1,21 @@
 import { createIVCVoice, createIVCVoiceSchema } from "@itsrose/elevenlabs";
 import type { FastifyInstance } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
-import { joinUrl, type RoutePrefix } from "../../prefix";
-import type { AudioRoutesOptions } from "../options";
 
 const DESCRIPTION = "Create a voice clone";
 
 /**
- * Registers `POST /create_clone_voice` under the prefix of the module.
+ * Registers `POST /create_clone_voice`.
  */
-export const registerCreateIvcVoiceRoute = (
-	fastify: FastifyInstance,
-	options: AudioRoutesOptions,
-	prefix: RoutePrefix
-): void => {
+export const registerCreateIvcVoiceRoute = (fastify: FastifyInstance): void => {
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "POST",
-		url: joinUrl(prefix, "/create_clone_voice"),
+		url: "/create_clone_voice",
 		schema: {
 			tags: ["Audio"],
 			summary: "Create Clone Voice",
-			description: options.descriptions?.createIvcVoice ?? DESCRIPTION,
-			consumes: options.consumes?.createIvcVoice ?? [
-				"multipart/form-data",
-			],
+			description: DESCRIPTION,
+			consumes: ["multipart/form-data"],
 			body: createIVCVoiceSchema.request,
 			response: {
 				200: createIVCVoiceSchema.response,

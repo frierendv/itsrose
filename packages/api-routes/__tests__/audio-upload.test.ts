@@ -11,7 +11,6 @@ const request = {} as FastifyRequest;
 const withPort = (
 	uploadBase64Audio: () => Promise<string>
 ): AudioRoutesOptions => ({
-	uploadAudioToStorage: true,
 	audioStorage: { uploadBase64Audio },
 	declareAudioResponseHeader: false,
 });
@@ -31,9 +30,8 @@ describe("audio upload conditions", () => {
 });
 
 describe("uploadAudio", () => {
-	it("returns the inline payload when the app does not upload", async () => {
+	it("returns the inline payload when the app provides no port", async () => {
 		const options: AudioRoutesOptions = {
-			uploadAudioToStorage: false,
 			declareAudioResponseHeader: false,
 		};
 

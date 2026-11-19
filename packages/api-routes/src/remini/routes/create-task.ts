@@ -1,26 +1,20 @@
 import { createTask, createTaskSchema } from "@itsrose/remini";
 import type { FastifyInstance } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
-import { joinUrl, type RoutePrefix } from "../../prefix";
-import type { ReminiRoutesOptions } from "../options";
 
 const DESCRIPTION = "Create remini image enhance task";
 
 /**
- * Registers `POST /create_task` under the prefix of the module.
+ * Registers `POST /create_task`.
  */
-export const registerCreateTaskRoute = (
-	fastify: FastifyInstance,
-	options: ReminiRoutesOptions,
-	prefix: RoutePrefix
-): void => {
+export const registerCreateTaskRoute = (fastify: FastifyInstance): void => {
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "POST",
-		url: joinUrl(prefix, "/create_task"),
+		url: "/create_task",
 		schema: {
 			tags: ["Remini"],
 			summary: "Create Task",
-			description: options.descriptions?.createTask ?? DESCRIPTION,
+			description: DESCRIPTION,
 			body: createTaskSchema.request,
 			response: {
 				200: createTaskSchema.response,

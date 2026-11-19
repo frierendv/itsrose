@@ -4,8 +4,8 @@ import {
 	createSerializerCompiler,
 	validatorCompiler,
 } from "fastify-zod-openapi";
-import { mtxxRoutes } from "../src/mtxx";
-import { pixverseRoutes } from "../src/pixverse";
+import { MTXX_ROUTE_PREFIX, mtxxRoutes } from "../src/mtxx";
+import { PIXVERSE_ROUTE_PREFIX, pixverseRoutes } from "../src/pixverse";
 
 interface CapturedRoute {
 	method: string;
@@ -65,8 +65,10 @@ const capture = async (
 describe("the route config of a module", () => {
 	it("leaves task polling free but bounded", async () => {
 		const routes = await capture(async (app) => {
-			await app.register(mtxxRoutes, {});
-			await app.register(pixverseRoutes, {});
+			await app.register(mtxxRoutes, { prefix: MTXX_ROUTE_PREFIX });
+			await app.register(pixverseRoutes, {
+				prefix: PIXVERSE_ROUTE_PREFIX,
+			});
 		});
 
 		for (const url of ["/mtxx/get_task", "/pixverse/get_task"]) {

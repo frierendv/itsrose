@@ -1,27 +1,26 @@
 import { FailureResponse, SuccessResponse } from "@itsrose/api-response";
-import Fastify, { type FastifyInstance } from "fastify";
+import Fastify from "fastify";
 import {
 	createSerializerCompiler,
 	validatorCompiler,
 } from "fastify-zod-openapi";
-import {
-	apiErrorHandler,
-	claimRoutePrefix,
-	joinUrl,
-	registerRouteModule,
-	resolvePrefix,
-} from "../src";
-import { instagramRoutes } from "../src/instagram";
+import { apiErrorHandler, ROUTE_MODULE_PREFIXES } from "../src";
+import { INSTAGRAM_ROUTE_PREFIX, instagramRoutes } from "../src/instagram";
 
 describe("the package entry point", () => {
-	it("holds nothing but the pieces every application needs", () => {
-		expect(resolvePrefix(undefined, "/audio")).toBe("/audio");
-		expect(joinUrl("/audio", "/text_to_speech")).toBe(
-			"/audio/text_to_speech"
-		);
+	it("holds the namespace registry and no feature client", () => {
+		expect(ROUTE_MODULE_PREFIXES).toEqual({
+			audio: "/audio",
+			"character-ai": "/character_ai",
+			instagram: "/instagram",
+			mtxx: "/mtxx",
+			pixverse: "/pixverse",
+			remini: "/remini",
+			tiktok: "/tiktok",
+		});
 	});
 
-	it("registers a module through the shared helper", async () => {
+	it("registers a module directly with the prefix of the app", async () => {
 		const urls: string[] = [];
 		const app = Fastify();
 
@@ -46,17 +45,12 @@ describe("the package entry point", () => {
 			urls.push(routeOptions.url);
 		});
 
-		await registerRouteModule(app, instagramRoutes, {});
+		await app.register(instagramRoutes, {
+			prefix: INSTAGRAM_ROUTE_PREFIX,
+		});
 		await app.ready();
 
 		expect(urls).toContain("/instagram/get_media");
-		await app.close();
-	});
-
-	it("claims a prefix per application", async () => {
-		const app: FastifyInstance = Fastify();
-
-		expect(claimRoutePrefix(app, "/audio", "audio")).toBe("/audio");
 		await app.close();
 	});
 

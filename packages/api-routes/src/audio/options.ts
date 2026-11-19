@@ -1,9 +1,5 @@
 import { ELEVENLABS_ENV, ELEVENLABS_ENV_KEYS } from "@itsrose/elevenlabs/env";
-import {
-	ROUTE_MODULE_PREFIXES,
-	type AudioStorageOptions,
-	type RouteModuleOptions,
-} from "../options";
+import { ROUTE_MODULE_PREFIXES, type AudioStoragePort } from "../options";
 
 /**
  * A environment variable needed by this route.
@@ -33,22 +29,36 @@ export const AUDIO_ROUTE_KEYS = [
 export type AudioRouteKey = (typeof AUDIO_ROUTE_KEYS)[number];
 
 /**
- * The default URL namespace of the audio routes.
+ * The URL namespace of the audio routes.
+ *
+ * The module itself does not read it: the mounting application registers the
+ * module under this prefix.
  */
 export const AUDIO_ROUTE_PREFIX = ROUTE_MODULE_PREFIXES["audio"];
 
 /**
  * The options the audio route module is registered with.
+ *
+ * The audio routes are the only module with host-injected capabilities: they
+ * may declare the audio format header and may hand the generated audio to the
+ * host's storage port.
  */
-export type AudioRoutesOptions = RouteModuleOptions<AudioRouteKey> &
-	AudioStorageOptions & {
-		/**
-		 * Whether the `response-audio-format` request header is declared on the
-		 * audio routes.
-		 *
-		 * Declaring the header documents it in OpenAPI and makes Fastify validate
-		 * the incoming header value. An app that does not declare it must not
-		 * have the key present in the route schema at all.
-		 */
-		declareAudioResponseHeader: boolean;
-	};
+export type AudioRoutesOptions = {
+	/**
+	 * Whether the `response-audio-format` request header is declared on the
+	 * audio routes.
+	 *
+	 * Declaring the header documents it in OpenAPI and makes Fastify validate
+	 * the incoming header value. An app that does not declare it must not
+	 * have the key present in the route schema at all.
+	 */
+	declareAudioResponseHeader: boolean;
+
+	/**
+	 * Stores generated audio and returns the URL it can be fetched from.
+	 *
+	 * Omitted, the routes return the payload inline - the internal API and
+	 * the tests do not need object storage.
+	 */
+	audioStorage?: AudioStoragePort;
+};

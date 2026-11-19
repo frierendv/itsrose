@@ -1,5 +1,5 @@
 import { TIKTOK_ENV_KEYS } from "@itsrose/tiktok/env";
-import { ROUTE_MODULE_PREFIXES, type RouteModuleOptions } from "../options";
+import { ROUTE_MODULE_PREFIXES } from "../options";
 
 /**
  * A environment variable needed by this route.
@@ -16,11 +16,9 @@ export const TIKTOK_ROUTE_KEYS = ["getContent"] as const;
 export type TiktokRouteKey = (typeof TIKTOK_ROUTE_KEYS)[number];
 
 /**
- * The default URL namespace of the tiktok routes.
+ * The URL namespace of the tiktok routes.
+ *
+ * The module itself does not read it: the mounting application registers the
+ * module under this prefix.
  */
 export const TIKTOK_ROUTE_PREFIX = ROUTE_MODULE_PREFIXES["tiktok"];
-
-/**
- * The options the tiktok route module is registered with.
- */
-export type TiktokRoutesOptions = RouteModuleOptions<TiktokRouteKey>;

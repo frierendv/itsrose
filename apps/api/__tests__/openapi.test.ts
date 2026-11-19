@@ -4,35 +4,7 @@ import {
 	createSerializerCompiler,
 	validatorCompiler,
 } from "fastify-zod-openapi";
-import { vi } from "vitest";
-
-/**
- * The feature clients read their credentials from the environment when they
- * are imported, and the route modules import them. The values are never used,
- * and `vi.stubEnv` keeps the test from touching the real environment.
- */
-const ROUTE_ENV: Record<string, string> = {
-	CAI_USER_TOKEN: "test-cai-user-token",
-	CAI_NEO_BASE_URL: "https://character-ai.test",
-	ELEVENLABS_API_KEY: "test-elevenlabs-key",
-	MTXX_APP_VERSION: "1.0.0",
-	MTXX_SDK_BASE_URL: "https://mtxx-sdk.test",
-	MTXX_OPENAPI_BASE_URL: "https://mtxx-openapi.test",
-	MTXX_KEY: "test-mtxx-key",
-	MTXX_SECRET: "test-mtxx-secret",
-	PIXVERSE_API_KEY: "test-pixverse-key",
-	PIXVERSE_BASE_URL: "https://pixverse.test",
-	REMINI_API_BASE_URL: "https://remini-api.test",
-	REMINI_WSS_BASE_URL: "wss://remini-wss.test",
-	TIKTOK_TIKWM_BASE_URL: "https://tikwm.test",
-	TIKTOK_TIKWM_APIKEY: "test-tikwm-key",
-};
-
-const stubRouteEnv = (): void => {
-	for (const [key, value] of Object.entries(ROUTE_ENV)) {
-		vi.stubEnv(key, value);
-	}
-};
+import { stubRouteEnv, unstubRouteEnv } from "./route-env";
 
 interface OperationObject {
 	description?: string;
@@ -75,7 +47,6 @@ describe("the public OpenAPI document", () => {
 
 		await app.register(audioRoutes, {
 			prefix: "/audio",
-			uploadAudioToStorage: false,
 			declareAudioResponseHeader: true,
 		});
 		await app.register(mtxxRoutes, { prefix: "/mtxx" });
@@ -100,6 +71,6 @@ describe("the public OpenAPI document", () => {
 		).toContain("Hair types");
 
 		await app.close();
-		vi.unstubAllEnvs();
+		unstubRouteEnv();
 	});
 });

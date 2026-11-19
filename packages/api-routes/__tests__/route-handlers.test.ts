@@ -4,13 +4,16 @@ import {
 	createSerializerCompiler,
 	validatorCompiler,
 } from "fastify-zod-openapi";
-import { audioRoutes } from "../src/audio";
-import { characterAiRoutes } from "../src/character-ai";
-import { instagramRoutes } from "../src/instagram";
-import { mtxxRoutes } from "../src/mtxx";
-import { pixverseRoutes } from "../src/pixverse";
-import { reminiRoutes } from "../src/remini";
-import { tiktokRoutes } from "../src/tiktok";
+import { AUDIO_ROUTE_PREFIX, audioRoutes } from "../src/audio";
+import {
+	CHARACTER_AI_ROUTE_PREFIX,
+	characterAiRoutes,
+} from "../src/character-ai";
+import { INSTAGRAM_ROUTE_PREFIX, instagramRoutes } from "../src/instagram";
+import { MTXX_ROUTE_PREFIX, mtxxRoutes } from "../src/mtxx";
+import { PIXVERSE_ROUTE_PREFIX, pixverseRoutes } from "../src/pixverse";
+import { REMINI_ROUTE_PREFIX, reminiRoutes } from "../src/remini";
+import { TIKTOK_ROUTE_PREFIX, tiktokRoutes } from "../src/tiktok";
 
 const IMAGE =
 	"https://assets.itsrose.net/public-resource/girl-in-red-dress.jpg";
@@ -36,15 +39,19 @@ const build = async (): Promise<FastifyInstance> => {
 	);
 
 	await app.register(audioRoutes, {
-		uploadAudioToStorage: false,
+		prefix: AUDIO_ROUTE_PREFIX,
 		declareAudioResponseHeader: false,
 	});
-	await app.register(characterAiRoutes, {});
-	await app.register(instagramRoutes, {});
-	await app.register(mtxxRoutes, {});
-	await app.register(pixverseRoutes, {});
-	await app.register(reminiRoutes, {});
-	await app.register(tiktokRoutes, {});
+	await app.register(characterAiRoutes, {
+		prefix: CHARACTER_AI_ROUTE_PREFIX,
+	});
+	await app.register(instagramRoutes, {
+		prefix: INSTAGRAM_ROUTE_PREFIX,
+	});
+	await app.register(mtxxRoutes, { prefix: MTXX_ROUTE_PREFIX });
+	await app.register(pixverseRoutes, { prefix: PIXVERSE_ROUTE_PREFIX });
+	await app.register(reminiRoutes, { prefix: REMINI_ROUTE_PREFIX });
+	await app.register(tiktokRoutes, { prefix: TIKTOK_ROUTE_PREFIX });
 	await app.ready();
 
 	return app;

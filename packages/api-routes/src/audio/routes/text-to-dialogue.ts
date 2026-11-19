@@ -5,7 +5,6 @@ import {
 } from "@itsrose/elevenlabs";
 import type { FastifyInstance } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
-import { joinUrl, type RoutePrefix } from "../../prefix";
 import { withAudioResponseHeader } from "../../schema";
 import type { AudioRoutesOptions } from "../options";
 import { uploadAudio, uploadWhenUrlRequested } from "../upload";
@@ -19,22 +18,20 @@ Example Output:
 `;
 
 /**
- * Registers `POST /text_to_dialogue` under the prefix of the module.
+ * Registers `POST /text_to_dialogue`.
  */
 export const registerTextToDialogueRoute = (
 	fastify: FastifyInstance,
-	options: AudioRoutesOptions,
-	prefix: RoutePrefix
+	options: AudioRoutesOptions
 ): void => {
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "POST",
-		url: joinUrl(prefix, "/text_to_dialogue"),
+		url: "/text_to_dialogue",
 		schema: withAudioResponseHeader(
 			{
 				tags: ["Audio"],
 				summary: "Text to Dialogue",
-				description:
-					options.descriptions?.textToDialogue ?? DESCRIPTION,
+				description: DESCRIPTION,
 				body: textToDialogueSchema.request,
 				headers: ElevenLabsSharedResponseAudioSchema,
 				response: {

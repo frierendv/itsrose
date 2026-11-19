@@ -7,7 +7,6 @@ import {
 } from "@itsrose/elevenlabs";
 import type { FastifyInstance } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
-import { joinUrl, type RoutePrefix } from "../../prefix";
 import { withAudioResponseHeader } from "../../schema";
 import type { AudioRoutesOptions } from "../options";
 import { uploadAudio, uploadWhenUrlRequested } from "../upload";
@@ -17,22 +16,20 @@ const TIMING_DESCRIPTION =
 	"Generate speech from text with precise character-level timing information for audio-text synchronization.";
 
 /**
- * Registers `POST /text_to_speech` and `POST /text_to_speech/with_timestamp`
- * under the prefix of the module.
+ * Registers `POST /text_to_speech` and `POST /text_to_speech/with_timestamp`.
  */
 export const registerTextToSpeechRoutes = (
 	fastify: FastifyInstance,
-	options: AudioRoutesOptions,
-	prefix: RoutePrefix
+	options: AudioRoutesOptions
 ): void => {
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "POST",
-		url: joinUrl(prefix, "/text_to_speech"),
+		url: "/text_to_speech",
 		schema: withAudioResponseHeader(
 			{
 				tags: ["Audio"],
 				summary: "Text to Speech",
-				description: options.descriptions?.textToSpeech ?? DESCRIPTION,
+				description: DESCRIPTION,
 				body: textToSpeechSchema.request,
 				headers: ElevenLabsSharedResponseAudioSchema,
 				response: {
@@ -58,13 +55,11 @@ export const registerTextToSpeechRoutes = (
 
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "POST",
-		url: joinUrl(prefix, "/text_to_speech/with_timestamp"),
+		url: "/text_to_speech/with_timestamp",
 		schema: {
 			tags: ["Audio"],
 			summary: "Text to Speech with timing",
-			description:
-				options.descriptions?.textToSpeechWithTiming ??
-				TIMING_DESCRIPTION,
+			description: TIMING_DESCRIPTION,
 			body: textToSpeechSchema.request,
 			response: {
 				200: WithTimestampSchema.extend(

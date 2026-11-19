@@ -1,22 +1,16 @@
 import { getTask, getTaskSchema } from "@itsrose/mtxx";
 import type { FastifyInstance } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
-import { joinUrl, type RoutePrefix } from "../../prefix";
-import type { MtxxRoutesOptions } from "../options";
 
 const DESCRIPTION = "Query sync task";
 
 /**
- * Registers `GET /get_task` under the prefix of the module.
+ * Registers `GET /get_task`.
  */
-export const registerGetTaskRoute = (
-	fastify: FastifyInstance,
-	options: MtxxRoutesOptions,
-	prefix: RoutePrefix
-): void => {
+export const registerGetTaskRoute = (fastify: FastifyInstance): void => {
 	void fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>().route({
 		method: "GET",
-		url: joinUrl(prefix, "/get_task"),
+		url: "/get_task",
 		config: {
 			// Polling is free: it never consumes plan quota, but it stays
 			// bounded so one key cannot hammer the upstream.
@@ -26,7 +20,7 @@ export const registerGetTaskRoute = (
 		schema: {
 			tags: ["Mtxx"],
 			summary: "Get task",
-			description: options.descriptions?.getTask ?? DESCRIPTION,
+			description: DESCRIPTION,
 			querystring: getTaskSchema.request,
 			response: {
 				200: getTaskSchema.response,

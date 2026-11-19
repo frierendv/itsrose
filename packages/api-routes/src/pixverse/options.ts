@@ -1,5 +1,5 @@
 import { PIXVERSE_ENV_KEYS } from "@itsrose/pixverse/env";
-import { ROUTE_MODULE_PREFIXES, type RouteModuleOptions } from "../options";
+import { ROUTE_MODULE_PREFIXES } from "../options";
 
 /**
  * A environment variable needed by this route.
@@ -21,11 +21,9 @@ export const PIXVERSE_ROUTE_KEYS = [
 export type PixverseRouteKey = (typeof PIXVERSE_ROUTE_KEYS)[number];
 
 /**
- * The default URL namespace of the pixverse routes.
+ * The URL namespace of the pixverse routes.
+ *
+ * The module itself does not read it: the mounting application registers the
+ * module under this prefix.
  */
 export const PIXVERSE_ROUTE_PREFIX = ROUTE_MODULE_PREFIXES["pixverse"];
-
-/**
- * The options the pixverse route module is registered with.
- */
-export type PixverseRoutesOptions = RouteModuleOptions<PixverseRouteKey>;

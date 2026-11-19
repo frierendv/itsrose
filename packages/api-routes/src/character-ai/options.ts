@@ -1,5 +1,5 @@
 import { CHARACTER_AI_ENV_KEYS } from "@itsrose/character-ai/env";
-import { ROUTE_MODULE_PREFIXES, type RouteModuleOptions } from "../options";
+import { ROUTE_MODULE_PREFIXES } from "../options";
 
 /**
  * A environment variable needed by this route.
@@ -20,11 +20,9 @@ export const CHARACTER_AI_ROUTE_KEYS = [
 export type CharacterAiRouteKey = (typeof CHARACTER_AI_ROUTE_KEYS)[number];
 
 /**
- * The default URL namespace of the character.ai routes.
+ * The URL namespace of the character.ai routes.
+ *
+ * The module itself does not read it: the mounting application registers the
+ * module under this prefix.
  */
 export const CHARACTER_AI_ROUTE_PREFIX = ROUTE_MODULE_PREFIXES["character-ai"];
-
-/**
- * The options the character.ai route module is registered with.
- */
-export type CharacterAiRoutesOptions = RouteModuleOptions<CharacterAiRouteKey>;
