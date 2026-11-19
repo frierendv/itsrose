@@ -83,4 +83,10 @@
   No sweeper exists yet, so a tombstone written before the object delete would
   free the bytes and leave an object nothing retries; object-first keeps a
   failed delete retryable and the row live until the bytes are gone. Account
-  deletion still purges both roots and the rows.
+  deletion now purges both roots and the rows too
+  (`purgeUserDurableAssets` in `packages/auth/storage/src/purge.ts`): the
+  `assets/users/{userId}/` object purge runs first, the one `deleteMany` on
+  `asset_registry` runs only when that purge reports no errors, and an
+  incomplete object purge keeps the rows as the retry manifest while the auth
+  hook logs the failure at error level instead of swallowing it. Ephemeral
+  failures stay best-effort.
