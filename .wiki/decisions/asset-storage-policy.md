@@ -70,3 +70,13 @@
 - The dashboard never imports `@itsrose/s3`; asset endpoints are session-only
   and hidden from the public OpenAPI document (D4).
 - The storage cap is synchronous; no background job is introduced.
+
+## Amendments
+
+- **2026-11-19 — deletion order.** The shipped service
+  (`packages/auth/storage/src/application/assets.ts`, `4880603`) deletes the
+  object first and soft-deletes the row second, not the row-first order above.
+  No sweeper exists yet, so a tombstone written before the object delete would
+  free the bytes and leave an object nothing retries; object-first keeps a
+  failed delete retryable and the row live until the bytes are gone. Account
+  deletion still purges both roots and the rows.

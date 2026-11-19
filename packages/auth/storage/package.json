@@ -39,7 +39,8 @@
 		"./types": "./src/types.ts",
 		"./package.json": "./package.json",
 		"./assets": "./src/application/assets.ts",
-		"./plugin": "./src/plugin-server.ts"
+		"./plugin": "./src/plugin-server.ts",
+		"./registry": "./src/adapter/postgres.ts"
 	},
 	"scripts": {
 		"build": "tsdown",
@@ -71,7 +72,8 @@
 			"./types": "./dist/types.mjs",
 			"./package.json": "./package.json",
 			"./assets": "./dist/application/assets.mjs",
-			"./plugin": "./dist/plugin-server.mjs"
+			"./plugin": "./dist/plugin-server.mjs",
+			"./registry": "./dist/adapter/postgres.mjs"
 		}
 	}
 }
