@@ -300,17 +300,17 @@ describe("the route modules", () => {
 		});
 		expect(
 			find(defaults, "/audio/create_clone_voice").schema.consumes
-		).toEqual(["application/json"]);
+		).toEqual(["multipart/form-data"]);
 
-		const multipart = await capture(async (app) => {
+		const json = await capture(async (app) => {
 			await app.register(audioRoutes, {
 				...AUDIO_OPTIONS,
-				consumes: { createIvcVoice: ["multipart/form-data"] },
+				consumes: { createIvcVoice: ["application/json"] },
 			});
 		});
-		expect(
-			find(multipart, "/audio/create_clone_voice").schema.consumes
-		).toEqual(["multipart/form-data"]);
+		expect(find(json, "/audio/create_clone_voice").schema.consumes).toEqual(
+			["application/json"]
+		);
 
 		expect(find(defaults, "/audio/music_compose").schema.consumes).toEqual([
 			"application/json",
@@ -326,7 +326,7 @@ describe("the route modules", () => {
 		});
 		expect(
 			find(defaults, "/audio/text_to_dialogue").schema.description
-		).toBe("Convert text to dialogue.");
+		).toContain("text_to_dialogue-output.wav");
 		expect(find(defaults, "/audio/get_models").schema.description).toBe(
 			"Get available models"
 		);
@@ -343,6 +343,25 @@ describe("the route modules", () => {
 		expect(find(described, "/audio/get_models").schema.description).toBe(
 			"Get available models"
 		);
+	});
+
+	it("publishes the mtxx examples without an app override", async () => {
+		const routes = await capture(async (app) => {
+			await app.register(mtxxRoutes, {});
+		});
+
+		expect(
+			find(routes, "/mtxx/clothes_segmentation").schema.description
+		).toContain("Segmentation Mask");
+		expect(
+			find(routes, "/mtxx/expression_generation").schema.description
+		).toContain("Smile mode 0");
+		expect(find(routes, "/mtxx/outpainting").schema.description).toContain(
+			"120% of original"
+		);
+		expect(
+			find(routes, "/mtxx/versatile_hairstyle").schema.description
+		).toContain("Hair types");
 	});
 
 	it("keeps the description of a route of another package out of reach", async () => {

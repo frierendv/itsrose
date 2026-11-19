@@ -21,7 +21,9 @@ export const registerCreateIvcVoiceRoute = (
 			tags: ["Audio"],
 			summary: "Create Clone Voice",
 			description: options.descriptions?.createIvcVoice ?? DESCRIPTION,
-			consumes: options.consumes?.createIvcVoice ?? ["application/json"],
+			consumes: options.consumes?.createIvcVoice ?? [
+				"multipart/form-data",
+			],
 			body: createIVCVoiceSchema.request,
 			response: {
 				200: createIVCVoiceSchema.response,

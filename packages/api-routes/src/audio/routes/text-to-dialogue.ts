@@ -10,7 +10,13 @@ import { withAudioResponseHeader } from "../../schema";
 import type { AudioRoutesOptions } from "../options";
 import { uploadAudio, uploadWhenUrlRequested } from "../upload";
 
-const DESCRIPTION = "Convert text to dialogue.";
+const DESCRIPTION = `Convert text to dialogue.
+
+Example Output:
+
+- [English](https://assets.itsrose.net/public-resource/text_to_dialogue-output.wav) Three people talking
+- [Indonesian](https://assets.itsrose.net/public-resource/text_to_dialogue-output-ID.wav) Two people talking
+`;
 
 /**
  * Registers `POST /text_to_dialogue` under the prefix of the module.

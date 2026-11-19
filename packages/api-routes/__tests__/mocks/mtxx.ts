@@ -78,6 +78,15 @@ export const versatileHairstyleSchema: {
 	response: SharedResponseSchema,
 };
 
+/**
+ * The generated hair-type table the route embeds in its description.
+ *
+ * The real helper renders a long markdown table; the stub only has to prove
+ * the route embeds the output.
+ */
+export const versatileHairstyleCreateDescription = (): string =>
+	"- 0: ponytail\n- 1: bob";
+
 export const getTask = async () => RESPONSE;
 export const getTaskSchema: {
 	request: typeof GetTaskSchema;

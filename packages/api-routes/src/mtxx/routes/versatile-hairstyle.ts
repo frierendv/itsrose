@@ -1,11 +1,30 @@
-import { versatileHairstyle, versatileHairstyleSchema } from "@itsrose/mtxx";
+import {
+	versatileHairstyle,
+	versatileHairstyleCreateDescription,
+	versatileHairstyleSchema,
+} from "@itsrose/mtxx";
 import type { FastifyInstance } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
 import { joinUrl, type RoutePrefix } from "../../prefix";
 import type { MtxxRoutesOptions } from "../options";
 
-const DESCRIPTION =
-	"Versatile Hairstyle is a hairstyle that can be adapted to different occasions and styles.";
+const DESCRIPTION = `
+Versatile Hairstyle is a hairstyle that can be adapted to different occasions and styles.
+
+<details>
+	<summary>Example</summary>
+
+| Original Image | Result Image |
+|----------------|--------------------|
+| ![Original Image](https://assets.itsrose.net/public-resource/girl-in-red-dress.jpg) | ![Versatile Hairstyle](https://assets.itsrose.net/public-resource/girl-in-red-dress_hair_type_0.jpg) |
+| **Original** | **Hair type 0** |
+
+</details>
+
+<details>
+	<summary>Hair types</summary>
+${versatileHairstyleCreateDescription()}
+</details>`;
 
 /**
  * Registers `POST /versatile_hairstyle` under the prefix of the module.
