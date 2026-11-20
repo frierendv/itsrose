@@ -5,6 +5,7 @@ import { itsRosePlugin } from "@itsrose/auth-billing/plugin-server";
 import { mailerPlugin } from "@itsrose/auth-mailer/plugin";
 import { storagePlugin } from "@itsrose/auth-storage/plugin";
 import { storageSchemaPlugin } from "@itsrose/auth-storage/schema";
+import { studioSchemaPlugin } from "@itsrose/auth-studio/schema";
 import { usageSchemaPlugin } from "@itsrose/auth-usage/schema";
 import {
 	admin,
@@ -127,10 +128,11 @@ export default function (env = process.env as AuthEnv) {
 		}),
 		itsRosePlugin(),
 		storagePlugin(),
-		// Schema only: the transport plugin is registered by the host app, so
-		// this registration is what makes the usage and asset tables part of
-		// db:generate.
+		// Schema only: the transport plugins are registered by the host app, so
+		// these registrations are what make the usage, asset and
+		// provider-resource tables part of db:generate.
 		usageSchemaPlugin,
 		storageSchemaPlugin,
+		studioSchemaPlugin,
 	];
 }

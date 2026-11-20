@@ -48,6 +48,7 @@
 		"@itsrose/auth-billing": "workspace:*",
 		"@itsrose/auth-mailer": "workspace:*",
 		"@itsrose/auth-storage": "workspace:*",
+		"@itsrose/auth-studio": "workspace:*",
 		"@itsrose/auth-usage": "workspace:*",
 		"@itsrose/system": "workspace:*",
 		"better-auth": "catalog:",

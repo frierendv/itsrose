@@ -591,6 +591,9 @@ importers:
       '@itsrose/auth-storage':
         specifier: workspace:*
         version: link:../storage
+      '@itsrose/auth-studio':
+        specifier: workspace:*
+        version: link:../studio
       '@itsrose/auth-usage':
         specifier: workspace:*
         version: link:../usage
@@ -662,6 +665,16 @@ importers:
       zod:
         specifier: 'catalog:'
         version: 4.6.7
+    devDependencies:
+      '@itsrose/standard':
+        specifier: workspace:*
+        version: link:../../standard
+
+  packages/auth/studio:
+    dependencies:
+      better-auth:
+        specifier: 'catalog:'
+        version: 1.7.23(next@16.4.6(@babel/core@7.29.13(supports-color@8.1.1))(@types/node@26.6.6)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(pg@8.23.1)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(solid-js@1.9.19)(vitest@5.1.0)
     devDependencies:
       '@itsrose/standard':
         specifier: workspace:*

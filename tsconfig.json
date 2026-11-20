@@ -18,6 +18,9 @@
 			"path": "packages/auth/storage"
 		},
 		{
+			"path": "packages/auth/studio"
+		},
+		{
 			"path": "packages/auth/usage"
 		},
 		{

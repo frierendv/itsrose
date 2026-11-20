@@ -71,6 +71,18 @@ const workspaceAliases = [
 		replacement: repo("packages/auth/storage/src/adapter/postgres.ts"),
 	},
 	{
+		find: "@itsrose/auth-studio/registry",
+		replacement: repo("packages/auth/studio/src/adapter/postgres.ts"),
+	},
+	{
+		find: "@itsrose/auth-studio/schema",
+		replacement: repo("packages/auth/studio/src/schema/index.ts"),
+	},
+	{
+		find: "@itsrose/auth-studio/voices",
+		replacement: repo("packages/auth/studio/src/application/voices.ts"),
+	},
+	{
 		find: "@itsrose/react/itsrose",
 		replacement: repo("packages/react/src/components/itsrose"),
 	},
@@ -146,6 +158,10 @@ const workspaceAliases = [
 	{
 		find: "@itsrose/auth-storage",
 		replacement: repo("packages/auth/storage/src"),
+	},
+	{
+		find: "@itsrose/auth-studio",
+		replacement: repo("packages/auth/studio/src"),
 	},
 	{
 		find: "@itsrose/auth-usage",
