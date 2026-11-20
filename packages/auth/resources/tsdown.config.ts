@@ -6,13 +6,21 @@ export default defineConfig({
 	failOnWarn: false,
 	exports: {
 		...(typeof config.exports === "object" ? config.exports : {}),
-		// The application service and the Postgres adapter are grouped under
+		// The application services and the Postgres adapter are grouped under
 		// `src/application/` and `src/adapter/`, but their public subpaths are
-		// the short `@itsrose/auth-resources/voices` and
+		// the short `@itsrose/auth-resources/generations`,
+		// `@itsrose/auth-resources/voices` and
 		// `@itsrose/auth-resources/registry`.
-		exclude: ["application/voices", "adapter/postgres"],
+		exclude: [
+			"application/generations",
+			"application/voices",
+			"adapter/postgres",
+		],
 		customExports: (exports, { isPublish }) => ({
 			...exports,
+			"./generations": isPublish
+				? "./dist/application/generations.mjs"
+				: "./src/application/generations.ts",
 			"./registry": isPublish
 				? "./dist/adapter/postgres.mjs"
 				: "./src/adapter/postgres.ts",
@@ -34,6 +42,7 @@ export default defineConfig({
 	entry: [
 		"src/index.ts",
 		"src/adapter/postgres.ts",
+		"src/application/generations.ts",
 		"src/application/voices.ts",
 		"src/plugin-server.ts",
 		"src/schema/index.ts",

@@ -71,6 +71,12 @@ const workspaceAliases = [
 		replacement: repo("packages/auth/storage/src/adapter/postgres.ts"),
 	},
 	{
+		find: "@itsrose/auth-resources/generations",
+		replacement: repo(
+			"packages/auth/resources/src/application/generations.ts"
+		),
+	},
+	{
 		find: "@itsrose/auth-resources/plugin",
 		replacement: repo("packages/auth/resources/src/plugin-server.ts"),
 	},
