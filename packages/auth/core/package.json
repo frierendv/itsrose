@@ -47,6 +47,7 @@
 		"@better-auth/passkey": "^1.7.19",
 		"@itsrose/auth-billing": "workspace:*",
 		"@itsrose/auth-mailer": "workspace:*",
+		"@itsrose/auth-resources": "workspace:*",
 		"@itsrose/auth-storage": "workspace:*",
 		"@itsrose/auth-usage": "workspace:*",
 		"@itsrose/system": "workspace:*",

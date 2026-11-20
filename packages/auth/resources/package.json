@@ -1,0 +1,62 @@
+{
+	"name": "@itsrose/auth-resources",
+	"version": "1.0.0",
+	"author": "FrierenDv",
+	"private": true,
+	"type": "module",
+	"license": "MIT",
+	"description": "User-owned upstream provider resource registry and voice ledger for ItsRose.",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/frierendv/itsrose.git",
+		"directory": "packages/auth/resources"
+	},
+	"bugs": "https://github.com/frierendv/itsrose/issues",
+	"homepage": "https://github.com/frierendv/itsrose#readme",
+	"main": "./dist/index.mjs",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"files": [
+		"dist",
+		"src"
+	],
+	"keywords": [
+		"auth",
+		"better-auth",
+		"itsrose",
+		"provider-resources",
+		"voice"
+	],
+	"exports": {
+		".": "./src/index.ts",
+		"./schema": "./src/schema/index.ts",
+		"./types": "./src/types.ts",
+		"./package.json": "./package.json",
+		"./registry": "./src/adapter/postgres.ts",
+		"./voices": "./src/application/voices.ts"
+	},
+	"scripts": {
+		"build": "tsdown",
+		"build:fast": "tsdown src",
+		"clean": "rimraf dist .sonda",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"better-auth": "catalog:"
+	},
+	"devDependencies": {
+		"@itsrose/standard": "workspace:*"
+	},
+	"publishConfig": {
+		"exports": {
+			".": "./dist/index.mjs",
+			"./schema": "./dist/schema/index.mjs",
+			"./types": "./dist/types.mjs",
+			"./package.json": "./package.json",
+			"./registry": "./dist/adapter/postgres.mjs",
+			"./voices": "./dist/application/voices.mjs"
+		}
+	}
+}
