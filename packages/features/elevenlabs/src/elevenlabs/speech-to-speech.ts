@@ -2,7 +2,8 @@ import { SharedFileBufferSchema } from "@itsrose/shared-schema";
 import { ThirdPartyApiError } from "@itsrose/system";
 import { neverRetry, parseUpstreamPayload } from "@itsrose/upstream-client";
 import { z } from "zod/v4";
-import { assetClient, httpClient } from "../client";
+import { downloadRemoteMedia, httpClient } from "../client";
+import { assertSafeRemoteMediaUrl } from "../utils";
 import {
 	ElevenLabsSharedResponseSchema,
 	ElevenLabsSpeechToSpeechConvertSchema,
@@ -12,14 +13,14 @@ import {
 
 async function getAudioBuffer(audio: Buffer | string): Promise<Buffer> {
 	if (typeof audio === "string") {
+		// A URL the guard refuses never reaches the network; its generic 400
+		// is what the caller sees.
+		const target = await assertSafeRemoteMediaUrl(audio);
 		try {
-			return await assetClient.send<Buffer>({
-				url: audio,
-				responseType: "arraybuffer",
-			});
+			return await downloadRemoteMedia(target);
 		} catch {
 			throw new ThirdPartyApiError(
-				`Failed to get audio from url ${audio}`,
+				"Failed to get audio from the provided URL.",
 				400
 			);
 		}

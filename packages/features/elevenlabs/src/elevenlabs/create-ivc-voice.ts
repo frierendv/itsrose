@@ -1,5 +1,6 @@
 import { neverRetry } from "@itsrose/upstream-client";
-import { assetClient, httpClient } from "../client";
+import { downloadRemoteMedia, httpClient } from "../client";
+import { assertSafeRemoteMediaUrl } from "../utils";
 import {
 	ElevenLabsCreateIVCVoiceResponseSchema,
 	ElevenLabsCreateIVCVoiceSchema,
@@ -8,10 +9,16 @@ import {
 } from "../zod-schema";
 
 const resolveAudioFiles = async (urls: string[], formData: FormData) => {
-	for await (const [index, url] of urls.entries()) {
-		const file = await assetClient
-			.send<Buffer>({ url, responseType: "arraybuffer" })
-			.catch(() => undefined);
+	// Every URL is validated before any of them is fetched. A refused URL
+	// aborts the call instead of being skipped: the caller must not be able to
+	// probe the network silently, and a clone must not be built from fewer
+	// samples than the caller asked for.
+	const targets = await Promise.all(
+		urls.map((url) => assertSafeRemoteMediaUrl(url))
+	);
+
+	for (const [index, target] of targets.entries()) {
+		const file = await downloadRemoteMedia(target).catch(() => undefined);
 		if (!file) {
 			continue;
 		}
