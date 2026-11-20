@@ -1,4 +1,5 @@
 import { deny } from "@/lib/auth";
+import { createSessionGuard } from "@/lib/session";
 import type { AssetRecord } from "@itsrose/auth-storage/types";
 import { tenantIdForUser } from "@itsrose/auth-usage/server";
 import type {
@@ -164,16 +165,6 @@ async function readUploadFile(
 /*                                 Responses                                  */
 /* -------------------------------------------------------------------------- */
 
-function denySession(reply: FastifyReply): FastifyReply {
-	return deny(reply, {
-		code: "UNAUTHORIZED",
-		message: "A dashboard session is required to use the asset library.",
-		errors: {
-			session: "Sign in to the dashboard and retry.",
-		},
-	});
-}
-
 function denyUpload(reply: FastifyReply): FastifyReply {
 	return deny(reply, {
 		code: "MISSING_REQUIRED_FIELD",
@@ -201,20 +192,10 @@ function denyUpload(reply: FastifyReply): FastifyReply {
 const assetsRoutes: FastifyPluginAsync = async (
 	fastify: FastifyInstance
 ): Promise<void> => {
-	const requireSession = async (
-		request: FastifyRequest,
-		reply: FastifyReply
-	): Promise<FastifyReply | void> => {
-		const session = await fastify.auth.api.getSession({
-			headers: request.headers as unknown as Headers,
-		});
-
-		if (!session?.user) {
-			return denySession(reply);
-		}
-
-		request.userId = session.user.id;
-	};
+	const session = createSessionGuard(
+		fastify.auth,
+		"A dashboard session is required to use the asset library."
+	);
 
 	const routes = fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>();
 
@@ -222,7 +203,7 @@ const assetsRoutes: FastifyPluginAsync = async (
 		method: "POST",
 		url: "/assets",
 		config: { authGuard: false },
-		preHandler: requireSession,
+		preHandler: session.preHandler,
 		// No body schema: the multipart parser consumes the request first and
 		// `keyValues` flattens it into a plain object.
 		schema: {
@@ -240,7 +221,7 @@ const assetsRoutes: FastifyPluginAsync = async (
 
 			const userId = request.userId;
 			if (!userId) {
-				return denySession(reply);
+				return session.deny(reply);
 			}
 
 			const asset = await fastify.assetService.upload({
@@ -266,7 +247,7 @@ const assetsRoutes: FastifyPluginAsync = async (
 		method: "POST",
 		url: "/assets/promote",
 		config: { authGuard: false },
-		preHandler: requireSession,
+		preHandler: session.preHandler,
 		schema: {
 			hide: true,
 			body: promoteBodySchema,
@@ -275,7 +256,7 @@ const assetsRoutes: FastifyPluginAsync = async (
 		handler: async (request, reply) => {
 			const userId = request.userId;
 			if (!userId) {
-				return denySession(reply);
+				return session.deny(reply);
 			}
 
 			const { source_key, kind, filename } = request.body;
@@ -296,7 +277,7 @@ const assetsRoutes: FastifyPluginAsync = async (
 		method: "GET",
 		url: "/assets",
 		config: { authGuard: false },
-		preHandler: requireSession,
+		preHandler: session.preHandler,
 		schema: {
 			hide: true,
 			querystring: listQuerySchema,
@@ -305,7 +286,7 @@ const assetsRoutes: FastifyPluginAsync = async (
 		handler: async (request, reply) => {
 			const userId = request.userId;
 			if (!userId) {
-				return denySession(reply);
+				return session.deny(reply);
 			}
 
 			const { limit, offset } = request.query;
@@ -327,7 +308,7 @@ const assetsRoutes: FastifyPluginAsync = async (
 		method: "GET",
 		url: "/assets/:asset_id/url",
 		config: { authGuard: false },
-		preHandler: requireSession,
+		preHandler: session.preHandler,
 		schema: {
 			hide: true,
 			params: assetParamsSchema,
@@ -336,7 +317,7 @@ const assetsRoutes: FastifyPluginAsync = async (
 		handler: async (request, reply) => {
 			const userId = request.userId;
 			if (!userId) {
-				return denySession(reply);
+				return session.deny(reply);
 			}
 
 			const assetUrl = await fastify.assetService.readUrl({
@@ -352,7 +333,7 @@ const assetsRoutes: FastifyPluginAsync = async (
 		method: "DELETE",
 		url: "/assets/:asset_id",
 		config: { authGuard: false },
-		preHandler: requireSession,
+		preHandler: session.preHandler,
 		schema: {
 			hide: true,
 			params: assetParamsSchema,
@@ -361,7 +342,7 @@ const assetsRoutes: FastifyPluginAsync = async (
 		handler: async (request, reply) => {
 			const userId = request.userId;
 			if (!userId) {
-				return denySession(reply);
+				return session.deny(reply);
 			}
 
 			const deleted = await fastify.assetService.remove({

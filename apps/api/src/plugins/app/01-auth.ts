@@ -16,8 +16,14 @@ import {
 	STANDARD_TIER_RATES,
 	type UserSubscription,
 } from "@itsrose/auth-billing";
-import { voicePurgePlugin } from "@itsrose/auth-resources/plugin";
-import { createPostgresProviderRegistry } from "@itsrose/auth-resources/registry";
+import {
+	generationPurgePlugin,
+	voicePurgePlugin,
+} from "@itsrose/auth-resources/plugin";
+import {
+	createPostgresGenerationRegistry,
+	createPostgresProviderRegistry,
+} from "@itsrose/auth-resources/registry";
 import { usagePlugin } from "@itsrose/auth-usage/plugin";
 import { createBetterAuthServer, type AuthServer } from "@itsrose/auth/server";
 import fp from "fastify-plugin";
@@ -72,6 +78,16 @@ export default fp(
 				voicePurgePlugin({
 					registry: createPostgresProviderRegistry(fastify.database),
 					provider: voiceProvider,
+					clock: () => new Date(),
+				}),
+				// Account deletion hard-deletes the user's generation
+				// history. The rows are a ledger, not a durable record: the
+				// objects were already covered by the storage purge, and the
+				// saved copies by the asset purge.
+				generationPurgePlugin({
+					registry: createPostgresGenerationRegistry(
+						fastify.database
+					),
 					clock: () => new Date(),
 				}),
 			],
