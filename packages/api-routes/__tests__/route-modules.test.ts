@@ -117,6 +117,7 @@ const AUDIO_OPTIONS = {
 
 const AUDIO_TABLE: Array<[string, string]> = [
 	["POST", "/audio/create_clone_voice"],
+	["DELETE", "/audio/voices/:voice_id"],
 	["GET", "/audio/get_models"],
 	["GET", "/audio/get_voices"],
 	["POST", "/audio/music_compose"],
@@ -310,6 +311,7 @@ describe("the route modules", () => {
 			"/audio/get_voices",
 			"/audio/music_compose_plan",
 			"/audio/text_to_speech/with_timestamp",
+			"/audio/voices/:voice_id",
 		]) {
 			expect(find(without, url).schema.headers).toBeUndefined();
 			expect(find(declared, url).schema.headers).toBeUndefined();

@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyPluginAsync } from "fastify";
 import { type AudioRoutesOptions } from "./options";
 import { registerCreateIvcVoiceRoute } from "./routes/create-ivc-voice";
+import { registerDeleteVoiceRoute } from "./routes/delete-voice";
 import { registerGetModelsRoute } from "./routes/get-models";
 import { registerGetVoicesRoute } from "./routes/get-voices";
 import { registerMusicRoutes } from "./routes/music";
@@ -23,9 +24,10 @@ export const audioRoutes: FastifyPluginAsync<AudioRoutesOptions> = async (
 	fastify: FastifyInstance,
 	options: AudioRoutesOptions
 ): Promise<void> => {
-	registerCreateIvcVoiceRoute(fastify);
+	registerCreateIvcVoiceRoute(fastify, options);
+	registerDeleteVoiceRoute(fastify, options);
 	registerGetModelsRoute(fastify);
-	registerGetVoicesRoute(fastify);
+	registerGetVoicesRoute(fastify, options);
 	registerMusicRoutes(fastify, options);
 	registerSpeechToSpeechRoute(fastify, options);
 	registerTextToDialogueRoute(fastify, options);
@@ -33,7 +35,13 @@ export const audioRoutes: FastifyPluginAsync<AudioRoutesOptions> = async (
 };
 
 export { AUDIO_ROUTE_KEYS, AUDIO_ROUTE_PREFIX } from "./options";
-export type { AudioRouteKey, AudioRoutesOptions } from "./options";
+export { VoiceAccessDeniedError, VoiceAccessUnavailableError } from "./options";
+export type {
+	AudioRouteKey,
+	AudioRoutesOptions,
+	ClonedVoice,
+	VoiceAccessPort,
+} from "./options";
 export {
 	uploadAudio,
 	uploadUnlessBase64,

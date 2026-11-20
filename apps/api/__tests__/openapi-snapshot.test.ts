@@ -22,6 +22,7 @@ const PUBLIC_PATHS = [
 	"/v1/audio/text_to_dialogue",
 	"/v1/audio/text_to_speech",
 	"/v1/audio/text_to_speech/with_timestamp",
+	"/v1/audio/voices/{voice_id}",
 	"/v1/character_ai/search_character",
 	"/v1/character_ai/send_message",
 	"/v1/character_ai/character_info",

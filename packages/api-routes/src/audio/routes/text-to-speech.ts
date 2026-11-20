@@ -10,6 +10,7 @@ import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
 import { withAudioResponseHeader } from "../../schema";
 import type { AudioRoutesOptions } from "../options";
 import { uploadAudio, uploadWhenUrlRequested } from "../upload";
+import { assertVoiceIdsAllowed } from "../voice-access";
 
 const DESCRIPTION = "Convert text to speech";
 const TIMING_DESCRIPTION =
@@ -39,6 +40,12 @@ export const registerTextToSpeechRoutes = (
 			options.declareAudioResponseHeader
 		),
 		handler: async (request) => {
+			// The ownership check runs before the upstream call, so a foreign
+			// voice never spends a generation. Without the port it is a no-op.
+			await assertVoiceIdsAllowed(options, request, [
+				request.body.voice_id,
+			]);
+
 			const response = await textToSpeech(request.body);
 
 			response.audio = await uploadAudio(
@@ -67,6 +74,13 @@ export const registerTextToSpeechRoutes = (
 				),
 			},
 		},
-		handler: async (request) => textToSpeechWithTiming(request.body),
+		handler: async (request) => {
+			// Same body as `/text_to_speech`, so the same ownership check.
+			await assertVoiceIdsAllowed(options, request, [
+				request.body.voice_id,
+			]);
+
+			return textToSpeechWithTiming(request.body);
+		},
 	});
 };

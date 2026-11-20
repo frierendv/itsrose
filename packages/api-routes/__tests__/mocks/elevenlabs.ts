@@ -20,14 +20,67 @@ import {
 	MusicComposePlanSchema,
 	MusicComposeSchema,
 	WithTimestampSchema,
+	type IElevenLabsCreateIVCVoiceResponse,
+	type IElevenLabsListVoicesResponse,
 } from "../../../features/elevenlabs/src/zod-schema";
 
 export { ElevenLabsSharedResponseAudioSchema, WithTimestampSchema };
 
-export const createIVCVoice = async () => ({
-	voice_id: "voice",
-	requires_verification: false,
-});
+/* -------------------------------------------------------------------------- */
+/*                              Controlled upstream                           */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * What the stubs answer, and which of them were called.
+ *
+ * A route test that asserts *whether* the route reached the client, or that
+ * needs a non-empty voice list, drives this state instead of re-mocking the
+ * module. `resetElevenLabsMock` restores the defaults; the suite has
+ * `clearMocks: false`, so a test must reset what it changed.
+ */
+const upstream: {
+	voices: IElevenLabsListVoicesResponse["voices"];
+	createError: Error | null;
+	calls: string[];
+} = {
+	voices: [],
+	createError: null,
+	calls: [],
+};
+
+/** Replaces the voice list `getVoices` answers with. */
+export const setVoices = (
+	voices: IElevenLabsListVoicesResponse["voices"]
+): void => {
+	upstream.voices = voices;
+};
+
+/** Makes the next `createIVCVoice` calls reject with the given error. */
+export const setCreateIVCVoiceError = (error: Error | null): void => {
+	upstream.createError = error;
+};
+
+/** The client calls the routes made, in order. */
+export const elevenLabsCalls: readonly string[] = upstream.calls;
+
+/** Restores the stub defaults and clears the recorded calls. */
+export const resetElevenLabsMock = (): void => {
+	upstream.voices = [];
+	upstream.createError = null;
+	upstream.calls.length = 0;
+};
+
+export const createIVCVoice =
+	async (): Promise<IElevenLabsCreateIVCVoiceResponse> => {
+		upstream.calls.push("createIVCVoice");
+		if (upstream.createError) {
+			throw upstream.createError;
+		}
+		return {
+			voice_id: "voice",
+			requires_verification: false,
+		};
+	};
 export const createIVCVoiceSchema = {
 	request: ElevenLabsCreateIVCVoiceSchema,
 	response: ElevenLabsCreateIVCVoiceResponseSchema,
@@ -36,7 +89,10 @@ export const createIVCVoiceSchema = {
 export const getModels = async () => ({ models: [] });
 export const getModelsSchema = { response: ElevenLabsListModelsResponseSchema };
 
-export const getVoices = async () => ({ voices: [] });
+export const getVoices = async (): Promise<IElevenLabsListVoicesResponse> => {
+	upstream.calls.push("getVoices");
+	return { voices: upstream.voices };
+};
 export const getVoicesSchema = {
 	request: ElevenLabsListVoicesSchema,
 	response: ElevenLabsListVoicesResponseSchema,
@@ -78,34 +134,46 @@ export const musicComposePlanSchema = {
 	response: MusicComposePlanResponseSchema,
 };
 
-export const speechToSpeech = async () => ({ audio: "speech-audio" });
+export const speechToSpeech = async () => {
+	upstream.calls.push("speechToSpeech");
+	return { audio: "speech-audio" };
+};
 export const speechToSpeechSchema = {
 	request: ElevenLabsSpeechToSpeechConvertSchema,
 	response: ElevenLabsSharedResponseSchema,
 };
 
-export const textToDialogue = async () => ({ audio: "dialogue-audio" });
+export const textToDialogue = async () => {
+	upstream.calls.push("textToDialogue");
+	return { audio: "dialogue-audio" };
+};
 export const textToDialogueSchema = {
 	request: ElevenLabsTextToDialogueConvertSchema,
 	response: ElevenLabsSharedResponseSchema,
 };
 
-export const textToSpeech = async () => ({ audio: "speech-audio" });
+export const textToSpeech = async () => {
+	upstream.calls.push("textToSpeech");
+	return { audio: "speech-audio" };
+};
 export const textToSpeechSchema = {
 	request: ElevenLabsTextToSpeechConvertSchema,
 	response: ElevenLabsSharedResponseSchema,
 };
 
-export const textToSpeechWithTiming = async () => ({
-	audio: "timing-audio",
-	alignment: {
-		characters: ["H"],
-		character_start_times_seconds: [0],
-		character_end_times_seconds: [1],
-	},
-	normalized_alignment: {
-		characters: ["H"],
-		character_start_times_seconds: [0],
-		character_end_times_seconds: [1],
-	},
-});
+export const textToSpeechWithTiming = async () => {
+	upstream.calls.push("textToSpeechWithTiming");
+	return {
+		audio: "timing-audio",
+		alignment: {
+			characters: ["H"],
+			character_start_times_seconds: [0],
+			character_end_times_seconds: [1],
+		},
+		normalized_alignment: {
+			characters: ["H"],
+			character_start_times_seconds: [0],
+			character_end_times_seconds: [1],
+		},
+	};
+};

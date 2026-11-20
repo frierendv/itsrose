@@ -62,7 +62,8 @@
 		"@itsrose/pixverse": "workspace:*",
 		"@itsrose/remini": "workspace:*",
 		"@itsrose/system": "workspace:*",
-		"@itsrose/tiktok": "workspace:*"
+		"@itsrose/tiktok": "workspace:*",
+		"zod": "catalog:"
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*",

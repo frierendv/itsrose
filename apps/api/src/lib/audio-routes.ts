@@ -30,5 +30,9 @@ export const audioRoutesPlugin: FastifyPluginAsync = async (
 	await fastify.register(audioRoutes, {
 		declareAudioResponseHeader: true,
 		audioStorage,
+		// The public surface enforces voice ownership: the list is the
+		// caller's clones plus premade voices, synthesis refuses a voice the
+		// caller does not own, and a delete is the caller's own voice.
+		voiceAccess: fastify.voiceAccess,
 	});
 };
