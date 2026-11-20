@@ -39,6 +39,10 @@ to read `index.md` and know where to look.
 - [Moving from Jest to Vitest](decisions/vitest-migration.md) — why the test
   runner was the piece worth replacing, and what the move cost.
 
+- [The voice ownership rules](decisions/voice-ownership.md) — why the
+  platform's cloned voices needed an ownership ledger, what a caller may list
+  and synthesise, and how deletion and quarantine work.
+
 ## Subsystems
 
 - [Billing](subsystems/billing.md) — the hexagonal billing package and the
