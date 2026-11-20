@@ -8,6 +8,7 @@ import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
 import { withAudioResponseHeader } from "../../schema";
 import type { AudioRoutesOptions } from "../options";
 import { uploadAudio, uploadWhenUrlRequested } from "../upload";
+import { assertVoiceIdsAllowed } from "../voice-access";
 
 const DESCRIPTION = "Convert speech to speech";
 
@@ -36,6 +37,12 @@ export const registerSpeechToSpeechRoute = (
 			options.declareAudioResponseHeader
 		),
 		handler: async (request) => {
+			// The target voice is checked before any audio is fetched or
+			// converted. Without the ownership port the check is a no-op.
+			await assertVoiceIdsAllowed(options, request, [
+				request.body.voice_id,
+			]);
+
 			const { audio, ...speechOptions } = request.body;
 			const response = await speechToSpeech(audio, speechOptions);
 

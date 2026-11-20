@@ -541,6 +541,9 @@ importers:
       '@itsrose/tiktok':
         specifier: workspace:*
         version: link:../features/tiktok
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.7
     devDependencies:
       '@itsrose/standard':
         specifier: workspace:*
