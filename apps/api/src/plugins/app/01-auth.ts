@@ -10,11 +10,14 @@ import {
 	createUsageTenantSync,
 	usageQuotaMode,
 } from "@/lib/usage";
+import { voiceProvider } from "@/lib/voice-provider";
 import { redisStorage } from "@better-auth/redis-storage";
 import {
 	STANDARD_TIER_RATES,
 	type UserSubscription,
 } from "@itsrose/auth-billing";
+import { voicePurgePlugin } from "@itsrose/auth-resources/plugin";
+import { createPostgresProviderRegistry } from "@itsrose/auth-resources/registry";
 import { usagePlugin } from "@itsrose/auth-usage/plugin";
 import { createBetterAuthServer, type AuthServer } from "@itsrose/auth/server";
 import fp from "fastify-plugin";
@@ -62,6 +65,14 @@ export default fp(
 					tenantSync: createUsageTenantSync(fastify),
 					quota_mode: usageQuotaMode(fastify),
 					plan_tiers: Object.keys(STANDARD_TIER_RATES),
+				}),
+				// Account deletion removes the user's upstream voice clones.
+				// The ledger and the upstream port come from the host, so the
+				// auth package never imports the feature client.
+				voicePurgePlugin({
+					registry: createPostgresProviderRegistry(fastify.database),
+					provider: voiceProvider,
+					clock: () => new Date(),
 				}),
 			],
 		});

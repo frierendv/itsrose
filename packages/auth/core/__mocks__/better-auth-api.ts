@@ -65,6 +65,20 @@ export class APIError extends Error {
 
 export const sessionMiddleware = <TContext>(ctx: TContext): TContext => ctx;
 
+/** Handler the mocked hook factory accepts. */
+type HookHandler<TContext> = (ctx: TContext) => Promise<unknown>;
+
+/**
+ * The mock only has to keep the handler callable: Better Auth invokes the
+ * `after` hook's handler with its endpoint context, and the plugins that use
+ * the factory never read `options` off it.
+ */
+export function createAuthMiddleware<TContext>(
+	handler: HookHandler<TContext>
+): HookHandler<TContext> {
+	return handler;
+}
+
 export function createAuthEndpoint(
 	path: string,
 	options: EndpointOptions,

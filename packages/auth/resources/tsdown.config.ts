@@ -22,6 +22,12 @@ export default defineConfig({
 			"./voices": isPublish
 				? "./dist/application/voices.mjs"
 				: "./src/application/voices.ts",
+			"./plugin": isPublish
+				? "./dist/plugin-server.mjs"
+				: "./src/plugin-server.ts",
+			"./plugin-server": isPublish
+				? "./dist/plugin-server.mjs"
+				: "./src/plugin-server.ts",
 		}),
 	},
 	format: ["esm"],
@@ -29,6 +35,7 @@ export default defineConfig({
 		"src/index.ts",
 		"src/adapter/postgres.ts",
 		"src/application/voices.ts",
+		"src/plugin-server.ts",
 		"src/schema/index.ts",
 		"src/types.ts",
 	],

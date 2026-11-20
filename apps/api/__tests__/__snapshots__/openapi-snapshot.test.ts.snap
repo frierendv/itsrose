@@ -3906,6 +3906,121 @@ Example Output:
         ],
       },
     },
+    "/v1/audio/voices/{voice_id}": {
+      "delete": {
+        "description": "Delete a voice the caller owns",
+        "parameters": [
+          {
+            "description": "The id of the voice to delete.",
+            "in": "path",
+            "name": "voice_id",
+            "required": true,
+            "schema": {
+              "description": "The id of the voice to delete.",
+              "minLength": 1,
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "code": {
+                      "description": "The numeric code representing the success status.",
+                      "title": "Response code",
+                      "type": "number",
+                    },
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "deleted": {
+                          "description": "Whether the voice was deleted.",
+                          "enum": [
+                            true,
+                          ],
+                          "type": "boolean",
+                        },
+                      },
+                      "required": [
+                        "deleted",
+                      ],
+                      "type": "object",
+                    },
+                    "errors": {
+                      "description": "The errors field is always null for success responses.",
+                      "enum": [
+                        null,
+                      ],
+                      "nullable": true,
+                      "title": "No errors on success responses",
+                      "type": "string",
+                    },
+                    "message": {
+                      "description": "A human-readable message providing additional information.",
+                      "title": "Response message",
+                      "type": "string",
+                    },
+                    "meta": {
+                      "additionalProperties": {},
+                      "default": {},
+                      "description": "Additional metadata related to the response. **Do not** rely on this field for any critical information, as it may be omitted or changed without notice.",
+                      "title": "Metadata",
+                      "type": "object",
+                    },
+                    "ok": {
+                      "description": "Indicates that the response represents a successful operation.",
+                      "enum": [
+                        true,
+                      ],
+                      "title": "Success indicator",
+                      "type": "boolean",
+                    },
+                  },
+                  "required": [
+                    "ok",
+                    "code",
+                    "message",
+                    "data",
+                    "errors",
+                    "meta",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default Response",
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureSchema",
+                },
+              },
+            },
+            "description": "Client Error",
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureSchema",
+                },
+              },
+            },
+            "description": "Server Error",
+          },
+        },
+        "summary": "Delete Voice",
+        "tags": [
+          "Audio",
+        ],
+      },
+    },
     "/v1/character_ai/character_info": {
       "get": {
         "description": "Retrieve Character.AI character information by external ID",

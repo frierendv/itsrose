@@ -22,6 +22,7 @@ const PUBLIC_ROUTES = [
 	"POST /v1/audio/text_to_dialogue",
 	"POST /v1/audio/text_to_speech",
 	"POST /v1/audio/text_to_speech/with_timestamp",
+	"DELETE /v1/audio/voices/:voice_id",
 	"GET /v1/character_ai/search_character",
 	"POST /v1/character_ai/send_message",
 	"GET /v1/character_ai/character_info",

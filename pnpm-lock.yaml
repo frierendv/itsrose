@@ -207,12 +207,18 @@ importers:
       '@itsrose/auth-billing':
         specifier: workspace:*
         version: link:../../packages/auth/billing
+      '@itsrose/auth-resources':
+        specifier: workspace:*
+        version: link:../../packages/auth/resources
       '@itsrose/auth-storage':
         specifier: workspace:*
         version: link:../../packages/auth/storage
       '@itsrose/auth-usage':
         specifier: workspace:*
         version: link:../../packages/auth/usage
+      '@itsrose/elevenlabs':
+        specifier: workspace:*
+        version: link:../../packages/features/elevenlabs
       '@itsrose/midtrans':
         specifier: workspace:*
         version: file:packages/midtrans(supports-color@8.1.1)

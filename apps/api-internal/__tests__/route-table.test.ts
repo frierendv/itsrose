@@ -25,6 +25,7 @@ const INTERNAL_ROUTES = [
 	"POST /audio/text_to_dialogue",
 	"POST /audio/text_to_speech",
 	"POST /audio/text_to_speech/with_timestamp",
+	"DELETE /audio/voices/:voice_id",
 	"POST /mtxx/clothes_segmentation",
 	"POST /mtxx/expression_generation",
 	"POST /mtxx/image_restoration",
