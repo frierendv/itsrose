@@ -128,5 +128,7 @@ The gate stands at 107 suites and 913 tests, all green.
 
 - [Asset storage policy spec](specs/asset-storage-policy.md) — the decision
   brief for the asset storage policy.
+- [Feature data model spec](specs/feature-data-model.md) — the decision brief
+  for generation history and cloned-voice ownership.
 - [Route surface v2 implementation plan](archive/plan-api-routes-refactor-v2.md)
   — the completed implementation plan for the public route surface.
