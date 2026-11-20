@@ -4,3 +4,4 @@ export * from "./speech-to-speech";
 export * from "./text-to-dialogue";
 export * from "./create-ivc-voice";
 export * from "./music-compose";
+export * from "./delete-voice";
