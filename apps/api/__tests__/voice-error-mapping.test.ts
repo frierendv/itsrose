@@ -41,22 +41,22 @@ async function build(): Promise<FastifyInstance> {
 }
 
 describe("the voice error mapping", () => {
-	it("answers 403 for a voice the caller may not use, without saying why", async () => {
+	it("answers 404 for a voice the caller may not use, without saying why", async () => {
 		const app = await build();
 
 		const response = await app.inject({ method: "GET", url: "/denied" });
 
-		expect(response.statusCode).toBe(403);
+		// 404, not 403: a 403 would confirm the voice exists and belongs to
+		// someone else, which is exactly the existence leak the error design
+		// avoids. A foreign voice and an unknown one answer identically.
+		expect(response.statusCode).toBe(404);
 		expect(response.json()).toMatchObject({
 			ok: false,
-			code: 2201,
+			code: 2301,
 			errors: { voice_id: "voice-1" },
 		});
-		// A foreign voice and an unknown one raise the same error; the
-		// response must stay a single message so the route is not an
-		// existence oracle.
 		expect(response.json().message).toBe(
-			"The requested voice is not available to this caller."
+			"The requested voice was not found."
 		);
 
 		await app.close();

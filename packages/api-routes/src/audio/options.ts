@@ -1,3 +1,7 @@
+import type {
+	IElevenLabsListVoices,
+	IElevenLabsListVoicesResponse,
+} from "@itsrose/elevenlabs";
 import { ELEVENLABS_ENV, ELEVENLABS_ENV_KEYS } from "@itsrose/elevenlabs/env";
 import type { FastifyRequest } from "fastify";
 import { ROUTE_MODULE_PREFIXES, type AudioStoragePort } from "../options";
@@ -64,6 +68,19 @@ export type ClonedVoice = {
 export interface VoiceAccessPort {
 	/** The upstream ids of the voices the caller owns. */
 	listOwnedVoiceIds(request: FastifyRequest): Promise<string[]>;
+
+	/**
+	 * The caller's whole voice library: the clones it owns plus the premade
+	 * voices, already filtered, searched and sorted.
+	 *
+	 * The catalogue is read and paginated by the port, so the library is
+	 * returned whole: `page_size` and `next_page_token` are accepted by the
+	 * schema but ignored, and the response says `has_more: false`.
+	 */
+	listVisibleVoices(
+		request: FastifyRequest,
+		query: IElevenLabsListVoices
+	): Promise<IElevenLabsListVoicesResponse>;
 
 	/**
 	 * Resolves when the caller may use the voice.

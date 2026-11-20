@@ -96,7 +96,9 @@ const assetErrorMapper: ErrorMapper = (error, _request, reply) => {
  * user id, so the route never learns which case it was, and neither does the
  * caller. `VoiceAccessDeniedError` keeps that property on the synthesis
  * surface: it is raised for a foreign clone and for an unknown id alike, with
- * one message, so the route is not an existence oracle.
+ * one message, so the route is not an existence oracle. It answers 404, not
+ * 403: a 403 would confirm that the voice exists and is merely someone
+ * else's, which is the existence leak the error design exists to prevent.
  *
  * `VoiceAccessUnavailableError` answers 501: the route exists but this
  * deployment did not compose the ownership port, and pretending the URL is
@@ -115,13 +117,15 @@ const voiceErrorMapper: ErrorMapper = (error, _request, reply) => {
 
 	if (error instanceof VoiceAccessDeniedError) {
 		const response = FailureResponse.create({
-			code: "FORBIDDEN",
+			code: "NOT_FOUND",
 			// One message for "not yours" and "does not exist": the caller
-			// must not learn which voices exist in the platform account.
-			message: "The requested voice is not available to this caller.",
+			// must not learn which voices exist in the platform account. The
+			// status has to agree, so a foreign voice is a 404 like an
+			// unknown one, never a 403 that confirms it exists.
+			message: "The requested voice was not found.",
 			errors: { voice_id: error.voiceId },
 		});
-		reply.status(403).send(response);
+		reply.status(404).send(response);
 		return true;
 	}
 

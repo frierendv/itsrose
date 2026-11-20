@@ -25,27 +25,22 @@ export const registerGetVoicesRoute = (
 			},
 		},
 		handler: async (request) => {
-			const response = await getVoices(request.query);
-
 			const voiceAccess = options.voiceAccess;
 			// Without the ownership port the upstream list passes through
 			// unchanged: the internal app has no owner ledger and keeps the
 			// pre-ownership behaviour.
 			if (!voiceAccess) {
-				return response;
+				return getVoices(request.query);
 			}
 
-			// The caller sees the clones it owns plus the platform's premade
-			// catalogue. Another user's clone is neither: its upstream
-			// `category` is `cloned` and it has no ledger row pointing at the
-			// caller, so the filter drops it.
-			const owned = new Set(await voiceAccess.listOwnedVoiceIds(request));
-			response.voices = response.voices.filter(
-				(voice) =>
-					owned.has(voice.voice_id) || voice.category === "premade"
-			);
-
-			return response;
+			// The port builds the caller's whole library from its own cached,
+			// fully-paginated catalogue: the caller's clones plus the premade
+			// voices. `page_size` and `next_page_token` are accepted by the
+			// schema but ignored - filtering after one upstream page would
+			// return an incomplete library and incoherent page metadata - and
+			// the response is the whole filtered library with `has_more:
+			// false`.
+			return voiceAccess.listVisibleVoices(request, request.query);
 		},
 	});
 };

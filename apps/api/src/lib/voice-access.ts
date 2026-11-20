@@ -5,11 +5,14 @@ import {
 } from "@itsrose/api-routes/audio";
 import type { VoiceService } from "@itsrose/auth-resources/voices";
 import { tenantIdForUser } from "@itsrose/auth-usage/server";
-import type {
-	IElevenLabsListVoices,
-	IElevenLabsListVoicesResponse,
-} from "@itsrose/elevenlabs";
+import type { IElevenLabsListVoices } from "@itsrose/elevenlabs";
 import type { FastifyRequest } from "fastify";
+import {
+	createVoiceCatalog,
+	type FetchVoices,
+	type Voice,
+	type VoiceCatalogLogger,
+} from "./voice-catalog";
 
 /**
  * The upstream provider every recorded voice belongs to.
@@ -17,22 +20,14 @@ import type { FastifyRequest } from "fastify";
 const VOICE_PROVIDER = "elevenlabs";
 
 /**
- * How long the premade voice ids stay cached.
- *
- * Five minutes keeps the catalogue warm across requests without serving a
- * withdrawn premade voice for longer than a caller would plausibly notice.
+ * The sort keys the list endpoint accepts.
  */
-export const PREMADE_VOICE_CACHE_TTL_MS = 5 * 60 * 1000;
+type VoiceSort = NonNullable<IElevenLabsListVoices["sort"]>;
 
 /**
- * Fetches the upstream voice catalogue.
- *
- * Injected so the port can be unit-tested without a network call; the
- * application passes `getVoices` from `@itsrose/elevenlabs`.
+ * The direction of a sort.
  */
-export type FetchVoices = (
-	options?: IElevenLabsListVoices
-) => Promise<IElevenLabsListVoicesResponse>;
+type VoiceSortDirection = NonNullable<IElevenLabsListVoices["sort_direction"]>;
 
 /**
  * The slice of the voice ledger the access port needs.
@@ -51,8 +46,10 @@ export type VoiceAccessService = Pick<
 export interface CreateVoiceAccessOptions {
 	/** Ownership ledger: who owns which upstream voice. */
 	service: VoiceAccessService;
-	/** Upstream catalogue reader, used to resolve premade voices. */
+	/** Upstream catalogue reader, used to build the caller's library. */
 	fetchVoices: FetchVoices;
+	/** Where the catalogue reports a capped read; omitted, it is silent. */
+	logger?: VoiceCatalogLogger;
 }
 
 /**
@@ -77,52 +74,78 @@ function requireUserId(request: FastifyRequest): string {
 }
 
 /**
+ * Whether a voice matches a free-text search.
+ *
+ * The upstream searches name, description, labels and category; the same
+ * fields are searched here, case-insensitively, because the filtering happens
+ * on our side of the catalogue. Label keys are not searched, only their
+ * values: a key such as `language` would otherwise match every voice.
+ *
+ * @param voice The voice to test.
+ * @param term The lower-cased search term.
+ * @returns `true` when the voice matches.
+ */
+function matchesSearch(voice: Voice, term: string): boolean {
+	if (voice.name.toLowerCase().includes(term)) {
+		return true;
+	}
+	if (voice.description?.toLowerCase().includes(term)) {
+		return true;
+	}
+	if (voice.category?.toLowerCase().includes(term)) {
+		return true;
+	}
+	return Object.values(voice.labels).some((value) =>
+		value.toLowerCase().includes(term)
+	);
+}
+
+/**
+ * Sorts a copy of the voices by the requested key and direction.
+ *
+ * The catalogue order is kept when no sort is requested, so the default list
+ * is stable. A missing `created_at_unix` sorts as the oldest value, and a
+ * missing direction sorts ascending.
+ *
+ * @param voices The voices to sort.
+ * @param sort The sort key the caller asked for.
+ * @param direction The direction the caller asked for.
+ * @returns A sorted copy of the voices.
+ */
+function sortVoices(
+	voices: Voice[],
+	sort: VoiceSort,
+	direction: VoiceSortDirection
+): Voice[] {
+	const sign = direction === "desc" ? -1 : 1;
+
+	return [...voices].sort((left, right) => {
+		const comparison =
+			sort === "name"
+				? left.name.localeCompare(right.name)
+				: (left.created_at_unix ?? 0) - (right.created_at_unix ?? 0);
+		return comparison * sign;
+	});
+}
+
+/**
  * Builds the voice ownership port over the ledger and the upstream catalogue.
  *
- * Owned voices come from the ledger (`service.list`). Premade voices come from
- * the upstream catalogue, filtered to `category === "premade"` on our side as
- * well as requested from the upstream, because the filter is the provider's
- * promise and the response is ours to enforce. The premade set is cached in
- * memory for {@linkcode PREMADE_VOICE_CACHE_TTL_MS} behind one in-flight
- * promise: a burst of requests fetches the catalogue once, and a failed fetch
- * is not cached, so the next request retries.
+ * The caller's library is built from a cached, fully-paginated catalogue
+ * (`./voice-catalog`): listing after one upstream page would drop clones that
+ * are not on that page, and synthesis could refuse a premade voice that is
+ * beyond it. Owned voices come from the ledger (`service.list`); premade
+ * voices come from the catalogue's `category === "premade"` entries.
  *
- * @param options The ledger and the catalogue reader.
+ * @param options The ledger, the catalogue reader and the warning sink.
  * @returns The port the audio routes enforce ownership through.
  */
 export function createVoiceAccess({
 	service,
 	fetchVoices,
+	logger,
 }: CreateVoiceAccessOptions): VoiceAccessPort {
-	let premadeIds: { ids: Set<string>; expiresAt: number } | null = null;
-	let premadeInFlight: Promise<Set<string>> | null = null;
-
-	const loadPremadeIds = async (): Promise<Set<string>> => {
-		const cached = premadeIds;
-		if (cached && cached.expiresAt > Date.now()) {
-			return cached.ids;
-		}
-
-		if (!premadeInFlight) {
-			premadeInFlight = (async () => {
-				const response = await fetchVoices({ category: "premade" });
-				const ids = new Set(
-					response.voices
-						.filter((voice) => voice.category === "premade")
-						.map((voice) => voice.voice_id)
-				);
-				premadeIds = {
-					ids,
-					expiresAt: Date.now() + PREMADE_VOICE_CACHE_TTL_MS,
-				};
-				return ids;
-			})().finally(() => {
-				premadeInFlight = null;
-			});
-		}
-
-		return premadeInFlight;
-	};
+	const catalog = createVoiceCatalog({ fetchVoices, logger });
 
 	const listOwnedVoiceIds = async (
 		request: FastifyRequest
@@ -135,14 +158,55 @@ export function createVoiceAccess({
 	return {
 		listOwnedVoiceIds,
 
+		async listVisibleVoices(request, query) {
+			const [ownedIds, voices] = await Promise.all([
+				listOwnedVoiceIds(request),
+				catalog.load(),
+			]);
+			const owned = new Set(ownedIds);
+
+			// The caller sees exactly two classes of voice: the clones it
+			// owns and the platform's premade catalogue. Another user's clone
+			// is neither and never reaches the response.
+			let visible = voices.filter(
+				(voice) =>
+					owned.has(voice.voice_id) || voice.category === "premade"
+			);
+
+			const search = query.search?.trim().toLowerCase();
+			if (search) {
+				visible = visible.filter((voice) =>
+					matchesSearch(voice, search)
+				);
+			}
+
+			if (query.sort) {
+				visible = sortVoices(
+					visible,
+					query.sort,
+					query.sort_direction ?? "asc"
+				);
+			}
+
+			return {
+				voices: visible,
+				has_more: false,
+				next_page_token: null,
+				total_count: visible.length,
+			};
+		},
+
 		async assertCanUseVoice(request, voiceId) {
 			const owned = await listOwnedVoiceIds(request);
 			if (owned.includes(voiceId)) {
 				return;
 			}
 
-			const premade = await loadPremadeIds();
-			if (premade.has(voiceId)) {
+			const voices = await catalog.load();
+			const candidate = voices.find(
+				(voice) => voice.voice_id === voiceId
+			);
+			if (candidate?.category === "premade") {
 				return;
 			}
 
@@ -161,6 +225,11 @@ export function createVoiceAccess({
 				providerResourceId: voice.voice_id,
 				name: voice.name,
 			});
+
+			// The clone is now owned by this caller. Drop the cached
+			// catalogue so the very next listing/synthesis sees it instead of
+			// waiting for the TTL to expire.
+			catalog.invalidate();
 		},
 
 		async deleteOwnedVoice(request, voiceId) {

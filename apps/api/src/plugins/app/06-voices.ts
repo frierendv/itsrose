@@ -35,7 +35,11 @@ export default fp(
 		void fastify.decorate("voiceService", service);
 		void fastify.decorate(
 			"voiceAccess",
-			createVoiceAccess({ service, fetchVoices: getVoices })
+			createVoiceAccess({
+				service,
+				fetchVoices: getVoices,
+				logger: fastify.log,
+			})
 		);
 	},
 	{

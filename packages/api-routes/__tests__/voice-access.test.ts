@@ -5,7 +5,10 @@ import {
 	createSerializerCompiler,
 	validatorCompiler,
 } from "fastify-zod-openapi";
-import type { IElevenLabsListVoicesResponse } from "../../features/elevenlabs/src/zod-schema";
+import type {
+	IElevenLabsListVoices,
+	IElevenLabsListVoicesResponse,
+} from "../../features/elevenlabs/src/zod-schema";
 import {
 	AUDIO_ROUTE_PREFIX,
 	audioRoutes,
@@ -66,6 +69,7 @@ const CLONE_BODY = {
 
 type PortCalls = {
 	listed: FastifyRequest[];
+	visible: Array<{ request: FastifyRequest; query: IElevenLabsListVoices }>;
 	checked: Array<{ request: FastifyRequest; voiceId: string }>;
 	recorded: Array<{ request: FastifyRequest; voice: ClonedVoice }>;
 	deleted: Array<{ request: FastifyRequest; voiceId: string }>;
@@ -76,6 +80,8 @@ type PortOptions = {
 	owned?: string[];
 	/** Premade ids `assertCanUseVoice` allows besides the owned ones. */
 	premade?: string[];
+	/** The whole library `listVisibleVoices` answers with. */
+	visible?: IElevenLabsListVoicesResponse;
 	/** Makes `recordClonedVoice` reject, simulating a failed ledger write. */
 	recordError?: Error;
 };
@@ -97,6 +103,7 @@ function createPort(options: PortOptions = {}): {
 	]);
 	const calls: PortCalls = {
 		listed: [],
+		visible: [],
 		checked: [],
 		recorded: [],
 		deleted: [],
@@ -106,6 +113,17 @@ function createPort(options: PortOptions = {}): {
 		async listOwnedVoiceIds(request) {
 			calls.listed.push(request);
 			return options.owned ?? [];
+		},
+		async listVisibleVoices(request, query) {
+			calls.visible.push({ request, query });
+			return (
+				options.visible ?? {
+					voices: [],
+					has_more: false,
+					next_page_token: null,
+					total_count: 0,
+				}
+			);
 		},
 		async assertCanUseVoice(request, voiceId) {
 			calls.checked.push({ request, voiceId });
@@ -208,16 +226,17 @@ beforeEach(() => {
 /* -------------------------------------------------------------------------- */
 
 describe("GET /get_voices", () => {
-	it("filters the upstream list to the caller's voices plus premade", async () => {
-		setVoices([
-			voice("owned-1", "cloned"),
-			voice("foreign-1", "cloned"),
-			voice("premade-1", "premade"),
-		]);
-		const { port, calls } = createPort({
-			owned: ["owned-1"],
-			premade: ["premade-1"],
-		});
+	it("returns the port's visible library without reading the upstream", async () => {
+		const visible: IElevenLabsListVoicesResponse = {
+			voices: [voice("owned-1", "cloned"), voice("premade-1", "premade")],
+			has_more: false,
+			next_page_token: null,
+			total_count: 2,
+		};
+		// The upstream catalogue must not be touched when the port is
+		// present: the port owns the whole pagination/filtering job.
+		setVoices([voice("owned-1", "cloned")]);
+		const { port, calls } = createPort({ visible });
 		const { app } = await build({ voiceAccess: port });
 
 		const response = await app.inject({
@@ -226,12 +245,39 @@ describe("GET /get_voices", () => {
 		});
 
 		expect(response.statusCode).toBe(200);
-		const body = response.json();
-		expect(body.data.voices.map((item: Voice) => item.voice_id)).toEqual([
-			"owned-1",
-			"premade-1",
-		]);
-		expect(calls.listed).toHaveLength(1);
+		expect(response.json().data).toEqual(visible);
+		expect(calls.visible).toHaveLength(1);
+		expect(calls.visible[0]?.query).toEqual({});
+		expect(elevenLabsCalls).not.toContain("getVoices");
+
+		await app.close();
+	});
+
+	it("accepts but ignores pagination when the port returns the whole library", async () => {
+		const visible: IElevenLabsListVoicesResponse = {
+			voices: [voice("owned-1", "cloned"), voice("premade-1", "premade")],
+			has_more: false,
+			next_page_token: null,
+			total_count: 2,
+		};
+		const { port, calls } = createPort({ visible });
+		const { app } = await build({ voiceAccess: port });
+
+		const response = await app.inject({
+			method: "GET",
+			url: "/audio/get_voices?page_size=1&next_page_token=page-2",
+		});
+
+		expect(response.statusCode).toBe(200);
+		// The request validates, the params reach the port, and the response
+		// is still the whole filtered library: `page_size` and
+		// `next_page_token` are accepted for compatibility but ignored.
+		expect(calls.visible[0]?.query).toMatchObject({
+			page_size: 1,
+			next_page_token: "page-2",
+		});
+		expect(response.json().data).toEqual(visible);
+		expect(response.json().data.has_more).toBe(false);
 
 		await app.close();
 	});
