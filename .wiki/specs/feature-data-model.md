@@ -450,7 +450,7 @@ what follows is where it must be enforced.
    rows are kept, mirroring the durable purge; the hook runs after the account
    is gone, so a failure has to be visible to an operator rather than thrown
    into a deleted session. The upstream deletion arrives as an injected port
-   on the studio plugin — composed in `apps/api` — so `@itsrose/auth-studio`
+   on the studio plugin — composed in `apps/api` — so `@itsrose/auth-resources`
    never imports the feature client.
 6. **The public surface, or the fix is theatre.** If the ownership check only
    exists in dashboard routes, `GET /v1/audio/get_voices` and
@@ -541,8 +541,12 @@ other question has a recommended default in this brief.
 Ordered, each independently reviewable, each leaving the tree green. No code
 here; these are boundaries, not estimates.
 
+_Naming updated 2026-11-20: the package shipped as `@itsrose/auth-resources`
+(`packages/auth/resources/`), not `auth-studio` — the ledger is not
+ElevenLabs-specific._
+
 1. **Records, schema and policy table.**
-   A new `packages/auth/studio/` (`@itsrose/auth-studio`) with
+   A new `packages/auth/resources/` (`@itsrose/auth-resources`) with
    `src/schema/index.ts` (the two tables, modelled on
    `packages/auth/storage/src/schema/index.ts:27-92`), `src/types.ts` (record
    types and ports), `src/adapter/postgres.ts`, `src/application/generations.ts`
@@ -570,7 +574,7 @@ here; these are boundaries, not estimates.
    (asset ids), list (owned + premade), delete. The studio synthesis routes
    resolve voice ids against the rows. A `studioPlugin` with its own
    account-deletion `after` hook purges upstream voices through a port the
-   host injects — `packages/auth/studio/src/plugin-server.ts`, composed from
+   host injects — `packages/auth/resources/src/plugin-server.ts`, composed from
    `apps/api/src/plugins/app/01-auth.ts` — so the auth package never imports
    `@itsrose/elevenlabs`. Tests beside both packages.
 

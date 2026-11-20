@@ -15,10 +15,10 @@
 			"path": "packages/auth/mailer"
 		},
 		{
-			"path": "packages/auth/storage"
+			"path": "packages/auth/resources"
 		},
 		{
-			"path": "packages/auth/studio"
+			"path": "packages/auth/storage"
 		},
 		{
 			"path": "packages/auth/usage"

@@ -1,27 +1,31 @@
 import {
 	PROVIDER_RESOURCES_TABLE,
-	STUDIO_SCHEMA_PLUGIN_ID,
-	studioSchema,
-	studioSchemaPlugin,
+	providerResourcesSchema,
+	providerResourcesSchemaPlugin,
+	RESOURCES_SCHEMA_PLUGIN_ID,
 } from "../src/schema";
 
 describe("studio schema plugin", () => {
 	it("is a schema-only plugin under the studio id", () => {
-		expect(STUDIO_SCHEMA_PLUGIN_ID).toBe("studio-schema");
-		expect(studioSchemaPlugin.id).toBe(STUDIO_SCHEMA_PLUGIN_ID);
-		expect(studioSchemaPlugin.endpoints).toEqual({});
+		expect(RESOURCES_SCHEMA_PLUGIN_ID).toBe("resources-schema");
+		expect(providerResourcesSchemaPlugin.id).toBe(
+			RESOURCES_SCHEMA_PLUGIN_ID
+		);
+		expect(providerResourcesSchemaPlugin.endpoints).toEqual({});
 	});
 
 	it("declares the provider resource table and its model name", () => {
 		expect(PROVIDER_RESOURCES_TABLE).toBe("provider_resources");
-		expect(studioSchema).toHaveProperty(PROVIDER_RESOURCES_TABLE);
+		expect(providerResourcesSchema).toHaveProperty(
+			PROVIDER_RESOURCES_TABLE
+		);
 
-		const table = studioSchema[PROVIDER_RESOURCES_TABLE];
+		const table = providerResourcesSchema[PROVIDER_RESOURCES_TABLE];
 		expect(table.modelName).toBe(PROVIDER_RESOURCES_TABLE);
 	});
 
 	it("carries the ownership columns", () => {
-		const { fields } = studioSchema[PROVIDER_RESOURCES_TABLE];
+		const { fields } = providerResourcesSchema[PROVIDER_RESOURCES_TABLE];
 
 		expect(fields.resource_id).toEqual({
 			type: "string",
@@ -45,7 +49,7 @@ describe("studio schema plugin", () => {
 	});
 
 	it("defaults a new row's status to active", () => {
-		const { fields } = studioSchema[PROVIDER_RESOURCES_TABLE];
+		const { fields } = providerResourcesSchema[PROVIDER_RESOURCES_TABLE];
 
 		expect(fields.status).toEqual({
 			type: "string",
@@ -55,7 +59,7 @@ describe("studio schema plugin", () => {
 	});
 
 	it("makes the application and upstream identities unique", () => {
-		const { indexes } = studioSchema[PROVIDER_RESOURCES_TABLE];
+		const { indexes } = providerResourcesSchema[PROVIDER_RESOURCES_TABLE];
 
 		expect(indexes).toContainEqual({
 			name: "provider_resources_resource_id_uniq",
@@ -70,7 +74,7 @@ describe("studio schema plugin", () => {
 	});
 
 	it("indexes the ownership lookups", () => {
-		const { indexes } = studioSchema[PROVIDER_RESOURCES_TABLE];
+		const { indexes } = providerResourcesSchema[PROVIDER_RESOURCES_TABLE];
 
 		expect(indexes).toContainEqual({
 			name: "provider_resources_user_id_idx",

@@ -3,12 +3,12 @@ import type { BetterAuthPlugin, BetterAuthPluginDBSchema } from "better-auth";
 /**
  * Plugin id used for the schema-only registration in `@itsrose/auth`.
  *
- * The studio package has no transport plugin: the host application composes
+ * The resources package has no transport plugin: the host application composes
  * its own routes and passes the ports they need. Registering the ledger schema
  * through a separate, endpoint-free plugin in the auth composition root keeps
  * the generated SQL the single source of truth for DDL.
  */
-export const STUDIO_SCHEMA_PLUGIN_ID = "studio-schema";
+export const RESOURCES_SCHEMA_PLUGIN_ID = "resources-schema";
 
 /**
  * Table that records the upstream provider resources a user owns.
@@ -33,7 +33,7 @@ export const PROVIDER_RESOURCES_TABLE = "provider_resources";
  * synthesis checks use: an upstream id is unique per provider account, and v1
  * records voices from one account only.
  */
-export const studioSchema = {
+export const providerResourcesSchema = {
 	[PROVIDER_RESOURCES_TABLE]: {
 		modelName: PROVIDER_RESOURCES_TABLE,
 		fields: {
@@ -102,8 +102,8 @@ export const studioSchema = {
  * This plugin carries the schema alone, and declaring it only once avoids
  * merging the same table definition twice.
  */
-export const studioSchemaPlugin = {
-	id: STUDIO_SCHEMA_PLUGIN_ID,
-	schema: studioSchema,
+export const providerResourcesSchemaPlugin = {
+	id: RESOURCES_SCHEMA_PLUGIN_ID,
+	schema: providerResourcesSchema,
 	endpoints: {},
 } satisfies BetterAuthPlugin;

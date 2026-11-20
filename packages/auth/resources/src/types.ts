@@ -1,5 +1,5 @@
 /**
- * The kinds of upstream provider resource the studio package records.
+ * The kinds of upstream provider resource the resources package records.
  *
  * Closed on purpose: a new kind (an avatar, a fine-tune) is added here and in
  * the schema before anything writes it, so a read never has to guess what an

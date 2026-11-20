@@ -3,9 +3,9 @@ import { dash } from "@better-auth/infra";
 import { passkey } from "@better-auth/passkey";
 import { itsRosePlugin } from "@itsrose/auth-billing/plugin-server";
 import { mailerPlugin } from "@itsrose/auth-mailer/plugin";
+import { providerResourcesSchemaPlugin } from "@itsrose/auth-resources/schema";
 import { storagePlugin } from "@itsrose/auth-storage/plugin";
 import { storageSchemaPlugin } from "@itsrose/auth-storage/schema";
-import { studioSchemaPlugin } from "@itsrose/auth-studio/schema";
 import { usageSchemaPlugin } from "@itsrose/auth-usage/schema";
 import {
 	admin,
@@ -133,6 +133,6 @@ export default function (env = process.env as AuthEnv) {
 		// provider-resource tables part of db:generate.
 		usageSchemaPlugin,
 		storageSchemaPlugin,
-		studioSchemaPlugin,
+		providerResourcesSchemaPlugin,
 	];
 }

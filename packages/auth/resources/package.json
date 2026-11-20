@@ -1,5 +1,5 @@
 {
-	"name": "@itsrose/auth-studio",
+	"name": "@itsrose/auth-resources",
 	"version": "1.0.0",
 	"author": "FrierenDv",
 	"private": true,
@@ -9,7 +9,7 @@
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/frierendv/itsrose.git",
-		"directory": "packages/auth/studio"
+		"directory": "packages/auth/resources"
 	},
 	"bugs": "https://github.com/frierendv/itsrose/issues",
 	"homepage": "https://github.com/frierendv/itsrose#readme",
@@ -24,9 +24,17 @@
 		"auth",
 		"better-auth",
 		"itsrose",
-		"studio",
+		"provider-resources",
 		"voice"
 	],
+	"exports": {
+		".": "./src/index.ts",
+		"./schema": "./src/schema/index.ts",
+		"./types": "./src/types.ts",
+		"./package.json": "./package.json",
+		"./registry": "./src/adapter/postgres.ts",
+		"./voices": "./src/application/voices.ts"
+	},
 	"scripts": {
 		"build": "tsdown",
 		"build:fast": "tsdown src",
@@ -40,14 +48,6 @@
 	},
 	"devDependencies": {
 		"@itsrose/standard": "workspace:*"
-	},
-	"exports": {
-		".": "./src/index.ts",
-		"./schema": "./src/schema/index.ts",
-		"./types": "./src/types.ts",
-		"./package.json": "./package.json",
-		"./registry": "./src/adapter/postgres.ts",
-		"./voices": "./src/application/voices.ts"
 	},
 	"publishConfig": {
 		"exports": {

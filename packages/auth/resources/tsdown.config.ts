@@ -8,8 +8,8 @@ export default defineConfig({
 		...(typeof config.exports === "object" ? config.exports : {}),
 		// The application service and the Postgres adapter are grouped under
 		// `src/application/` and `src/adapter/`, but their public subpaths are
-		// the short `@itsrose/auth-studio/voices` and
-		// `@itsrose/auth-studio/registry`.
+		// the short `@itsrose/auth-resources/voices` and
+		// `@itsrose/auth-resources/registry`.
 		exclude: ["application/voices", "adapter/postgres"],
 		customExports: (exports, { isPublish }) => ({
 			...exports,
