@@ -23,7 +23,13 @@ import type {
 
 type StoragePayload = Buffer | string;
 
-interface UploadFileOptions {
+/**
+ * The upload metadata a caller may pass beside the bytes.
+ *
+ * Exported so the Better Auth storage plugin can forward it from
+ * `storage.uploadUserFile`, where generated output sets its content type.
+ */
+export interface UploadFileOptions {
 	contentType?: string;
 	cacheControl?: string;
 }

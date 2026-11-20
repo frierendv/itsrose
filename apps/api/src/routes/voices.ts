@@ -1,10 +1,5 @@
-import { deny } from "@/lib/auth";
-import type {
-	FastifyInstance,
-	FastifyPluginAsync,
-	FastifyReply,
-	FastifyRequest,
-} from "fastify";
+import { createSessionGuard } from "@/lib/session";
+import type { FastifyInstance, FastifyPluginAsync } from "fastify";
 import type { FastifyZodOpenApiTypeProvider } from "fastify-zod-openapi";
 import { z } from "zod/v4";
 
@@ -19,20 +14,6 @@ const deleteVoiceParamsSchema = z.object({
 const deleteVoiceResponseSchema = z.object({
 	deleted: z.boolean(),
 });
-
-/* -------------------------------------------------------------------------- */
-/*                                 Responses                                  */
-/* -------------------------------------------------------------------------- */
-
-function denySession(reply: FastifyReply): FastifyReply {
-	return deny(reply, {
-		code: "UNAUTHORIZED",
-		message: "A dashboard session is required to delete a voice.",
-		errors: {
-			session: "Sign in to the dashboard and retry.",
-		},
-	});
-}
 
 /* -------------------------------------------------------------------------- */
 /*                                   Routes                                   */
@@ -53,20 +34,10 @@ function denySession(reply: FastifyReply): FastifyReply {
 const voicesRoutes: FastifyPluginAsync = async (
 	fastify: FastifyInstance
 ): Promise<void> => {
-	const requireSession = async (
-		request: FastifyRequest,
-		reply: FastifyReply
-	): Promise<FastifyReply | void> => {
-		const session = await fastify.auth.api.getSession({
-			headers: request.headers as unknown as Headers,
-		});
-
-		if (!session?.user) {
-			return denySession(reply);
-		}
-
-		request.userId = session.user.id;
-	};
+	const session = createSessionGuard(
+		fastify.auth,
+		"A dashboard session is required to delete a voice."
+	);
 
 	const routes = fastify.withTypeProvider<FastifyZodOpenApiTypeProvider>();
 
@@ -74,7 +45,7 @@ const voicesRoutes: FastifyPluginAsync = async (
 		method: "DELETE",
 		url: "/voices/:voice_id",
 		config: { authGuard: false },
-		preHandler: requireSession,
+		preHandler: session.preHandler,
 		schema: {
 			hide: true,
 			params: deleteVoiceParamsSchema,
@@ -83,7 +54,7 @@ const voicesRoutes: FastifyPluginAsync = async (
 		handler: async (request, reply) => {
 			const userId = request.userId;
 			if (!userId) {
-				return denySession(reply);
+				return session.deny(reply);
 			}
 
 			// Upstream first, then the tombstone. A foreign or missing voice

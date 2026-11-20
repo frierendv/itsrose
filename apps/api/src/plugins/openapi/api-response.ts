@@ -4,6 +4,7 @@ import {
 	VoiceAccessDeniedError,
 	VoiceAccessUnavailableError,
 } from "@itsrose/api-routes/audio";
+import { GenerationNotFoundError } from "@itsrose/auth-resources/generations";
 import { VoiceNotFoundError } from "@itsrose/auth-resources/voices";
 import {
 	AssetCapExceededError,
@@ -145,12 +146,38 @@ const voiceErrorMapper: ErrorMapper = (error, _request, reply) => {
 	return false;
 };
 
+/**
+ * Maps the generation ledger's not-found error to the standard failure
+ * envelope.
+ *
+ * `GenerationNotFoundError` is the ledger's single answer for "missing",
+ * "deleted" and "owned by someone else": the service scopes the lookup by the
+ * caller's user id, so the studio route never learns which case it was. The
+ * 410 for an expired generated object is not mapped here: expiry is derived
+ * from the row the route already holds, so the route answers it directly with
+ * the `GONE` envelope.
+ */
+const generationErrorMapper: ErrorMapper = (error, _request, reply) => {
+	if (error instanceof GenerationNotFoundError) {
+		const response = FailureResponse.create({
+			code: "NOT_FOUND",
+			message: error.message,
+			errors: { generation_id: error.generationId },
+		});
+		reply.status(response.statusCode).send(response);
+		return true;
+	}
+
+	return false;
+};
+
 export default fp(async (fastify) => {
 	await fastify.register(apiErrorHandler, {
 		errorMappers: [
 			betterAuthErrorMapper,
 			assetErrorMapper,
 			voiceErrorMapper,
+			generationErrorMapper,
 		],
 	});
 });

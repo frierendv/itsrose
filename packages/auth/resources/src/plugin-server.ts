@@ -2,11 +2,18 @@ import { randomUUID } from "node:crypto";
 import type { BetterAuthPlugin } from "better-auth";
 import { createAuthMiddleware } from "better-auth/api";
 import {
+	createGenerationService,
+	type GenerationService,
+} from "./application/generations";
+import {
 	createVoiceService,
 	type VoiceProviderPort,
 	type VoiceService,
 } from "./application/voices";
-import type { ProviderResourceRegistryPort } from "./types";
+import type {
+	GenerationRegistryPort,
+	ProviderResourceRegistryPort,
+} from "./types";
 
 /**
  * Plugin id of the upstream-voice account-deletion cascade.
@@ -18,8 +25,8 @@ export const VOICE_PURGE_PLUGIN_ID = "voice-purge";
  *
  * Better Auth serves deletion under `/user/delete` and `/delete-user`, and a
  * deployment may mount the auth handler under a base path, so the prefix is
- * not assumed. The matcher is the one `@itsrose/auth-storage` uses, so both
- * cascades run on the same requests.
+ * not assumed. The matcher is the one `@itsrose/auth-storage` uses, so every
+ * account-deletion cascade runs on the same requests.
  *
  * @param path - The path of the request Better Auth is serving.
  * @returns `true` when the account is being deleted.
@@ -131,6 +138,119 @@ export function voicePurgePlugin(
 						}
 
 						await purgeVoicesOnAccountDelete(userId, {
+							service,
+							logger: ctx.context.logger,
+						});
+					}),
+				},
+			],
+		},
+	} satisfies BetterAuthPlugin;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                          Generation history purge                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Plugin id of the generation-history account-deletion cascade.
+ */
+export const GENERATION_PURGE_PLUGIN_ID = "generation-purge";
+
+/**
+ * Sink for the failures of the generation-history purge.
+ *
+ * Better Auth's `ctx.context.logger` satisfies it; tests can pass a recorder.
+ */
+export interface GenerationPurgeLogger {
+	error?: (message: string, ...args: unknown[]) => void;
+}
+
+/**
+ * Inputs for {@linkcode purgeGenerationsOnAccountDelete}.
+ */
+export interface PurgeGenerationsOnDeleteOptions {
+	/** The ledger service the history rows are deleted through. */
+	service: Pick<GenerationService, "deleteAllForUser">;
+	/** Where a failure is reported; omitted, failures are silent. */
+	logger?: GenerationPurgeLogger;
+}
+
+/**
+ * Runs the history half of account deletion.
+ *
+ * A generation row is a ledger entry, not a durable record that has to outlive
+ * the account, so it is hard-deleted rather than tombstoned. The objects it
+ * pointed at are already covered by the storage purge: the ephemeral
+ * `t/users/{userId}/` root and the durable assets root are both purged by the
+ * auth storage hook, so nothing here touches the bucket.
+ *
+ * The account is already gone when this runs, so a failure is logged at error
+ * level with the user id instead of thrown into the deleted session.
+ *
+ * @param userId - The deleted user whose history is purged.
+ * @param options - The ledger service and the log sink.
+ */
+export async function purgeGenerationsOnAccountDelete(
+	userId: string,
+	options: PurgeGenerationsOnDeleteOptions
+): Promise<void> {
+	try {
+		await options.service.deleteAllForUser(userId);
+	} catch (error) {
+		options.logger?.error?.(
+			`[generationPurgePlugin] Failed to purge the generations of deleted user "${userId}".`,
+			error
+		);
+	}
+}
+
+/**
+ * Options of {@linkcode generationPurgePlugin}.
+ */
+export interface GenerationPurgePluginOptions {
+	/** Persistence port of the generation ledger. */
+	registry: GenerationRegistryPort;
+	/** Injected clock, so the composed service stays deterministic in tests. */
+	clock?: () => Date;
+}
+
+/**
+ * Better Auth plugin that hard-deletes a user's generation history when the
+ * user is deleted.
+ *
+ * The plugin is schema-free and carries no endpoint: the ledger schema is
+ * registered by `@itsrose/auth`, and the host application composes the
+ * registry. It adds the same account-deletion `after` hook the storage and
+ * voice purges use, and it runs beside them: the voice cascade owns upstream
+ * objects, the storage cascade owns the bucket, and this one owns the ledger
+ * rows.
+ *
+ * @param options - The ledger and the clock.
+ * @returns The Better Auth plugin to append to the `plugins` array.
+ */
+export function generationPurgePlugin(
+	options: GenerationPurgePluginOptions
+): BetterAuthPlugin {
+	const service = createGenerationService({
+		registry: options.registry,
+		clock: options.clock ?? (() => new Date()),
+		newId: () => randomUUID(),
+	});
+
+	return {
+		id: GENERATION_PURGE_PLUGIN_ID,
+		hooks: {
+			after: [
+				{
+					matcher: (context) => isAccountDeletionPath(context.path),
+					handler: createAuthMiddleware(async (ctx) => {
+						const userId = ctx.context.session?.user?.id;
+						if (!userId) {
+							return;
+						}
+
+						await purgeGenerationsOnAccountDelete(userId, {
 							service,
 							logger: ctx.context.logger,
 						});

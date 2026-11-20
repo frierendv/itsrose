@@ -13,6 +13,7 @@ import {
 	deleteUserTempFiles,
 	listUserFiles,
 	uploadUserFile,
+	type UploadFileOptions,
 } from "./operations";
 import { purgeAccountStorageOnDelete } from "./purge";
 import type { PresignedUploadOptions, StoragePluginOptions } from "./types";
@@ -177,8 +178,17 @@ export function storagePlugin(options: StoragePluginOptions = {}) {
 						userId: string,
 						category: string,
 						filename: string,
-						data: Buffer | string
-					) => uploadUserFile(s3, userId, category, filename, data),
+						data: Buffer | string,
+						options?: UploadFileOptions
+					) =>
+						uploadUserFile(
+							s3,
+							userId,
+							category,
+							filename,
+							data,
+							options
+						),
 					purgeUserStorage: (userId: string) =>
 						deleteUserTempFiles(userId, s3),
 					listUserFiles: (userId: string, category?: string) =>
