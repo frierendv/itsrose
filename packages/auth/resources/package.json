@@ -33,6 +33,7 @@
 		"./schema": "./src/schema/index.ts",
 		"./types": "./src/types.ts",
 		"./package.json": "./package.json",
+		"./generations": "./src/application/generations.ts",
 		"./registry": "./src/adapter/postgres.ts",
 		"./voices": "./src/application/voices.ts",
 		"./plugin": "./src/plugin-server.ts"
@@ -58,6 +59,7 @@
 			"./schema": "./dist/schema/index.mjs",
 			"./types": "./dist/types.mjs",
 			"./package.json": "./package.json",
+			"./generations": "./dist/application/generations.mjs",
 			"./registry": "./dist/adapter/postgres.mjs",
 			"./voices": "./dist/application/voices.mjs",
 			"./plugin": "./dist/plugin-server.mjs"

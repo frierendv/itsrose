@@ -129,8 +129,8 @@ export default function (env = process.env as AuthEnv) {
 		itsRosePlugin(),
 		storagePlugin(),
 		// Schema only: the transport plugins are registered by the host app, so
-		// these registrations are what make the usage, asset and
-		// provider-resource tables part of db:generate.
+		// these registrations are what make the usage, asset, provider-resource
+		// and generation tables part of db:generate.
 		usageSchemaPlugin,
 		storageSchemaPlugin,
 		providerResourcesSchemaPlugin,
