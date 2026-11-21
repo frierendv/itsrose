@@ -1,3 +1,15 @@
+import {
+	ApiError,
+	envelopeSchema,
+	failureEnvelopeSchema,
+	parseData,
+	parseEnvelope,
+	successEnvelopeSchema,
+	type ApiEnvelope,
+	type ApiErrorDetails,
+	type ApiFailureEnvelope,
+	type ApiSuccessEnvelope,
+} from "@/lib/api/envelope";
 import { z } from "zod/v4";
 
 /* -------------------------------------------------------------------------- */
@@ -68,63 +80,39 @@ export type AssetDelete = z.infer<typeof assetDeleteSchema>;
 /*                             Envelope parsing                               */
 /* -------------------------------------------------------------------------- */
 
-const envelopeMetaSchema = z.record(z.string(), z.unknown()).default({});
-
-/** The `@itsrose/api-response` success envelope, as far as assets rely on it. */
-export const assetSuccessEnvelopeSchema = z.object({
-	ok: z.literal(true),
-	code: z.number(),
-	message: z.string(),
-	data: z.unknown(),
-	errors: z.null(),
-	meta: envelopeMetaSchema,
-});
+/**
+ * The `@itsrose/api-response` success envelope, as far as assets rely on it.
+ *
+ * The envelope machinery itself lives in `lib/api/envelope`; the aliases keep
+ * the asset feature's names for the schemas it parses through.
+ */
+export const assetSuccessEnvelopeSchema = successEnvelopeSchema(z.unknown());
 
 /** The `@itsrose/api-response` failure envelope. */
-export const assetFailureEnvelopeSchema = z.object({
-	ok: z.literal(false),
-	code: z.number(),
-	message: z.string(),
-	data: z.null(),
-	errors: z.record(z.string(), z.unknown()).nullish(),
-	meta: envelopeMetaSchema,
-});
+export const assetFailureEnvelopeSchema = failureEnvelopeSchema;
 
-export const assetEnvelopeSchema = z.discriminatedUnion("ok", [
-	assetSuccessEnvelopeSchema,
-	assetFailureEnvelopeSchema,
-]);
+/** The discriminated envelope union the asset routes answer with. */
+export const assetEnvelopeSchema = envelopeSchema(z.unknown());
 
-export type AssetSuccessEnvelope = z.infer<typeof assetSuccessEnvelopeSchema>;
-export type AssetFailureEnvelope = z.infer<typeof assetFailureEnvelopeSchema>;
-export type AssetEnvelope = z.infer<typeof assetEnvelopeSchema>;
+export type AssetSuccessEnvelope = ApiSuccessEnvelope;
+export type AssetFailureEnvelope = ApiFailureEnvelope;
+export type AssetEnvelope = ApiEnvelope;
+
+/** The surface name used in parser messages. */
+const ASSET_SURFACE = "asset API";
 
 /**
  * A failed asset call, carrying the envelope's own diagnostic fields.
  *
  * The message is the envelope `message` (or a parser message when the body was
  * not an envelope at all), so `getErrorMessage` surfaces the server's wording
- * without extra handling at the call site.
+ * without extra handling at the call site. The class name is preserved so the
+ * feature keeps its own error identity on top of the shared {@link ApiError}.
  */
-export class AssetApiError extends Error {
-	readonly status?: number;
-	readonly code?: number;
-	readonly errors?: Record<string, unknown> | null;
-
-	constructor(
-		message: string,
-		details: {
-			status?: number;
-			code?: number;
-			errors?: Record<string, unknown> | null;
-			cause?: unknown;
-		} = {}
-	) {
-		super(message, { cause: details.cause });
+export class AssetApiError extends ApiError {
+	constructor(message: string, details: ApiErrorDetails = {}) {
+		super(message, details);
 		this.name = "AssetApiError";
-		this.status = details.status;
-		this.code = details.code;
-		this.errors = details.errors;
 	}
 }
 
@@ -138,14 +126,11 @@ export function parseAssetEnvelope(
 	payload: unknown,
 	status?: number
 ): AssetEnvelope {
-	const parsed = assetEnvelopeSchema.safeParse(payload);
-	if (!parsed.success) {
-		throw new AssetApiError(
-			`The asset API returned an unexpected response (HTTP ${status ?? "unknown"}).`,
-			{ status, cause: parsed.error }
-		);
-	}
-	return parsed.data;
+	return parseEnvelope(z.unknown(), payload, {
+		status,
+		surface: ASSET_SURFACE,
+		errorType: AssetApiError,
+	});
 }
 
 /**
@@ -160,12 +145,9 @@ export function parseAssetData<T>(
 	data: unknown,
 	status?: number
 ): T {
-	const parsed = schema.safeParse(data);
-	if (!parsed.success) {
-		throw new AssetApiError(
-			"The asset API returned a payload that does not match its schema.",
-			{ status, cause: parsed.error }
-		);
-	}
-	return parsed.data;
+	return parseData(schema, data, {
+		status,
+		surface: ASSET_SURFACE,
+		errorType: AssetApiError,
+	});
 }
