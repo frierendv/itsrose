@@ -57,3 +57,29 @@ export function generationFilename(createdAt: string): string {
 export function isExpiredGenerationError(error: unknown): boolean {
 	return error instanceof ApiError && error.status === 410;
 }
+
+/**
+ * Initiates a browser file download of an audio file URL.
+ */
+export async function downloadAudioFile(
+	url: string,
+	filename: string
+): Promise<void> {
+	try {
+		const response = await fetch(url);
+		const blob = await response.blob();
+		const objectUrl = URL.createObjectURL(blob);
+		const anchor = document.createElement("a");
+		anchor.href = objectUrl;
+		anchor.download = filename.endsWith(".mp3")
+			? filename
+			: `${filename}.mp3`;
+		document.body.append(anchor);
+		anchor.click();
+		anchor.remove();
+		URL.revokeObjectURL(objectUrl);
+	} catch {
+		// Fallback: direct navigation download
+		window.open(url, "_blank");
+	}
+}

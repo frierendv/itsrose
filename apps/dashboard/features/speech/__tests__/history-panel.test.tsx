@@ -289,4 +289,34 @@ describe("HistoryPanel", () => {
 			).toBeNull();
 		});
 	});
+
+	it("filters listed generations by search input", async () => {
+		const rowA = {
+			...GENERATION_ROW,
+			generation_id: "gen_search_a",
+			input_text: "Alpha sentence to find.",
+		};
+		const rowB = {
+			...GENERATION_ROW,
+			generation_id: "gen_search_b",
+			input_text: "Beta paragraph completely different.",
+		};
+
+		mockFetch([generationsRoute([rowA, rowB])]);
+
+		const { user } = renderInSpeechProviders(<HistoryPanel />);
+
+		expect(await screen.findByText("Alpha sentence to find.")).toBeTruthy();
+		expect(
+			screen.getByText("Beta paragraph completely different.")
+		).toBeTruthy();
+
+		const searchInput = screen.getByPlaceholderText("Search history...");
+		await user.type(searchInput, "Alpha");
+
+		expect(screen.getByText("Alpha sentence to find.")).toBeTruthy();
+		expect(
+			screen.queryByText("Beta paragraph completely different.")
+		).toBeNull();
+	});
 });

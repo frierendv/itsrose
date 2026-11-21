@@ -3,19 +3,20 @@
 import { useAudioPlayer } from "@/components/ui/audio-player";
 import { formatAssetDate } from "@/features/assets/utils";
 import { getErrorMessage } from "@/lib/errors";
-import { FloppyDisk, Play, TrashBin } from "@gravity-ui/icons";
+import { ArrowDownToLine, FloppyDisk, Play, TrashBin } from "@gravity-ui/icons";
 import {
 	Alert,
 	Button,
 	Chip,
 	EmptyState,
 	Pagination,
+	SearchField,
 	Skeleton,
 	toast,
 	Typography,
 } from "@heroui/react";
 import { cn } from "@itsrose/react/core";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { SPEECH_GENERATIONS_PAGE_SIZE } from "../constants";
 import {
 	useDeleteGenerationMutation,
@@ -25,6 +26,7 @@ import {
 } from "../hooks";
 import type { GenerationItem } from "../types";
 import {
+	downloadAudioFile,
 	generationExcerpt,
 	generationFilename,
 	isExpiredGenerationError,
@@ -49,6 +51,8 @@ export const HistoryPanel: React.FC = () => {
 	const [offset, setOffset] = useState(0);
 	const [playingId, setPlayingId] = useState<string | null>(null);
 	const [savingId, setSavingId] = useState<string | null>(null);
+	const [downloadingId, setDownloadingId] = useState<string | null>(null);
+	const [searchQuery, setSearchQuery] = useState("");
 	const [actionError, setActionError] = useState<string | null>(null);
 	const [generationToDelete, setGenerationToDelete] =
 		useState<GenerationItem | null>(null);
@@ -63,6 +67,39 @@ export const HistoryPanel: React.FC = () => {
 			limit: SPEECH_GENERATIONS_PAGE_SIZE,
 			offset,
 		});
+
+	const filteredGenerations = useMemo(() => {
+		if (!searchQuery.trim()) {
+			return generations;
+		}
+		const query = searchQuery.toLowerCase();
+		return generations.filter((gen) =>
+			(gen.input_text?.toLowerCase() ?? "").includes(query)
+		);
+	}, [generations, searchQuery]);
+
+	const handleDownload = async (generation: GenerationItem) => {
+		if (generation.expired) {
+			return;
+		}
+		setDownloadingId(generation.generation_id);
+
+		try {
+			const signed = await urlMutation.mutateAsync(
+				generation.generation_id
+			);
+			await downloadAudioFile(
+				signed.url,
+				generationFilename(generation.created_at)
+			);
+		} catch (err) {
+			toast.danger(
+				getErrorMessage(err, "The generation could not be downloaded.")
+			);
+		} finally {
+			setDownloadingId(null);
+		}
+	};
 
 	const handlePlay = async (generation: GenerationItem) => {
 		if (generation.expired) {
@@ -185,6 +222,20 @@ export const HistoryPanel: React.FC = () => {
 				</Alert>
 			) : null}
 
+			{generations.length > 0 || searchQuery ? (
+				<SearchField
+					aria-label="Search history"
+					value={searchQuery}
+					onChange={setSearchQuery}
+				>
+					<SearchField.Group>
+						<SearchField.SearchIcon />
+						<SearchField.Input placeholder="Search history..." />
+						<SearchField.ClearButton />
+					</SearchField.Group>
+				</SearchField>
+			) : null}
+
 			{isPending ? (
 				<div
 					aria-label="Loading history"
@@ -206,12 +257,23 @@ export const HistoryPanel: React.FC = () => {
 				</EmptyState>
 			) : null}
 
-			{generations.length > 0 ? (
+			{!isPending &&
+			!isError &&
+			generations.length > 0 &&
+			filteredGenerations.length === 0 ? (
+				<EmptyState>
+					<Typography type="body-sm" color="muted">
+						No generations match &ldquo;{searchQuery}&rdquo;.
+					</Typography>
+				</EmptyState>
+			) : null}
+
+			{filteredGenerations.length > 0 ? (
 				<ul
 					aria-label="Generation history"
 					className="flex flex-col gap-2"
 				>
-					{generations.map((generation) => {
+					{filteredGenerations.map((generation) => {
 						const excerpt = generationExcerpt(
 							generation.input_text
 						);
@@ -291,6 +353,29 @@ export const HistoryPanel: React.FC = () => {
 											className="size-3.5"
 										/>
 										<span>Play</span>
+									</Button>
+
+									<Button
+										aria-label={`Download ${excerpt}`}
+										isDisabled={
+											generation.expired ||
+											downloadingId !== null
+										}
+										isPending={
+											downloadingId ===
+											generation.generation_id
+										}
+										size="sm"
+										variant="ghost"
+										onPress={() =>
+											void handleDownload(generation)
+										}
+									>
+										<ArrowDownToLine
+											aria-hidden
+											className="size-3.5"
+										/>
+										<span>Download</span>
 									</Button>
 
 									{!generation.saved &&

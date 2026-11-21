@@ -1,3 +1,4 @@
+import { AudioPlayerProvider } from "@/components/ui/audio-player";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, vi } from "vitest";
@@ -9,15 +10,17 @@ function renderEditor(
 	overrides: Partial<Parameters<typeof SpeechEditor>[0]> = {}
 ) {
 	return render(
-		<SpeechEditor
-			canGenerate={false}
-			characters={0}
-			isGenerating={false}
-			voiceName={null}
-			onChange={vi.fn()}
-			onGenerate={vi.fn()}
-			{...overrides}
-		/>
+		<AudioPlayerProvider>
+			<SpeechEditor
+				canGenerate={false}
+				characters={0}
+				isGenerating={false}
+				voiceName={null}
+				onChange={vi.fn()}
+				onGenerate={vi.fn()}
+				{...overrides}
+			/>
+		</AudioPlayerProvider>
 	);
 }
 
@@ -103,5 +106,28 @@ describe("SpeechEditor", () => {
 		const decoration = editor.querySelector(".speech-bracket-tag");
 		expect(decoration).not.toBeNull();
 		expect(decoration?.textContent).toBe("[sighs]");
+	});
+
+	it("renders recent generation takes inline when provided", async () => {
+		renderEditor({
+			recentGenerations: [
+				{
+					generation_id: "gen_test_1",
+					audio_url: "https://audio.test/take1.mp3",
+					text: "The first inline take.",
+					created_at: "2026-11-20T08:00:00.000Z",
+				},
+			],
+		});
+
+		expect(await screen.findByText("Recent takes")).toBeTruthy();
+		expect(screen.getByText("Take 1")).toBeTruthy();
+		expect(screen.getByText("The first inline take.")).toBeTruthy();
+		expect(
+			screen.getByRole("button", { name: "Play Take 1" })
+		).toBeTruthy();
+		expect(
+			screen.getByRole("button", { name: "Download Take 1" })
+		).toBeTruthy();
 	});
 });

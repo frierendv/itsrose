@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	ArrowDownToLine,
 	ArrowRotateLeft,
 	ArrowRotateRight,
 	ChevronDown,
@@ -57,6 +58,21 @@ export const AudioPlayer: React.FC = () => {
 		seek(Array.isArray(next) ? (next[0] ?? 0) : next);
 	};
 
+	const handleDownload = () => {
+		if (!track) {
+			return;
+		}
+		const cleanName =
+			track.title.slice(0, 32).replace(/[^a-zA-Z0-9_-]/g, "_") || "audio";
+		const anchor = document.createElement("a");
+		anchor.href = track.src;
+		anchor.download = `${cleanName}.mp3`;
+		anchor.target = "_blank";
+		document.body.append(anchor);
+		anchor.click();
+		anchor.remove();
+	};
+
 	return (
 		<div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-4">
 			{isMinimized ? (
@@ -82,14 +98,15 @@ export const AudioPlayer: React.FC = () => {
 				<section
 					aria-label="Audio player"
 					className={cn(
-						"pointer-events-auto flex w-full max-w-md flex-col gap-3 rounded-2xl border border-separator bg-background/90 p-3 shadow-xl backdrop-blur",
+						"pointer-events-auto flex w-full max-w-md flex-col gap-3 rounded-2xl border border-separator bg-background/95 p-3 shadow-2xl backdrop-blur md:max-w-4xl md:flex-row md:items-center md:gap-4 md:px-4 md:py-2.5",
 						isPlaying && "border-accent/40"
 					)}
 				>
-					<div className="flex items-center gap-3">
+					{/* Left: Track Information */}
+					<div className="flex items-center gap-3 min-w-0 md:w-56 md:shrink-0">
 						<span
 							aria-hidden
-							className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-secondary bg-cover bg-center text-muted"
+							className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface-secondary bg-cover bg-center text-muted"
 							style={
 								track.coverUrl
 									? {
@@ -99,14 +116,14 @@ export const AudioPlayer: React.FC = () => {
 							}
 						>
 							{track.coverUrl ? null : (
-								<MusicNote className="size-5" />
+								<MusicNote className="size-4" />
 							)}
 						</span>
 
 						<div className="min-w-0 flex-1">
 							<Typography
 								type="body-sm"
-								className="truncate font-medium"
+								className="truncate font-medium text-xs md:text-sm"
 							>
 								{track.title}
 							</Typography>
@@ -114,38 +131,96 @@ export const AudioPlayer: React.FC = () => {
 								<Typography
 									type="body-xs"
 									color="muted"
-									className="truncate"
+									className="truncate text-[11px]"
 								>
 									{track.subtitle}
 								</Typography>
 							) : null}
 						</div>
 
-						<Button
-							isIconOnly
-							aria-label="Minimize audio player"
-							size="sm"
-							variant="ghost"
-							onPress={minimize}
-						>
-							<ChevronDown aria-hidden className="size-4" />
-						</Button>
-						<Button
-							isIconOnly
-							aria-label="Close audio player"
-							size="sm"
-							variant="ghost"
-							onPress={close}
-						>
-							<Xmark aria-hidden className="size-4" />
-						</Button>
+						{/* Mobile minimize and close buttons */}
+						<div className="flex items-center gap-1 md:hidden">
+							<Button
+								isIconOnly
+								aria-label="Download audio"
+								size="sm"
+								variant="ghost"
+								onPress={handleDownload}
+							>
+								<ArrowDownToLine
+									aria-hidden
+									className="size-4"
+								/>
+							</Button>
+							<Button
+								isIconOnly
+								aria-label="Minimize audio player"
+								size="sm"
+								variant="ghost"
+								onPress={minimize}
+							>
+								<ChevronDown aria-hidden className="size-4" />
+							</Button>
+							<Button
+								isIconOnly
+								aria-label="Close audio player"
+								size="sm"
+								variant="ghost"
+								onPress={close}
+							>
+								<Xmark aria-hidden className="size-4" />
+							</Button>
+						</div>
 					</div>
 
-					<div className="flex items-center gap-3">
+					{/* Center: Playback Controls & Scrubber */}
+					<div className="flex flex-1 items-center gap-2 md:gap-3">
+						<Button
+							aria-label="Rewind 10 seconds"
+							isDisabled={duration <= 0}
+							size="sm"
+							variant="ghost"
+							className="h-8 px-2"
+							onPress={() => seek(currentTime - 10)}
+						>
+							<ArrowRotateLeft aria-hidden className="size-3.5" />
+							<span className="text-[11px] font-medium">10</span>
+						</Button>
+
+						<Button
+							isIconOnly
+							aria-label={isPlaying ? "Pause" : "Play"}
+							variant="primary"
+							size="sm"
+							className="size-8 min-w-8"
+							onPress={toggle}
+						>
+							{isPlaying ? (
+								<Pause aria-hidden className="size-4" />
+							) : (
+								<Play aria-hidden className="size-4" />
+							)}
+						</Button>
+
+						<Button
+							aria-label="Forward 10 seconds"
+							isDisabled={duration <= 0}
+							size="sm"
+							variant="ghost"
+							className="h-8 px-2"
+							onPress={() => seek(currentTime + 10)}
+						>
+							<span className="text-[11px] font-medium">10</span>
+							<ArrowRotateRight
+								aria-hidden
+								className="size-3.5"
+							/>
+						</Button>
+
 						<Typography
 							type="body-xs"
 							color="muted"
-							className="w-10 shrink-0 tabular-nums"
+							className="w-9 shrink-0 text-right tabular-nums text-[11px]"
 						>
 							{formatPlaybackTime(currentTime)}
 						</Typography>
@@ -169,46 +244,40 @@ export const AudioPlayer: React.FC = () => {
 						<Typography
 							type="body-xs"
 							color="muted"
-							className="w-10 shrink-0 text-right tabular-nums"
+							className="w-9 shrink-0 text-left tabular-nums text-[11px]"
 						>
 							{formatPlaybackTime(duration)}
 						</Typography>
 					</div>
 
-					<div className="flex items-center justify-center gap-4">
-						<Button
-							aria-label="Rewind 10 seconds"
-							isDisabled={duration <= 0}
-							size="sm"
-							variant="ghost"
-							onPress={() => seek(currentTime - 10)}
-						>
-							<ArrowRotateLeft aria-hidden className="size-4" />
-							<span className="text-xs font-medium">10</span>
-						</Button>
-
+					{/* Desktop minimize and close buttons */}
+					<div className="hidden items-center gap-1 md:flex md:shrink-0">
 						<Button
 							isIconOnly
-							aria-label={isPlaying ? "Pause" : "Play"}
-							variant="primary"
-							onPress={toggle}
-						>
-							{isPlaying ? (
-								<Pause aria-hidden className="size-5" />
-							) : (
-								<Play aria-hidden className="size-5" />
-							)}
-						</Button>
-
-						<Button
-							aria-label="Forward 10 seconds"
-							isDisabled={duration <= 0}
+							aria-label="Download audio"
 							size="sm"
 							variant="ghost"
-							onPress={() => seek(currentTime + 10)}
+							onPress={handleDownload}
 						>
-							<span className="text-xs font-medium">10</span>
-							<ArrowRotateRight aria-hidden className="size-4" />
+							<ArrowDownToLine aria-hidden className="size-4" />
+						</Button>
+						<Button
+							isIconOnly
+							aria-label="Minimize audio player"
+							size="sm"
+							variant="ghost"
+							onPress={minimize}
+						>
+							<ChevronDown aria-hidden className="size-4" />
+						</Button>
+						<Button
+							isIconOnly
+							aria-label="Close audio player"
+							size="sm"
+							variant="ghost"
+							onPress={close}
+						>
+							<Xmark aria-hidden className="size-4" />
 						</Button>
 					</div>
 				</section>

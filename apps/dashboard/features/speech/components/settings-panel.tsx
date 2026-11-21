@@ -76,38 +76,57 @@ const VoiceRow: React.FC<VoiceRowProps> = ({
 	canPreview,
 	onSelect,
 	onPreview,
-}) => (
-	<li className="flex items-center gap-2">
-		<button
-			aria-pressed={isSelected}
-			className={cn(
-				"flex min-w-0 flex-1 items-center justify-between gap-2 rounded-medium border px-3 py-2 text-left text-sm transition-colors",
-				isSelected
-					? "border-accent bg-accent/10 text-accent"
-					: "border-separator hover:bg-surface-secondary"
-			)}
-			type="button"
-			onClick={onSelect}
-		>
-			<span className="truncate font-medium">{voice.name}</span>
-			{isSelected ? (
-				<span className="shrink-0 text-xs">Selected</span>
-			) : null}
-		</button>
+}) => {
+	const initial = voice.name.slice(0, 1).toUpperCase();
 
-		<Button
-			isIconOnly
-			aria-label={`Preview ${voice.name}`}
-			isDisabled={!canPreview || isPreviewing}
-			isPending={isPreviewing}
-			size="sm"
-			variant="ghost"
-			onPress={onPreview}
-		>
-			<Play aria-hidden className="size-4" />
-		</Button>
-	</li>
-);
+	return (
+		<li className="flex items-center gap-2">
+			<button
+				aria-pressed={isSelected}
+				className={cn(
+					"flex min-w-0 flex-1 items-center justify-between gap-2.5 rounded-medium border px-3 py-2 text-left text-sm transition-colors",
+					isSelected
+						? "border-accent bg-accent/10 text-accent"
+						: "border-separator hover:bg-surface-secondary"
+				)}
+				type="button"
+				onClick={onSelect}
+			>
+				<div className="flex min-w-0 items-center gap-2.5">
+					<span
+						aria-hidden="true"
+						className={cn(
+							"flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold uppercase",
+							isSelected
+								? "bg-accent text-accent-foreground"
+								: "bg-surface-secondary text-muted"
+						)}
+					>
+						{initial}
+					</span>
+					<span className="truncate font-medium">{voice.name}</span>
+				</div>
+				{isSelected ? (
+					<span className="shrink-0 text-xs font-medium">
+						Selected
+					</span>
+				) : null}
+			</button>
+
+			<Button
+				isIconOnly
+				aria-label={`Preview ${voice.name}`}
+				isDisabled={!canPreview || isPreviewing}
+				isPending={isPreviewing}
+				size="sm"
+				variant="ghost"
+				onPress={onPreview}
+			>
+				<Play aria-hidden className="size-4" />
+			</Button>
+		</li>
+	);
+};
 
 /**
  * The Settings tab: the voice library and its audition buttons.

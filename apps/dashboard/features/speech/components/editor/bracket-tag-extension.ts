@@ -18,11 +18,10 @@ export const BRACKET_TAG_CLASS = "speech-bracket-tag";
  * The classes the decoration paints with.
  *
  * `BRACKET_TAG_CLASS` is the stable hook the tests and any custom CSS can
- * target; the Tailwind utilities come along in the same attribute so the tag
- * is visibly distinct without a global stylesheet rule. Tailwind scans this
- * file, so the utilities are emitted even though they only appear here.
+ * target; styled as an interactive token badge matching the studio workbench
+ * aesthetic (tinted pill background, subtle border, accent text).
  */
-const BRACKET_TAG_DECORATION_CLASS = `${BRACKET_TAG_CLASS} text-accent font-semibold`;
+const BRACKET_TAG_DECORATION_CLASS = `${BRACKET_TAG_CLASS} inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded-md bg-accent/15 border border-accent/25 text-accent font-semibold text-xs leading-none align-baseline`;
 
 /** A bracket range as offsets into the text it was found in. */
 export type BracketTagRange = {

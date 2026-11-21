@@ -18,6 +18,10 @@ import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useRef } from "react";
 import { BracketTagHighlight } from "./bracket-tag-extension";
+import {
+	InlineGenerationList,
+	type RecentGeneration,
+} from "./inline-generation-list";
 
 /**
  * StarterKit reduced to what a speech script is.
@@ -80,6 +84,10 @@ export interface SpeechEditorProps {
 	/** False while the script is empty, over the limit or has no voice. */
 	canGenerate: boolean;
 	onGenerate: () => void;
+	/** Optional callback when the top voice badge is clicked to open voice settings. */
+	onSelectVoiceClick?: () => void;
+	/** Recent generation takes created in the active session. */
+	recentGenerations?: RecentGeneration[];
 }
 
 /**
@@ -99,6 +107,8 @@ export const SpeechEditor: React.FC<SpeechEditorProps> = ({
 	isGenerating,
 	canGenerate,
 	onGenerate,
+	onSelectVoiceClick,
+	recentGenerations = [],
 }) => {
 	// Tiptap keeps the `onUpdate` handler it was created with; the ref makes
 	// the latest page callback win without recreating the editor.
@@ -116,7 +126,7 @@ export const SpeechEditor: React.FC<SpeechEditorProps> = ({
 		immediatelyRender: false,
 		editorProps: {
 			attributes: {
-				class: "speech-editor min-h-72 px-4 py-3 text-sm leading-6 focus:outline-none",
+				class: "speech-editor min-h-80 px-6 py-5 text-base leading-7 focus:outline-none",
 				"aria-label": "Speech script",
 			},
 		},
@@ -137,8 +147,30 @@ export const SpeechEditor: React.FC<SpeechEditorProps> = ({
 			className="flex min-h-[32rem] flex-col gap-0 p-0"
 			variant="transparent"
 		>
-			<Card.Content className="flex flex-1 flex-col overflow-hidden rounded-t-2xl border border-b-0 border-separator bg-surface p-0">
+			<Card.Content className="flex flex-1 flex-col overflow-hidden rounded-t-2xl border border-b-0 border-separator bg-surface/50 p-0">
+				<div className="flex items-center justify-between border-b border-separator/50 bg-surface-secondary/30 px-4 py-2.5">
+					<button
+						type="button"
+						onClick={onSelectVoiceClick}
+						aria-label={
+							voiceName
+								? `Selected voice: ${voiceName}`
+								: "Choose voice"
+						}
+						className="inline-flex items-center gap-2 rounded-full border border-separator/80 bg-background/80 px-3 py-1 text-xs font-medium text-foreground transition-colors hover:border-accent/40 hover:bg-surface-secondary"
+					>
+						<span className="size-2 rounded-full bg-accent" />
+						<span className="max-w-xs truncate font-medium">
+							{voiceName
+								? `Voice · ${voiceName}`
+								: "Select a voice"}
+						</span>
+					</button>
+				</div>
 				<EditorContent className="flex-1" editor={editor} />
+				{recentGenerations.length > 0 && (
+					<InlineGenerationList generations={recentGenerations} />
+				)}
 			</Card.Content>
 
 			<Card.Footer className="flex flex-wrap items-center justify-between gap-3 rounded-b-2xl border border-separator bg-surface-secondary p-4">

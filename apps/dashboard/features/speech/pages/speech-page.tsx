@@ -6,6 +6,7 @@ import { useVoices } from "@/features/voices/hooks";
 import { getErrorMessage } from "@/lib/errors";
 import { Tabs, toast, Typography } from "@heroui/react";
 import { useMemo, useState, type Key } from "react";
+import type { RecentGeneration } from "../components/editor/inline-generation-list";
 import { SpeechEditor } from "../components/editor/speech-editor";
 import { HistoryPanel } from "../components/history-panel";
 import { SettingsPanel } from "../components/settings-panel";
@@ -35,6 +36,9 @@ export const SpeechPage: React.FC = () => {
 	const [text, setText] = useState("");
 	const [chosenVoiceId, setChosenVoiceId] = useState<string | null>(null);
 	const [tab, setTab] = useState<SpeechTab>("settings");
+	const [recentGenerations, setRecentGenerations] = useState<
+		RecentGeneration[]
+	>([]);
 
 	// The starting voice is derived while the owner has not chosen one: the
 	// first clone is the personal choice, and the first catalogue voice is the
@@ -70,6 +74,16 @@ export const SpeechPage: React.FC = () => {
 				voice_id: selectedVoice.voice_id,
 			});
 
+			const newTake: RecentGeneration = {
+				generation_id: generated.generation_id,
+				audio_url: generated.audio_url,
+				text,
+				created_at: new Date().toISOString(),
+				voice_name: selectedVoice.name,
+			};
+
+			setRecentGenerations((prev) => [newTake, ...prev.slice(0, 2)]);
+
 			player.play({
 				src: generated.audio_url,
 				title: generationExcerpt(text),
@@ -88,14 +102,15 @@ export const SpeechPage: React.FC = () => {
 	};
 
 	return (
-		<div className="flex flex-col gap-6">
-			<div className="flex flex-col gap-1">
-				<Typography type="h2">Speech</Typography>
-				<Typography type="body-sm" color="muted">
-					Write a script, choose a voice, and generate speech.
-					Direction tags such as [sighs] are highlighted for the
-					performance.
-				</Typography>
+		<div className="flex flex-col gap-4 pb-24">
+			<div className="flex items-center justify-between">
+				<div className="flex flex-col gap-0.5">
+					<Typography type="h3">Speech</Typography>
+					<Typography type="body-xs" color="muted">
+						Craft scripts with expressive direction tags like
+						[sighs], preview voices, and generate speech.
+					</Typography>
+				</div>
 			</div>
 
 			<div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
@@ -106,27 +121,31 @@ export const SpeechPage: React.FC = () => {
 					voiceName={selectedVoice?.name ?? null}
 					onChange={setText}
 					onGenerate={() => void handleGenerate()}
+					onSelectVoiceClick={() => setTab("settings")}
+					recentGenerations={recentGenerations}
 				/>
 
-				<Tabs selectedKey={tab} onSelectionChange={handleTabChange}>
-					<Tabs.ListContainer>
-						<Tabs.List aria-label="Speech panels">
-							<Tabs.Tab id="settings">Settings</Tabs.Tab>
-							<Tabs.Tab id="history">History</Tabs.Tab>
-						</Tabs.List>
-					</Tabs.ListContainer>
+				<div className="flex flex-col rounded-2xl border border-separator bg-surface/30 p-4">
+					<Tabs selectedKey={tab} onSelectionChange={handleTabChange}>
+						<Tabs.ListContainer>
+							<Tabs.List aria-label="Speech panels">
+								<Tabs.Tab id="settings">Settings</Tabs.Tab>
+								<Tabs.Tab id="history">History</Tabs.Tab>
+							</Tabs.List>
+						</Tabs.ListContainer>
 
-					<Tabs.Panel id="settings" className="pt-4">
-						<SettingsPanel
-							selectedVoiceId={selectedVoiceId}
-							onSelectVoice={setChosenVoiceId}
-						/>
-					</Tabs.Panel>
+						<Tabs.Panel id="settings" className="pt-4">
+							<SettingsPanel
+								selectedVoiceId={selectedVoiceId}
+								onSelectVoice={setChosenVoiceId}
+							/>
+						</Tabs.Panel>
 
-					<Tabs.Panel id="history" className="pt-4">
-						<HistoryPanel />
-					</Tabs.Panel>
-				</Tabs>
+						<Tabs.Panel id="history" className="pt-4">
+							<HistoryPanel />
+						</Tabs.Panel>
+					</Tabs>
+				</div>
 			</div>
 		</div>
 	);
