@@ -2,6 +2,11 @@ import { listAssets } from "@/features/assets/api";
 import { ASSETS_PAGE_SIZE } from "@/features/assets/constants";
 import { assetQueryKeys } from "@/features/assets/query-keys";
 import { billingQueryKeys } from "@/features/billing/query-keys";
+import { listGenerations } from "@/features/studio/api";
+import { STUDIO_GENERATIONS_PAGE_SIZE } from "@/features/studio/constants";
+import { studioQueryKeys } from "@/features/studio/query-keys";
+import { listVoices } from "@/features/voices/api";
+import { voiceQueryKeys } from "@/features/voices/query-keys";
 import { authClient } from "@/lib/auth";
 import {
 	noop,
@@ -72,6 +77,47 @@ export async function prefetchBillingQueries(
 						fetchOptions,
 					})
 				),
+			staleTime: 30_000,
+		}),
+	]);
+
+	// Prefetch failures are non-fatal: the corresponding queries stay
+	// unpopulated and the client hooks fetch them on mount.
+	void results;
+}
+
+/**
+ * Prefetches the studio surface server-side: the first generation page and the
+ * voice library, so the owner's pages hydrate with data instead of a skeleton
+ * flash.
+ *
+ * Both routes live on the API origin, not on the dashboard's Better Auth
+ * proxy, so the incoming `cookie` header is forwarded explicitly — the same
+ * way {@link prefetchAssetsQueries} does. Failures are swallowed for the same
+ * reason: the client hooks then fetch normally.
+ */
+export async function prefetchStudioQueries(
+	queryClient: QueryClient
+): Promise<void> {
+	const requestHeaders = await headers();
+	const prefetchQuery = createPrefetchQueryFn(queryClient);
+
+	const results = await Promise.allSettled([
+		prefetchQuery({
+			queryKey: studioQueryKeys.generations.list({
+				limit: STUDIO_GENERATIONS_PAGE_SIZE,
+				offset: 0,
+			}),
+			queryFn: () =>
+				listGenerations(
+					{ limit: STUDIO_GENERATIONS_PAGE_SIZE, offset: 0 },
+					{ headers: requestHeaders }
+				),
+			staleTime: 30_000,
+		}),
+		prefetchQuery({
+			queryKey: voiceQueryKeys.list(),
+			queryFn: () => listVoices({ headers: requestHeaders }),
 			staleTime: 30_000,
 		}),
 	]);

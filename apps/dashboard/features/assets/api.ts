@@ -1,4 +1,8 @@
-import { config } from "@/config";
+import {
+	apiEndpoint,
+	requestApi,
+	type ApiRequestOptions,
+} from "@/lib/api/envelope";
 import type { ZodType } from "zod/v4";
 import {
 	AssetApiError,
@@ -6,8 +10,6 @@ import {
 	assetListSchema,
 	assetSchema,
 	assetUrlSchema,
-	parseAssetData,
-	parseAssetEnvelope,
 	type Asset,
 	type AssetDelete,
 	type AssetKind,
@@ -23,10 +25,11 @@ import {
  */
 const ASSETS_PREFIX = "/assets";
 
+/** The surface name used in parser messages. */
+const ASSET_SURFACE = "asset API";
+
 /** Headers forwarded on the server so the session cookie travels with the call. */
-export type AssetRequestOptions = {
-	headers?: HeadersInit;
-};
+export type AssetRequestOptions = ApiRequestOptions;
 
 /** A page of assets. The API applies its own defaults when these are omitted. */
 export type ListAssetsParams = {
@@ -41,28 +44,7 @@ export type UploadAssetInput = {
 };
 
 function assetEndpoint(path: string): string {
-	const origin = config.AUTH_BASE_URL.replace(/\/+$/, "");
-	return `${origin}${ASSETS_PREFIX}${path}`;
-}
-
-function buildHeaders(forwarded?: HeadersInit): Headers {
-	const headers = new Headers(forwarded);
-	headers.set("Accept", "application/json");
-	return headers;
-}
-
-/**
- * Reads the JSON body without assuming the response has one.
- *
- * A proxy or a crash can answer with HTML or an empty body; that is reported
- * as an unexpected envelope rather than a `SyntaxError`.
- */
-async function readBody(response: Response): Promise<unknown> {
-	try {
-		return await response.json();
-	} catch {
-		return null;
-	}
+	return apiEndpoint(`${ASSETS_PREFIX}${path}`);
 }
 
 async function requestAsset<T>(
@@ -71,26 +53,11 @@ async function requestAsset<T>(
 	init: RequestInit,
 	options: AssetRequestOptions = {}
 ): Promise<T> {
-	const response = await fetch(assetEndpoint(path), {
-		...init,
-		credentials: "include",
-		headers: buildHeaders(options.headers),
+	return requestApi(schema, assetEndpoint(path), init, {
+		...options,
+		surface: ASSET_SURFACE,
+		errorType: AssetApiError,
 	});
-
-	const envelope = parseAssetEnvelope(
-		await readBody(response),
-		response.status
-	);
-
-	if (!envelope.ok) {
-		throw new AssetApiError(envelope.message, {
-			status: response.status,
-			code: envelope.code,
-			errors: envelope.errors ?? null,
-		});
-	}
-
-	return parseAssetData(schema, envelope.data, response.status);
 }
 
 /**
