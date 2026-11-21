@@ -214,6 +214,24 @@ describe("HistoryPanel", () => {
 		);
 	});
 
+	it("styles a generation with no input as an untitled fallback", async () => {
+		mockFetch([
+			generationsRoute([
+				{
+					...GENERATION_ROW,
+					generation_id: "gen_untitled",
+					input_text: null,
+				},
+			]),
+		]);
+
+		renderInSpeechProviders(<HistoryPanel />);
+
+		const title = await screen.findByText("Untitled generation");
+		expect(title.classList.contains("text-muted")).toBe(true);
+		expect(title.classList.contains("italic")).toBe(true);
+	});
+
 	it("confirms deletion and keeps the saved asset", async () => {
 		let deleted = false;
 		let deleteMethod = "";

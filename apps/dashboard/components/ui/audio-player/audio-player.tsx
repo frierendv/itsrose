@@ -1,6 +1,8 @@
 "use client";
 
 import {
+	ArrowRotateLeft,
+	ArrowRotateRight,
 	ChevronDown,
 	ChevronUp,
 	MusicNote,
@@ -173,7 +175,18 @@ export const AudioPlayer: React.FC = () => {
 						</Typography>
 					</div>
 
-					<div className="flex items-center justify-center">
+					<div className="flex items-center justify-center gap-4">
+						<Button
+							aria-label="Rewind 10 seconds"
+							isDisabled={duration <= 0}
+							size="sm"
+							variant="ghost"
+							onPress={() => seek(currentTime - 10)}
+						>
+							<ArrowRotateLeft aria-hidden className="size-4" />
+							<span className="text-xs font-medium">10</span>
+						</Button>
+
 						<Button
 							isIconOnly
 							aria-label={isPlaying ? "Pause" : "Play"}
@@ -185,6 +198,17 @@ export const AudioPlayer: React.FC = () => {
 							) : (
 								<Play aria-hidden className="size-5" />
 							)}
+						</Button>
+
+						<Button
+							aria-label="Forward 10 seconds"
+							isDisabled={duration <= 0}
+							size="sm"
+							variant="ghost"
+							onPress={() => seek(currentTime + 10)}
+						>
+							<span className="text-xs font-medium">10</span>
+							<ArrowRotateRight aria-hidden className="size-4" />
 						</Button>
 					</div>
 				</section>

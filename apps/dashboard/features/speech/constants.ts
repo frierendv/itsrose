@@ -6,3 +6,18 @@ export const SPEECH_MAX_CHARACTERS = 5000;
 
 /** Canonical dashboard route of the speech surface. */
 export const SPEECH_ROUTE = "/speech";
+
+/**
+ * The direction tags the editor's insert menu offers.
+ *
+ * The synthesiser reads a bracketed hint as a performance direction rather
+ * than spoken text; these are the common ones, offered so the owner does not
+ * have to type them (and cannot mistype them) by hand.
+ */
+export const SPEECH_DIRECTION_TAGS = [
+	"[sighs]",
+	"[chuckles]",
+	"[laughs]",
+	"[whispers]",
+	"[clears throat]",
+] as const;

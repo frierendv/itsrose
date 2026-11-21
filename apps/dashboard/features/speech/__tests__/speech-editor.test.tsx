@@ -1,4 +1,5 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, vi } from "vitest";
 import { SpeechEditor } from "../components/editor/speech-editor";
 
@@ -75,5 +76,32 @@ describe("SpeechEditor", () => {
 		expect(
 			screen.getByRole("button", { name: /Generate speech/ })
 		).toBeTruthy();
+	});
+
+	it("inserts a direction tag at the caret through the insert-tag menu", async () => {
+		const user = userEvent.setup();
+
+		renderEditor();
+
+		const editor = await screen.findByRole("textbox", {
+			name: "Speech script",
+		});
+
+		editor.focus();
+		await user.keyboard("Now the line.");
+
+		await user.click(screen.getByRole("button", { name: "Insert tag" }));
+		await user.click(
+			await screen.findByRole("menuitem", { name: "[sighs]" })
+		);
+
+		await waitFor(() => {
+			expect(editor.textContent).toContain("Now the line.[sighs]");
+		});
+
+		// The inserted tag is decorated exactly like one that was typed.
+		const decoration = editor.querySelector(".speech-bracket-tag");
+		expect(decoration).not.toBeNull();
+		expect(decoration?.textContent).toBe("[sighs]");
 	});
 });

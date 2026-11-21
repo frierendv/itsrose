@@ -1,8 +1,18 @@
 "use client";
 
-import { SPEECH_MAX_CHARACTERS } from "@/features/speech/constants";
-import { Sparkles } from "@gravity-ui/icons";
-import { Button, Card, Separator, Typography } from "@heroui/react";
+import {
+	SPEECH_DIRECTION_TAGS,
+	SPEECH_MAX_CHARACTERS,
+} from "@/features/speech/constants";
+import { ChevronDown, Sparkles } from "@gravity-ui/icons";
+import {
+	Button,
+	buttonVariants,
+	Card,
+	Dropdown,
+	Typography,
+} from "@heroui/react";
+import { cn } from "@itsrose/react/core";
 import Placeholder from "@tiptap/extension-placeholder";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -77,8 +87,10 @@ export interface SpeechEditorProps {
  *
  * The editor owns no state that outlives a keystroke. The page holds the text
  * so the counter, the generate call and the empty guard read one source, and
- * the bottom bar is part of the card so the action always sits with the
- * script it submits.
+ * the bottom bar is attached to the writing surface so the actions always sit
+ * with the script they submit. The outer card is transparent: the bordered
+ * surface belongs to the editor itself, so the pane reads as a writing canvas
+ * rather than a boxed widget.
  */
 export const SpeechEditor: React.FC<SpeechEditorProps> = ({
 	onChange,
@@ -115,15 +127,21 @@ export const SpeechEditor: React.FC<SpeechEditorProps> = ({
 
 	const isOverLimit = characters > SPEECH_MAX_CHARACTERS;
 
+	/** Inserts a direction tag where the caret is, without moving the script. */
+	const insertTag = (tag: string) => {
+		editor?.chain().focus().insertContent(tag).run();
+	};
+
 	return (
-		<Card className="flex min-h-[32rem] flex-col">
-			<Card.Content className="flex-1 p-0">
-				<EditorContent editor={editor} />
+		<Card
+			className="flex min-h-[32rem] flex-col gap-0 p-0"
+			variant="transparent"
+		>
+			<Card.Content className="flex flex-1 flex-col overflow-hidden rounded-t-2xl border border-b-0 border-separator bg-surface p-0">
+				<EditorContent className="flex-1" editor={editor} />
 			</Card.Content>
 
-			<Separator />
-
-			<Card.Footer className="flex flex-wrap items-center justify-between gap-3 p-4">
+			<Card.Footer className="flex flex-wrap items-center justify-between gap-3 rounded-b-2xl border border-separator bg-surface-secondary p-4">
 				<div className="flex min-w-0 flex-col gap-0.5">
 					<Typography
 						aria-live="polite"
@@ -141,15 +159,54 @@ export const SpeechEditor: React.FC<SpeechEditorProps> = ({
 					</Typography>
 				</div>
 
-				<Button
-					isDisabled={!canGenerate || isGenerating}
-					isPending={isGenerating}
-					variant="primary"
-					onPress={onGenerate}
-				>
-					<Sparkles aria-hidden className="size-4" />
-					<span>Generate speech</span>
-				</Button>
+				<div className="flex items-center gap-2">
+					<Dropdown>
+						<Dropdown.Trigger
+							aria-label="Insert tag"
+							className={cn(
+								buttonVariants({
+									size: "sm",
+									variant: "ghost",
+								}),
+								"gap-1.5"
+							)}
+							isDisabled={!editor}
+						>
+							<span>Insert tag</span>
+							<ChevronDown aria-hidden className="size-3.5" />
+						</Dropdown.Trigger>
+
+						<Dropdown.Popover
+							className="min-w-44"
+							placement="top end"
+						>
+							<Dropdown.Menu
+								aria-label="Direction tags"
+								onAction={(key) => insertTag(String(key))}
+							>
+								{SPEECH_DIRECTION_TAGS.map((tag) => (
+									<Dropdown.Item
+										key={tag}
+										id={tag}
+										textValue={tag}
+									>
+										{tag}
+									</Dropdown.Item>
+								))}
+							</Dropdown.Menu>
+						</Dropdown.Popover>
+					</Dropdown>
+
+					<Button
+						isDisabled={!canGenerate || isGenerating}
+						isPending={isGenerating}
+						variant="primary"
+						onPress={onGenerate}
+					>
+						<Sparkles aria-hidden className="size-4" />
+						<span>Generate speech</span>
+					</Button>
+				</div>
 			</Card.Footer>
 		</Card>
 	);

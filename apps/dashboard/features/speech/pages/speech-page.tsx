@@ -12,7 +12,7 @@ import { SettingsPanel } from "../components/settings-panel";
 import { SPEECH_MAX_CHARACTERS } from "../constants";
 import { generationExcerpt } from "../utils";
 
-/** The two panels on the right; both are mounted and only one is visible. */
+/** The two panels on the right; the tab bar shows one at a time. */
 type SpeechTab = "settings" | "history";
 
 /**
@@ -24,8 +24,8 @@ type SpeechTab = "settings" | "history";
  * selected voice and the active tab. The editor reports its plain text, the
  * settings panel selects a voice, and generating hands the result to the
  * global player while the history panel refetches the row the mutation
- * invalidated. Every panel stays mounted so switching tabs never loses a
- * scroll position or drops the cached page.
+ * invalidated. Only the selected panel is mounted; the query cache keeps the
+ * data warm across a switch, and the hidden panel stays out of the DOM.
  */
 export const SpeechPage: React.FC = () => {
 	const player = useAudioPlayer();
@@ -116,14 +116,14 @@ export const SpeechPage: React.FC = () => {
 						</Tabs.List>
 					</Tabs.ListContainer>
 
-					<Tabs.Panel id="settings" shouldForceMount className="pt-4">
+					<Tabs.Panel id="settings" className="pt-4">
 						<SettingsPanel
 							selectedVoiceId={selectedVoiceId}
 							onSelectVoice={setChosenVoiceId}
 						/>
 					</Tabs.Panel>
 
-					<Tabs.Panel id="history" shouldForceMount className="pt-4">
+					<Tabs.Panel id="history" className="pt-4">
 						<HistoryPanel />
 					</Tabs.Panel>
 				</Tabs>

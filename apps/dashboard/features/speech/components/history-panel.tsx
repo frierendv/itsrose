@@ -14,6 +14,7 @@ import {
 	toast,
 	Typography,
 } from "@heroui/react";
+import { cn } from "@itsrose/react/core";
 import { useState } from "react";
 import { SPEECH_GENERATIONS_PAGE_SIZE } from "../constants";
 import {
@@ -27,6 +28,7 @@ import {
 	generationExcerpt,
 	generationFilename,
 	isExpiredGenerationError,
+	UNTITLED_GENERATION,
 } from "../utils";
 import { DeleteGenerationDialog } from "./delete-generation-dialog";
 
@@ -224,7 +226,12 @@ export const HistoryPanel: React.FC = () => {
 							>
 								<div className="flex min-w-0 flex-col gap-1">
 									<Typography
-										className="truncate font-medium"
+										className={cn(
+											"truncate",
+											excerpt === UNTITLED_GENERATION
+												? "text-muted italic"
+												: "font-medium"
+										)}
 										type="body-sm"
 									>
 										{excerpt}

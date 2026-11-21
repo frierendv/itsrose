@@ -3,6 +3,9 @@ import { ApiError } from "@/lib/api/envelope";
 /** How much of a generation's script the history row and player title show. */
 const EXCERPT_MAX_LENGTH = 96;
 
+/** The label a generation with no input (an older row, or a non-text feature) reads as. */
+export const UNTITLED_GENERATION = "Untitled generation";
+
 /**
  * Collapses a generation's input into a one-line excerpt.
  *
@@ -10,12 +13,12 @@ const EXCERPT_MAX_LENGTH = 96;
  * is a single line and the floating player is narrower still. Whitespace is
  * collapsed and a long script is cut at a word boundary with an ellipsis; a
  * generation with no input (an older row, or a non-text feature) still needs a
- * label, so it reads as "Untitled generation".
+ * label, so it reads as {@link UNTITLED_GENERATION}.
  */
 export function generationExcerpt(inputText: string | null): string {
 	const collapsed = inputText?.replace(/\s+/g, " ").trim() ?? "";
 	if (!collapsed) {
-		return "Untitled generation";
+		return UNTITLED_GENERATION;
 	}
 
 	if (collapsed.length <= EXCERPT_MAX_LENGTH) {
