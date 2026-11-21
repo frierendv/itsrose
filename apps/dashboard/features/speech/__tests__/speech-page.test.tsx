@@ -1,24 +1,22 @@
-import { config } from "@/config";
 import { toast } from "@heroui/react";
 import { cleanup, screen, waitFor, within } from "@testing-library/react";
-import { http, HttpResponse } from "msw";
 import { afterEach } from "vitest";
-import { server } from "../../../__tests__/msw/server";
+import { jsonResponse, mockFetch } from "./fetch-mock";
 import {
 	CLONED_VOICE,
 	EXPIRED_ROW,
 	failureEnvelope,
 	GENERATION_ROW,
-	generationsHandler,
+	generationsRoute,
 	PREMADE_VOICE,
 	renderSpeechPage,
 	successEnvelope,
 	UNAUTHORIZED_ENVELOPE,
-	voicesHandler,
+	voicesRoute,
 } from "./harness";
 
-const SPEECH_URL = `${config.AUTH_BASE_URL}/studio/speech`;
-const VOICES_URL = `${config.AUTH_BASE_URL}/studio/voices`;
+const GENERATIONS_PATH = "/studio/generations";
+const SPEECH_PATH = "/studio/speech";
 
 const GENERATED = {
 	generation_id: "gen_new",
@@ -36,8 +34,8 @@ async function typeScript(
 		name: "Speech script",
 	});
 
-	await user.click(editor);
-	await user.type(editor, text);
+	editor.focus();
+	await user.keyboard(text);
 
 	return editor;
 }
@@ -45,14 +43,15 @@ async function typeScript(
 afterEach(() => {
 	cleanup();
 	toast.clear();
+	vi.unstubAllGlobals();
 });
 
 describe("SpeechPage", () => {
 	it("renders the grouped voice library and selects the first clone by default", async () => {
-		server.use(
-			voicesHandler([CLONED_VOICE, PREMADE_VOICE]),
-			generationsHandler([])
-		);
+		mockFetch([
+			voicesRoute([CLONED_VOICE, PREMADE_VOICE]),
+			generationsRoute([]),
+		]);
 
 		renderSpeechPage();
 
@@ -81,7 +80,7 @@ describe("SpeechPage", () => {
 	});
 
 	it("updates the character count as the script is typed", async () => {
-		server.use(voicesHandler([CLONED_VOICE]), generationsHandler([]));
+		mockFetch([voicesRoute([CLONED_VOICE]), generationsRoute([])]);
 
 		const { user } = renderSpeechPage();
 
@@ -95,7 +94,7 @@ describe("SpeechPage", () => {
 	});
 
 	it("highlights bracketed direction tags in the live editor", async () => {
-		server.use(voicesHandler([CLONED_VOICE]), generationsHandler([]));
+		mockFetch([voicesRoute([CLONED_VOICE]), generationsRoute([])]);
 
 		const { user } = renderSpeechPage();
 
@@ -115,23 +114,30 @@ describe("SpeechPage", () => {
 		let generated = false;
 		let requestBody: unknown;
 
-		server.use(
-			voicesHandler([CLONED_VOICE, PREMADE_VOICE]),
-			http.get(`${config.AUTH_BASE_URL}/studio/generations`, () =>
-				HttpResponse.json(
-					successEnvelope({
-						items: generated ? [GENERATION_ROW] : [],
-						limit: 20,
-						offset: 0,
-					})
-				)
-			),
-			http.post(SPEECH_URL, async ({ request }) => {
-				requestBody = await request.json();
-				generated = true;
-				return HttpResponse.json(successEnvelope(GENERATED));
-			})
-		);
+		mockFetch([
+			voicesRoute([CLONED_VOICE, PREMADE_VOICE]),
+			{
+				method: "GET",
+				path: GENERATIONS_PATH,
+				respond: () =>
+					jsonResponse(
+						successEnvelope({
+							items: generated ? [GENERATION_ROW] : [],
+							limit: 20,
+							offset: 0,
+						})
+					),
+			},
+			{
+				method: "POST",
+				path: SPEECH_PATH,
+				respond: ({ body }) => {
+					requestBody = body;
+					generated = true;
+					return jsonResponse(successEnvelope(GENERATED));
+				},
+			},
+		]);
 
 		const { user } = renderSpeechPage();
 
@@ -157,7 +163,9 @@ describe("SpeechPage", () => {
 			GENERATED.audio_url
 		);
 
-		// …and the invalidated history refetched the new row.
+		// …and the invalidated history refetched the new row once the History
+		// tab, which is unmounted while Settings is showing, is opened.
+		await user.click(screen.getByRole("tab", { name: "History" }));
 		await screen.findByText("A saved line from the history.");
 	});
 
@@ -167,13 +175,15 @@ describe("SpeechPage", () => {
 			{ plan: "upgrade_required" }
 		);
 
-		server.use(
-			voicesHandler([CLONED_VOICE]),
-			generationsHandler([]),
-			http.post(SPEECH_URL, () =>
-				HttpResponse.json(forbidden, { status: 403 })
-			)
-		);
+		mockFetch([
+			voicesRoute([CLONED_VOICE]),
+			generationsRoute([]),
+			{
+				method: "POST",
+				path: SPEECH_PATH,
+				respond: () => jsonResponse(forbidden, 403),
+			},
+		]);
 
 		const { user } = renderSpeechPage();
 
@@ -191,12 +201,23 @@ describe("SpeechPage", () => {
 	});
 
 	it("shows the voice library error with a retry that recovers", async () => {
-		server.use(
-			http.get(VOICES_URL, () =>
-				HttpResponse.json(UNAUTHORIZED_ENVELOPE, { status: 401 })
-			),
-			generationsHandler([])
-		);
+		let voices = 0;
+
+		mockFetch([
+			{
+				method: "GET",
+				path: "/studio/voices",
+				respond: () => {
+					voices += 1;
+					return voices === 1
+						? jsonResponse(UNAUTHORIZED_ENVELOPE, 401)
+						: jsonResponse(
+								successEnvelope({ items: [CLONED_VOICE] })
+							);
+				},
+			},
+			generationsRoute([]),
+		]);
 
 		const { user } = renderSpeechPage();
 
@@ -207,7 +228,6 @@ describe("SpeechPage", () => {
 			)
 		).toBeTruthy();
 
-		server.use(voicesHandler([CLONED_VOICE]), generationsHandler([]));
 		await user.click(screen.getByRole("button", { name: "Retry" }));
 
 		expect(
@@ -216,21 +236,33 @@ describe("SpeechPage", () => {
 	});
 
 	it("shows the history error with a retry that recovers", async () => {
-		server.use(
-			voicesHandler([CLONED_VOICE]),
-			http.get(`${config.AUTH_BASE_URL}/studio/generations`, () =>
-				HttpResponse.json(UNAUTHORIZED_ENVELOPE, { status: 401 })
-			)
-		);
+		let generations = 0;
+
+		mockFetch([
+			voicesRoute([CLONED_VOICE]),
+			{
+				method: "GET",
+				path: GENERATIONS_PATH,
+				respond: () => {
+					generations += 1;
+					return generations === 1
+						? jsonResponse(UNAUTHORIZED_ENVELOPE, 401)
+						: jsonResponse(
+								successEnvelope({
+									items: [EXPIRED_ROW],
+									limit: 20,
+									offset: 0,
+								})
+							);
+				},
+			},
+		]);
 
 		const { user } = renderSpeechPage();
 
+		await user.click(screen.getByRole("tab", { name: "History" }));
 		await screen.findByText("Could not load your history");
 
-		server.use(
-			voicesHandler([CLONED_VOICE]),
-			generationsHandler([EXPIRED_ROW])
-		);
 		await user.click(screen.getByRole("button", { name: "Retry" }));
 
 		expect(await screen.findByText("An expired line.")).toBeTruthy();

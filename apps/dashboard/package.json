@@ -48,7 +48,6 @@
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
 		"eslint": "^10.15.0",
-		"msw": "^3.0.7",
 		"tailwindcss": "^4.3.5",
 		"typescript": "catalog:",
 		"vitest": "^5.1.0"

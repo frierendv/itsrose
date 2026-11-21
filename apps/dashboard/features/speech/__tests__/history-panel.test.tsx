@@ -1,19 +1,18 @@
 import { config } from "@/config";
 import { toast } from "@heroui/react";
 import { cleanup, screen, waitFor, within } from "@testing-library/react";
-import { http, HttpResponse } from "msw";
 import { afterEach } from "vitest";
-import { server } from "../../../__tests__/msw/server";
 import { HistoryPanel } from "../components/history-panel";
+import { jsonResponse, mockFetch } from "./fetch-mock";
 import {
 	failureEnvelope,
 	GENERATION_ROW,
-	generationsHandler,
+	generationsRoute,
 	renderInSpeechProviders,
 	successEnvelope,
 } from "./harness";
 
-const GENERATIONS_URL = `${config.AUTH_BASE_URL}/studio/generations`;
+const GENERATIONS_PATH = "/studio/generations";
 
 function row(index: number) {
 	return {
@@ -27,29 +26,33 @@ function row(index: number) {
 afterEach(() => {
 	cleanup();
 	toast.clear();
+	vi.unstubAllGlobals();
 });
 
 describe("HistoryPanel", () => {
 	it("paginates with offset and reports the visible range", async () => {
 		const requestedOffsets: string[] = [];
 
-		server.use(
-			http.get(GENERATIONS_URL, ({ request }) => {
-				const url = new URL(request.url);
-				const offset = url.searchParams.get("offset") ?? "0";
-				requestedOffsets.push(offset);
+		mockFetch([
+			{
+				method: "GET",
+				path: GENERATIONS_PATH,
+				respond: ({ url }) => {
+					const offset = url.searchParams.get("offset") ?? "0";
+					requestedOffsets.push(offset);
 
-				return HttpResponse.json(
-					successEnvelope({
-						items: Array.from({ length: 20 }, (_, index) =>
-							row(Number(offset) + index + 1)
-						),
-						limit: 20,
-						offset: Number(offset),
-					})
-				);
-			})
-		);
+					return jsonResponse(
+						successEnvelope({
+							items: Array.from({ length: 20 }, (_, index) =>
+								row(Number(offset) + index + 1)
+							),
+							limit: 20,
+							offset: Number(offset),
+						})
+					);
+				},
+			},
+		]);
 
 		const { user } = renderInSpeechProviders(<HistoryPanel />);
 
@@ -86,7 +89,7 @@ describe("HistoryPanel", () => {
 			input_text: "A playable line.",
 		};
 
-		server.use(generationsHandler([expired, saved, playable]));
+		mockFetch([generationsRoute([expired, saved, playable])]);
 
 		renderInSpeechProviders(<HistoryPanel />);
 
@@ -126,28 +129,33 @@ describe("HistoryPanel", () => {
 	it("explains a 410 on play and refetches the page", async () => {
 		let listRequests = 0;
 
-		server.use(
-			http.get(GENERATIONS_URL, () => {
-				listRequests += 1;
-				return HttpResponse.json(
-					successEnvelope({
-						items: [GENERATION_ROW],
-						limit: 20,
-						offset: 0,
-					})
-				);
-			}),
-			http.get(
-				`${GENERATIONS_URL}/${GENERATION_ROW.generation_id}/url`,
-				() =>
-					HttpResponse.json(
+		mockFetch([
+			{
+				method: "GET",
+				path: GENERATIONS_PATH,
+				respond: () => {
+					listRequests += 1;
+					return jsonResponse(
+						successEnvelope({
+							items: [GENERATION_ROW],
+							limit: 20,
+							offset: 0,
+						})
+					);
+				},
+			},
+			{
+				method: "GET",
+				path: `${GENERATIONS_PATH}/${GENERATION_ROW.generation_id}/url`,
+				respond: () =>
+					jsonResponse(
 						failureEnvelope(
 							"The generation has expired and is no longer available."
 						),
-						{ status: 410 }
-					)
-			)
-		);
+						410
+					),
+			},
+		]);
 
 		const { user } = renderInSpeechProviders(<HistoryPanel />);
 
@@ -172,22 +180,23 @@ describe("HistoryPanel", () => {
 		let saveUrl = "";
 		let saveBody: unknown;
 
-		server.use(
-			generationsHandler([GENERATION_ROW]),
-			http.post(
-				`${GENERATIONS_URL}/${GENERATION_ROW.generation_id}/save`,
-				async ({ request }) => {
-					saveUrl = request.url;
-					saveBody = await request.json();
-					return HttpResponse.json(
+		mockFetch([
+			generationsRoute([GENERATION_ROW]),
+			{
+				method: "POST",
+				path: `${GENERATIONS_PATH}/${GENERATION_ROW.generation_id}/save`,
+				respond: ({ body, url }) => {
+					saveUrl = url.href;
+					saveBody = body;
+					return jsonResponse(
 						successEnvelope({
 							asset_id: "ast_saved",
 							saved: true,
 						})
 					);
-				}
-			)
-		);
+				},
+			},
+		]);
 
 		const { user } = renderInSpeechProviders(<HistoryPanel />);
 
@@ -201,7 +210,7 @@ describe("HistoryPanel", () => {
 			expect(saveBody).toEqual({ filename: "tts-2026-11-20" });
 		});
 		expect(saveUrl).toBe(
-			`${GENERATIONS_URL}/${GENERATION_ROW.generation_id}/save`
+			`${config.AUTH_BASE_URL}${GENERATIONS_PATH}/${GENERATION_ROW.generation_id}/save`
 		);
 	});
 
@@ -209,27 +218,29 @@ describe("HistoryPanel", () => {
 		let deleted = false;
 		let deleteMethod = "";
 
-		server.use(
-			http.get(GENERATIONS_URL, () =>
-				HttpResponse.json(
-					successEnvelope({
-						items: deleted ? [] : [GENERATION_ROW],
-						limit: 20,
-						offset: 0,
-					})
-				)
-			),
-			http.delete(
-				`${GENERATIONS_URL}/${GENERATION_ROW.generation_id}`,
-				({ request }) => {
+		mockFetch([
+			{
+				method: "GET",
+				path: GENERATIONS_PATH,
+				respond: () =>
+					jsonResponse(
+						successEnvelope({
+							items: deleted ? [] : [GENERATION_ROW],
+							limit: 20,
+							offset: 0,
+						})
+					),
+			},
+			{
+				method: "DELETE",
+				path: `${GENERATIONS_PATH}/${GENERATION_ROW.generation_id}`,
+				respond: ({ method }) => {
 					deleted = true;
-					deleteMethod = request.method;
-					return HttpResponse.json(
-						successEnvelope({ deleted: true })
-					);
-				}
-			)
-		);
+					deleteMethod = method;
+					return jsonResponse(successEnvelope({ deleted: true }));
+				},
+			},
+		]);
 
 		const { user } = renderInSpeechProviders(<HistoryPanel />);
 

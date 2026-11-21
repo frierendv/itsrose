@@ -1,12 +1,11 @@
 import { AudioPlayerProvider } from "@/components/ui/audio-player";
-import { config } from "@/config";
 import { ToastProvider } from "@heroui/react/toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { http, HttpResponse } from "msw";
 import type { ReactElement } from "react";
 import { SpeechPage } from "../pages/speech-page";
+import { jsonResponse, type FetchRoute } from "./fetch-mock";
 
 /* -------------------------------------------------------------------------- */
 /*                                   Fixtures                                 */
@@ -22,11 +21,20 @@ export const CLONED_VOICE = {
 	created_at: "2026-11-20T08:00:00.000Z",
 } as const;
 
-/** One catalogue voice; its preview is the catalogue's own url. */
+/**
+ * One catalogue voice, in the shape the existing API returns it: a premade
+ * voice has no sample asset and the catalogue omits `preview_url` when it has
+ * no preview.
+ */
 export const PREMADE_VOICE = {
 	voice_id: "voice_premade",
 	name: "Aria",
 	source: "premade",
+} as const;
+
+/** The same catalogue voice when the upstream catalogue ships a preview. */
+export const PREMADE_VOICE_WITH_PREVIEW = {
+	...PREMADE_VOICE,
 	preview_url: "https://audio.test/preview/aria.mp3",
 } as const;
 
@@ -87,32 +95,32 @@ export const UNAUTHORIZED_ENVELOPE = failureEnvelope(
 );
 
 /* -------------------------------------------------------------------------- */
-/*                                  Handlers                                  */
+/*                                  Routes                                    */
 /* -------------------------------------------------------------------------- */
 
 /** Serves `GET /studio/voices` with the dashboard's envelope. */
-export function voicesHandler(items: readonly unknown[]) {
-	return http.get(`${config.AUTH_BASE_URL}/studio/voices`, () =>
-		HttpResponse.json(successEnvelope({ items }))
-	);
+export function voicesRoute(items: readonly unknown[]): FetchRoute {
+	return {
+		method: "GET",
+		path: "/studio/voices",
+		respond: () => jsonResponse(successEnvelope({ items })),
+	};
 }
 
 /** Serves `GET /studio/generations` with one page. */
-export function generationsHandler(items: readonly unknown[]) {
-	return http.get(
-		`${config.AUTH_BASE_URL}/studio/generations`,
-		({ request }) => {
-			const url = new URL(request.url);
-
-			return HttpResponse.json(
+export function generationsRoute(items: readonly unknown[]): FetchRoute {
+	return {
+		method: "GET",
+		path: "/studio/generations",
+		respond: ({ url }) =>
+			jsonResponse(
 				successEnvelope({
 					items,
 					limit: Number(url.searchParams.get("limit") ?? 20),
 					offset: Number(url.searchParams.get("offset") ?? 0),
 				})
-			);
-		}
-	);
+			),
+	};
 }
 
 /* -------------------------------------------------------------------------- */

@@ -1,27 +1,4 @@
-import {
-	ReadableStream,
-	TransformStream,
-	WritableStream,
-} from "node:stream/web";
-import type { SetupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, vi } from "vitest";
-
-/*
- * jsdom ships no Web Streams globals, and MSW reads them while its SSE module
- * is evaluated and while it wraps an intercepted response. The polyfill has
- * to exist before `msw` is imported, so the server is imported in the hook
- * below instead of here.
- */
-const webStreams = { ReadableStream, TransformStream, WritableStream };
-for (const [name, value] of Object.entries(webStreams)) {
-	if (!(name in globalThis)) {
-		Object.defineProperty(globalThis, name, {
-			configurable: true,
-			writable: true,
-			value,
-		});
-	}
-}
+import { vi } from "vitest";
 
 /*
  * jsdom does not implement the browser APIs React Aria probes. Defining them
@@ -61,12 +38,6 @@ if (typeof window !== "undefined") {
 	});
 
 	/*
-	 * ProseMirror asks the selection's Range for its client rects while
-	 * scrolling the caret into view after a DOM change. jsdom implements
-	 * selection but not geometry, so the range reports an empty rect instead
-	 * of throwing; no test depends on real layout.
-	 */
-	/*
 	 * ProseMirror maps a mouse position to a document position through
 	 * `document.elementFromPoint`, which jsdom does not implement. Returning
 	 * null makes the editor ignore the click, which is all a test needs; the
@@ -78,6 +49,12 @@ if (typeof window !== "undefined") {
 		value: () => null,
 	});
 
+	/*
+	 * ProseMirror asks the selection's Range for its client rects while
+	 * scrolling the caret into view after a DOM change. jsdom implements
+	 * selection but not geometry, so the range reports an empty rect instead
+	 * of throwing; no test depends on real layout.
+	 */
 	if (typeof Range !== "undefined") {
 		const emptyRectList = Object.assign([], {
 			item: () => null,
@@ -114,27 +91,3 @@ if (typeof window !== "undefined") {
 		});
 	}
 }
-
-/** The MSW server, imported after the Web Streams polyfill above runs. */
-let server: SetupServer | undefined;
-
-/**
- * Starts the dashboard's MSW server for every suite in this project.
- *
- * A request without a handler is an error, not a passthrough: tests must
- * declare the endpoint they call, so a forgotten mock fails loudly instead of
- * reaching the network.
- */
-beforeAll(async () => {
-	const msw = await import("./msw/server");
-	server = msw.server;
-	server.listen({ onUnhandledFrame: "error" });
-});
-
-afterEach(() => {
-	server?.resetHandlers();
-});
-
-afterAll(() => {
-	server?.close();
-});
