@@ -80,18 +80,22 @@ describe("voiceSchema", () => {
 			"voice_id",
 		]);
 
-		// A catalogue voice may ship without a preview; the field is
-		// required and nullable, never absent.
+		// The catalogue omits `preview_url` when a premade voice has no
+		// preview, so the field is optional as well as nullable.
 		expect(
 			voiceSchema.parse({ ...PREMADE, preview_url: null })
 		).toMatchObject({ preview_url: null });
 		expect(
-			voiceSchema.safeParse({
+			voiceSchema.parse({
 				voice_id: "voice_premade_02",
 				name: "Adam",
 				source: "premade",
-			}).success
-		).toBe(false);
+			})
+		).toEqual({
+			voice_id: "voice_premade_02",
+			name: "Adam",
+			source: "premade",
+		});
 	});
 
 	it("requires resource_id on a cloned voice", () => {

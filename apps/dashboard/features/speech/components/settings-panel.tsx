@@ -48,11 +48,16 @@ function groupVoices(voices: Voice[]): VoiceGroup[] {
 	].filter((group) => group.voices.length > 0);
 }
 
-/** Whether a voice has anything to audition. */
+/**
+ * Whether a voice has anything to audition.
+ *
+ * The catalogue omits `preview_url` when a premade voice has no preview, so an
+ * absent field disables the button exactly like an explicit `null`.
+ */
 function hasPreview(voice: Voice): boolean {
 	return voice.source === "cloned"
 		? voice.sample_asset_id !== null
-		: voice.preview_url !== null;
+		: Boolean(voice.preview_url);
 }
 
 interface VoiceRowProps {
@@ -109,8 +114,9 @@ const VoiceRow: React.FC<VoiceRowProps> = ({
  *
  * A clone's preview is its sample asset, read through a short-lived signed
  * URL exactly like the asset library does; a premade voice plays the
- * catalogue's own `preview_url` directly. A voice with neither source is not
- * previewable, so its button is disabled rather than silently doing nothing.
+ * catalogue's own `preview_url` when the catalogue supplies one. A voice with
+ * neither source is not previewable, so its button is disabled rather than
+ * silently doing nothing.
  * The library owns no model selector or synthesis sliders because the speech
  * contract does not expose them.
  */
@@ -128,7 +134,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 		setPreviewingVoiceId(voice.voice_id);
 
 		try {
-			let src: string | null = null;
+			let src: string | undefined;
 
 			if (voice.source === "cloned") {
 				if (!voice.sample_asset_id) {
@@ -137,7 +143,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 				const signed = await getAssetUrl(voice.sample_asset_id);
 				src = signed.url;
 			} else {
-				src = voice.preview_url;
+				src = voice.preview_url ?? undefined;
 			}
 
 			if (!src) {
