@@ -5,7 +5,10 @@ import {
 	VoiceAccessUnavailableError,
 } from "@itsrose/api-routes/audio";
 import { GenerationNotFoundError } from "@itsrose/auth-resources/generations";
-import { VoiceNotFoundError } from "@itsrose/auth-resources/voices";
+import {
+	VoiceConflictError,
+	VoiceNotFoundError,
+} from "@itsrose/auth-resources/voices";
 import {
 	AssetCapExceededError,
 	AssetNotFoundError,
@@ -95,7 +98,10 @@ const assetErrorMapper: ErrorMapper = (error, _request, reply) => {
  * `VoiceNotFoundError` is the ledger's single answer for "missing", "deleted"
  * and "owned by someone else": the service scopes the lookup by the caller's
  * user id, so the route never learns which case it was, and neither does the
- * caller. `VoiceAccessDeniedError` keeps that property on the synthesis
+ * caller. `VoiceConflictError` answers 409 when the upstream id is already
+ * recorded for another owner; its message is generic for the same reason, so
+ * the caller that lost the race does not learn who holds the voice.
+ * `VoiceAccessDeniedError` keeps that property on the synthesis
  * surface: it is raised for a foreign clone and for an unknown id alike, with
  * one message, so the route is not an existence oracle. It answers 404, not
  * 403: a 403 would confirm that the voice exists and is merely someone
@@ -106,6 +112,18 @@ const assetErrorMapper: ErrorMapper = (error, _request, reply) => {
  * absent (404) would hide a wiring mistake from the operator.
  */
 const voiceErrorMapper: ErrorMapper = (error, _request, reply) => {
+	if (error instanceof VoiceConflictError) {
+		const response = FailureResponse.create({
+			code: "CONFLICT",
+			// Generic on purpose: the caller that lost the race must not learn
+			// who owns the voice it asked to record.
+			message: "The voice is already recorded and cannot be claimed.",
+			errors: { voice_id: error.providerResourceId },
+		});
+		reply.status(response.statusCode).send(response);
+		return true;
+	}
+
 	if (error instanceof VoiceNotFoundError) {
 		const response = FailureResponse.create({
 			code: "NOT_FOUND",
