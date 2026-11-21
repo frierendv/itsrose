@@ -7,6 +7,7 @@ import {
 	USER_ASSETS_SIDEBAR_ITEMS,
 	USER_LOGS_SIDEBAR_ITEMS,
 	USER_SETTINGS_SIDEBAR_ITEMS,
+	USER_SPEECH_SIDEBAR_ITEMS,
 } from "@/constants/sidebar";
 import { authClient } from "@/lib/auth";
 import type { SidebarItem } from "@/types/sidebar";
@@ -22,6 +23,7 @@ export function useDashboardRoute() {
 
 	const sidebarMainItems: SidebarItem[] = [DEFAULT_SIDEBAR_ITEMS];
 	const sidebarSecondaryItems: SidebarItem[] = [
+		USER_SPEECH_SIDEBAR_ITEMS,
 		USER_ASSETS_SIDEBAR_ITEMS,
 		USER_LOGS_SIDEBAR_ITEMS,
 		EXTERNAL_RESOURCE,
