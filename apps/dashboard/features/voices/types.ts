@@ -25,12 +25,16 @@ export type ClonedVoice = z.infer<typeof clonedVoiceSchema>;
  * One platform catalogue voice.
  *
  * A premade voice has no ledger row, so it carries neither an application id
- * nor a sample asset: only the upstream object exists.
+ * nor a sample asset: only the upstream object exists. The catalogue may ship
+ * a `preview_url` for it, but the existing API omits the field when it has
+ * none, so the dashboard reads it as optional as well as nullable; a clone's
+ * preview is its sample asset instead.
  */
 export const premadeVoiceSchema = z.object({
 	voice_id: z.string(),
 	name: z.string(),
 	source: z.literal("premade"),
+	preview_url: z.string().nullish(),
 });
 
 export type PremadeVoice = z.infer<typeof premadeVoiceSchema>;

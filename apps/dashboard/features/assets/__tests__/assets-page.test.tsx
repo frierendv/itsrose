@@ -55,41 +55,6 @@ function renderPage(): QueryClient {
 	return queryClient;
 }
 
-beforeAll(() => {
-	// React Aria probes both media queries and element geometry; jsdom
-	// implements neither.
-	Object.defineProperty(window, "matchMedia", {
-		configurable: true,
-		writable: true,
-		value: (query: string) => ({
-			matches: false,
-			media: query,
-			onchange: null,
-			addEventListener: vi.fn(),
-			removeEventListener: vi.fn(),
-			addListener: vi.fn(),
-			removeListener: vi.fn(),
-			dispatchEvent: vi.fn(),
-		}),
-	});
-
-	Object.defineProperty(window, "ResizeObserver", {
-		configurable: true,
-		writable: true,
-		value: class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		},
-	});
-
-	Object.defineProperty(Element.prototype, "scrollIntoView", {
-		configurable: true,
-		writable: true,
-		value: vi.fn(),
-	});
-});
-
 beforeEach(() => {
 	let deleted = false;
 

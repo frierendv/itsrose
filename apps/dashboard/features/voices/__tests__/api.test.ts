@@ -26,6 +26,7 @@ const PREMADE = {
 	voice_id: "voice_premade_01",
 	name: "Aria",
 	source: "premade",
+	preview_url: "https://storage.test/preview/aria.mp3",
 };
 
 const ASSET = {
@@ -103,7 +104,7 @@ afterEach(() => {
 });
 
 describe("listVoices", () => {
-	it("requests the studio voice library with the session", async () => {
+	it("requests the voice library with the session", async () => {
 		fetchMock.mockResolvedValue(
 			jsonResponse(successEnvelope({ items: [CLONED, PREMADE] }))
 		);
@@ -133,7 +134,7 @@ describe("listVoices", () => {
 });
 
 describe("createVoice", () => {
-	it("posts the snake_case clone body to the studio route", async () => {
+	it("posts the snake_case clone body to the server route", async () => {
 		fetchMock.mockResolvedValue(jsonResponse(successEnvelope(CREATED)));
 
 		await expect(

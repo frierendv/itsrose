@@ -20,10 +20,13 @@ import {
 /**
  * The voice routes are mounted at the API root, not under `/auth`.
  *
+ * The server mounts the list and clone routes under `/studio/voices`; that
+ * path stays fixed, and only the dashboard's name for the surface is "speech".
+ *
  * The session cookie is shared across the API and dashboard subdomains, so the
  * browser talks to the API origin directly with `credentials: "include"`.
  */
-const STUDIO_VOICES_PREFIX = "/studio/voices";
+const SPEECH_VOICES_PREFIX = "/studio/voices";
 const VOICES_PREFIX = "/voices";
 
 /** The surface name used in parser messages. */
@@ -50,7 +53,7 @@ export async function listVoices(
 ): Promise<VoiceList> {
 	return requestVoice(
 		voiceListSchema,
-		STUDIO_VOICES_PREFIX,
+		SPEECH_VOICES_PREFIX,
 		{ method: "GET" },
 		options
 	);
@@ -63,7 +66,7 @@ export async function createVoice(
 ): Promise<CreateVoiceResponse> {
 	return requestVoice(
 		createVoiceResponseSchema,
-		STUDIO_VOICES_PREFIX,
+		SPEECH_VOICES_PREFIX,
 		jsonRequestInit("POST", input),
 		options
 	);

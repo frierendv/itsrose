@@ -96,3 +96,16 @@
 	--warning: oklch(82% 0.14 85);
 	--warning-foreground: oklch(18% 0.02 85);
 }
+
+/*
+ * Speech editor: Tiptap's Placeholder extension only stamps
+ * `data-placeholder` on the empty first paragraph, so the visible hint is a
+ * generated-content rule scoped to the editor's own class.
+ */
+.speech-editor p.is-editor-empty:first-child::before {
+	content: attr(data-placeholder);
+	float: left;
+	height: 0;
+	color: var(--muted);
+	pointer-events: none;
+}
