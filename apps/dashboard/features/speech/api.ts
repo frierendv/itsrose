@@ -22,32 +22,36 @@ import {
 } from "./types";
 
 /**
- * The studio routes are mounted at the API root, not under `/auth`.
+ * The speech routes are mounted at the API root, not under `/auth`.
+ *
+ * The server mounts them under `/studio` and that route never changes here:
+ * the dashboard names the surface "speech" because the app also has Image AI,
+ * while "studio" is too broad a name for the client layer.
  *
  * The session cookie is shared across the API and dashboard subdomains, so the
  * browser talks to the API origin directly with `credentials: "include"`.
  */
-const STUDIO_PREFIX = "/studio";
+const SPEECH_PREFIX = "/studio";
 
 /** The surface name used in parser messages. */
-const STUDIO_SURFACE = "studio API";
+const SPEECH_SURFACE = "speech API";
 
 /** Headers forwarded on the server so the session cookie travels with the call. */
-export type StudioRequestOptions = ApiRequestOptions;
+export type SpeechRequestOptions = ApiRequestOptions;
 
-function studioEndpoint(path: string): string {
-	return apiEndpoint(`${STUDIO_PREFIX}${path}`);
+function speechEndpoint(path: string): string {
+	return apiEndpoint(`${SPEECH_PREFIX}${path}`);
 }
 
-async function requestStudio<T>(
+async function requestSpeech<T>(
 	schema: ZodType<T>,
 	path: string,
 	init: RequestInit,
-	options: StudioRequestOptions = {}
+	options: SpeechRequestOptions = {}
 ): Promise<T> {
-	return requestApi(schema, studioEndpoint(path), init, {
+	return requestApi(schema, speechEndpoint(path), init, {
 		...options,
-		surface: STUDIO_SURFACE,
+		surface: SPEECH_SURFACE,
 	});
 }
 
@@ -59,9 +63,9 @@ async function requestStudio<T>(
  */
 export async function generateSpeech(
 	input: GenerateSpeechInput,
-	options?: StudioRequestOptions
+	options?: SpeechRequestOptions
 ): Promise<GenerateSpeechResponse> {
-	return requestStudio(
+	return requestSpeech(
 		generateSpeechResponseSchema,
 		"/speech",
 		jsonRequestInit("POST", input),
@@ -72,7 +76,7 @@ export async function generateSpeech(
 /** Lists the authenticated user's generation history, newest first. */
 export async function listGenerations(
 	params: ListGenerationsParams = {},
-	options?: StudioRequestOptions
+	options?: SpeechRequestOptions
 ): Promise<GenerationList> {
 	const search = new URLSearchParams();
 	if (params.feature !== undefined) {
@@ -86,7 +90,7 @@ export async function listGenerations(
 	}
 	const query = search.toString();
 
-	return requestStudio(
+	return requestSpeech(
 		generationListSchema,
 		`/generations${query ? `?${query}` : ""}`,
 		{ method: "GET" },
@@ -102,9 +106,9 @@ export async function listGenerations(
  */
 export async function getGenerationUrl(
 	generationId: string,
-	options?: StudioRequestOptions
+	options?: SpeechRequestOptions
 ): Promise<GenerationUrl> {
-	return requestStudio(
+	return requestSpeech(
 		generationUrlSchema,
 		`/generations/${encodeURIComponent(generationId)}/url`,
 		{ method: "GET" },
@@ -121,9 +125,9 @@ export async function getGenerationUrl(
 export async function saveGeneration(
 	generationId: string,
 	input: SaveGenerationInput = {},
-	options?: StudioRequestOptions
+	options?: SpeechRequestOptions
 ): Promise<SaveGenerationResponse> {
-	return requestStudio(
+	return requestSpeech(
 		saveGenerationResponseSchema,
 		`/generations/${encodeURIComponent(generationId)}/save`,
 		jsonRequestInit("POST", input),
@@ -134,9 +138,9 @@ export async function saveGeneration(
 /** Clears one generation; a saved result keeps its durable asset copy. */
 export async function deleteGeneration(
 	generationId: string,
-	options?: StudioRequestOptions
+	options?: SpeechRequestOptions
 ): Promise<DeleteGeneration> {
-	return requestStudio(
+	return requestSpeech(
 		deleteGenerationSchema,
 		`/generations/${encodeURIComponent(generationId)}`,
 		{ method: "DELETE" },

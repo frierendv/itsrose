@@ -45,7 +45,7 @@ function failureEnvelope() {
 	return {
 		ok: false,
 		code: 4001,
-		message: "A dashboard session is required to use the studio.",
+		message: "A dashboard session is required to use the speech surface.",
 		data: null,
 		errors: { session: "Sign in and retry." },
 		meta: {},

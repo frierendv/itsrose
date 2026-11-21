@@ -1,5 +1,11 @@
 import { z } from "zod/v4";
 
+/**
+ * The server mounts the speech routes under `/studio`; that path stays fixed,
+ * and only the dashboard's name for the surface is "speech". The route paths
+ * in the comments below are the server's, not the client's.
+ */
+
 /* -------------------------------------------------------------------------- */
 /*                               Feature union                                */
 /* -------------------------------------------------------------------------- */

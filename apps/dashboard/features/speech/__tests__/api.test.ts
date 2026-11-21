@@ -48,7 +48,7 @@ function failureEnvelope() {
 	return {
 		ok: false,
 		code: 4001,
-		message: "A dashboard session is required to use the studio.",
+		message: "A dashboard session is required to use the speech surface.",
 		data: null,
 		errors: { session: "Sign in and retry." },
 		meta: {},
@@ -86,7 +86,7 @@ afterEach(() => {
 });
 
 describe("generateSpeech", () => {
-	it("posts the speech body to the studio route with the session", async () => {
+	it("posts the speech body to the server route with the session", async () => {
 		fetchMock.mockResolvedValue(jsonResponse(successEnvelope(SPEECH)));
 
 		await expect(
@@ -301,7 +301,7 @@ describe("deleteGeneration", () => {
 	});
 });
 
-describe("studio failures", () => {
+describe("speech failures", () => {
 	it("throws the envelope message and diagnostics", async () => {
 		fetchMock.mockResolvedValue(jsonResponse(failureEnvelope(), 401));
 
@@ -309,20 +309,21 @@ describe("studio failures", () => {
 
 		expect(error).toBeInstanceOf(ApiError);
 		expect(error).toMatchObject({
-			message: "A dashboard session is required to use the studio.",
+			message:
+				"A dashboard session is required to use the speech surface.",
 			status: 401,
 			code: 4001,
 			errors: { session: "Sign in and retry." },
 		});
 	});
 
-	it("names the studio surface when the body is not an envelope", async () => {
+	it("names the speech surface when the body is not an envelope", async () => {
 		fetchMock.mockResolvedValue(
 			new Response("<html>502 Bad Gateway</html>", { status: 502 })
 		);
 
 		await expect(listGenerations()).rejects.toThrow(
-			/The studio API returned an unexpected response \(HTTP 502\)\./
+			/The speech API returned an unexpected response \(HTTP 502\)\./
 		);
 	});
 });

@@ -200,7 +200,7 @@ export type ApiRequestOptions = {
 	 * call. Browser callers omit them and rely on `credentials: "include"`.
 	 */
 	headers?: HeadersInit;
-	/** Human name used in parser messages, e.g. `"studio API"`. */
+	/** Human name used in parser messages, e.g. `"speech API"`. */
 	surface?: string;
 	/** Error class thrown for an unreadable envelope or payload. */
 	errorType?: ApiErrorConstructor;
