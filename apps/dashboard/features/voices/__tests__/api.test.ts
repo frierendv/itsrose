@@ -26,6 +26,7 @@ const PREMADE = {
 	voice_id: "voice_premade_01",
 	name: "Aria",
 	source: "premade",
+	preview_url: "https://storage.test/preview/aria.mp3",
 };
 
 const ASSET = {

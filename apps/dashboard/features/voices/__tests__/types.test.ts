@@ -20,6 +20,7 @@ const PREMADE = {
 	voice_id: "voice_premade_01",
 	name: "Aria",
 	source: "premade",
+	preview_url: "https://storage.test/preview/aria.mp3",
 } as const;
 
 function successEnvelope(data: unknown) {
@@ -74,9 +75,23 @@ describe("voiceSchema", () => {
 		expect(voice.source).toBe("premade");
 		expect(Object.keys(voice).sort()).toEqual([
 			"name",
+			"preview_url",
 			"source",
 			"voice_id",
 		]);
+
+		// A catalogue voice may ship without a preview; the field is
+		// required and nullable, never absent.
+		expect(
+			voiceSchema.parse({ ...PREMADE, preview_url: null })
+		).toMatchObject({ preview_url: null });
+		expect(
+			voiceSchema.safeParse({
+				voice_id: "voice_premade_02",
+				name: "Adam",
+				source: "premade",
+			}).success
+		).toBe(false);
 	});
 
 	it("requires resource_id on a cloned voice", () => {

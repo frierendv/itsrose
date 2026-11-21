@@ -90,6 +90,7 @@ function catalogueVoice(input: {
 	voice_id: string;
 	name: string;
 	category: "premade" | "cloned";
+	preview_url?: string | null;
 }): Voice {
 	return {
 		voice_id: input.voice_id,
@@ -97,7 +98,7 @@ function catalogueVoice(input: {
 		category: input.category,
 		labels: {},
 		description: null,
-		preview_url: null,
+		preview_url: input.preview_url ?? null,
 		available_for_tiers: [],
 		fine_tuning: null,
 		settings: null,
@@ -340,6 +341,14 @@ describe("GET /studio/voices", () => {
 					voice_id: "premade-1",
 					name: "Rachel",
 					category: "premade",
+					preview_url: "https://storage.test/preview/premade-1.mp3",
+				}),
+				// Premade voices may ship without a preview; the item keeps
+				// `preview_url` null rather than omitting the field.
+				catalogueVoice({
+					voice_id: "premade-2",
+					name: "Adam",
+					category: "premade",
 				}),
 				// Another user's clone: the catalogue still holds it, but it is
 				// neither owned nor premade and must never reach the caller.
@@ -353,6 +362,7 @@ describe("GET /studio/voices", () => {
 					voice_id: "premade-1",
 					name: "Rachel (duplicate)",
 					category: "premade",
+					preview_url: "https://storage.test/preview/duplicate.mp3",
 				}),
 			],
 		});
@@ -386,6 +396,13 @@ describe("GET /studio/voices", () => {
 					voice_id: "premade-1",
 					name: "Rachel",
 					source: "premade",
+					preview_url: "https://storage.test/preview/premade-1.mp3",
+				},
+				{
+					voice_id: "premade-2",
+					name: "Adam",
+					source: "premade",
+					preview_url: null,
 				},
 			],
 		});
