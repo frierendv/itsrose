@@ -25,8 +25,7 @@ ARG DOCKERFMT_VERSION
 ARG SHELLCHECK_VERSION
 ARG CADDY_VERSION
 
-RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
-    && apt-get update \
+RUN apt-get update \
     && apt-get install --yes --no-install-recommends ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -95,8 +94,7 @@ ENV HOME=/home/node \
     XDG_CACHE_HOME=/home/node/.dsh/.cache \
     PATH=/usr/local/bin:${PATH}
 
-RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
-    && apt-get update \
+RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         ca-certificates \
         curl \
@@ -160,8 +158,7 @@ ARG CADDY_VERSION
 # Bookworm's 0.8.0 resolves paths with plain mount(2) and works on such
 # kernels. Its dependencies (libc6 >= 2.34, libcap2 >= 2.10, libselinux1 >=
 # 3.1~) are all satisfied by trixie, so no suite mixing is involved.
-RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
-    && apt-get update \
+RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         ca-certificates \
         curl \
@@ -241,7 +238,7 @@ RUN mkdir -p /etc/caddy /workspace /home/node/.dsh \
 # Copy Caddyfile
 COPY config/Caddyfile /etc/caddy/Caddyfile
 # Copy dsh-plugin-wallpaper-engine preset
-COPY --chown=node:node config/dsh-wallpaper-engine /home/node/.dsh-wallpaper-engine
+COPY --chown=node:node config/dsh-wallpaper-engine ${HOME}/.dsh-wallpaper-engine
 
 # Copy pre-configured DSH home directory (.dsh with profiles and presets)
 # Named volume 'dsh-data' will be seeded from /home/node/.dsh on first container startup
