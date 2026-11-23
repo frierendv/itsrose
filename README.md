@@ -12,6 +12,13 @@
 
 Join our [Discord server](https://discord.gg/FmpN6s4gU4).
 
+## Contributing
+
+The full gate runs in CI on every pull request — see [CONTRIBUTING.md](CONTRIBUTING.md)
+for the local commands. A pull request that only changes prose (`*.md`,
+`.wiki/`) skips the build, lint and test jobs, because a documentation edit
+cannot fail a check that reads source.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
