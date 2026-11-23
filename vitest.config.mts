@@ -399,6 +399,7 @@ export default defineConfig({
 					name: "apps/dashboard",
 					environment: "jsdom",
 					include: testsIn("apps/dashboard"),
+					setupFiles: [repo("apps/dashboard/__tests__/setup.ts")],
 				},
 			},
 		],

@@ -1,5 +1,6 @@
 import { ADMIN_ROUTES } from "@/features/admin/routes";
 import { ASSETS_ROUTE } from "@/features/assets/constants";
+import { SPEECH_ROUTE } from "@/features/speech/constants";
 import type { SidebarItem } from "@/types/sidebar";
 import {
 	Archive,
@@ -11,6 +12,7 @@ import {
 	Gear,
 	House,
 	LayersVertical,
+	Microphone,
 	PersonGear,
 	Persons,
 	Sack,
@@ -66,6 +68,12 @@ export const USER_SETTINGS_SIDEBAR_ITEMS = {
 			],
 		},
 	],
+} satisfies SidebarItem;
+
+export const USER_SPEECH_SIDEBAR_ITEMS = {
+	title: "Speech",
+	url: SPEECH_ROUTE,
+	icon: Microphone,
 } satisfies SidebarItem;
 
 export const USER_ASSETS_SIDEBAR_ITEMS = {

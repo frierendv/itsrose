@@ -9,8 +9,8 @@ import {
 	listGenerations,
 	saveGeneration,
 } from "../api";
-import { STUDIO_GENERATIONS_PAGE_SIZE } from "../constants";
-import { studioQueryKeys } from "../query-keys";
+import { SPEECH_GENERATIONS_PAGE_SIZE } from "../constants";
+import { speechQueryKeys } from "../query-keys";
 import type {
 	DeleteGeneration,
 	GenerateSpeechInput,
@@ -21,7 +21,7 @@ import type {
 	SaveGenerationResponse,
 } from "../types";
 
-export type UseStudioGenerationsParams = {
+export type UseSpeechGenerationsParams = {
 	feature?: GenerationFeature;
 	limit?: number;
 	offset?: number;
@@ -30,17 +30,17 @@ export type UseStudioGenerationsParams = {
 /**
  * Fetches one page of the generation history.
  *
- * Cached under `['studio', 'generations', 'list', feature, limit, offset]`; the
+ * Cached under `['speech', 'generations', 'list', feature, limit, offset]`; the
  * API has no total, so `hasNextPage` is inferred from a full page rather than
  * from a count.
  */
-export function useStudioGenerations(params: UseStudioGenerationsParams = {}) {
+export function useSpeechGenerations(params: UseSpeechGenerationsParams = {}) {
 	const feature = params.feature;
-	const limit = params.limit ?? STUDIO_GENERATIONS_PAGE_SIZE;
+	const limit = params.limit ?? SPEECH_GENERATIONS_PAGE_SIZE;
 	const offset = params.offset ?? 0;
 
 	const query = useQuery({
-		queryKey: studioQueryKeys.generations.list({ feature, limit, offset }),
+		queryKey: speechQueryKeys.generations.list({ feature, limit, offset }),
 		// History rows only change through this feature's own mutations.
 		staleTime: 30_000,
 		queryFn: () => listGenerations({ feature, limit, offset }),
@@ -68,7 +68,7 @@ export function useGenerateSpeechMutation() {
 		): Promise<GenerateSpeechResponse> => generateSpeech(input),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: studioQueryKeys.generations.all(),
+				queryKey: speechQueryKeys.generations.all(),
 			});
 		},
 	});
@@ -96,7 +96,7 @@ export function useSaveGenerationMutation() {
 			saveGeneration(generationId, input),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: studioQueryKeys.generations.all(),
+				queryKey: speechQueryKeys.generations.all(),
 			});
 			queryClient.invalidateQueries({ queryKey: assetQueryKeys.all });
 		},
@@ -112,7 +112,7 @@ export function useDeleteGenerationMutation() {
 			deleteGeneration(generationId),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: studioQueryKeys.generations.all(),
+				queryKey: speechQueryKeys.generations.all(),
 			});
 		},
 	});

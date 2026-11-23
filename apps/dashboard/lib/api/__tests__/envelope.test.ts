@@ -139,7 +139,7 @@ describe("parseEnvelope", () => {
 			try {
 				parseEnvelope(payloadSchema, null, {
 					status: 502,
-					surface: "studio API",
+					surface: "speech API",
 					errorType: SurfaceApiError,
 				});
 				return null;
@@ -154,7 +154,7 @@ describe("parseEnvelope", () => {
 			status: 502,
 		});
 		expect((error as Error).message).toBe(
-			"The studio API returned an unexpected response (HTTP 502)."
+			"The speech API returned an unexpected response (HTTP 502)."
 		);
 	});
 });
