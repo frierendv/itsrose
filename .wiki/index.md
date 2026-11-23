@@ -83,6 +83,9 @@ to read `index.md` and know where to look.
   — including the package that defines the lint preset every other package consumes.
 - [The environment does not fail loudly](problems/environment-does-not-fail-loudly.md)
   — the general shape behind all of the above.
+- [CI was one serial job that lost every cache](problems/ci-was-serial-and-cacheless.md)
+  — a correct gate that cost the sum of its steps, and the `waf-page` build
+  that failed for a reason nobody had seen.
 
 ## Where the programme stands
 

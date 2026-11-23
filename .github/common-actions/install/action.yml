@@ -17,9 +17,13 @@ runs:
         cache-dependency-path: pnpm-lock.yaml
         registry-url: "https://registry.npmjs.org"
 
+    # `--prefer-offline` reuses the action's pnpm store cache instead of
+    # revalidating every tarball with the registry. The behaviour is the same
+    # as a plain install: `--frozen-lockfile` still fails when the lockfile
+    # and the manifests disagree.
     - name: Install dependencies
       shell: bash
-      run: pnpm install --frozen-lockfile
+      run: pnpm install --frozen-lockfile --prefer-offline
 
     - name: Setup Git User
       shell: bash

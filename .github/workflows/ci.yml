@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -26,8 +26,50 @@ env:
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
-  ci:
-    name: CI
+  # The gate. Every check runs on its own runner: a red job names the
+  # failing check, one check never hides another, and re-running only the
+  # failures (`gh run rerun --failed`) does not repeat the ones that passed.
+  #
+  # The checks are shaped so they overlap as little as possible. `format`
+  # and `deps` are single processes over the tree; `lint` and `typecheck`
+  # are turbo tasks, so an untouched package comes from the remote cache
+  # instead of running eslint or tsc again.
+  quality:
+    name: Quality / ${{ matrix.check }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - check: format
+            script: "format:check"
+          - check: lint
+            script: "lint"
+          - check: deps
+            script: "check:deps"
+          - check: typecheck
+            script: "typecheck"
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Install
+        uses: ./.github/common-actions/install
+
+      - name: Run pnpm ${{ matrix.script }}
+        run: pnpm ${{ matrix.script }}
+
+  # The test projects alias workspace packages to their `src/` entries
+  # (`workspaceAliases` in `vitest.config.mts`), so the suite reads source,
+  # not `dist/`, and does not need the build. Verified by running it with
+  # three packages' `dist/` removed: 161 files, all green. That is why it
+  # runs here, in parallel with the build, instead of behind it on a runner
+  # that would first have to download a multi-gigabyte artifact of output.
+  test:
+    name: Test / packages
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -39,20 +81,48 @@ jobs:
       - name: Install
         uses: ./.github/common-actions/install
 
-      - name: Check formatting
-        run: pnpm format:check
+      # More workers do not help: the suite is bound by per-file import and
+      # transform cost, and `pool: "vmThreads"` already amortises the jsdom
+      # environment per worker. Sharding across runners would trade a few
+      # seconds for a much larger configuration.
+      - name: Test with coverage
+        run: pnpm test --reporter=dot
 
-      - name: Lint
-        run: pnpm lint
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+          retention-days: 7
+
+  # The build compiles every tsdown package and both Next.js apps. It is
+  # the slowest single step and nothing else in this workflow consumes its
+  # output, so a cache hit is a complete answer: the three jobs run
+  # concurrently and the run's wall clock is the slowest of them, not
+  # their sum.
+  build:
+    name: Build / packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Install
+        uses: ./.github/common-actions/install
+
+      # A hit here is the difference between a full build and replaying
+      # every package whose inputs the PR did not touch.
+      - name: Restore turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-build-
 
       - name: Build packages
         run: pnpm build
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Check for unused dependencies
-        run: pnpm check:deps
-
-      - name: Test with coverage
-        run: pnpm test --reporter=dot
