@@ -110,7 +110,11 @@ pnpm format
 pnpm format:check
 ```
 
-The `CI` workflow runs one job in this order: lint, formatting, build, typecheck, and tests with coverage.
+The `CI` workflow runs several jobs in parallel: formatting, lint, unused-dependency check, typecheck, build, and tests with coverage. A single `CI` job reports the result of all of them, and it is the check the branch ruleset requires before a merge.
+
+A pull request that only changes prose (`*.md` files or anything under `.wiki/`) skips the build, lint, typecheck, dependency check, and test jobs. A documentation edit cannot break a check that reads source, and the run costs a full install and build. Changes to `.mdx` are not treated as prose, because `apps/web/app/(legal)/` imports `apps/web/mdx/*.mdx` directly and a broken one fails the build. Any file the allow-list does not recognise is treated as code, so the full gate runs.
+
+If a run is skipped this way, the `Changes` job says so in its log, and the `CI` job still reports success so the pull request stays mergeable.
 
 ### Creating New Packages
 

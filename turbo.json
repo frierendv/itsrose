@@ -6,12 +6,20 @@
 	"globalEnv": [
 		"IS_DEV",
 		"LOG_LEVEL",
+		// Covers NODE_ENV, which tsdown reads to choose between development
+		// and production exports.
 		"NODE_*",
 		// Read by the shared tsdown preset to decide whether it emits
 		// development exports or production bundles.
 		"BUILDING",
 		"NEXT_PHASE",
-		"CI"
+		"CI",
+		// Astro's telemetry notifier writes a preference file before it
+		// checks whether telemetry is enabled, so it aborts the build when
+		// that path is not writable. `waf-page` opts out in its own `build`
+		// script; turbo runs in strict env mode and strips undeclared
+		// variables, so the opt-out has to be declared here to survive.
+		"ASTRO_TELEMETRY_DISABLED"
 	],
 	"tasks": {
 		"build": {
@@ -21,18 +29,26 @@
 				".next/**",
 				"!.next/cache/**",
 				"!.next/dev/**",
+				"!.next/standalone/**",
+				".astro/**",
 				"dist/**"
 			]
 		},
+		// A check that writes nothing is replayed from the cache without
+		// restoring any output. Declaring that explicitly keeps the entry
+		// small, and it stops turbo from treating the tree an `eslint --fix`
+		// left behind as a cache artifact.
 		"lint": {
-			"dependsOn": ["^lint"]
+			"dependsOn": ["^lint"],
+			"outputs": []
 		},
 		"lint:fix": {
 			"dependsOn": ["^lint:fix"],
 			"cache": false
 		},
 		"typecheck": {
-			"dependsOn": ["^typecheck"]
+			"dependsOn": ["^typecheck"],
+			"outputs": []
 		},
 		"clean": {
 			"cache": false
