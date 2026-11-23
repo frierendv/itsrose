@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 ARG NODE_IMAGE=node:24-trixie-slim
-ARG DSH_VERSION=0.2.2-rc.2
+ARG DSH_VERSION=0.2.3-alpha.2
 ARG PNPM_VERSION=11.20.0
 # bubblewrap is pinned to bookworm's build; see the runtime stage for why.
 ARG BWRAP_VERSION=0.8.0-2+deb12u1
