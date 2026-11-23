@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-ARG NODE_IMAGE=node:24-trixie-slim
+ARG NODE_IMAGE=node:24.22.3-trixie-slim
 ARG DSH_VERSION=0.2.3-alpha.2
 ARG PNPM_VERSION=11.20.0
 # bubblewrap is pinned to bookworm's build; see the runtime stage for why.
@@ -25,7 +25,8 @@ ARG DOCKERFMT_VERSION
 ARG SHELLCHECK_VERSION
 ARG CADDY_VERSION
 
-RUN apt-get update \
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
     && apt-get install --yes --no-install-recommends ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -71,7 +72,7 @@ RUN set -eu; \
 # ==============================================================================
 # Stage 2: dsh-builder
 # Install build-essential, compile native modules cleanly, install DSH + pnpm,
-# pre-install plugins, deduplicate, and prune caches
+# pre-install official/compatible plugins, deduplicate, and prune caches
 # ==============================================================================
 FROM ${NODE_IMAGE} AS dsh-builder
 
@@ -94,7 +95,8 @@ ENV HOME=/home/node \
     XDG_CACHE_HOME=/home/node/.dsh/.cache \
     PATH=/usr/local/bin:${PATH}
 
-RUN apt-get update \
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
     && apt-get install --yes --no-install-recommends \
         ca-certificates \
         curl \
@@ -117,7 +119,6 @@ RUN mkdir -p "$DSH_HOME" \
 USER node
 RUN dsh plugin --profile web add \
     dshmarket \
-    dsh-better-sidebar \
     dsh-context \
     @michengai/dsh-skills-manager \
     dsh-mcp-connector \
@@ -131,7 +132,7 @@ RUN curl -fsSL "https://raw.githubusercontent.com/cli/cli/refs/heads/trunk/skill
 
 # ==============================================================================
 # Stage 3: runtime
-# Lean final image with runtime packages, CLI tools, DSH binaries & profiles
+# Hardened runtime image with runtime packages, CLI tools, DSH binaries & profiles
 # ==============================================================================
 FROM ${NODE_IMAGE} AS runtime
 
@@ -159,17 +160,12 @@ ARG CADDY_VERSION
 # Bookworm's 0.8.0 resolves paths with plain mount(2) and works on such
 # kernels. Its dependencies (libc6 >= 2.34, libcap2 >= 2.10, libselinux1 >=
 # 3.1~) are all satisfied by trixie, so no suite mixing is involved.
-#
-# The sandbox cannot be probed functionally here: bwrap needs an unprivileged
-# user namespace, and Docker's default build-time seccomp profile denies
-# clone(CLONE_NEWUSER) without CAP_SYS_ADMIN ("Creating new namespace failed:
-# Operation not permitted"). The runtime container opts out with
-# seccomp=unconfined/systempaths=unconfined, so entrypoint.sh probes the
-# sandbox at startup with DSH's real profile and reports the result.
-RUN apt-get update \
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
     && apt-get install --yes --no-install-recommends \
         ca-certificates \
         curl \
+        file \
         git \
         procps \
         python3 \
@@ -182,7 +178,9 @@ RUN apt-get update \
         less \
         openssh-client \
         tini \
+        unzip \
         wget \
+        zip \
     && curl -fsSL -o /tmp/bubblewrap.deb \
         "https://deb.debian.org/debian/pool/main/b/bubblewrap/bubblewrap_${BWRAP_VERSION}_$(dpkg --print-architecture).deb" \
     && dpkg -i /tmp/bubblewrap.deb \
@@ -198,6 +196,9 @@ COPY --from=tools-downloader \
 # Copy entrypoint script
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 
+# Copy bwrap persistent TMPDIR profile
+COPY --chmod=0644 config/bwrap-bash-env /opt/deepseek-harness/bwrap-bash-env
+
 # Copy global node modules from dsh-builder
 COPY --from=dsh-builder /usr/local/lib/node_modules/@deepseek-ai /usr/local/lib/node_modules/@deepseek-ai
 COPY --from=dsh-builder /usr/local/lib/node_modules/pnpm /usr/local/lib/node_modules/pnpm
@@ -208,15 +209,14 @@ RUN ln -s ../lib/node_modules/@deepseek-ai/dsh/lib/bin.js /usr/local/bin/dsh \
     && ln -s ../lib/node_modules/pnpm/bin/pnpx.mjs /usr/local/bin/pnpx
 
 # Runtime environment configuration:
-# HOME: Explicitly declared non-root user home directory
+# HOME: /workspace ensures UI folder creation and file views anchor in the mount
 # DSH_HOME: DSH data directory containing profiles, configuration, and plugins
 # DSH_WORKSPACE: Working directory for DSH projects
 # GATEWAY_PORT: Public port for Caddy reverse proxy
 # DSH_INTERNAL_PORT: Loopback port for DSH web server (127.0.0.1:3080)
 # DSH_TELEMETRY_DISABLED: Disables telemetry reporting
-# NPM_CONFIG_* / PNPM_CONFIG_* / PNPM_* / XDG_CACHE_HOME: Direct package manager caches and stores into DSH_HOME and disable update checks
-# PATH: Ensures /usr/local/bin and pnpm binaries are accessible
-ENV HOME=/home/node \
+# BASH_ENV: Points TMPDIR at <workspace>/.tmp so scratch files survive across tool calls
+ENV HOME=/workspace \
     DSH_HOME=/home/node/.dsh \
     DSH_WORKSPACE=/workspace \
     GATEWAY_PORT=8080 \
@@ -230,20 +230,21 @@ ENV HOME=/home/node \
     PNPM_HOME=/home/node/.dsh/.local/share/pnpm \
     PNPM_STORE_DIR=/home/node/.dsh/.local/share/pnpm/store \
     XDG_CACHE_HOME=/home/node/.dsh/.cache \
-    PATH=/usr/local/bin:/home/node/.dsh/.local/share/pnpm:${PATH}
+    PATH=/usr/local/bin:/home/node/.dsh/.local/share/pnpm:${PATH} \
+    BASH_ENV=/opt/deepseek-harness/bwrap-bash-env
 
 # Create runtime directory structure and configure permissions
-RUN mkdir -p /etc/caddy /workspace \
+RUN mkdir -p /etc/caddy /workspace /home/node/.dsh \
     /home/node/.local/share/caddy /home/node/.config/caddy \
     && chown -R node:node /workspace /home/node /opt/deepseek-harness
 
 # Copy Caddyfile
 COPY config/Caddyfile /etc/caddy/Caddyfile
 # Copy dsh-plugin-wallpaper-engine preset
-COPY --chown=node:node config/dsh-wallpaper-engine "${HOME}/.dsh-wallpaper-engine"
+COPY --chown=node:node config/dsh-wallpaper-engine /home/node/.dsh-wallpaper-engine
 
 # Copy pre-configured DSH home directory (.dsh with profiles and presets)
-# Named volume 'dsh-home' will be seeded from /home/node/.dsh on first container startup
+# Named volume 'dsh-data' will be seeded from /home/node/.dsh on first container startup
 COPY --from=dsh-builder --chown=node:node /home/node/.dsh /home/node/.dsh
 
 # Verify installations

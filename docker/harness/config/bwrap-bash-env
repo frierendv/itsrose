@@ -1,0 +1,57 @@
+# shellcheck shell=bash
+# Persistent per-workspace TMPDIR for the agent's shell, sourced through
+# BASH_ENV before every dsh tool call (`bash -c`, confined when a sandbox
+# backend is available).
+#
+# The bwrap profile gives each tool call a fresh, empty `--tmpfs /tmp` and
+# binds only the session workspace read-write, so a scratch file written to
+# /tmp is gone by the next call. Point TMPDIR at <workspace>/.tmp instead: it
+# lives on the workspace mount, so it survives between calls.
+
+{
+	__dsh_tmp_flags=$-
+	set +x
+} 2>/dev/null
+
+if ! { [ -d "${TMPDIR:-}" ] && [ -w "${TMPDIR:-}" ]; }; then
+	__dsh_tmp_root=${HOME:-}
+	__dsh_tmp_root=${__dsh_tmp_root%/}
+	case $__dsh_tmp_root in
+	*/./* | */../* | */. | */.. | *//*) ;;
+	/?*)
+		case $PWD in
+		*/./* | */../* | */. | */.. | *//*) ;;
+		"$__dsh_tmp_root" | "$__dsh_tmp_root"/?*)
+			__dsh_tmp_dir=$__dsh_tmp_root
+			__dsh_tmp_rest=${PWD#"$__dsh_tmp_root"}
+			__dsh_tmp_rest=${__dsh_tmp_rest#/}
+			while :; do
+				if [ -w "$__dsh_tmp_dir" ] &&
+					{ [ -d "$__dsh_tmp_dir/.tmp" ] || mkdir -m 0700 "$__dsh_tmp_dir/.tmp" 2>/dev/null || [ -d "$__dsh_tmp_dir/.tmp" ]; } &&
+					[ -w "$__dsh_tmp_dir/.tmp" ] &&
+					__dsh_tmp_probe=$(command mktemp -- "$__dsh_tmp_dir/.tmp/.dsh-probe.XXXXXXXXXX" 2>/dev/null) &&
+					command rm -f -- "$__dsh_tmp_probe" 2>/dev/null; then
+					export TMPDIR="$__dsh_tmp_dir/.tmp"
+					break
+				fi
+				[ -n "$__dsh_tmp_rest" ] || break
+				__dsh_tmp_dir=$__dsh_tmp_dir/${__dsh_tmp_rest%%/*}
+				case $__dsh_tmp_rest in
+				*/*) __dsh_tmp_rest=${__dsh_tmp_rest#*/} ;;
+				*) __dsh_tmp_rest= ;;
+				esac
+			done
+			;;
+		esac
+		;;
+	esac
+fi
+
+unset __dsh_tmp_root __dsh_tmp_rest __dsh_tmp_dir __dsh_tmp_probe
+case $__dsh_tmp_flags in
+*x*)
+	unset __dsh_tmp_flags
+	set -x
+	;;
+*) unset __dsh_tmp_flags ;;
+esac

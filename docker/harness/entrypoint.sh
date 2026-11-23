@@ -32,6 +32,7 @@ export PNPM_CONFIG_UPDATE_NOTIFIER="${PNPM_CONFIG_UPDATE_NOTIFIER:-false}"
 
 # -- Runtime Directories & Workspace Setup --------------------------
 mkdir -p "$DSH_HOME" "$DSH_WORKSPACE"
+cd "$DSH_WORKSPACE"
 
 # -- CLI Command Bypass ---------------------------------------------
 # If custom arguments are provided (not web flags), execute them directly.
