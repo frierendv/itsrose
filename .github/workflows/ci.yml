@@ -26,6 +26,90 @@ env:
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
+  # Decide whether the change can affect the gate at all. A pull request
+  # that only touches prose — `README.md`, `.wiki/`, `AGENTS.md` — cannot
+  # fail a check that reads source, so the three heavy jobs skip it.
+  #
+  # This runs on every event and never skips. The branch ruleset requires
+  # one status context, `CI`, so a workflow-level `paths:` filter would be
+  # the wrong tool: the workflow would not start, `CI` would never post,
+  # and the required check would sit pending until the pull request is
+  # abandoned. The skip has to happen inside a workflow that always runs.
+  changes:
+    name: Changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.decide.outputs.code }}
+    steps:
+      # `paths-filter` needs the diff behind a pull request, which a
+      # shallow clone does not carry. Everything else stays at depth 1.
+      - name: Checkout branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && 0 || 1 }}
+
+      # `docs` is an allow-list of what cannot affect the gate. Anything
+      # this list has never heard of counts as code, so an unrecognised
+      # file runs the gate rather than quietly skipping it — the list is
+      # deliberately the smaller, safer half of the problem.
+      #
+      # `.mdx` is *not* listed: `apps/web/app/(legal)/*` import the files
+      # in `apps/web/mdx/` directly, so a broken `.mdx` breaks the build.
+      # Only `.md` is inert — nothing compiles it, and the only check that
+      # reads it is `prettier --check`, which a prose-only change can still
+      # fail on its own.
+      #
+      # The predicate is `some` (the default), which sets the output when
+      # *any* file matches. That is not the question here, so the step
+      # below compares the matched count against the total instead.
+      - name: List changed files
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          list-files: "json"
+          filters: |
+            docs:
+              - "**/*.md"
+              - ".wiki/**"
+              - ".github/PULL_REQUEST_TEMPLATE.md"
+
+      - name: Decide whether the gate can be skipped
+        id: decide
+        env:
+          DOCS: ${{ steps.filter.outputs.docs }}
+          DOCS_FILES: ${{ steps.filter.outputs.docs_files }}
+          # `paths-filter` reports only the files it matched, so the total
+          # comes from git. On a pull request the base is the merge target,
+          # which is what the ruleset evaluates.
+          BASE: ${{ github.base_ref }}
+        run: |
+          # A skipped step defaults to running the gate. Every path that
+          # is not certain the change is prose must reach `code=true`:
+          # a missed check is invisible, a redundant one is not.
+          code=true
+          reason=""
+
+          if [ "${DOCS}" != "true" ]; then
+            reason="no file matched the prose allow-list"
+          elif ! total=$(git diff --name-only "origin/${BASE}...HEAD" | wc -l); then
+            reason="could not compute the changed-file count"
+          elif ! docs=$(printf '%s' "${DOCS_FILES}" | jq 'length' 2>/dev/null); then
+            reason="could not read the matched-file list"
+          elif [ "${total}" -gt 0 ] && [ "${total}" -eq "${docs}" ]; then
+            code=false
+            reason="all ${total} changed file(s) are prose"
+          else
+            reason="${total} total, ${docs} prose, the rest is source"
+          fi
+
+          echo "code=${code}" >> "$GITHUB_OUTPUT"
+          if [ "${code}" = "true" ]; then
+            echo "::notice::Running the gate: ${reason}"
+          else
+            echo "::notice::Skipping the gate: ${reason}"
+          fi
+
   # The gate. Every check runs on its own runner: a red job names the
   # failing check, one check never hides another, and re-running only the
   # failures (`gh run rerun --failed`) does not repeat the ones that passed.
@@ -36,6 +120,8 @@ jobs:
   # instead of running eslint or tsc again.
   quality:
     name: Quality / ${{ matrix.check }}
+    needs: [changes]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -70,6 +156,8 @@ jobs:
   # that would first have to download a multi-gigabyte artifact of output.
   test:
     name: Test / packages
+    needs: [changes]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -103,6 +191,8 @@ jobs:
   # their sum.
   build:
     name: Build / packages
+    needs: [changes]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -145,13 +235,23 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Check the gate
+        env:
+          QUALITY: ${{ needs.quality.result }}
+          TEST: ${{ needs.test.result }}
+          BUILD: ${{ needs.build.result }}
         run: |
-          echo "quality:   ${{ needs.quality.result }}"
-          echo "test:      ${{ needs.test.result }}"
-          echo "build:     ${{ needs.build.result }}"
-          if [ "${{ needs.quality.result }}" != "success" ] \
-            || [ "${{ needs.test.result }}" != "success" ] \
-            || [ "${{ needs.build.result }}" != "success" ]; then
-            echo "::error::The gate is not green. See the job that failed above."
-            exit 1
-          fi
+          echo "quality: ${QUALITY}"
+          echo "test:    ${TEST}"
+          echo "build:   ${BUILD}"
+          # A job skipped on purpose reports `skipped`, which counts as a
+          # pass. The prose-only path is the only thing that produces it:
+          # the three jobs share one `if`, and a failed `changes` job fails
+          # this one through its own result rather than reaching there.
+          # `cancelled` is deliberately not accepted.
+          for result in "${QUALITY}" "${TEST}" "${BUILD}"; do
+            if [ "${result}" != "success" ] && [ "${result}" != "skipped" ]; then
+              echo "::error::The gate is not green. See the job that failed above."
+              exit 1
+            fi
+          done
+          echo "The gate is green."
