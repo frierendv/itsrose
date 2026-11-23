@@ -119,6 +119,7 @@ RUN dsh plugin --profile web add \
     dshmarket \
     dsh-better-sidebar \
     dsh-context \
+    billion-context \
     @michengai/dsh-skills-manager \
     dsh-mcp-connector \
     dsh-plugin-wallpaper-engine
