@@ -126,3 +126,32 @@ jobs:
 
       - name: Build packages
         run: pnpm build
+
+  # The branch ruleset requires exactly one status context, `CI`, and it
+  # cannot express "all six jobs". This job is that single context: it does
+  # no work, and it fails when any job above it fails. Renaming the jobs
+  # above (`Quality / …`, `Test / …`, `Build / …`) is how the failing check
+  # gets a useful name in the PR; this job is how the gate stays mergeable.
+  #
+  # `if: always()` is deliberate. Without it a skipped dependency would
+  # skip this job too, and the required check would sit pending forever
+  # instead of going red — the same silent-block failure this job exists
+  # to prevent.
+  ci:
+    name: CI
+    if: always()
+    needs: [quality, test, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check the gate
+        run: |
+          echo "quality:   ${{ needs.quality.result }}"
+          echo "test:      ${{ needs.test.result }}"
+          echo "build:     ${{ needs.build.result }}"
+          if [ "${{ needs.quality.result }}" != "success" ] \
+            || [ "${{ needs.test.result }}" != "success" ] \
+            || [ "${{ needs.build.result }}" != "success" ]; then
+            echo "::error::The gate is not green. See the job that failed above."
+            exit 1
+          fi
