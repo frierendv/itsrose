@@ -42,12 +42,13 @@ jobs:
     outputs:
       code: ${{ steps.decide.outputs.code }}
     steps:
-      # `paths-filter` needs the diff behind a pull request, which a
-      # shallow clone does not carry. Everything else stays at depth 1.
+      # `paths-filter` reads the changed-file list from the pull-request API
+      # when a token is available, so this job does not need history and
+      # stays at depth 1 like the others.
       - name: Checkout branch
         uses: actions/checkout@v6
         with:
-          fetch-depth: ${{ github.event_name == 'pull_request' && 0 || 1 }}
+          fetch-depth: 1
 
       # `docs` is an allow-list of what cannot affect the gate. Anything
       # this list has never heard of counts as code, so an unrecognised
@@ -77,12 +78,11 @@ jobs:
       - name: Decide whether the gate can be skipped
         id: decide
         env:
-          DOCS: ${{ steps.filter.outputs.docs }}
           DOCS_FILES: ${{ steps.filter.outputs.docs_files }}
-          # `paths-filter` reports only the files it matched, so the total
-          # comes from git. On a pull request the base is the merge target,
-          # which is what the ruleset evaluates.
-          BASE: ${{ github.base_ref }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          EVENT: ${{ github.event_name }}
         run: |
           # A skipped step defaults to running the gate. Every path that
           # is not certain the change is prose must reach `code=true`:
@@ -90,12 +90,22 @@ jobs:
           code=true
           reason=""
 
-          if [ "${DOCS}" != "true" ]; then
-            reason="no file matched the prose allow-list"
-          elif ! total=$(git diff --name-only "origin/${BASE}...HEAD" | wc -l); then
-            reason="could not compute the changed-file count"
-          elif ! docs=$(printf '%s' "${DOCS_FILES}" | jq 'length' 2>/dev/null); then
+          # The total comes from the same API `paths-filter` used, not from
+          # `git diff`. On a `pull_request` event `actions/checkout` fetches
+          # one ref and leaves no `origin/<base>` remote-tracking branch, so
+          # a diff against the base fails with "unknown revision" — and a
+          # failed diff must not be read as "nothing changed".
+          if ! docs=$(printf '%s' "${DOCS_FILES}" | jq 'length' 2>/dev/null); then
             reason="could not read the matched-file list"
+          elif [ "${EVENT}" != "pull_request" ]; then
+            # A push has no merge target to diff against, and it only runs
+            # on `main`, where the gate is not optional.
+            reason="not a pull request"
+          elif ! changed=$(gh api --paginate \
+            "repos/${REPO}/pulls/${PR}/files?per_page=100" --jq '.[].filename'); then
+            reason="could not list the changed files"
+          elif ! total=$(printf '%s' "${changed}" | grep -c . || true); then
+            reason="could not count the changed files"
           elif [ "${total}" -gt 0 ] && [ "${total}" -eq "${docs}" ]; then
             code=false
             reason="all ${total} changed file(s) are prose"
